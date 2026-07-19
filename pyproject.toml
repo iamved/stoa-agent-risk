@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stoa-agent-risk"
-version = "0.1.0"
+version = "0.1.1"
 description = "Local-first AI agent inventory and risk scanner: finds agent candidates with evidence, maps capabilities and integrations, and gates newly introduced high-confidence critical risks."
 readme = "README.md"
 license = { file = "LICENSE" }

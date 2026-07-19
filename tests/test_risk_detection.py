@@ -201,6 +201,19 @@ def test_multiline_timeout_not_flagged():
     assert by_rule(scan(content), "NET002") == []
 
 
+def test_multiline_timeout_on_fifth_line_not_flagged():
+    content = (
+        "requests.post(\n"
+        '    "https://api.corp.com/v1",\n'
+        "    json=data,\n"
+        "    headers=headers,\n"
+        "    auth=(user, token),\n"
+        "    timeout=10,\n"
+        ")\n"
+    )
+    assert by_rule(scan(content), "NET002") == []
+
+
 # --- CTRL rules -------------------------------------------------------------
 
 def test_control_prompts_emitted_once_per_category():

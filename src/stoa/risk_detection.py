@@ -204,8 +204,9 @@ def _detect_missing_timeout(
     """NET002: no request timeout observed at this call site (review prompt)."""
     if not OUTGOING_REQUEST_CALL.search(raw_line):
         return
-    # Examine the call line plus a small window for a multi-line timeout kwarg.
-    window = "\n".join(lines[number - 1 : number + 3])
+    # Examine the call line plus a window for a multi-line timeout kwarg;
+    # eight lines covers realistic keyword-argument-per-line call styles.
+    window = "\n".join(lines[number - 1 : number + 8])
     if TIMEOUT_ARG.search(window):
         return
     builder.add(

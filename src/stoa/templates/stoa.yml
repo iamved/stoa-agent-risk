@@ -28,7 +28,7 @@ jobs:
       # modified scanner to bypass enforcement. Protect this workflow file,
       # stoa.toml, and .stoaignore with CODEOWNERS and branch protection.
       - name: Install Stoa
-        run: python -m pip install stoa-agent-risk==0.1.0
+        run: python -m pip install stoa-agent-risk==0.1.1
 
       - name: Run Stoa
         id: scan

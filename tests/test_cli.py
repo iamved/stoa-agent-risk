@@ -9,6 +9,7 @@ import pytest
 
 from conftest import EXAMPLE_REPO, fake_openai_key
 
+from stoa import __version__
 from stoa.cli import main
 
 
@@ -16,7 +17,7 @@ def test_version(capsys):
     with pytest.raises(SystemExit) as excinfo:
         main(["--version"])
     assert excinfo.value.code == 0
-    assert "stoa 0.1.0" in capsys.readouterr().out
+    assert f"stoa {__version__}" in capsys.readouterr().out
 
 
 def test_scan_report_only_exit_zero(tmp_path, monkeypatch, capsys):
@@ -117,7 +118,7 @@ def test_init_github_creates_files(tmp_path, monkeypatch, capsys):
     assert (tmp_path / "stoa.toml").is_file()
     assert out.count("created:") == 3
     workflow = (tmp_path / ".github" / "workflows" / "stoa.yml").read_text(encoding="utf-8")
-    assert "stoa-agent-risk==0.1.0" in workflow
+    assert f"stoa-agent-risk=={__version__}" in workflow
     assert "fetch-depth: 0" in workflow
 
 
