@@ -35,7 +35,7 @@ dev = ["pytest>=7.4"]
 stoa = "stoa.cli:main"
 
 [project.urls]
-Homepage = "https://stoa-features.vercel.app"
+Homepage = "https://stoa-agent-risk.dev"
 Repository = "https://github.com/iamved/stoa-agent-risk"
 Issues = "https://github.com/iamved/stoa-agent-risk/issues"
 Documentation = "https://github.com/iamved/stoa-agent-risk#readme"
