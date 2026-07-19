@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+dist/
+build/
+stoa-report.html
+stoa-registry.json
+stoa-summary.md
+site/.vercel/
+.DS_Store

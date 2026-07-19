@@ -1,0 +1,78 @@
+name: Stoa Agent Risk Scan
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  stoa:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      # The scanner package is pinned so a pull request cannot swap in a
+      # modified scanner to bypass enforcement. Protect this workflow file,
+      # stoa.toml, and .stoaignore with CODEOWNERS and branch protection.
+      - name: Install Stoa
+        run: python -m pip install stoa-agent-risk==0.1.0
+
+      - name: Run Stoa
+        id: scan
+        shell: bash
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref || github.event.repository.default_branch }}
+        run: |
+          set +e
+
+          stoa scan . \
+            --base "origin/$BASE_REF" \
+            --json stoa-registry.json \
+            --html stoa-report.html \
+            --github-annotations \
+            --summary-file stoa-summary.md \
+            --fail-on-new critical
+
+          exit_code=$?
+          echo "exit_code=$exit_code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload Stoa report
+        id: report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: stoa-agent-risk-report
+          path: |
+            stoa-report.html
+            stoa-registry.json
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Publish Stoa summary
+        if: always()
+        shell: bash
+        env:
+          ARTIFACT_URL: ${{ steps.report.outputs.artifact-url }}
+        run: |
+          cat stoa-summary.md >> "$GITHUB_STEP_SUMMARY"
+          printf '\n[Download full Stoa report](%s)\n' \
+            "$ARTIFACT_URL" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Enforce Stoa gate
+        if: always()
+        shell: bash
+        run: exit "${{ steps.scan.outputs.exit_code }}"

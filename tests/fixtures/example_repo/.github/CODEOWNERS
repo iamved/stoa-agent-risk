@@ -1,0 +1,3 @@
+# Example CODEOWNERS for the fixture repository.
+* @platform-team
+src/refund_agent.py @payments-team

@@ -1,0 +1,23 @@
+# Example Stoa configuration.
+# Gate PRs on newly introduced criticals, keep full-repo scanning report-only.
+
+fail_on = "none"
+fail_on_new = "critical"
+
+max_file_bytes = 1000000
+follow_symlinks = false
+respect_gitignore = true
+
+ignore_paths = [
+  "tests/snapshots/**",
+  "examples/generated/**",
+]
+
+[severity]
+NET001 = "info"
+REL001 = "low"
+
+[rules]
+CTRL001 = true
+CTRL002 = true
+CTRL003 = false

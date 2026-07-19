@@ -1,0 +1,8 @@
+# Paths excluded from Stoa scanning (gitignore syntax).
+# Prefer targeted inline suppressions over broad path ignores so that
+# secret scanning still covers tests and fixtures.
+#
+# Examples:
+# tests/snapshots/**
+# examples/generated/**
+# vendor/**

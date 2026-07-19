@@ -1,0 +1,41 @@
+# Stoa configuration. All settings shown are the defaults.
+
+# Gate on all findings at or above this severity ("none", "high", "critical").
+fail_on = "none"
+
+# Gate on newly introduced findings when scanning with --base.
+fail_on_new = "critical"
+
+max_file_bytes = 1000000
+follow_symlinks = false
+respect_gitignore = true
+
+include_extensions = [
+  ".py",
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".cjs",
+  ".ts",
+  ".tsx",
+]
+
+# Additional ignore patterns (gitignore syntax), merged with the defaults.
+ignore_paths = [
+]
+
+# Override default severities per rule, e.g.:
+# [severity]
+# NET001 = "info"
+# REL001 = "low"
+
+[rules]
+SEC001 = true
+SEC002 = true
+SEC003 = true
+REL001 = true
+NET001 = true
+NET002 = true
+CTRL001 = true
+CTRL002 = true
+CTRL003 = true
