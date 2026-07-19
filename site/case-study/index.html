@@ -156,7 +156,7 @@ footer .colophon span { color: var(--accent); }
     <a href="/">← Stoa</a>
     <div class="links">
       <a href="/demo-report">Live scan report</a>
-      <a href="https://github.com/iamved/stoa-agent-risk">GitHub</a>
+      <a href="https://pypi.org/project/stoa-agent-risk/">PyPI</a>
     </div>
   </div>
 </nav>
@@ -165,7 +165,7 @@ footer .colophon span { color: var(--accent); }
   <div class="wrap">
     <span class="eyebrow">Stoa · case study</span>
     <h1 class="display">Nine agents. Three criticals. One scan.</h1>
-    <p class="lede">We built a realistic multi-agent customer-support pipeline — a LangGraph supervisor routing to five specialist agents across four frameworks, plus a TypeScript chat widget — planted the kinds of risks that appear in real codebases, and pointed the published <strong>stoa</strong> package at it. This is what came back, finding by finding. <strong>Every file is public</strong>, so you can reproduce the whole thing in two commands.</p>
+    <p class="lede">We built a realistic multi-agent customer-support pipeline — a LangGraph supervisor routing to five specialist agents across four frameworks, plus a TypeScript chat widget — planted the kinds of risks that appear in real codebases, and pointed the published <strong>stoa</strong> package at it. This is what came back, finding by finding.</p>
   </div>
 </header>
 
@@ -306,7 +306,7 @@ shared: tools/database.py <span class="d">(Postgres+Redis)</span> · tools/diagn
     </div>
     <div class="callout">
       <h3>Found: one false positive. Shipped: 0.1.1, same day.</h3>
-      <p>The stress test flagged the escalation agent’s Zendesk call as missing a timeout — but the timeout was there, on the <strong>fifth line</strong> of the call, just past Stoa’s 4-line look-ahead. The window is now 8 lines, a regression test pins it, and <a href="https://github.com/iamved/stoa-agent-risk/releases/tag/v0.1.1">v0.1.1</a> went from tag to PyPI in 44 seconds through the trusted-publishing pipeline.</p>
+      <p>The stress test flagged the escalation agent’s Zendesk call as missing a timeout — but the timeout was there, on the <strong>fifth line</strong> of the call, just past Stoa’s 4-line look-ahead. The window is now 8 lines, a regression test pins it, and v0.1.1 shipped the same day.</p>
       <p>That’s what this case study is for: the demo stress-tests the scanner as much as the scanner audits the demo.</p>
     </div>
   </div>
@@ -316,18 +316,16 @@ shared: tools/database.py <span class="d">(Postgres+Redis)</span> · tools/diagn
   <div class="wrap">
     <div class="section-head">
       <div class="frieze" aria-hidden="true"></div>
-      <h2 class="display">Reproduce it</h2>
+      <h2 class="display">Run it on your own pipeline</h2>
     </div>
     <div class="term">
       <span class="term-label">Two commands</span>
 <pre><span class="p">$</span> pipx install stoa-agent-risk
-<span class="p">$</span> git clone https://github.com/iamved/stoa-agent-risk <span class="d">&amp;&amp;</span> cd stoa-agent-risk
-<span class="p">$</span> stoa scan examples/support-desk <span class="d">&amp;&amp;</span> open stoa-report.html</pre>
+<span class="p">$</span> stoa scan . <span class="d">&amp;&amp;</span> open stoa-report.html</pre>
     </div>
     <p class="prose" style="margin-top: 16px; text-align: center;">
-      Read the full finding-by-finding narrative in
-      <a href="https://github.com/iamved/stoa-agent-risk/blob/main/examples/support-desk/RISK_MAP.md">RISK_MAP.md</a>,
-      or open the <a href="/demo-report">live scan report</a>.
+      Your report will look exactly like the <a href="/demo-report">live scan report</a> —
+      but for your agents.
     </p>
   </div>
 </section>
