@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Stoa is a local-first static scanner that inventories AI agents with evidence, maps capabilities and integrations, and gates newly introduced high-confidence critical risks.">
+<meta name="description" content="Case study: Stoa scans a realistic multi-agent customer-support pipeline — 9 agent candidates, 3 critical findings, and a finding-by-finding risk map.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#127963;</text></svg>">
-<title>Stoa — Local-first AI agent inventory & risk scanner</title>
+<title>Case study: scanning a multi-agent support desk — Stoa</title>
 <style>
 @font-face {
   font-family: "Marcellus";
@@ -30,366 +30,142 @@
 }
 
 :root {
-  --bg: #F2F3EF;
-  --raise: #FAFBF8;
-  --ink: #22282A;
-  --mute: #5B6662;
-  --line: #DBE0DA;
-  --accent: #2F7A6C;
-  --accent-soft: #2F7A6C22;
-  --term-bg: #14191B;
-  --term-ink: #D6DDD8;
-  --term-mute: #7C8A84;
-  --term-accent: #6FBFAD;
-  --crit: #A93226;
-  --high: #96560A;
-  --info: #2E5E80;
-  --ok: #2F7A6C;
-  --shadow: 0 1px 2px rgba(20, 25, 27, 0.05), 0 8px 24px -12px rgba(20, 25, 27, 0.12);
+  --bg: #F2F3EF; --raise: #FAFBF8; --ink: #22282A; --mute: #5B6662;
+  --line: #DBE0DA; --accent: #2F7A6C; --accent-soft: #2F7A6C22;
+  --term-bg: #14191B; --term-ink: #D6DDD8; --term-mute: #7C8A84; --term-accent: #6FBFAD;
+  --crit: #A93226; --high: #96560A; --info: #2E5E80; --ok: #2F7A6C;
+  --shadow: 0 1px 2px rgba(20,25,27,.05), 0 8px 24px -12px rgba(20,25,27,.12);
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #131719;
-    --raise: #1A2023;
-    --ink: #E0E6E1;
-    --mute: #91A099;
-    --line: #29322F;
-    --accent: #64B3A1;
-    --accent-soft: #64B3A126;
-    --term-bg: #0E1214;
-    --term-ink: #D6DDD8;
-    --term-mute: #75837D;
-    --term-accent: #6FBFAD;
-    --crit: #E4756A;
-    --high: #D9973F;
-    --info: #7FAECC;
-    --ok: #64B3A1;
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 28px -14px rgba(0, 0, 0, 0.5);
+    --bg: #131719; --raise: #1A2023; --ink: #E0E6E1; --mute: #91A099;
+    --line: #29322F; --accent: #64B3A1; --accent-soft: #64B3A126;
+    --term-bg: #0E1214; --term-ink: #D6DDD8; --term-mute: #75837D; --term-accent: #6FBFAD;
+    --crit: #E4756A; --high: #D9973F; --info: #7FAECC; --ok: #64B3A1;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 28px -14px rgba(0,0,0,.5);
     color-scheme: dark;
   }
 }
 :root[data-theme="light"] {
-  --bg: #F2F3EF;
-  --raise: #FAFBF8;
-  --ink: #22282A;
-  --mute: #5B6662;
-  --line: #DBE0DA;
-  --accent: #2F7A6C;
-  --accent-soft: #2F7A6C22;
-  --term-bg: #14191B;
-  --term-ink: #D6DDD8;
-  --term-mute: #7C8A84;
-  --term-accent: #6FBFAD;
-  --crit: #A93226;
-  --high: #96560A;
-  --info: #2E5E80;
-  --ok: #2F7A6C;
-  --shadow: 0 1px 2px rgba(20, 25, 27, 0.05), 0 8px 24px -12px rgba(20, 25, 27, 0.12);
+  --bg: #F2F3EF; --raise: #FAFBF8; --ink: #22282A; --mute: #5B6662;
+  --line: #DBE0DA; --accent: #2F7A6C; --accent-soft: #2F7A6C22;
+  --term-bg: #14191B; --term-ink: #D6DDD8; --term-mute: #7C8A84; --term-accent: #6FBFAD;
+  --crit: #A93226; --high: #96560A; --info: #2E5E80; --ok: #2F7A6C;
+  --shadow: 0 1px 2px rgba(20,25,27,.05), 0 8px 24px -12px rgba(20,25,27,.12);
   color-scheme: light;
 }
 :root[data-theme="dark"] {
-  --bg: #131719;
-  --raise: #1A2023;
-  --ink: #E0E6E1;
-  --mute: #91A099;
-  --line: #29322F;
-  --accent: #64B3A1;
-  --accent-soft: #64B3A126;
-  --term-bg: #0E1214;
-  --term-ink: #D6DDD8;
-  --term-mute: #75837D;
-  --term-accent: #6FBFAD;
-  --crit: #E4756A;
-  --high: #D9973F;
-  --info: #7FAECC;
-  --ok: #64B3A1;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 28px -14px rgba(0, 0, 0, 0.5);
+  --bg: #131719; --raise: #1A2023; --ink: #E0E6E1; --mute: #91A099;
+  --line: #29322F; --accent: #64B3A1; --accent-soft: #64B3A126;
+  --term-bg: #0E1214; --term-ink: #D6DDD8; --term-mute: #75837D; --term-accent: #6FBFAD;
+  --crit: #E4756A; --high: #D9973F; --info: #7FAECC; --ok: #64B3A1;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 28px -14px rgba(0,0,0,.5);
   color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--ink);
+body { margin: 0; background: var(--bg); color: var(--ink);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  font-size: 15.5px;
-  line-height: 1.55;
-  -webkit-font-smoothing: antialiased;
-}
-.wrap { max-width: 1020px; margin: 0 auto; padding: 0 24px; }
+  font-size: 15.5px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 0 24px; }
+.display { font-family: "Marcellus", Georgia, serif; font-weight: 400; letter-spacing: .01em; text-wrap: balance; }
+.eyebrow { font-family: "Plex Mono", ui-monospace, monospace; font-size: 12px; font-weight: 500;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--accent); }
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+code.inline { font-family: "Plex Mono", ui-monospace, monospace; font-size: .88em;
+  background: var(--accent-soft); border-radius: 5px; padding: 1px 5px; }
 
-.display { font-family: "Marcellus", Georgia, serif; font-weight: 400; letter-spacing: 0.01em; text-wrap: balance; }
-.eyebrow {
-  font-family: "Plex Mono", ui-monospace, monospace;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
+.topbar { border-bottom: 1px solid var(--line); }
+.topbar .wrap { display: flex; justify-content: space-between; align-items: center; padding-top: 14px; padding-bottom: 14px; }
+.topbar a { text-decoration: none; font-weight: 600; font-size: 13.5px; }
+.topbar .links { display: flex; gap: 20px; }
 
-/* ---- hero ---------------------------------------------------------- */
-.hero { padding: 52px 0 40px; }
-.hero-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 44px; align-items: center; }
-@media (max-width: 800px) { .hero-grid { grid-template-columns: 1fr; gap: 28px; } }
-.hero h1 { font-size: clamp(32px, 4.6vw, 46px); line-height: 1.12; margin: 14px 0 14px; }
-.hero .lede { font-size: 16.5px; color: var(--mute); max-width: 34em; margin: 0 0 20px; }
+.hero { padding: 48px 0 36px; }
+.hero h1 { font-size: clamp(30px, 4.4vw, 44px); line-height: 1.12; margin: 14px 0; }
+.hero .lede { font-size: 16.5px; color: var(--mute); max-width: 42em; margin: 0; }
 .hero .lede strong { color: var(--ink); font-weight: 600; }
 
-.chips { display: flex; flex-wrap: wrap; gap: 7px; padding: 0; margin: 0; list-style: none; }
-.chips li {
-  font-family: "Plex Mono", ui-monospace, monospace;
-  font-size: 11.5px;
-  padding: 3px 11px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  color: var(--mute);
-  background: var(--raise);
-}
-.chips li::before { content: "· "; color: var(--accent); }
-.hero-links { display: flex; flex-wrap: wrap; gap: 20px; margin: 18px 0 0; font-size: 14px; }
-.hero-links a { font-weight: 600; text-decoration: none; border-bottom: 1px solid var(--accent); padding-bottom: 1px; }
-.hero-links a:first-child::after { content: " →"; }
-
-/* colonnade frieze */
-.frieze {
-  height: 16px;
-  width: 152px;
-  background:
-    linear-gradient(var(--accent) 0 2px, transparent 2px) top / 100% 100% no-repeat,
-    repeating-linear-gradient(90deg, var(--accent) 0 3px, transparent 3px 12px) 0 6px / 100% 10px no-repeat;
-  opacity: 0.55;
-}
-.section-head { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 0 0 26px; }
-.section-head h2 { font-size: clamp(24px, 3vw, 30px); margin: 0; }
+.frieze { height: 16px; width: 152px;
+  background: linear-gradient(var(--accent) 0 2px, transparent 2px) top/100% 100% no-repeat,
+    repeating-linear-gradient(90deg, var(--accent) 0 3px, transparent 3px 12px) 0 6px/100% 10px no-repeat;
+  opacity: .55; }
+.section-head { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 0 0 24px; }
+.section-head h2 { font-size: clamp(23px, 2.8vw, 29px); margin: 0; }
 .section-head p { color: var(--mute); max-width: 44em; margin: 0; font-size: 14.5px; }
-
-section.band { padding: 44px 0; }
+section.band { padding: 40px 0; }
 section.band + section.band, footer { border-top: 1px solid var(--line); }
 
-/* ---- terminal ------------------------------------------------------ */
-.term {
-  background: var(--term-bg);
-  color: var(--term-ink);
-  border-radius: 10px;
-  padding: 14px 18px;
-  font-family: "Plex Mono", ui-monospace, monospace;
-  font-size: 12.5px;
-  line-height: 1.7;
-  box-shadow: var(--shadow);
-  overflow-x: auto;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
+.term { background: var(--term-bg); color: var(--term-ink); border-radius: 10px; padding: 16px 20px;
+  font-family: "Plex Mono", ui-monospace, monospace; font-size: 12.5px; line-height: 1.65;
+  box-shadow: var(--shadow); overflow-x: auto; border: 1px solid rgba(255,255,255,.06); }
 .term .p { color: var(--term-accent); }
 .term .d { color: var(--term-mute); }
 .term .c { color: #E4756A; }
 .term .k { color: #D9B96A; }
 .term pre { margin: 0; white-space: pre; }
-.term-label {
-  font-family: "Plex Mono", ui-monospace, monospace;
-  font-size: 10.5px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--term-mute);
-  display: block;
-  margin-bottom: 8px;
-}
+.term-label { font-family: "Plex Mono", ui-monospace, monospace; font-size: 10.5px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--term-mute); display: block; margin-bottom: 8px; }
 
-/* ---- tiles --------------------------------------------------------- */
-.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-@media (max-width: 860px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 600px) { .tiles { grid-template-columns: 1fr; } }
-.tile {
-  background: var(--raise);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 18px 20px;
-  box-shadow: var(--shadow);
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-.tile h3 { font-family: "Marcellus", Georgia, serif; font-weight: 400; font-size: 18px; margin: 0; }
-.tile .tag {
-  font-family: "Plex Mono", ui-monospace, monospace;
-  font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-.tile p { margin: 0; color: var(--mute); font-size: 13.5px; }
-.tile p strong { color: var(--ink); font-weight: 600; }
+.stats { display: grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap: 12px; margin-bottom: 24px; }
+@media (max-width: 860px) { .stats { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+.stat { background: var(--raise); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; box-shadow: var(--shadow); }
+.stat .num { font-family: "Plex Mono", ui-monospace, monospace; font-size: 21px; font-weight: 500;
+  font-variant-numeric: tabular-nums; }
+.stat.bad .num { color: var(--crit); }
+.stat.good .num { color: var(--ok); }
+.stat .lbl { font-size: 11.5px; color: var(--mute); }
 
-code.inline { font-family: "Plex Mono", ui-monospace, monospace; font-size: 0.88em; background: var(--accent-soft); border-radius: 5px; padding: 1px 5px; }
-
-/* ---- rules table --------------------------------------------------- */
 .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--raise); box-shadow: var(--shadow); }
 table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
-th, td { text-align: left; padding: 9px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th, td { text-align: left; padding: 10px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
 tr:last-child td { border-bottom: none; }
-th {
-  font-family: "Plex Mono", ui-monospace, monospace;
-  font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--mute);
-}
-td.rule-id { font-family: "Plex Mono", ui-monospace, monospace; font-weight: 500; font-size: 12.5px; white-space: nowrap; }
-.sev {
-  display: inline-block;
-  font-family: "Plex Mono", ui-monospace, monospace;
-  font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 1px 8px;
-  border-radius: 999px;
-  border: 1px solid currentcolor;
-  white-space: nowrap;
-}
+th { font-family: "Plex Mono", ui-monospace, monospace; font-size: 10.5px; font-weight: 500;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+td.rule-id, td.loc { font-family: "Plex Mono", ui-monospace, monospace; font-size: 12.5px; white-space: nowrap; }
+.sev { display: inline-block; font-family: "Plex Mono", ui-monospace, monospace; font-size: 10.5px;
+  font-weight: 500; letter-spacing: .06em; text-transform: uppercase; padding: 1px 8px;
+  border-radius: 999px; border: 1px solid currentcolor; white-space: nowrap; }
 .sev-critical { color: var(--crit); }
 .sev-high { color: var(--high); }
 .sev-medium { color: var(--mute); }
 .sev-info { color: var(--info); }
-.gate-yes { color: var(--crit); font-weight: 600; white-space: nowrap; }
-.gate-no { color: var(--mute); white-space: nowrap; }
+.sev-ok { color: var(--ok); }
 
-/* exit codes strip */
-.exits { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
-@media (max-width: 700px) { .exits { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.exit { background: var(--raise); border: 1px solid var(--line); border-radius: 10px; padding: 9px 14px; display: flex; align-items: baseline; gap: 10px; }
-.exit .code { font-family: "Plex Mono", ui-monospace, monospace; font-size: 17px; font-weight: 500; color: var(--accent); font-variant-numeric: tabular-nums; }
-.exit .what { font-size: 12.5px; color: var(--mute); }
+.prose { max-width: 46em; margin: 0 auto; color: var(--mute); font-size: 15px; }
+.prose strong { color: var(--ink); font-weight: 600; }
+.prose p { margin: 0 0 14px; }
 
-/* ---- guardrails ---------------------------------------------------- */
-.two-up { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-@media (max-width: 800px) { .two-up { grid-template-columns: 1fr; } }
-.verdicts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
-@media (max-width: 800px) { .verdicts { grid-template-columns: 1fr; } }
-.verdict {
-  background: var(--raise);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 14px 18px;
-  box-shadow: var(--shadow);
-}
-.verdict .status { font-family: "Plex Mono", ui-monospace, monospace; font-size: 11.5px; font-weight: 500; letter-spacing: 0.1em; display: block; margin-bottom: 4px; }
-.verdict.pass .status { color: var(--ok); }
-.verdict.fail .status { color: var(--crit); }
-.verdict p { margin: 0; font-size: 13.5px; color: var(--mute); }
-.verdict p strong { color: var(--ink); }
+.callout { background: var(--raise); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+  border-radius: 10px; padding: 18px 22px; box-shadow: var(--shadow); max-width: 46em; margin: 0 auto; }
+.callout h3 { font-family: "Marcellus", Georgia, serif; font-weight: 400; font-size: 19px; margin: 0 0 8px; }
+.callout p { margin: 0 0 10px; color: var(--mute); font-size: 14px; }
+.callout p:last-child { margin-bottom: 0; }
+.callout strong { color: var(--ink); }
 
-/* says / never says */
-.speech { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; background: var(--raise); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
-@media (max-width: 700px) { .speech { grid-template-columns: 1fr; } }
-.speech .col { padding: 18px 22px; }
-.speech .col + .col { border-left: 1px solid var(--line); }
-@media (max-width: 700px) { .speech .col + .col { border-left: none; border-top: 1px solid var(--line); } }
-.speech h3 { font-family: "Marcellus", Georgia, serif; font-weight: 400; font-size: 17px; margin: 0 0 10px; }
-.speech ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; }
-.speech .says li::before { content: "✓ "; color: var(--ok); font-family: "Plex Mono", monospace; }
-.speech .nevers li::before { content: "✕ "; color: var(--crit); font-family: "Plex Mono", monospace; }
-.speech .q { font-style: italic; }
-.speech .why { color: var(--mute); }
-
-/* ---- pipeline walkthrough ------------------------------------------ */
-.pipe { list-style: none; margin: 0 auto; padding: 0; max-width: 720px; }
-.pipe li.step {
-  position: relative;
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
-  column-gap: 20px;
-  padding-bottom: 26px;
-}
-.pipe li.step:last-child { padding-bottom: 0; }
-/* connecting rail */
-.pipe li.step::before {
-  content: "";
-  position: absolute;
-  left: 21px;
-  top: 40px;
-  bottom: 4px;
-  width: 2px;
-  background: var(--line);
-}
-.pipe li.step:last-child::before { display: none; }
-/* step number as a column plinth: thick capital bar on top */
-.step .num {
-  width: 44px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: "Plex Mono", ui-monospace, monospace;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--accent);
-  background: var(--raise);
-  border: 1px solid var(--line);
-  border-top: 3px solid var(--accent);
-  border-radius: 4px 4px 8px 8px;
-  box-shadow: var(--shadow);
-  font-variant-numeric: tabular-nums;
-}
-.step .body { display: flex; flex-direction: column; gap: 7px; padding-top: 5px; }
-.step h3 { font-family: "Marcellus", Georgia, serif; font-weight: 400; font-size: 19px; margin: 0; }
-.step h3 .aside { font-family: "Plex Mono", ui-monospace, monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mute); margin-left: 10px; }
-.step p { margin: 0; color: var(--mute); font-size: 13.5px; max-width: 56em; }
-.step p strong { color: var(--ink); font-weight: 600; }
-.step .term { font-size: 12px; padding: 10px 14px; }
-
-/* footer */
-footer { padding: 30px 0 44px; }
-footer .limits { color: var(--mute); font-size: 13px; max-width: 48em; margin: 0 auto; text-align: center; }
-footer .colophon { text-align: center; font-family: "Plex Mono", ui-monospace, monospace; font-size: 12px; color: var(--mute); margin-top: 14px; }
+footer { padding: 28px 0 44px; text-align: center; }
+footer p { color: var(--mute); font-size: 13px; max-width: 48em; margin: 0 auto; }
+footer .colophon { font-family: "Plex Mono", ui-monospace, monospace; font-size: 12px; margin-top: 12px; }
 footer .colophon span { color: var(--accent); }
-
-a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
-a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-
-@media (prefers-reduced-motion: no-preference) {
-  .hero-grid > * { animation: rise 0.6s cubic-bezier(0.2, 0.6, 0.2, 1) both; }
-  .hero-grid > *:nth-child(2) { animation-delay: 0.12s; }
-  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-}
 </style>
 </head>
 <body>
+<nav class="topbar">
+  <div class="wrap">
+    <a href="/">← Stoa</a>
+    <div class="links">
+      <a href="/demo-report">Live scan report</a>
+      <a href="https://github.com/iamved/stoa-agent-risk">GitHub</a>
+    </div>
+  </div>
+</nav>
+
 <header class="hero">
-  <div class="wrap hero-grid">
-    <div>
-      <span class="eyebrow">Stoa · agent risk scanner</span>
-      <h1 class="display">Every agent inventoried. Every claim evidenced.</h1>
-      <p class="lede">A <strong>local-first static scanner</strong> that finds likely AI agents in Python, JavaScript, and TypeScript, maps what they can reach, and blocks newly introduced high-confidence critical risks — <strong>without uploading a line of code</strong>.</p>
-      <ul class="chips">
-        <li>Local-first</li>
-        <li>Zero telemetry</li>
-        <li>No accounts</li>
-        <li>Python 3.10+</li>
-        <li>MIT</li>
-      </ul>
-      <p class="hero-links">
-        <a href="/case-study">Case study</a>
-        <a href="/demo-report">Live scan report</a>
-        <a href="https://github.com/iamved/stoa-agent-risk">GitHub</a>
-        <a href="https://pypi.org/project/stoa-agent-risk/">PyPI</a>
-      </p>
-    </div>
-    <div>
-      <div class="term">
-        <span class="term-label">Quick start</span>
-<pre><span class="p">$</span> pipx install stoa-agent-risk
-<span class="p">$</span> stoa scan .
-<span class="d">stoa 0.1.0 — scanned 347 files</span>
-Agent candidates: 4 <span class="d">(3 high confidence)</span>
-Findings: <span class="c">1 critical</span>, <span class="k">2 high</span>, 5 medium <span class="d">(2 suppressed)</span>
-<span class="p">$</span> open stoa-report.html</pre>
-      </div>
-    </div>
+  <div class="wrap">
+    <span class="eyebrow">Stoa · case study</span>
+    <h1 class="display">Nine agents. Three criticals. One scan.</h1>
+    <p class="lede">We built a realistic multi-agent customer-support pipeline — a LangGraph supervisor routing to five specialist agents across four frameworks, plus a TypeScript chat widget — planted the kinds of risks that appear in real codebases, and pointed the published <strong>stoa</strong> package at it. This is what came back, finding by finding. <strong>Every file is public</strong>, so you can reproduce the whole thing in two commands.</p>
   </div>
 </header>
 
@@ -397,39 +173,24 @@ Findings: <span class="c">1 critical</span>, <span class="k">2 high</span>, 5 me
   <div class="wrap">
     <div class="section-head">
       <div class="frieze" aria-hidden="true"></div>
-      <h2 class="display">What one scan gives you</h2>
+      <h2 class="display">The system under test</h2>
+      <p>A support desk the way teams actually build them: one orchestrator, specialist agents with real powers, shared database tooling, and a web-tier front door.</p>
     </div>
-    <div class="tiles">
-      <div class="tile">
-        <span class="tag">Weighted detection</span>
-        <h3>Agent candidates, not guesses</h3>
-        <p>Evidence-scored across <strong>10 frameworks</strong> (LangChain, LangGraph, CrewAI, AutoGen, LlamaIndex, OpenAI Agents SDK, PydanticAI, Bedrock, Semantic Kernel, LiteLLM). One regex never qualifies a file; test paths are downweighted; a <code class="inline">UserAgentParser</code> never counts.</p>
-      </div>
-      <div class="tile">
-        <span class="tag">Show your work</span>
-        <h3>Line-level evidence</h3>
-        <p>Every candidate lists exactly why it was flagged — <em>“LangChain agent construct · line 24”</em> — in collapsible sections, plus a confidence tier (high / medium / low) from its score.</p>
-      </div>
-      <div class="tile">
-        <span class="tag">Full reach map</span>
-        <h3>Providers, capabilities, integrations</h3>
-        <p><strong>14 LLM providers</strong>, <strong>21 capabilities</strong> (payment access, DB writes, shell exec…), and <strong>28 integrations</strong> from Stripe to Snowflake — reported as <strong>call sites</strong>, never as runtime call counts.</p>
-      </div>
-      <div class="tile">
-        <span class="tag">Git attribution</span>
-        <h3>Last touched by, not “owner”</h3>
-        <p>Most recent <strong>non-bot</strong> author, last commit, and CODEOWNERS per candidate. No emails collected; credentials stripped from remote URLs.</p>
-      </div>
-      <div class="tile">
-        <span class="tag">Manager view</span>
-        <h3>Highest-exposure first</h3>
-        <p>The HTML report ranks candidates by high-impact capabilities × sensitive integrations × finding severity — the refund agent with payment access outranks the demo chatbot.</p>
-      </div>
-      <div class="tile">
-        <span class="tag">Two audiences</span>
-        <h3>HTML + JSON reports</h3>
-        <p>A self-contained, CSP-locked, no-JavaScript HTML report for humans; a <strong>deterministic, schema-versioned</strong> JSON registry for machines — byte-identical across runs, reserved fields for future versions.</p>
-      </div>
+    <div class="term">
+      <span class="term-label">examples/support-desk · 14 source files</span>
+<pre>                    ┌──────────────────┐
+customer chat ────► │  orchestrator.py │  <span class="d">LangGraph supervisor</span>
+                    └────────┬─────────┘
+      ┌──────────────┬───────┴───────┬────────────────┐
+      ▼              ▼               ▼                ▼
+<span class="p">triage_agent</span>   <span class="p">billing_agent</span>   <span class="p">account_agent</span>   <span class="p">escalation_agent</span>
+<span class="d">PydanticAI</span>     <span class="d">LangChain</span>       <span class="d">CrewAI</span>          <span class="d">raw Anthropic</span>
+<span class="d">intent router</span>  <span class="d">Stripe+Postgres</span> <span class="d">Postgres+SendGrid</span> <span class="d">Zendesk+Slack</span>
+                                         ▲
+                                   <span class="p">research_agent</span>  <span class="d">OpenAI Agents SDK + Tavily</span>
+
+shared: tools/database.py <span class="d">(Postgres+Redis)</span> · tools/diagnostics.py <span class="d">(subprocess)</span>
+        web/support_widget.ts <span class="d">(TypeScript front door)</span></pre>
     </div>
   </div>
 </section>
@@ -438,29 +199,79 @@ Findings: <span class="c">1 critical</span>, <span class="k">2 high</span>, 5 me
   <div class="wrap">
     <div class="section-head">
       <div class="frieze" aria-hidden="true"></div>
-      <h2 class="display">Nine rules, honestly ranked</h2>
-      <p>Stable IDs, redacted snippets, remediations, move-proof fingerprints. Only high-confidence credential findings can fail a build — regex never gates what it can’t prove.</p>
+      <h2 class="display">What Stoa reported</h2>
+      <p>From <code class="inline">stoa scan examples/support-desk</code> — the full report is <a href="/demo-report">live here</a>, byte-for-byte what the tool produced.</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">14</div><div class="lbl">files scanned</div></div>
+      <div class="stat"><div class="num">9</div><div class="lbl">agent candidates</div></div>
+      <div class="stat"><div class="num">5</div><div class="lbl">high confidence</div></div>
+      <div class="stat bad"><div class="num">3</div><div class="lbl">critical findings</div></div>
+      <div class="stat"><div class="num">27</div><div class="lbl">review prompts</div></div>
+      <div class="stat good"><div class="num">1</div><div class="lbl">suppressed, with reason</div></div>
     </div>
     <div class="table-wrap">
       <table>
-        <thead>
-          <tr><th>Rule</th><th>Finding</th><th>Severity</th><th>Gates CI?</th></tr>
-        </thead>
+        <thead><tr><th>Severity</th><th>Rule</th><th>Location</th><th>What it means in this pipeline</th></tr></thead>
         <tbody>
-          <tr><td class="rule-id">SEC001</td><td>Hardcoded API credential (OpenAI, Anthropic, GitHub, Slack, Stripe-live, AWS…) with entropy + placeholder checks</td><td><span class="sev sev-critical">critical</span></td><td class="gate-yes">High confidence only</td></tr>
-          <tr><td class="rule-id">SEC002</td><td>Hardcoded password — literal assignments only, never env lookups or placeholders</td><td><span class="sev sev-high">high</span></td><td class="gate-yes">High confidence only</td></tr>
-          <tr><td class="rule-id">SEC003</td><td>Interpolated SQL — f-strings, .format(), %, concatenation, template literals</td><td><span class="sev sev-high">high</span></td><td class="gate-no">No</td></tr>
-          <tr><td class="rule-id">REL001</td><td>Swallowed exception — <code class="inline">except: pass</code>, empty <code class="inline">catch {}</code></td><td><span class="sev sev-medium">medium</span></td><td class="gate-no">No</td></tr>
-          <tr><td class="rule-id">NET001–002</td><td>Insecure non-local HTTP · request timeout not observed</td><td><span class="sev sev-medium">medium</span></td><td class="gate-no">No</td></tr>
-          <tr><td class="rule-id">CTRL001–003</td><td>Auth / validation / rate-limit control not observed — one review prompt per candidate, max</td><td><span class="sev sev-info">info</span></td><td class="gate-no">Never</td></tr>
+          <tr>
+            <td><span class="sev sev-critical">critical</span></td>
+            <td class="rule-id">SEC001</td>
+            <td class="loc">billing_agent.py:16</td>
+            <td>A hardcoded “temporary” API key on the agent that moves money. High confidence — this is the one finding that would fail a PR gate.</td>
+          </tr>
+          <tr>
+            <td><span class="sev sev-critical">critical</span></td>
+            <td class="rule-id">SEC002</td>
+            <td class="loc">account_agent.py:15</td>
+            <td>A hardcoded production DB password on an agent that can <em>write</em> to customers and send email — change the address, send the reset link: an account-takeover toolkit.</td>
+          </tr>
+          <tr>
+            <td><span class="sev sev-high">high</span></td>
+            <td class="rule-id">SEC003</td>
+            <td class="loc">billing_agent.py:38</td>
+            <td>Customer ID interpolated into SQL. With an LLM choosing tool inputs, a prompt-injected “my id is <code class="inline">1 OR 1=1</code>” becomes an exfiltration attempt.</td>
+          </tr>
+          <tr>
+            <td><span class="sev sev-medium">medium</span></td>
+            <td class="rule-id">REL001</td>
+            <td class="loc">escalation_agent.py:44</td>
+            <td>The on-call Slack ping swallows every exception — escalations can vanish silently.</td>
+          </tr>
+          <tr>
+            <td><span class="sev sev-medium">medium</span></td>
+            <td class="rule-id">NET001</td>
+            <td class="loc">research_agent.py:31</td>
+            <td>Plain-HTTP intranet knowledge base, on the agent that ingests web content — the pipeline’s prompt-injection ingress.</td>
+          </tr>
+          <tr>
+            <td><span class="sev sev-medium">medium</span></td>
+            <td class="rule-id">NET002</td>
+            <td class="loc">billing_agent.py:43</td>
+            <td>Ledger sync with no timeout: one hung internal service stalls the refund path.</td>
+          </tr>
+          <tr>
+            <td><span class="sev sev-info">info ×27</span></td>
+            <td class="rule-id">CTRL001–003</td>
+            <td class="loc">one per agent</td>
+            <td>Auth, input validation, and rate limiting were <em>not observed</em> in these files — review prompts, never claimed as vulnerabilities, never gating.</td>
+          </tr>
         </tbody>
       </table>
     </div>
-    <div class="exits">
-      <div class="exit"><span class="code">0</span><span class="what">gate passed</span></div>
-      <div class="exit"><span class="code">1</span><span class="what">gate failed</span></div>
-      <div class="exit"><span class="code">2</span><span class="what">bad args / config</span></div>
-      <div class="exit"><span class="code">3</span><span class="what">scanner error</span></div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="frieze" aria-hidden="true"></div>
+      <h2 class="display">The headline risk isn’t a line of code</h2>
+    </div>
+    <div class="callout">
+      <h3>It’s a pairing</h3>
+      <p>Stoa’s exposure ranking put <strong>billing_agent</strong> first not because of any single finding, but because one candidate combines <code class="inline">payment_access</code> + <code class="inline">tool_calling</code> + <code class="inline">database_read</code>: an agent that both <strong>decides</strong> and <strong>moves money</strong>. The account agent ranks second for the same reason — <code class="inline">database_write</code> + <code class="inline">email_send</code> is an identity-takeover surface.</p>
+      <p>That’s the point of an agent inventory: individual findings get fixed, but capability pairings are architectural — and invisible unless something maps them.</p>
     </div>
   </div>
 </section>
@@ -469,30 +280,20 @@ Findings: <span class="c">1 critical</span>, <span class="k">2 high</span>, 5 me
   <div class="wrap">
     <div class="section-head">
       <div class="frieze" aria-hidden="true"></div>
-      <h2 class="display">Guardrails you can trust</h2>
-      <p>Secrets are redacted the moment they’re matched — tests prove the raw value is absent from terminal, JSON, HTML, annotations, summaries, and logs. Suppressions are rule-scoped and always counted.</p>
+      <h2 class="display">Just as important: what didn’t fire</h2>
+      <p>A scanner you trust is defined by its silences.</p>
     </div>
-    <div class="two-up">
-      <div class="term">
-        <span class="term-label">Redaction · in source vs. in every artifact</span>
-<pre>api_key = <span class="c">"sk-proj-Zx9mKq3vNp7rTb2wYc5dHj8fLg4sVn6a"</span>
-api_key = <span class="p">"sk-pro…[REDACTED:a18c45f21a0e]"</span></pre>
-      </div>
-      <div class="term">
-        <span class="term-label">Suppression · inline, file-wide, path, config</span>
-<pre>query = f<span class="k">"SELECT * FROM {t}"</span>  <span class="d"># stoa: ignore[SEC003] enum</span>
-<span class="d"># stoa: ignore-file[CTRL001]  ·  .stoaignore  ·  stoa.toml</span></pre>
-      </div>
-    </div>
-    <div class="verdicts">
-      <div class="verdict pass">
-        <span class="status">✓ EXIT 0 — unrelated PR over existing debt</span>
-        <p>With <code class="inline">--base origin/main --fail-on-new critical</code>, only findings on <strong>added lines</strong> gate. Old debt is reported, never blocking.</p>
-      </div>
-      <div class="verdict fail">
-        <span class="status">✕ EXIT 1 — PR adds a real-looking key</span>
-        <p>New high-confidence critical → build fails with a <code class="inline">::error</code> annotation on the exact line. Unresolvable base? Stoa <strong>fails open with a warning</strong>, never silently.</p>
-      </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>File</th><th>Outcome</th><th>Why it matters</th></tr></thead>
+        <tbody>
+          <tr><td class="loc">embeddings.py</td><td><span class="sev sev-ok">not flagged</span></td><td>OpenAI import + API call, but embeddings-only — weighted evidence says “not an agent.”</td></tr>
+          <tr><td class="loc">utils/user_agent.py</td><td><span class="sev sev-ok">not flagged</span></td><td><code class="inline">UserAgentParser</code> — generic <code class="inline">*Agent</code> names are weak evidence.</td></tr>
+          <tr><td class="loc">tests/test_billing.py:3</td><td><span class="sev sev-ok">low confidence</span></td><td>A placeholder key in a test — reported honestly, but can never fail a build.</td></tr>
+          <tr><td class="loc">tools/database.py:40</td><td><span class="sev sev-ok">suppressed</span></td><td>A reviewed, enum-driven query — suppressed with a reason, still counted and listed.</td></tr>
+          <tr><td class="loc">parameterized queries</td><td><span class="sev sev-ok">no noise</span></td><td><code class="inline">%s</code> placeholders throughout produce zero SEC003 findings.</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </section>
@@ -501,27 +302,12 @@ api_key = <span class="p">"sk-pro…[REDACTED:a18c45f21a0e]"</span></pre>
   <div class="wrap">
     <div class="section-head">
       <div class="frieze" aria-hidden="true"></div>
-      <h2 class="display">Stoic about certainty</h2>
+      <h2 class="display">The scan that fixed the scanner</h2>
     </div>
-    <div class="speech">
-      <div class="col">
-        <h3>Stoa says</h3>
-        <ul class="says">
-          <li><span class="q">“Agent candidate”</span> <span class="why">— with a confidence tier</span></li>
-          <li><span class="q">“Last touched by”</span> <span class="why">— commit history, plainly</span></li>
-          <li><span class="q">“Call site”</span> <span class="why">— what code shows</span></li>
-          <li><span class="q">“Control not observed in this file”</span></li>
-        </ul>
-      </div>
-      <div class="col">
-        <h3>Stoa never says</h3>
-        <ul class="nevers">
-          <li><span class="q">“Confirmed agent”</span> <span class="why">— regex can’t confirm</span></li>
-          <li><span class="q">“Owner”</span> <span class="why">— attribution ≠ ownership</span></li>
-          <li><span class="q">“API call count”</span> <span class="why">— that’s runtime data</span></li>
-          <li><span class="q">“Missing authentication”</span></li>
-        </ul>
-      </div>
+    <div class="callout">
+      <h3>Found: one false positive. Shipped: 0.1.1, same day.</h3>
+      <p>The stress test flagged the escalation agent’s Zendesk call as missing a timeout — but the timeout was there, on the <strong>fifth line</strong> of the call, just past Stoa’s 4-line look-ahead. The window is now 8 lines, a regression test pins it, and <a href="https://github.com/iamved/stoa-agent-risk/releases/tag/v0.1.1">v0.1.1</a> went from tag to PyPI in 44 seconds through the trusted-publishing pipeline.</p>
+      <p>That’s what this case study is for: the demo stress-tests the scanner as much as the scanner audits the demo.</p>
     </div>
   </div>
 </section>
@@ -530,59 +316,26 @@ api_key = <span class="p">"sk-pro…[REDACTED:a18c45f21a0e]"</span></pre>
   <div class="wrap">
     <div class="section-head">
       <div class="frieze" aria-hidden="true"></div>
-      <h2 class="display">Install it once, wire it into the pipeline</h2>
-      <p>Five stops from a bare laptop to a repository where agents ship fast — and new critical risk doesn’t.</p>
+      <h2 class="display">Reproduce it</h2>
     </div>
-    <ol class="pipe">
-      <li class="step">
-        <div class="num" aria-hidden="true">01</div>
-        <div class="body">
-          <h3>Install<span class="aside">30 seconds</span></h3>
-          <div class="term"><pre><span class="p">$</span> pipx install stoa-agent-risk <span class="d">&amp;&amp;</span> stoa --version</pre></div>
-          <p>Python 3.10+. No accounts, no API keys, no config to start — and nothing you scan ever leaves your machine.</p>
-        </div>
-      </li>
-      <li class="step">
-        <div class="num" aria-hidden="true">02</div>
-        <div class="body">
-          <h3>Take the first census<span class="aside">report-only</span></h3>
-          <div class="term"><pre><span class="p">$</span> stoa scan . <span class="d">&amp;&amp;</span> open stoa-report.html</pre></div>
-          <p>Always exits 0 until you ask for gates, so explore freely. You get the HTML report for humans and <code class="inline">stoa-registry.json</code> for machines. A ~2,000-file monorepo scans in under a second.</p>
-        </div>
-      </li>
-      <li class="step">
-        <div class="num" aria-hidden="true">03</div>
-        <div class="body">
-          <h3>Teach it your repo</h3>
-          <div class="term"><pre>query = f<span class="k">"SELECT * FROM {t}"</span>  <span class="d"># stoa: ignore[SEC003] internal enum</span></pre></div>
-          <p>Silence false positives with rule-scoped inline ignores (reasons encouraged), <code class="inline">.stoaignore</code> paths, or per-rule settings in <code class="inline">stoa.toml</code>. Every suppression stays counted in the report — nothing disappears silently.</p>
-        </div>
-      </li>
-      <li class="step">
-        <div class="num" aria-hidden="true">04</div>
-        <div class="body">
-          <h3>Put it on guard duty<span class="aside">CI</span></h3>
-          <div class="term"><pre><span class="p">$</span> stoa init github</pre></div>
-          <p>Scaffolds the workflow, <code class="inline">stoa.toml</code>, and <code class="inline">.stoaignore</code> (never overwrites without <code class="inline">--force</code>). Commit them and every PR is diffed against its base — <strong>only new high-confidence criticals fail the build</strong>, with line annotations, a job summary, and report artifacts. Protect those three files with CODEOWNERS.</p>
-        </div>
-      </li>
-      <li class="step">
-        <div class="num" aria-hidden="true">05</div>
-        <div class="body">
-          <h3>Hand the registry to your coding agent</h3>
-          <div class="term"><pre><span class="p">$</span> stoa scan . --json stoa-registry.json
-<span class="d">&gt; "Read stoa-registry.json and fix the new critical findings"</span></pre></div>
-          <p>Claude Code, Cursor, or Copilot can read the deterministic, already-redacted JSON to summarize your agent inventory and remediate findings — <strong>without ever seeing a raw credential</strong>. The loop closes: agents write the code, Stoa audits it, agents fix what it finds.</p>
-        </div>
-      </li>
-    </ol>
+    <div class="term">
+      <span class="term-label">Two commands</span>
+<pre><span class="p">$</span> pipx install stoa-agent-risk
+<span class="p">$</span> git clone https://github.com/iamved/stoa-agent-risk <span class="d">&amp;&amp;</span> cd stoa-agent-risk
+<span class="p">$</span> stoa scan examples/support-desk <span class="d">&amp;&amp;</span> open stoa-report.html</pre>
+    </div>
+    <p class="prose" style="margin-top: 16px; text-align: center;">
+      Read the full finding-by-finding narrative in
+      <a href="https://github.com/iamved/stoa-agent-risk/blob/main/examples/support-desk/RISK_MAP.md">RISK_MAP.md</a>,
+      or open the <a href="/demo-report">live scan report</a>.
+    </p>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
-    <p class="limits">Stoa performs static, pattern-based analysis. Findings and agent classifications should be reviewed by an engineer; runtime behavior and organization-wide controls may not be visible in the scanned repository.</p>
-    <p class="colophon"><span>pipx install stoa-agent-risk</span> · MIT license · schema 1.0</p>
+    <p>Every risk in the demo is planted on purpose. Stoa reports static evidence, not runtime proof — “payment access” means the code can reach Stripe, not that any prompt path will. The narratives above are the reviewer’s job; Stoa’s job is making sure the reviewer sees them.</p>
+    <p class="colophon"><span>pipx install stoa-agent-risk</span> · MIT · schema 1.0</p>
   </div>
 </footer>
 </body>
