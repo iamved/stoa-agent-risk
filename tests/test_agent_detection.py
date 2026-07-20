@@ -228,3 +228,119 @@ def test_stable_agent_ids():
     first = detect_agents(LANGCHAIN_AGENT, "src/refund.py", False)
     second = detect_agents(LANGCHAIN_AGENT, "src/refund.py", False)
     assert [d.id for d in first] == [d.id for d in second]
+
+
+# --- Vercel AI SDK and modern frameworks (stress-test regressions) ---------
+
+AISDK_SINGLE_SHOT = """
+import { generateText } from 'ai';
+import { createGroq } from '@ai-sdk/groq';
+const groq = createGroq({ apiKey: process.env.GROQ_API_KEY });
+export async function plan(prompt: string) {
+  const result = await generateText({ model: groq('llama-3.3-70b'), prompt });
+  return result.text;
+}
+"""
+
+AISDK_AGENTIC = """
+import { streamText, tool } from 'ai';
+import { anthropic } from '@ai-sdk/anthropic';
+export const agent = streamText({
+  model: anthropic('claude-sonnet-4-5'),
+  maxSteps: 10,
+  tools: { lookup: tool({ description: 'x' }) },
+});
+"""
+
+MASTRA_AGENT = """
+import { Agent } from '@mastra/core/agent';
+import { openai } from '@ai-sdk/openai';
+export const weather = new Agent({ name: 'weather', model: openai('gpt-4o'), tools: {} });
+"""
+
+SMOLAGENTS = """
+from smolagents import CodeAgent, HfApiModel
+agent = CodeAgent(tools=[], model=HfApiModel())
+agent.run("do it")
+"""
+
+DSPY_AGENT = """
+import dspy
+lm = dspy.LM("openai/gpt-4o")
+react = dspy.ReAct("q -> a", tools=[search])
+"""
+
+AGNO_AGENT = """
+from agno.agent import Agent
+from agno.models.openai import OpenAIChat
+support = Agent(model=OpenAIChat(id="gpt-4o"), tools=[])
+"""
+
+ADK_AGENT = """
+from google.adk.agents import Agent
+root_agent = Agent(name="assistant", model="gemini-2.0-flash", tools=[search])
+"""
+
+STRANDS_AGENT = """
+from strands import Agent
+from strands_tools import calculator
+agent = Agent(tools=[calculator])
+"""
+
+LANGCHAIN_JS = """
+import { ChatOpenAI } from '@langchain/openai';
+import { createReactAgent } from '@langchain/langgraph/prebuilt';
+const model = new ChatOpenAI({ model: 'gpt-4o' });
+export const agent = createReactAgent({ llm: model, tools: [] });
+"""
+
+
+def test_aisdk_single_shot_is_low_candidate_with_provider():
+    detections = detect_agents(AISDK_SINGLE_SHOT, "app/api/plan/route.ts", False)
+    assert detections, "single-shot generateText should still surface as a candidate"
+    assert detections[0].confidence == "low"
+
+
+def test_aisdk_agentic_is_high_confidence():
+    detection = _single(AISDK_AGENTIC, "src/agent.ts")
+    assert detection.confidence == "high"
+    assert "vercel_ai_sdk" in detection.frameworks
+
+
+def test_mastra_agent_high():
+    detection = _single(MASTRA_AGENT, "src/weather.ts")
+    assert "mastra" in detection.frameworks
+    assert detection.confidence == "high"
+
+
+def test_smolagents_high():
+    detection = _single(SMOLAGENTS, "src/agent.py")
+    assert "smolagents" in detection.frameworks
+    assert detection.confidence == "high"
+
+
+def test_dspy_agent_detected():
+    detection = _single(DSPY_AGENT, "src/agent.py")
+    assert "dspy" in detection.frameworks
+
+
+def test_agno_agent_high():
+    detection = _single(AGNO_AGENT, "src/support.py")
+    assert "agno" in detection.frameworks
+    assert detection.confidence == "high"
+
+
+def test_google_adk_agent_high():
+    detection = _single(ADK_AGENT, "src/agent.py")
+    assert "google_adk" in detection.frameworks
+
+
+def test_strands_agent_detected():
+    detection = _single(STRANDS_AGENT, "src/agent.py")
+    assert "strands" in detection.frameworks
+
+
+def test_langchain_js_react_agent_high():
+    detection = _single(LANGCHAIN_JS, "src/agent.ts")
+    assert "langgraph" in detection.frameworks
+    assert detection.confidence == "high"

@@ -44,6 +44,13 @@ FRAMEWORK_LABELS = {
     "pydantic_ai": "PydanticAI",
     "bedrock_agents": "Amazon Bedrock Agents",
     "semantic_kernel": "Semantic Kernel",
+    "vercel_ai_sdk": "Vercel AI SDK",
+    "mastra": "Mastra",
+    "smolagents": "smolagents",
+    "dspy": "DSPy",
+    "agno": "Agno",
+    "google_adk": "Google ADK",
+    "strands": "AWS Strands",
 }
 
 

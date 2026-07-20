@@ -250,3 +250,36 @@ def test_disabled_rule_not_emitted():
     config.enabled_rules["SEC003"] = False
     findings = scan('cursor.execute(f"SELECT * FROM t WHERE id = {x}")', config=config)
     assert by_rule(findings, "SEC003") == []
+
+
+# --- Detection coverage for modern stacks -----------------------------------
+
+def test_ai_sdk_provider_factories_detected():
+    from stoa.integration_detection import detect_providers
+
+    assert "groq" in detect_providers("const g = createGroq({ apiKey: k });")
+    assert "openai" in detect_providers("import { openai } from '@ai-sdk/openai';")
+    assert "anthropic" in detect_providers("const a = createAnthropic({});")
+    assert "xai" in detect_providers("import { xai } from '@ai-sdk/xai';")
+
+
+def test_vector_db_capability_detected():
+    from stoa.integration_detection import detect_capabilities
+
+    assert "vector_search" in detect_capabilities("index = pc.Index('docs')")
+    assert "vector_search" in detect_capabilities("from qdrant_client import QdrantClient")
+
+
+def test_mcp_capability_detected():
+    from stoa.integration_detection import detect_capabilities
+
+    assert "mcp_tools" in detect_capabilities("mcp = FastMCP('tools')")
+
+
+def test_vector_db_integrations_detected():
+    from stoa.integration_detection import detect_integrations
+
+    integrations, _ = detect_integrations(
+        "from pinecone import Pinecone\nimport chromadb\nfrom qdrant_client import QdrantClient"
+    )
+    assert {"pinecone", "chroma", "qdrant"}.issubset(set(integrations))

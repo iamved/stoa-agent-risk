@@ -10,3 +10,4 @@ stoa-registry.json
 stoa-summary.md
 site/.vercel/
 .DS_Store
+.gstack/

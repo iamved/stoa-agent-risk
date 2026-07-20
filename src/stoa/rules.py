@@ -107,9 +107,12 @@ VALID_RULE_ID = re.compile(r"^[A-Z]{3,5}\d{3}$")
 HIGH_AGENT_PATTERNS: dict[str, re.Pattern[str]] = {
     "langchain": re.compile(
         r"\b(?:AgentExecutor|initialize_agent|"
-        r"create_(?:react|tool_calling|openai_functions)_agent)\s*\("
+        r"create(?:_|(?=[A-Z]))(?:react|tool_calling|toolCalling|"
+        r"openai_functions|openaiFunctions)(?:_agent|Agent))\s*\("
     ),
-    "langgraph": re.compile(r"\b(?:create_react_agent|StateGraph)\s*\("),
+    "langgraph": re.compile(
+        r"\b(?:create_react_agent|createReactAgent|StateGraph)\s*\("
+    ),
     "crewai": re.compile(
         r"\bCrew\s*\(|\bAgent\s*\(\s*(?:role|goal|backstory)\s*="
     ),
@@ -129,12 +132,37 @@ HIGH_AGENT_PATTERNS: dict[str, re.Pattern[str]] = {
     "semantic_kernel": re.compile(
         r"\bimport\s+semantic_kernel\b|\bfrom\s+semantic_kernel\b|\bKernel\s*\(\s*\)"
     ),
+    # Vercel AI SDK agentic markers only. A bare `generateText`/@ai-sdk import
+    # is a single-shot call (scored as a provider call, staying low); the
+    # strong signal is a multi-step loop or the Agent class.
+    "vercel_ai_sdk": re.compile(
+        r"\bExperimental_Agent\b|\b(?:maxSteps|stopWhen)\s*:"
+    ),
+    "mastra": re.compile(r"(?:from\s+|require\()['\"]@mastra/"),
+    "smolagents": re.compile(
+        r"\b(?:CodeAgent|ToolCallingAgent)\s*\(|^\s*from\s+smolagents\s+import\b",
+        re.MULTILINE,
+    ),
+    "dspy": re.compile(r"\bdspy\.(?:ReAct|Agent)\b"),
+    "agno": re.compile(
+        r"^\s*from\s+agno(?:\.\w+)*\s+import\b|^\s*import\s+agno\b|\bagno\.agent\b",
+        re.MULTILINE,
+    ),
+    "google_adk": re.compile(
+        r"\bgoogle\.adk\b|^\s*from\s+google\.adk\b|(?:from\s+|require\()['\"]@iqai/adk['\"]",
+        re.MULTILINE,
+    ),
+    "strands": re.compile(
+        r"^\s*from\s+strands(?:_tools|_agents)?\s+import\b|^\s*import\s+strands\b",
+        re.MULTILINE,
+    ),
 }
 
 SUPPORTING_PATTERNS: dict[str, re.Pattern[str]] = {
     "provider_call": re.compile(
         r"\b(?:responses|chat\.completions|messages)\.create\s*\(|"
-        r"\b(?:generate_content|generateContent)\s*\("
+        r"\b(?:generate_content|generateContent)\s*\(|"
+        r"\b(?:generateText|streamText|generateObject|streamObject)\s*\("
     ),
     "litellm": re.compile(
         r"\blitellm\.(?:completion|acompletion)\s*\(|\bRouter\s*\("
@@ -187,51 +215,62 @@ TESTLIKE_PATH = re.compile(
 PROVIDER_PATTERNS: dict[str, re.Pattern[str]] = {
     "openai": re.compile(
         r"^\s*(?:import\s+openai\b|from\s+openai(?:\.\w+)*\s+import\b)|"
-        r"(?:from\s+|require\()['\"]openai['\"]|"
-        r"\b(?:OpenAI|AsyncOpenAI)\s*\(|api\.openai\.com|"
+        r"(?:from\s+|require\()['\"](?:openai|@ai-sdk/openai)['\"]|"
+        r"\b(?:OpenAI|AsyncOpenAI)\s*\(|\bcreateOpenAI\s*\(|api\.openai\.com|"
         r"['\"]gpt-[45][\w.-]*['\"]|['\"]o[134][\w.-]*['\"]|\bOPENAI_API_KEY\b",
         re.MULTILINE,
     ),
     "anthropic": re.compile(
         r"^\s*(?:import\s+anthropic\b|from\s+anthropic(?:\.\w+)*\s+import\b)|"
-        r"(?:from\s+|require\()['\"]@anthropic-ai/sdk['\"]|"
-        r"\b(?:Anthropic|AsyncAnthropic)\s*\(|api\.anthropic\.com|"
+        r"(?:from\s+|require\()['\"](?:@anthropic-ai/sdk|@ai-sdk/anthropic)['\"]|"
+        r"\b(?:Anthropic|AsyncAnthropic)\s*\(|\bcreateAnthropic\s*\(|api\.anthropic\.com|"
         r"['\"]claude-[\w.-]+['\"]|\bANTHROPIC_API_KEY\b",
         re.MULTILINE,
     ),
     "google": re.compile(
         r"google\.generativeai|google-genai|\bfrom\s+google\s+import\s+genai\b|"
-        r"['\"]@google/generative-ai['\"]|\bvertexai\b|\bVertexAI\s*\(|"
+        r"['\"](?:@google/generative-ai|@ai-sdk/google)['\"]|\bcreateGoogleGenerativeAI\s*\(|"
+        r"\bvertexai\b|\bVertexAI\s*\(|"
         r"generativelanguage\.googleapis\.com|['\"]gemini-[\w.-]+['\"]|"
-        r"\b(?:GOOGLE_API_KEY|GEMINI_API_KEY)\b"
+        r"\b(?:GOOGLE_API_KEY|GEMINI_API_KEY|GOOGLE_GENERATIVE_AI_API_KEY)\b"
     ),
     "azure_openai": re.compile(
-        r"\bAzureOpenAI\s*\(|\.openai\.azure\.com|\bAZURE_OPENAI[A-Z_]*\b"
+        r"\bAzureOpenAI\s*\(|\.openai\.azure\.com|\bAZURE_OPENAI[A-Z_]*\b|"
+        r"['\"]@ai-sdk/azure['\"]|\bcreateAzure\s*\("
     ),
     "bedrock": re.compile(
         r"bedrock-runtime|bedrock-agent-runtime|\bChatBedrock\b|\bBedrockChat\b|"
-        r"boto3\.client\(\s*['\"]bedrock|\binvoke_model\s*\("
+        r"boto3\.client\(\s*['\"]bedrock|\binvoke_model\s*\(|"
+        r"['\"]@ai-sdk/amazon-bedrock['\"]|\bcreateAmazonBedrock\s*\("
     ),
     "groq": re.compile(
-        r"^\s*from\s+groq\s+import\b|(?:from\s+|require\()['\"]groq-sdk['\"]|"
-        r"\bGroq\s*\(|api\.groq\.com|\bGROQ_API_KEY\b",
+        r"^\s*from\s+groq\s+import\b|(?:from\s+|require\()['\"](?:groq-sdk|@ai-sdk/groq)['\"]|"
+        r"\bGroq\s*\(|\bcreateGroq\s*\(|api\.groq\.com|\bGROQ_API_KEY\b",
         re.MULTILINE,
     ),
     "cohere": re.compile(
         r"^\s*import\s+cohere\b|^\s*from\s+cohere\s+import\b|"
+        r"(?:from\s+|require\()['\"]@ai-sdk/cohere['\"]|\bcreateCohere\s*\(|"
         r"cohere\.(?:Client|ClientV2)\s*\(|api\.cohere\.(?:ai|com)|\bCOHERE_API_KEY\b",
         re.MULTILINE,
     ),
     "together": re.compile(
         r"^\s*from\s+together\s+import\b|\bTogether\s*\(|api\.together\.(?:xyz|ai)|"
-        r"\bTOGETHER_API_KEY\b",
+        r"['\"]@ai-sdk/togetherai['\"]|\bcreateTogetherAI\s*\(|\bTOGETHER_API_KEY\b",
         re.MULTILINE,
     ),
     "mistral": re.compile(
         r"\bmistralai\b|api\.mistral\.ai|\bMISTRAL_API_KEY\b|"
+        r"['\"]@ai-sdk/mistral['\"]|\bcreateMistral\s*\(|"
         r"['\"]mistral-(?:large|medium|small|tiny)[\w.-]*['\"]"
     ),
-    "perplexity": re.compile(r"api\.perplexity\.ai|\bPERPLEXITY_API_KEY\b"),
+    "xai": re.compile(
+        r"['\"]@ai-sdk/xai['\"]|\bcreateXai\s*\(|api\.x\.ai|\bXAI_API_KEY\b|"
+        r"['\"]grok-[\w.-]+['\"]"
+    ),
+    "perplexity": re.compile(
+        r"api\.perplexity\.ai|\bPERPLEXITY_API_KEY\b|['\"]@ai-sdk/perplexity['\"]"
+    ),
     "huggingface": re.compile(
         r"\bhuggingface_hub\b|\bInferenceClient\s*\(|api-inference\.huggingface\.co|"
         r"\b(?:HF_TOKEN|HUGGINGFACE(?:HUB)?_API_(?:KEY|TOKEN))\b"
@@ -369,6 +408,16 @@ CAPABILITY_PATTERNS: dict[str, re.Pattern[str]] = {
         r"\bboto3\.(?:client|resource)\s*\(|\bgoogle\.cloud\b|"
         r"\bazure\.(?:mgmt|storage|identity)\b|\b@aws-sdk/"
     ),
+    "vector_search": re.compile(
+        r"(?i)pinecone|weaviate|chromadb|qdrant|pgvector|milvus|lancedb|"
+        r"\bfaiss\b|\bpc\.Index\s*\(|"
+        r"\b(?:similarity_search|max_marginal_relevance_search)\s*\("
+    ),
+    "mcp_tools": re.compile(
+        r"\bFastMCP\s*\(|['\"]@modelcontextprotocol/sdk|"
+        r"^\s*from\s+mcp(?:\.\w+)*\s+import\b|\bmcp\.server\b|\b@mcp\.tool\b",
+        re.MULTILINE,
+    ),
 }
 
 HIGH_IMPACT_CAPABILITIES = frozenset(
@@ -445,6 +494,17 @@ INTEGRATION_PATTERNS: dict[str, re.Pattern[str]] = {
     "confluence": re.compile(r"(?i)/wiki/rest/api|\batlassian-python-api\b|\bCONFLUENCE_[A-Z0-9_]+\b"),
     "servicenow": re.compile(r"(?i)\.service-now\.com|\bpysnow\b|\bSERVICENOW_[A-Z0-9_]+\b"),
     "shopify": re.compile(r"(?i)myshopify\.com|\bshopify(?:_python)?_api\b|\bSHOPIFY_[A-Z0-9_]+\b"),
+    "pinecone": re.compile(
+        r"(?i)\bpinecone\b|api\.pinecone\.io|\bPINECONE_[A-Z0-9_]+\b|\bpc\.Index\s*\("
+    ),
+    "weaviate": re.compile(r"(?i)\bweaviate\b|\bWEAVIATE_[A-Z0-9_]+\b"),
+    "chroma": re.compile(r"(?i)\bchromadb\b|\bchroma_client\b|\bPersistentClient\s*\("),
+    "qdrant": re.compile(r"(?i)qdrant"),
+    "milvus": re.compile(r"(?i)\bmilvus\b|\bpymilvus\b|\bMILVUS_[A-Z0-9_]+\b"),
+    "google_places": re.compile(
+        r"(?i)maps\.googleapis\.com/maps/api/place|\bGOOGLE_PLACES_API_KEY\b"
+    ),
+    "eventbrite": re.compile(r"(?i)eventbriteapi\.com|\bEVENTBRITE_[A-Z0-9_]+\b"),
 }
 
 SENSITIVE_INTEGRATIONS = frozenset(
