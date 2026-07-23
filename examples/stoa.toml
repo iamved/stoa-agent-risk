@@ -21,3 +21,13 @@ REL001 = "low"
 CTRL001 = true
 CTRL002 = true
 CTRL003 = false
+
+# v0.2 AI rules (OWASP LLM Top 10). Report-only except AI002 exec-class.
+# [gate]
+# additional_rules = ["AI001"]        # opt extra rules into the gate
+
+# [rules.AI006]
+# allowed_hosts = ["api.internal.corp", "hooks.slack.com"]  # approved egress
+
+# [rules.AI004]
+# pii_terms = ["employee_id", "account_number"]   # extra PII identifiers

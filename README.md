@@ -76,6 +76,7 @@ stoa scan [PATH]
   --summary-file PATH       write a GitHub job-summary Markdown file
   --config PATH             explicit stoa.toml
   --no-git                  skip git metadata
+  --no-ast                  disable the AST layer and flow-based AI rules
   --include / --exclude     extra path patterns (repeatable)
   --verbose / --quiet
 ```
@@ -83,9 +84,11 @@ stoa scan [PATH]
 Exit codes: `0` gate passed · `1` gate failed · `2` invalid arguments or
 configuration · `3` scanner execution error.
 
-Only high-confidence findings from gate-eligible rules (SEC001, SEC002) can
-fail a scan; SQL-interpolation, network, and review-prompt rules report but
-never gate, because static regex analysis cannot prove exploitability.
+Only high-confidence findings from gate-eligible rules can fail a scan —
+SEC001, SEC002, and AI002 (exec class). SQL-interpolation, network, and
+review-prompt rules report but never gate, because static analysis cannot
+prove exploitability. Data-flow AI rules (AI001/AI002/AI004/AI006) use a
+tree-sitter AST layer that is on by default; `--no-ast` runs regex-only.
 
 ## Suppression
 
@@ -129,6 +132,15 @@ NET001 = "info"
 
 [rules]                   # per-rule enable/disable
 CTRL003 = false
+
+[gate]                    # opt extra rules into the gate (beyond AI002 exec)
+additional_rules = ["AI001"]
+
+[rules.AI006]             # org-approved network egress destinations
+allowed_hosts = ["api.internal.corp", "hooks.slack.com"]
+
+[rules.AI004]             # extra PII identifiers to match
+pii_terms = ["employee_id", "account_number"]
 ```
 
 `.stoaignore` uses gitignore syntax for path exclusions. Tests and fixtures
@@ -137,6 +149,8 @@ they are downweighted for agent detection and placeholder-secret heuristics
 apply.
 
 ## Rules
+
+Core rules (regex/pattern):
 
 | Rule | Title | Default severity | Gates? |
 |---|---|---|---|
@@ -147,6 +161,27 @@ apply.
 | NET001 | Insecure non-local HTTP endpoint | medium | no |
 | NET002 | Request timeout not observed | medium | no |
 | CTRL001–003 | Auth / validation / rate-limit control not observed | info | never |
+
+### AI agent security rules (OWASP LLM Top 10)
+
+New in v0.2 (see [docs/rules/](docs/rules/)). Three require data-flow analysis
+and use the tree-sitter AST layer (on by default; `--no-ast` disables it and
+these rules). All are report-only except AI002 exec-class.
+
+| Rule | Canonical | OWASP | Default severity | Gates? |
+|---|---|---|---|---|
+| AI001 | STOA-LLM01-PROMPT-EXPOSURE | LLM01 | high | no (opt-in) |
+| AI002 | STOA-LLM02-OUTPUT-EXEC | LLM02 | critical | **yes — exec class at high confidence** |
+| AI003 | STOA-LLM08-UNOBSERVED-APPROVAL | LLM08 | info | never |
+| AI004 | STOA-LLM06-SENSITIVE-INTERPOLATION | LLM06 | medium (high for secrets) | no |
+| AI005 | STOA-LLM05-UNPINNED-MODEL | LLM05 | low–high by variant | no |
+| AI006 | STOA-EXFIL-NETWORK | LLM06 | high | no (opt-in) |
+| AI007 | STOA-SAMPLING-CONFIG | LLM05 | info | never |
+| CTRL004 | STOA-CTRL-OBSERVABILITY | LLM10 | info | never |
+
+AI002 is the only new rule that can fail a build, and only for the exec class
+(model output reaching `eval`/`exec`/`subprocess`, …) at high confidence — the
+one case a static flow can essentially prove.
 
 ## Security model
 
@@ -179,6 +214,8 @@ committing it to the repository is not recommended.
   of GitHub's pattern syntax (order-sensitive last-match-wins; bracket
   character classes and per-file section syntax are not supported).
 - Python, JavaScript, and TypeScript only.
+- Data-flow (AI001/AI002/AI004/AI006) analysis is **intra-file** — flows through
+  other files are not visible.
 - Only the repository-root `.gitignore` and `.stoaignore` are consulted.
 
 ## CI bypass considerations
