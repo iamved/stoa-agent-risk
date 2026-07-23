@@ -8,6 +8,7 @@ from pathlib import Path
 from . import diff as diff_module
 from . import git_metadata
 from .agent_detection import detect_agents
+from .ast_layer import AstCache
 from .config import StoaConfig, load_config
 from .integration_detection import (
     detect_capabilities,
@@ -41,6 +42,7 @@ class ScanOptions:
     fail_on: str | None = None
     fail_on_new: str | None = None
     verbose: bool = False
+    experimental_ast: bool = False
 
 
 def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResult:
@@ -62,6 +64,9 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
     all_findings: list[Finding] = []
     agents: list[AgentCandidate] = []
     warnings: list[str] = []
+    degraded_files: list[str] = []
+
+    ast_cache = AstCache() if options.experimental_ast else None
 
     use_git = not options.no_git and git_metadata.is_git_repository(root)
     codeowners = git_metadata.load_codeowners(root)
@@ -71,6 +76,11 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
         if content is None:
             skipped.append(SkippedFile(source.relative_path, "unreadable"))
             continue
+
+        if ast_cache is not None:
+            parsed = ast_cache.get(source.relative_path, source.language, content)
+            if parsed.degraded:
+                degraded_files.append(source.relative_path)
 
         suppressions = parse_suppressions(content, source.relative_path)
         warnings.extend(suppressions.warnings)
@@ -181,6 +191,7 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
         skipped_files=skipped,
         warnings=warnings,
         diff_available=diff_available,
+        degraded_files=degraded_files,
     )
 
 

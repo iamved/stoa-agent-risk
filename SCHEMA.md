@@ -3,7 +3,7 @@
 This document describes the structure of `stoa-registry.json`, the JSON
 document produced by `stoa scan`.
 
-**Current schema version: `1.0`**
+**Current schema version: `1.1`**
 
 ## Versioning policy
 
@@ -15,6 +15,30 @@ document produced by `stoa scan`.
   minor release.
 - No generated timestamps appear in the document, so output is deterministic
   for a given tree and configuration.
+- **Backward compatibility:** a `1.0` reader can consume a `1.1` document, and
+  a scan that produces no AI (`AI0xx`) findings serializes byte-identically to
+  `1.0` apart from `schema_version` — every `1.1` field below is emitted only
+  when it carries data.
+
+## Schema 1.1 additions (v0.2)
+
+**On a finding** (present only on AST/flow-based `AI0xx` findings):
+
+| Field | Type | Meaning |
+|---|---|---|
+| `id` | string | `"<rule_id>-<fingerprint[:12]>"`, the stable finding id |
+| `canonical_name` | string | e.g. `STOA-LLM02-OUTPUT-EXEC` (also the SARIF ruleId) |
+| `owasp` | object | `{"llm_top10_v1_1": "LLM02", "llm_top10_2025": "LLM05"}` |
+| `variant` | string | rule sub-variant (e.g. AI005 `trust-remote-code`) |
+| `flow` | array | taint steps: `{role: source\|propagation\|sink, line, snippet}` (snippets redacted) |
+| `gate_eligible` | bool | true only for AI002 exec-class at high confidence |
+| `dimensions` | array | dimension ids this finding contributes to |
+| `supersedes` | array | rule ids this finding dedups (e.g. AI002/sql supersedes SEC003) |
+| `evidence_tags` | array | e.g. `system_role_interpolation`, `local_endpoint_observed` |
+
+**On an agent candidate:** `dimension_assessment` — per-dimension exposure block
+(see the dimensions doc). **Top-level:** `degraded_files` — files whose AST parse
+degraded under `--experimental-ast` (regex-only fallback applied).
 
 ## Top-level document
 

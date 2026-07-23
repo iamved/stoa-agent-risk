@@ -76,6 +76,9 @@ def build_parser() -> argparse.ArgumentParser:
                       help="Additionally exclude paths matching this pattern (repeatable)")
     scan.add_argument("--verbose", action="store_true", help="Verbose output")
     scan.add_argument("--quiet", action="store_true", help="Only print gate failures and errors")
+    scan.add_argument("--experimental-ast", action="store_true",
+                      help="Parse files with the tree-sitter AST layer (records "
+                           "analysis_degraded; enables flow-based rules in later versions)")
 
     init = subparsers.add_parser("init", help="Generate integration files")
     init.add_argument("target", choices=["github"], help="Integration to initialize")
@@ -136,6 +139,7 @@ def _run_scan_command(args: argparse.Namespace) -> int:
         fail_on=fail_on,
         fail_on_new=args.fail_on_new,
         verbose=args.verbose,
+        experimental_ast=args.experimental_ast,
     )
     result = run_scan(options, config)
 

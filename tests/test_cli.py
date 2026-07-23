@@ -34,7 +34,7 @@ def test_scan_json_structure(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     main(["scan", str(EXAMPLE_REPO), "--no-git", "--json", "out.json", "--html", "out.html"])
     document = json.loads((tmp_path / "out.json").read_text(encoding="utf-8"))
-    assert document["schema_version"] == "1.0"
+    assert document["schema_version"] == "1.1"
     assert document["summary"]["agent_candidates"] >= 1
     assert document["agents"][0]["evidence"]
     assert (tmp_path / "out.html").is_file()

@@ -26,6 +26,10 @@ classifiers = [
 dependencies = [
     "pathspec>=0.11",
     "tomli>=2.0; python_version < '3.11'",
+    # AST layer (Part I). Pure wheels with grammars bundled in the wheel —
+    # no grammar is ever downloaded at runtime (local-first invariant).
+    "tree-sitter>=0.25,<0.27",
+    "tree-sitter-language-pack>=1.10,<2",
 ]
 
 [project.optional-dependencies]

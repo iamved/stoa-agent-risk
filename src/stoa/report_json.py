@@ -18,7 +18,7 @@ from .models import SEVERITIES, AgentCandidate, Finding, ScanResult
 
 
 def finding_to_dict(finding: Finding) -> dict:
-    return {
+    record = {
         "fingerprint": finding.fingerprint,
         "rule_id": finding.rule_id,
         "title": finding.title,
@@ -34,6 +34,28 @@ def finding_to_dict(finding: Finding) -> dict:
         "suppression_reason": finding.suppression_reason,
         "is_new": finding.is_new,
     }
+    # Schema 1.1 additive fields — emitted only when populated, so a scan with
+    # no AI findings serializes byte-identically to schema 1.0 (plus version).
+    if finding.canonical_name is not None:
+        record["id"] = finding.stable_id
+        record["canonical_name"] = finding.canonical_name
+    if finding.owasp is not None:
+        record["owasp"] = finding.owasp
+    if finding.variant is not None:
+        record["variant"] = finding.variant
+    if finding.flow:
+        record["flow"] = [
+            {"role": s.role, "line": s.line, "snippet": s.snippet} for s in finding.flow
+        ]
+    if finding.gate_eligible:
+        record["gate_eligible"] = True
+    if finding.dimensions:
+        record["dimensions"] = sorted(finding.dimensions)
+    if finding.supersedes:
+        record["supersedes"] = sorted(finding.supersedes)
+    if finding.evidence_tags:
+        record["evidence_tags"] = sorted(finding.evidence_tags)
+    return record
 
 
 def agent_to_dict(agent: AgentCandidate, include_suppressed: bool) -> dict:
@@ -68,6 +90,11 @@ def agent_to_dict(agent: AgentCandidate, include_suppressed: bool) -> dict:
         "codeowners": agent.codeowners,
         "findings": findings,
         "highest_severity": agent.highest_severity,
+        **(
+            {"dimension_assessment": agent.dimension_assessment}
+            if agent.dimension_assessment is not None
+            else {}
+        ),
     }
 
 
@@ -115,6 +142,10 @@ def build_document(result: ScanResult, config: StoaConfig) -> dict:
         ],
         "warnings": list(result.warnings),
     }
+    # Emitted only when AST analysis degraded on some file (keeps default
+    # regex-mode output byte-identical to schema 1.0 aside from the version).
+    if result.degraded_files:
+        document["degraded_files"] = sorted(result.degraded_files)
     validate_document(document)
     return document
 
