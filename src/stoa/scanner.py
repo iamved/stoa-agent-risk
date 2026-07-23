@@ -9,6 +9,7 @@ from . import diff as diff_module
 from . import git_metadata
 from .agent_detection import detect_agents
 from .ai_rules import detect_ai005, detect_ai_correlations
+from .ai_taint import detect_ai_taint
 from .ast_layer import AstCache
 from .config import StoaConfig, load_config
 from .integration_detection import (
@@ -43,7 +44,8 @@ class ScanOptions:
     fail_on: str | None = None
     fail_on_new: str | None = None
     verbose: bool = False
-    experimental_ast: bool = False
+    experimental_ast: bool = False  # deprecated no-op: AST is on by default
+    no_ast: bool = False  # opt out of the AST layer (regex-only, no taint rules)
 
 
 def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResult:
@@ -67,7 +69,9 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
     warnings: list[str] = []
     degraded_files: list[str] = []
 
-    ast_cache = AstCache() if options.experimental_ast else None
+    # AST layer is on by default; --no-ast (regex-only) disables it and the
+    # taint rules. The legacy --experimental-ast flag is a no-op.
+    ast_cache = None if options.no_ast else AstCache()
 
     use_git = not options.no_git and git_metadata.is_git_repository(root)
     codeowners = git_metadata.load_codeowners(root)
@@ -77,11 +81,6 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
         if content is None:
             skipped.append(SkippedFile(source.relative_path, "unreadable"))
             continue
-
-        if ast_cache is not None:
-            parsed = ast_cache.get(source.relative_path, source.language, content)
-            if parsed.degraded:
-                degraded_files.append(source.relative_path)
 
         suppressions = parse_suppressions(content, source.relative_path)
         warnings.extend(suppressions.warnings)
@@ -97,11 +96,23 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
             detect_ai005(content, source.relative_path, source.is_testlike, config)
         )
 
+        providers = detect_providers(content)
+        if ast_cache is not None:
+            parsed = ast_cache.get(source.relative_path, source.language, content)
+            if parsed.degraded:
+                degraded_files.append(source.relative_path)
+            file_findings.extend(
+                detect_ai_taint(
+                    parsed, source.relative_path, source.is_testlike, config, providers
+                )
+            )
+
         detections = detect_agents(content, source.relative_path, source.is_testlike)
         candidate_findings: list[Finding] = []
         file_agents: list[AgentCandidate] = []
         if detections:
-            providers = detect_providers(content)
+            capabilities = detect_capabilities(content)
+            integrations, call_sites = detect_integrations(content)
             capabilities = detect_capabilities(content)
             integrations, call_sites = detect_integrations(content)
             for detection in detections:
@@ -188,6 +199,10 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
             diff_module.mark_new_findings(all_findings, ranges)
             diff_available = True
 
+    all_findings = _apply_supersedes(all_findings)
+    for agent in agents:
+        agent.findings = _apply_supersedes(agent.findings)
+
     agents.sort(key=lambda a: (a.path, a.symbol))
     all_findings.sort(key=lambda f: (f.path, f.line, f.rule_id, f.fingerprint))
 
@@ -208,17 +223,42 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
     )
 
 
+def _apply_supersedes(findings: list[Finding]) -> list[Finding]:
+    """Drop findings that another finding supersedes at the same path+line.
+
+    Implements the documented dedup relationships so one root cause yields one
+    finding: AI002/sql ⊃ SEC003, AI005 insecure-endpoint ⊃ NET001,
+    AI006 ⊃ AI004.
+    """
+    claimed: set[tuple[str, str, int]] = set()
+    for finding in findings:
+        for ruled in finding.supersedes:
+            claimed.add((ruled, finding.path, finding.line))
+    if not claimed:
+        return findings
+    return [f for f in findings if (f.rule_id, f.path, f.line) not in claimed]
+
+
 def gate_findings(result: ScanResult, config: StoaConfig) -> list[Finding]:
     """Findings that trip the configured gate.
 
     Only unsuppressed, gate-eligible (see RULES), high-confidence findings can
     fail a scan; review prompts and low-confidence matches never gate.
     """
-    eligible = [
-        f
-        for f in result.findings
-        if not f.suppressed and RULES[f.rule_id].gateable and f.confidence == "high"
-    ]
+    def _is_eligible(f: Finding) -> bool:
+        if f.suppressed:
+            return False
+        if f.gate_eligible:  # AI002 exec-class at high confidence
+            return True
+        if f.rule_id in config.gate_additional_rules and f.confidence == "high":
+            return True
+        if f.rule_id.startswith("AI"):
+            # AI rules gate only via gate_eligible or an explicit opt-in, never
+            # from RULES.gateable alone (an unproven pattern must not fail a build).
+            return False
+        return RULES[f.rule_id].gateable and f.confidence == "high"
+
+    eligible = [f for f in result.findings if _is_eligible(f)]
     tripped: list[Finding] = []
     if config.fail_on != "none":
         tripped.extend(f for f in eligible if severity_at_least(f.severity, config.fail_on))

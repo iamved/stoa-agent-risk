@@ -63,6 +63,11 @@ class StoaConfig:
     severity_overrides: dict[str, str] = field(default_factory=dict)
     enabled_rules: dict[str, bool] = field(default_factory=dict)
     include_suppressed_in_json: bool = True
+    # [rules.AI006] allowed_hosts — org-approved egress destinations.
+    ai006_allowed_hosts: list[str] = field(default_factory=list)
+    # [rules.AI004] pii_terms — extra PII identifiers to match.
+    ai004_pii_terms: list[str] = field(default_factory=list)
+    gate_additional_rules: list[str] = field(default_factory=list)
 
     def rule_enabled(self, rule_id: str) -> bool:
         return self.enabled_rules.get(rule_id, True)
@@ -132,11 +137,41 @@ def load_config(root: Path, config_path: Path | None = None) -> StoaConfig:
 
     rules = data.get("rules", {})
     if rules:
+        # A rule entry is either a bool toggle or a sub-table of options
+        # ([rules.AI006] allowed_hosts = [...]). Validate ids either way.
         _validate_rule_table(rules, "rules")
-        for rule_id, enabled in rules.items():
-            config.enabled_rules[rule_id] = bool(enabled)
+        for rule_id, value in rules.items():
+            if isinstance(value, dict):
+                _load_rule_options(config, rule_id, value)
+            else:
+                config.enabled_rules[rule_id] = bool(value)
+
+    gate = data.get("gate", {})
+    if gate:
+        extra = gate.get("additional_rules", [])
+        if not isinstance(extra, list) or not all(isinstance(r, str) for r in extra):
+            raise ConfigError("[gate].additional_rules must be a list of rule id strings")
+        for rule_id in extra:
+            if rule_id not in RULES:
+                raise ConfigError(f"[gate].additional_rules names unknown rule {rule_id!r}")
+        config.gate_additional_rules = list(extra)
 
     return config
+
+
+def _load_rule_options(config: StoaConfig, rule_id: str, table: dict) -> None:
+    if rule_id == "AI006" and "allowed_hosts" in table:
+        hosts = table["allowed_hosts"]
+        if not isinstance(hosts, list) or not all(isinstance(h, str) for h in hosts):
+            raise ConfigError("[rules.AI006].allowed_hosts must be a list of strings")
+        config.ai006_allowed_hosts = list(hosts)
+    if rule_id == "AI004" and "pii_terms" in table:
+        terms = table["pii_terms"]
+        if not isinstance(terms, list) or not all(isinstance(t, str) for t in terms):
+            raise ConfigError("[rules.AI004].pii_terms must be a list of strings")
+        config.ai004_pii_terms = list(terms)
+    if "enabled" in table:
+        config.enabled_rules[rule_id] = bool(table["enabled"])
 
 
 def _validated_level(value: object, key: str) -> str:
