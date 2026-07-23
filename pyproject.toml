@@ -48,7 +48,7 @@ Documentation = "https://github.com/iamved/stoa-agent-risk#readme"
 where = ["src"]
 
 [tool.setuptools.package-data]
-stoa = ["templates/*"]
+stoa = ["templates/*", "data/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

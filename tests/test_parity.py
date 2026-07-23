@@ -39,13 +39,18 @@ def test_schema_version_is_1_1():
     assert doc["schema_version"] == "1.1"
 
 
-def test_no_ai_findings_means_no_new_finding_fields():
-    """Additive promise: v0.1-style findings carry none of the 1.1 fields."""
-    doc = build_document(_scan(EXAMPLE_REPO), StoaConfig())
+def test_v01_findings_carry_no_new_fields(tmp_path: Path):
+    """Additive promise: a plain v0.1 finding (SEC001) carries no 1.1 fields."""
+    (tmp_path / "conf.py").write_text(
+        f'API_TOKEN = "{fake_openai_key()}"\n', encoding="utf-8"
+    )
+    doc = build_document(_scan(tmp_path), StoaConfig())
     all_findings = [f for a in doc["agents"] for f in a["findings"]] + doc["repository_findings"]
-    assert all_findings, "fixture should produce findings"
-    new_keys = {"id", "canonical_name", "owasp", "flow", "gate_eligible", "dimensions", "supersedes"}
-    for finding in all_findings:
+    sec = [f for f in all_findings if f["rule_id"] == "SEC001"]
+    assert sec, "expected a SEC001 finding"
+    new_keys = {"id", "canonical_name", "owasp", "flow", "gate_eligible",
+                "dimensions", "supersedes", "message"}
+    for finding in sec:
         assert new_keys.isdisjoint(finding.keys()), finding
 
 

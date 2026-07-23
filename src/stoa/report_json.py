@@ -55,6 +55,8 @@ def finding_to_dict(finding: Finding) -> dict:
         record["supersedes"] = sorted(finding.supersedes)
     if finding.evidence_tags:
         record["evidence_tags"] = sorted(finding.evidence_tags)
+    if finding.message is not None:
+        record["message"] = finding.message
     return record
 
 

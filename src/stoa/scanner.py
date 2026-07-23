@@ -8,6 +8,7 @@ from pathlib import Path
 from . import diff as diff_module
 from . import git_metadata
 from .agent_detection import detect_agents
+from .ai_rules import detect_ai005, detect_ai_correlations
 from .ast_layer import AstCache
 from .config import StoaConfig, load_config
 from .integration_detection import (
@@ -92,6 +93,9 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
             source.is_testlike,
             config,
         )
+        file_findings.extend(
+            detect_ai005(content, source.relative_path, source.is_testlike, config)
+        )
 
         detections = detect_agents(content, source.relative_path, source.is_testlike)
         candidate_findings: list[Finding] = []
@@ -102,11 +106,20 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
             integrations, call_sites = detect_integrations(content)
             for detection in detections:
                 if detection.confidence in ("medium", "high"):
+                    anchor = detection.evidence[0].line if detection.evidence else 1
                     prompts = detect_control_prompts(
                         content,
                         source.relative_path,
                         detection.symbol,
-                        detection.evidence[0].line if detection.evidence else 1,
+                        anchor,
+                        config,
+                    )
+                    prompts += detect_ai_correlations(
+                        content,
+                        source.relative_path,
+                        detection.symbol,
+                        capabilities,
+                        anchor,
                         config,
                     )
                 else:

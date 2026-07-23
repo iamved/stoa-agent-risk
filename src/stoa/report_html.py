@@ -321,9 +321,16 @@ def render_html(result: ScanResult, config: StoaConfig) -> str:
 
     # Finding sections, collapsed by default ---------------------------------
     active = result.unsuppressed_findings()
-    security = [f for f in active if f.category in ("secret", "injection")]
+    security = [
+        f for f in active
+        if f.category in ("secret", "injection", "ai-output", "ai-disclosure",
+                          "ai-prompt", "ai-supplychain")
+    ]
     reliability = [f for f in active if f.category in ("reliability", "network")]
-    prompts = [f for f in active if f.category == "control"]
+    prompts = [
+        f for f in active
+        if f.category in ("control", "ai-agency", "ai-stability")
+    ]
     suppressed = [f for f in result.findings if f.suppressed]
 
     parts.append("<section><h2>All findings</h2>")

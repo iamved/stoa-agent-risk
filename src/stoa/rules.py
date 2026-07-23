@@ -21,6 +21,8 @@ class RuleSpec:
     default_severity: str
     gateable: bool
     remediation: str
+    canonical_name: str | None = None
+    owasp: dict | None = None
 
 
 RULES: dict[str, RuleSpec] = {
@@ -96,9 +98,91 @@ RULES: dict[str, RuleSpec] = {
         gateable=False,
         remediation="Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
     ),
+    # --- v0.2 AI rules (OWASP LLM Top 10) ---------------------------------
+    "AI001": RuleSpec(
+        rule_id="AI001",
+        title="Untrusted input observed flowing into prompt construction",
+        category="ai-prompt",
+        default_severity="high",
+        gateable=False,
+        remediation="Move untrusted content into a delimited user-role message and keep instruction text static.",
+        canonical_name="STOA-LLM01-PROMPT-EXPOSURE",
+        owasp={"llm_top10_v1_1": "LLM01", "llm_top10_2025": "LLM01"},
+    ),
+    "AI002": RuleSpec(
+        rule_id="AI002",
+        title="Model output observed reaching a dangerous execution or injection sink",
+        category="ai-output",
+        default_severity="critical",
+        gateable=True,
+        remediation="Dispatch through a static mapping of permitted actions; never execute or render model output directly.",
+        canonical_name="STOA-LLM02-OUTPUT-EXEC",
+        owasp={"llm_top10_v1_1": "LLM02", "llm_top10_2025": "LLM05"},
+    ),
+    "AI003": RuleSpec(
+        rule_id="AI003",
+        title="Approval control not observed for high-impact tool capability",
+        category="ai-agency",
+        default_severity="info",
+        gateable=False,
+        remediation="Confirm an approval or human-in-the-loop control gates this capability; none was observed in this file.",
+        canonical_name="STOA-LLM08-UNOBSERVED-APPROVAL",
+        owasp={"llm_top10_v1_1": "LLM08", "llm_top10_2025": "LLM06"},
+    ),
+    "AI004": RuleSpec(
+        rule_id="AI004",
+        title="Identifier suggesting sensitive data observed in an external model call",
+        category="ai-disclosure",
+        default_severity="medium",
+        gateable=False,
+        remediation="Pseudonymize sensitive fields before the model call and rejoin identifiers afterward.",
+        canonical_name="STOA-LLM06-SENSITIVE-INTERPOLATION",
+        owasp={"llm_top10_v1_1": "LLM06", "llm_top10_2025": "LLM02"},
+    ),
+    "AI005": RuleSpec(
+        rule_id="AI005",
+        title="Model, endpoint, or artifact dependency observed without a pin or integrity control",
+        category="ai-supplychain",
+        default_severity="medium",
+        gateable=False,
+        remediation="Pin a reviewed model revision or dated snapshot and use a TLS endpoint from an allowlist.",
+        canonical_name="STOA-LLM05-UNPINNED-MODEL",
+        owasp={"llm_top10_v1_1": "LLM05", "llm_top10_2025": "LLM03"},
+    ),
+    "AI006": RuleSpec(
+        rule_id="AI006",
+        title="Identifier suggesting sensitive data observed flowing to a network egress sink",
+        category="ai-disclosure",
+        default_severity="high",
+        gateable=False,
+        remediation="Strip sensitive fields before egress, or add the destination to [rules.AI006].allowed_hosts if org-approved.",
+        canonical_name="STOA-EXFIL-NETWORK",
+        owasp={"llm_top10_v1_1": "LLM06", "llm_top10_2025": "LLM02"},
+    ),
+    "AI007": RuleSpec(
+        rule_id="AI007",
+        title="Deterministic sampling not observed on high-impact-adjacent call sites",
+        category="ai-stability",
+        default_severity="info",
+        gateable=False,
+        remediation="Pin deterministic sampling (temperature=0) on consequential model call sites, or confirm variability is intended.",
+        canonical_name="STOA-SAMPLING-CONFIG",
+        owasp={"llm_top10_v1_1": "LLM05", "llm_top10_2025": "LLM03"},
+    ),
+    "CTRL004": RuleSpec(
+        rule_id="CTRL004",
+        title="Observability construct not observed for agent tool execution",
+        category="control",
+        default_severity="info",
+        gateable=False,
+        remediation="Confirm logging or tracing covers this agent's tool execution; none was observed in this file.",
+        canonical_name="STOA-CTRL-OBSERVABILITY",
+        owasp={"llm_top10_v1_1": "LLM10", "llm_top10_2025": "LLM10"},
+    ),
 }
 
-VALID_RULE_ID = re.compile(r"^[A-Z]{3,5}\d{3}$")
+# AI rules use a 2-letter prefix; CTRL/SEC/NET/REL use 3+.
+VALID_RULE_ID = re.compile(r"^[A-Z]{2,5}\d{3}$")
 
 # ---------------------------------------------------------------------------
 # Agent-candidate evidence
@@ -638,3 +722,59 @@ CONTROL_PATTERNS: dict[str, re.Pattern[str]] = {
 }
 
 BOT_AUTHOR = re.compile(r"(dependabot|renovate|github-actions|\[bot\])", re.IGNORECASE)
+
+# ---------------------------------------------------------------------------
+# v0.2 AI-rule patterns (Part II §AI005, Part IV §B — pattern/correlation)
+# ---------------------------------------------------------------------------
+
+# AI005 — supply chain / unpinned model
+TRUST_REMOTE_CODE = re.compile(r"\b(?:from_pretrained|pipeline)\s*\([^)]*\btrust_remote_code\s*=\s*True")
+FROM_PRETRAINED = re.compile(r"\bfrom_pretrained\s*\(\s*(['\"])([^'\"]+)\1([^)]*)\)")
+REVISION_KW = re.compile(r"\brevision\s*=")
+TORCH_PICKLE_LOAD = re.compile(r"\b(?:torch\.load|pickle\.load|marshal\.load)\s*\(")
+MODEL_ASSIGN = re.compile(
+    r"\bmodel\s*[:=]\s*(['\"])([A-Za-z0-9][\w.:\-/]*)\1|"
+    r"\b(?:ChatOpenAI|ChatAnthropic|ChatGroq|OpenAI|Anthropic)\s*\([^)]*\bmodel\s*=\s*(['\"])([A-Za-z0-9][\w.:\-/]*)\3|"
+    r"\b(?:openai|anthropic|groq|google|createGroq|createOpenAI|createAnthropic)\s*\(\s*(['\"])([A-Za-z0-9][\w.:\-/]*)\5"
+)
+# Dated model snapshots are pinned and never trigger floating-alias.
+DATED_MODEL_SNAPSHOT = re.compile(r"-(?:\d{4}-\d{2}-\d{2}|\d{8})(?:$|['\"])|@[0-9a-f]{7,40}")
+BASE_URL_ASSIGN = re.compile(
+    r"\b(?:base_url|baseURL|api_base)\s*[:=]\s*(.+?)(?:[,)\n]|$)"
+)
+BASE_URL_HTTP = re.compile(r"^\s*['\"]http://([^'\"/]+)")
+BASE_URL_DYNAMIC = re.compile(r"(?:os\.(?:environ|getenv)|process\.env|config\.)")
+
+# recognized model call sites (for AI007 sampling analysis)
+MODEL_CALL_SITE = re.compile(
+    r"\b(?:chat\.completions|responses|messages)\.create\s*\(|"
+    r"\b(?:generate_content|generateContent)\s*\(|"
+    r"\.(?:invoke|ainvoke|stream)\s*\(|"
+    r"\b(?:generateText|streamText|generateObject|streamObject)\s*\("
+)
+EMBEDDING_OR_MODERATION = re.compile(r"\b(?:embeddings|moderations|embed|embedMany)\b")
+TEMPERATURE_DETERMINISTIC = re.compile(r"\btemperature\s*[:=]\s*0(?:\.[0-3]\d*)?\b")
+TEMPERATURE_PRESENT = re.compile(r"\b(?:temperature|top_p)\s*[:=]")
+
+# AI003 — tool binding + approval constructs
+TOOL_BINDING = re.compile(
+    r"@(?:tool|function_tool)\b|\btools\s*[:=]\s*[\[{]|"
+    r"\bStructuredTool\.from_function\b|\bserver\.tool\s*\(|"
+    r"\btool\s*\(\s*\{|\bFunctionTool\b|\btool_choice\b"
+)
+APPROVAL_CONSTRUCT = re.compile(
+    r"\binterrupt(?:_before|_after)?\s*[(=]|\bCommand\s*\(\s*resume|"
+    r"\brequires_approval\s*=\s*True\b|\bhuman_in_the_loop\b|"
+    r"\bneedsApproval\s*:\s*true\b|\bHumanApprovalCallbackHandler\b|\bhuman_input\b|"
+    r"\b(?:approv|confirm|authoriz|consent|reviewed?)\w*\b",
+    re.IGNORECASE,
+)
+
+# CTRL004 — durable observability constructs
+OBSERVABILITY_CONSTRUCT = re.compile(
+    r"\b(?:logging|logger|log)\.(?:info|warning|warn|error|debug|exception|critical)\s*\(|"
+    r"\bstructlog\b|\bloguru\b|@observe\b|\blangsmith\b|\blangfuse\b|"
+    r"\bopentelemetry\b|\btraceloop\b|\bwandb\b|\btracer\.start_?[sS]pan\b|"
+    r"\b(?:winston|pino|bunyan)\b|\bconsole\.(?:error|warn)\s*\("
+)
+ADHOC_OUTPUT = re.compile(r"\bprint\s*\(|\bconsole\.log\s*\(")

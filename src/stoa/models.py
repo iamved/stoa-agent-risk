@@ -73,6 +73,7 @@ class Finding:
     supersedes: list[str] = field(default_factory=list)
     variant: Optional[str] = None
     evidence_tags: list[str] = field(default_factory=list)
+    message: Optional[str] = None  # full templated explanation (AI rules)
 
     @property
     def stable_id(self) -> str:

@@ -1,0 +1,18 @@
+# Floating (undated) model aliases used by AI005 `floating-alias` (Part II).
+# A model string that exactly matches one of these — or ends with `-latest` —
+# is treated as unpinned. Dated snapshots (e.g. gpt-4o-2024-08-06) never match.
+# Versioned with the binary; override in stoa.toml via [rules.AI005] aliases.
+
+aliases = [
+  # OpenAI
+  "gpt-4o", "gpt-4o-mini", "gpt-4.1", "gpt-4.1-mini", "gpt-4-turbo", "gpt-4",
+  "gpt-3.5-turbo", "o1", "o1-mini", "o3", "o3-mini", "o4-mini",
+  # Anthropic (undated forms)
+  "claude-3-5-sonnet", "claude-3-5-haiku", "claude-3-opus",
+  "claude-sonnet-4-5", "claude-sonnet-4-6", "claude-opus-4-1", "claude-haiku-4-5",
+  # Google
+  "gemini-1.5-pro", "gemini-1.5-flash", "gemini-2.0-flash",
+  "gemini-2.5-pro", "gemini-2.5-flash",
+  # Others
+  "mistral-large", "mistral-small", "llama-3.3-70b", "llama-3.1-70b",
+]
