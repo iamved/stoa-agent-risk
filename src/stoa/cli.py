@@ -76,6 +76,8 @@ def build_parser() -> argparse.ArgumentParser:
                       help="Emit GitHub workflow-command annotations")
     scan.add_argument("--summary-file", metavar="PATH", default=None,
                       help="Write a GitHub job summary (Markdown) to PATH")
+    scan.add_argument("--sarif", metavar="PATH", default=None,
+                      help="Write a SARIF 2.1.0 log (with stoa-dim:* tags) to PATH")
     scan.add_argument("--config", metavar="PATH", default=None,
                       help="Path to stoa.toml (default: <root>/stoa.toml)")
     scan.add_argument("--no-git", action="store_true",
@@ -216,6 +218,9 @@ def _run_scan_command(args: argparse.Namespace) -> int:
     write_html(result, config, html_path)
     if args.summary_file:
         write_summary(result, Path(args.summary_file))
+    if args.sarif:
+        from .sarif import write_sarif
+        write_sarif(result, Path(args.sarif))
     if args.github_annotations:
         emit_annotations(result, sys.stdout)
 

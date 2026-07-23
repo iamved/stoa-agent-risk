@@ -198,7 +198,43 @@ footer { margin-top: 44px; padding-top: 14px; border-top: 1px solid #e3e6ec;
 .sevbar .s-low { background: #7c8aa0; }
 .sevbar .s-info { background: #3b6fce; }
 .chart-caption { font-size: 11.5px; color: #5a6272; margin: 8px 0 0; }
+
+/* --- dimension exposure matrix --------------------------------------- */
+.matrix { font-size: 12.5px; }
+.matrix th.dim { writing-mode: vertical-rl; transform: rotate(180deg);
+  white-space: nowrap; padding: 8px 4px; font-size: 11px; height: 88px; vertical-align: bottom; }
+.matrix th.dim.proxy { background: repeating-linear-gradient(45deg, #fafbfc, #fafbfc 4px, #eef0f4 4px, #eef0f4 8px); }
+.matrix td.agent { font-weight: 600; white-space: nowrap; }
+.matrix tr.org td { background: #f3f5f8; font-weight: 700; }
+.matrix td.cell { text-align: center; font-weight: 700; }
+.matrix td.cell a { text-decoration: none; display: block; }
+.exp-elevated { color: #b3261e; }
+.exp-moderate { color: #a05a00; }
+.exp-low { color: #465063; }
+.exp-none { color: #c4cbd6; }
+.matrix td.cell .lvl { font-size: 9px; font-weight: 600; display: block;
+  text-transform: uppercase; letter-spacing: 0.02em; }
+.dim-legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 10px 2px;
+  font-size: 11.5px; color: #5a6272; }
+.dim-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.dim-drill { background: #fff; border: 1px solid #e3e6ec; border-radius: 8px;
+  padding: 8px 14px; margin: 8px 0; }
+.dim-drill summary { font-size: 13px; }
+.dim-drill:target { border-color: #a05a00; box-shadow: 0 0 0 2px #a05a0033; }
+.dim-drill table { margin-top: 8px; }
+@media print {
+  .risk-map, .chart, details.block { break-inside: avoid; }
+  .dim-drill { display: block; }
+  .dim-drill > summary { font-weight: 700; }
+}
 """
+
+_EXP_GLYPH = {"elevated": "●", "moderate": "◐", "low": "○",
+              "none-observed": "·", "not-assessable": "∅"}
+_EXP_CLASS = {"elevated": "exp-elevated", "moderate": "exp-moderate",
+              "low": "exp-low", "none-observed": "exp-none", "not-assessable": "exp-none"}
+_EXP_LABEL = {"elevated": "elev", "moderate": "mod", "low": "low",
+              "none-observed": "", "not-assessable": "n/a"}
 
 BAR_CLASS = {
     "severe": "bar-severe",
@@ -294,6 +330,10 @@ def render_html(result: ScanResult, config: StoaConfig) -> str:
     # Findings-by-severity bar ----------------------------------------------
     if result.unsuppressed_findings():
         parts.append(_severity_bar(severity_counts))
+
+    # Dimension exposure matrix ---------------------------------------------
+    if result.dimension_summary is not None and result.agents:
+        parts.append(_dimension_matrix(result))
 
     # Agent risk map ---------------------------------------------------------
     parts.append("<section><h2>Agent risk map</h2>")
@@ -401,6 +441,113 @@ def _exposure_chart(ranked: list[AgentCandidate]) -> str:
         "candidate. Higher means more to review first, not a proven exploit.</p>"
         "</div>"
     )
+
+
+def _dim_cell(entry: dict, agent_id: str) -> str:
+    exp = entry["exposure"]
+    glyph = _EXP_GLYPH.get(exp, "·")
+    cls = _EXP_CLASS.get(exp, "exp-none")
+    label = _EXP_LABEL.get(exp, "")
+    proxy = "ᴾ" if entry["assessability"] == "proxy" else ""
+    inner = (f'<span class="{cls}">{glyph}{proxy}</span>'
+             f'<span class="lvl {cls}">{html_text(label)}</span>')
+    anchor = f"dim-{html_text(agent_id)}"
+    title = html_text(entry["statement"])
+    return f'<td class="cell" title="{title}"><a href="#{anchor}">{inner}</a></td>'
+
+
+def _dimension_matrix(result: ScanResult) -> str:
+    summary = result.dimension_summary
+    dim_order = [d["id"] for d in summary["dimensions"]]
+    dim_meta = {d["id"]: d for d in summary["dimensions"]}
+    tax = summary["taxonomy"]
+
+    parts = ["<section><h2>Dimension exposure</h2>"]
+    parts.append(
+        f'<p class="note">Every agent candidate assessed across '
+        f'{len(dim_order)} risk dimensions — taxonomy '
+        f'<code>{html_text(tax["id"])}</code> v{html_text(tax["version"])}. '
+        "Cells encode state by glyph, color, and label. Proxy-tier dimensions "
+        "(ᴾ) reflect indirect signals only and are capped at moderate — runtime "
+        "evaluation is required for direct assessment. Click a cell for evidence.</p>"
+    )
+
+    # header
+    head = ['<div class="table-wrap"><table class="matrix"><thead><tr><th class="agent">Agent</th>']
+    for did in dim_order:
+        m = dim_meta[did]
+        cls = "dim proxy" if m["assessability"] == "proxy" else "dim"
+        head.append(f'<th class="{cls}">{html_text(m["name"])}</th>')
+    head.append("</tr></thead><tbody>")
+    parts.append("".join(head))
+
+    # org rollup row
+    org = ['<tr class="org"><td class="agent">Org rollup</td>']
+    for did in dim_order:
+        exp = dim_meta[did]["max_exposure"]
+        org.append(f'<td class="cell {_EXP_CLASS.get(exp, "exp-none")}">'
+                   f'{_EXP_GLYPH.get(exp, "·")}</td>')
+    org.append("</tr>")
+    parts.append("".join(org))
+
+    ranked = sorted(result.agents, key=lambda a: (-exposure_score(a), a.path, a.symbol))
+    for agent in ranked:
+        if agent.dimension_assessment is None:
+            continue
+        entries = {e["id"]: e for e in agent.dimension_assessment["dimensions"]}
+        row = [f'<tr><td class="agent">{html_text(agent.name)}</td>']
+        for did in dim_order:
+            entry = entries.get(did)
+            if entry is None:
+                row.append('<td class="cell exp-none">·</td>')
+            else:
+                row.append(_dim_cell(entry, agent.id))
+        row.append("</tr>")
+        parts.append("".join(row))
+    parts.append("</tbody></table></div>")
+
+    parts.append(
+        '<div class="dim-legend">'
+        '<span><span class="exp-elevated">●</span> elevated</span>'
+        '<span><span class="exp-moderate">◐</span> moderate</span>'
+        '<span><span class="exp-low">○</span> low</span>'
+        '<span><span class="exp-none">·</span> none observed</span>'
+        '<span>ᴾ proxy signals only</span></div>'
+    )
+
+    # per-agent drill-downs
+    for agent in ranked:
+        if agent.dimension_assessment is None:
+            continue
+        rows = []
+        for e in agent.dimension_assessment["dimensions"]:
+            finds = ", ".join(html_text(f) for f in e["contributing_findings"]) or "—"
+            caps = ", ".join(html_text(c) for c in e["contributing_capabilities"]) or "—"
+            controls = ", ".join(html_text(c) for c in e["controls_observed"]) or "—"
+            rows.append(
+                "<tr>"
+                f"<td>{html_text(e['id'])}</td>"
+                f"<td>{_exposure_badge(e['exposure'])}</td>"
+                f"<td>{html_text(e['score'])}</td>"
+                f"<td>{finds}</td><td>{caps}</td><td>{controls}</td>"
+                "</tr>"
+            )
+        parts.append(
+            f'<details class="dim-drill" id="dim-{html_text(agent.id)}">'
+            f"<summary>{html_text(agent.name)} — dimension detail</summary>"
+            '<div class="table-wrap"><table><thead><tr><th>Dimension</th>'
+            "<th>Exposure</th><th>Score</th><th>Findings</th><th>Capabilities</th>"
+            f"<th>Controls observed</th></tr></thead><tbody>{''.join(rows)}</tbody></table></div>"
+            "</details>"
+        )
+
+    parts.append("</section>")
+    return "".join(parts)
+
+
+def _exposure_badge(exp: str) -> str:
+    return (f'<span class="{_EXP_CLASS.get(exp, "exp-none")}">'
+            f'{_EXP_GLYPH.get(exp, "·")} {html_text(exp)}</span>')
 
 
 def _severity_bar(severity_counts: dict[str, int]) -> str:

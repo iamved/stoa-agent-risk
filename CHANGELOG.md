@@ -3,15 +3,33 @@
 All notable changes to Stoa are documented here. The registry JSON schema is
 versioned separately (see [SCHEMA.md](SCHEMA.md)).
 
-## 0.2.0a1 — unreleased alpha (v0.2 "Dimension Exposure", in progress)
+## 0.2.0 — v0.2 "Dimension Exposure"
 
-This is a **pre-release**. `pipx install stoa-agent-risk` continues to install
-the stable 0.1.x line; install this alpha explicitly with
-`pip install --pre stoa-agent-risk` or `pip install stoa-agent-risk==0.2.0a1`.
+**Every agent assessed across eight risk dimensions — five verified statically,
+three flagged for runtime follow-up, all with line-level evidence.**
 
-The v0.2 "Dimension Exposure" release ships in phases. This alpha contains the
-first three phases (AST engine + eight new AI rules). The dimension exposure
-matrix and `stoa diff` are still in progress and **not** in this build.
+Registry schema → 1.1 (additive); diff schema `stoa-diff/1.0`.
+
+### Added — dimension exposure ([docs/dimensions.md](docs/dimensions.md))
+- An eight-dimension risk taxonomy (`data/dimensions.toml`, replaceable) with
+  deterministic scoring and assessability tiers. Proxy-tier dimensions are
+  capped at `moderate` (a property test enforces it — Stoa never implies it
+  measured behavior it only saw a config signal for).
+- Per-agent `dimension_assessment` + top-level `dimension_summary` in the
+  registry; a no-JavaScript **Dimension Exposure Matrix** (glyph + color + text)
+  with anchor drill-downs and print styles at the top of the HTML report.
+- Custom taxonomies with an `unclassified` safety net; `--no-dimensions`,
+  `--taxonomy`. SARIF output (`--sarif`) with `stoa-dim:<dimension>` tags.
+
+### Added — `stoa diff` capability drift ([docs/diff.md](docs/diff.md))
+- Registry-to-registry drift (`stoa-diff/1.0`): capability/integration/provider/
+  population/finding drift + dimension deltas, with a rename pass and a drift
+  severity model. `stoa diff BASE HEAD`, `--base-ref` (git worktree), and
+  `stoa scan --diff-against`. Markdown changelog for a sticky PR comment.
+- In-repo approvals (`.stoa/approvals.toml`, `stoa approve`) bound to a
+  line-independent evidence fingerprint — stale when the code changes, never
+  hidden. `--fail-on-drift`, `--fail-on-dimension-increase`.
+- `stoa init github` wires the drift step into the workflow.
 
 ### Added — AST analysis layer (registry schema → 1.1)
 - A tree-sitter AST layer with vendored, pinned grammars for Python, JS, TS/TSX

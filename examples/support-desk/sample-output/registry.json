@@ -1,8 +1,8 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "tool": {
     "name": "stoa",
-    "version": "0.1.3"
+    "version": "0.2.0"
   },
   "repository": {
     "name": "support-desk",
@@ -17,10 +17,10 @@
     "integrations": 5,
     "findings": {
       "critical": 3,
-      "high": 1,
+      "high": 3,
       "medium": 3,
-      "low": 0,
-      "info": 27
+      "low": 4,
+      "info": 35
     },
     "new_findings": {
       "critical": 0,
@@ -84,7 +84,11 @@
           "remediation": "Load the password from a secret manager or environment variable.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "data-exfiltration",
+            "operational-control"
+          ]
         },
         {
           "fingerprint": "e44e70c48a235911",
@@ -100,7 +104,11 @@
           "remediation": "Confirm authentication is enforced before this agent acts; it was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "operational-control",
+            "unauthorized-action"
+          ]
         },
         {
           "fingerprint": "a17e389dbacc6d97",
@@ -116,7 +124,12 @@
           "remediation": "Confirm inputs are validated before this agent acts; validation was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "adversarial-manipulation",
+            "operational-control",
+            "output-integrity"
+          ]
         },
         {
           "fingerprint": "d8dd339da545edbc",
@@ -132,10 +145,120 @@
           "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ]
         }
       ],
-      "highest_severity": "critical"
+      "highest_severity": "critical",
+      "dimension_assessment": {
+        "taxonomy": {
+          "id": "stoa-default-8",
+          "version": "1.0"
+        },
+        "dimensions": [
+          {
+            "id": "scope-violation",
+            "assessability": "strong",
+            "exposure": "moderate",
+            "score": 36,
+            "contributing_findings": [],
+            "contributing_capabilities": [
+              "database_write",
+              "email_send"
+            ],
+            "controls_observed": [],
+            "statement": "0 finding(s) and 2 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "data-exfiltration",
+            "assessability": "strong",
+            "exposure": "moderate",
+            "score": 40,
+            "contributing_findings": [
+              "524191d8e9c415da"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "unauthorized-action",
+            "assessability": "strong",
+            "exposure": "moderate",
+            "score": 37,
+            "contributing_findings": [
+              "e44e70c48a235911"
+            ],
+            "contributing_capabilities": [
+              "database_write",
+              "email_send"
+            ],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 2 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "output-integrity",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 1,
+            "contributing_findings": [
+              "a17e389dbacc6d97"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "adversarial-manipulation",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 1,
+            "contributing_findings": [
+              "a17e389dbacc6d97"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "behavioral-instability",
+            "assessability": "proxy",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "model-drift",
+            "assessability": "proxy",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "operational-control",
+            "assessability": "partial",
+            "exposure": "moderate",
+            "score": 42,
+            "contributing_findings": [
+              "524191d8e9c415da",
+              "a17e389dbacc6d97",
+              "d8dd339da545edbc",
+              "e44e70c48a235911"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "4 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          }
+        ]
+      }
     },
     {
       "id": "63321d02d975",
@@ -189,7 +312,11 @@
           "remediation": "Load the password from a secret manager or environment variable.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "data-exfiltration",
+            "operational-control"
+          ]
         },
         {
           "fingerprint": "8d3a46531b8da73e",
@@ -205,7 +332,11 @@
           "remediation": "Confirm authentication is enforced before this agent acts; it was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "operational-control",
+            "unauthorized-action"
+          ]
         },
         {
           "fingerprint": "c46b71d141d9bb61",
@@ -221,7 +352,12 @@
           "remediation": "Confirm inputs are validated before this agent acts; validation was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "adversarial-manipulation",
+            "operational-control",
+            "output-integrity"
+          ]
         },
         {
           "fingerprint": "984e5615ba54c7da",
@@ -237,10 +373,120 @@
           "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ]
         }
       ],
-      "highest_severity": "critical"
+      "highest_severity": "critical",
+      "dimension_assessment": {
+        "taxonomy": {
+          "id": "stoa-default-8",
+          "version": "1.0"
+        },
+        "dimensions": [
+          {
+            "id": "scope-violation",
+            "assessability": "strong",
+            "exposure": "moderate",
+            "score": 36,
+            "contributing_findings": [],
+            "contributing_capabilities": [
+              "database_write",
+              "email_send"
+            ],
+            "controls_observed": [],
+            "statement": "0 finding(s) and 2 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "data-exfiltration",
+            "assessability": "strong",
+            "exposure": "moderate",
+            "score": 40,
+            "contributing_findings": [
+              "524191d8e9c415da"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "unauthorized-action",
+            "assessability": "strong",
+            "exposure": "moderate",
+            "score": 37,
+            "contributing_findings": [
+              "8d3a46531b8da73e"
+            ],
+            "contributing_capabilities": [
+              "database_write",
+              "email_send"
+            ],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 2 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "output-integrity",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 1,
+            "contributing_findings": [
+              "c46b71d141d9bb61"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "adversarial-manipulation",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 1,
+            "contributing_findings": [
+              "c46b71d141d9bb61"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "behavioral-instability",
+            "assessability": "proxy",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "model-drift",
+            "assessability": "proxy",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "operational-control",
+            "assessability": "partial",
+            "exposure": "moderate",
+            "score": 42,
+            "contributing_findings": [
+              "524191d8e9c415da",
+              "8d3a46531b8da73e",
+              "984e5615ba54c7da",
+              "c46b71d141d9bb61"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "4 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          }
+        ]
+      }
     },
     {
       "id": "a640d3b9fc5b",
@@ -305,7 +551,66 @@
           "remediation": "Load the credential from a secret manager or environment variable.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "data-exfiltration",
+            "operational-control"
+          ]
+        },
+        {
+          "fingerprint": "4b8fbb8f505770bd",
+          "rule_id": "AI005",
+          "title": "Model, endpoint, or artifact dependency observed without a pin or integrity control",
+          "category": "ai-supplychain",
+          "severity": "low",
+          "confidence": "low",
+          "path": "agents/billing_agent.py",
+          "line": 20,
+          "column": 1,
+          "snippet": "ChatOpenAI(model=\"gpt-4o\"",
+          "remediation": "Pin a reviewed model revision or dated snapshot and use a TLS endpoint from an allowlist.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI005-4b8fbb8f5057",
+          "canonical_name": "STOA-LLM05-UNPINNED-MODEL",
+          "owasp": {
+            "llm_top10_v1_1": "LLM05",
+            "llm_top10_2025": "LLM03"
+          },
+          "variant": "floating-alias",
+          "dimensions": [
+            "behavioral-instability",
+            "model-drift"
+          ],
+          "message": "Model string `gpt-4o` (line 20) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+        },
+        {
+          "fingerprint": "9a653f5c5c9cce7c",
+          "rule_id": "AI003",
+          "title": "Approval control not observed for high-impact tool capability",
+          "category": "ai-agency",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/billing_agent.py",
+          "line": 27,
+          "column": 1,
+          "snippet": "high-impact capability for candidate billing_agent",
+          "remediation": "Confirm an approval or human-in-the-loop control gates this capability; none was observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI003-9a653f5c5c9c",
+          "canonical_name": "STOA-LLM08-UNOBSERVED-APPROVAL",
+          "owasp": {
+            "llm_top10_v1_1": "LLM08",
+            "llm_top10_2025": "LLM06"
+          },
+          "dimensions": [
+            "scope-violation",
+            "unauthorized-action"
+          ],
+          "message": "Agent candidate `billing_agent` binds a tool whose body contains high-impact capability call sites (payment-access). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat."
         },
         {
           "fingerprint": "8b8f178652898f65",
@@ -321,7 +626,11 @@
           "remediation": "Confirm authentication is enforced before this agent acts; it was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "operational-control",
+            "unauthorized-action"
+          ]
         },
         {
           "fingerprint": "aac80e8252504a50",
@@ -337,7 +646,12 @@
           "remediation": "Confirm inputs are validated before this agent acts; validation was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "adversarial-manipulation",
+            "operational-control",
+            "output-integrity"
+          ]
         },
         {
           "fingerprint": "cb7a20bec4e37ae1",
@@ -353,7 +667,36 @@
           "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ]
+        },
+        {
+          "fingerprint": "76f7383c70e911c8",
+          "rule_id": "CTRL004",
+          "title": "Observability construct not observed for agent tool execution",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/billing_agent.py",
+          "line": 27,
+          "column": 1,
+          "snippet": "observability for candidate billing_agent",
+          "remediation": "Confirm logging or tracing covers this agent's tool execution; none was observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "CTRL004-76f7383c70e9",
+          "canonical_name": "STOA-CTRL-OBSERVABILITY",
+          "owasp": {
+            "llm_top10_v1_1": "LLM10",
+            "llm_top10_2025": "LLM10"
+          },
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "Agent candidate `billing_agent` binds tools executing capability call sites; no logging or tracing construct was observed in this file. Observability may exist at middleware or platform level and would not be visible to this scan. One review prompt per candidate."
         },
         {
           "fingerprint": "0e339988fc3f38a2",
@@ -369,7 +712,10 @@
           "remediation": "Use parameterized queries instead of string interpolation.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "output-integrity"
+          ]
         },
         {
           "fingerprint": "26c82d2f829684bb",
@@ -385,10 +731,132 @@
           "remediation": "Pass an explicit timeout so a hung upstream cannot stall the agent.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ]
         }
       ],
-      "highest_severity": "critical"
+      "highest_severity": "critical",
+      "dimension_assessment": {
+        "taxonomy": {
+          "id": "stoa-default-8",
+          "version": "1.0"
+        },
+        "dimensions": [
+          {
+            "id": "scope-violation",
+            "assessability": "strong",
+            "exposure": "low",
+            "score": 19,
+            "contributing_findings": [
+              "AI003-9a653f5c5c9c"
+            ],
+            "contributing_capabilities": [
+              "payment_access"
+            ],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "data-exfiltration",
+            "assessability": "strong",
+            "exposure": "elevated",
+            "score": 58,
+            "contributing_findings": [
+              "cebc7553a36c2c90"
+            ],
+            "contributing_capabilities": [
+              "external_http"
+            ],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "unauthorized-action",
+            "assessability": "strong",
+            "exposure": "low",
+            "score": 19,
+            "contributing_findings": [
+              "8b8f178652898f65",
+              "AI003-9a653f5c5c9c"
+            ],
+            "contributing_capabilities": [
+              "payment_access"
+            ],
+            "controls_observed": [],
+            "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "output-integrity",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 16,
+            "contributing_findings": [
+              "0e339988fc3f38a2",
+              "aac80e8252504a50"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "2 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "adversarial-manipulation",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 1,
+            "contributing_findings": [
+              "aac80e8252504a50"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "behavioral-instability",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 2,
+            "contributing_findings": [
+              "AI005-4b8fbb8f5057"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 1 finding(s) and 0 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "model-drift",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 10,
+            "contributing_findings": [
+              "AI005-4b8fbb8f5057"
+            ],
+            "contributing_capabilities": [
+              "provider:openai"
+            ],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 1 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "operational-control",
+            "assessability": "partial",
+            "exposure": "moderate",
+            "score": 46,
+            "contributing_findings": [
+              "26c82d2f829684bb",
+              "8b8f178652898f65",
+              "CTRL004-76f7383c70e9",
+              "aac80e8252504a50",
+              "cb7a20bec4e37ae1",
+              "cebc7553a36c2c90"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "6 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          }
+        ]
+      }
     },
     {
       "id": "509c9ce8c11d",
@@ -453,7 +921,66 @@
           "remediation": "Load the credential from a secret manager or environment variable.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "data-exfiltration",
+            "operational-control"
+          ]
+        },
+        {
+          "fingerprint": "4b8fbb8f505770bd",
+          "rule_id": "AI005",
+          "title": "Model, endpoint, or artifact dependency observed without a pin or integrity control",
+          "category": "ai-supplychain",
+          "severity": "low",
+          "confidence": "low",
+          "path": "agents/billing_agent.py",
+          "line": 20,
+          "column": 1,
+          "snippet": "ChatOpenAI(model=\"gpt-4o\"",
+          "remediation": "Pin a reviewed model revision or dated snapshot and use a TLS endpoint from an allowlist.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI005-4b8fbb8f5057",
+          "canonical_name": "STOA-LLM05-UNPINNED-MODEL",
+          "owasp": {
+            "llm_top10_v1_1": "LLM05",
+            "llm_top10_2025": "LLM03"
+          },
+          "variant": "floating-alias",
+          "dimensions": [
+            "behavioral-instability",
+            "model-drift"
+          ],
+          "message": "Model string `gpt-4o` (line 20) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+        },
+        {
+          "fingerprint": "7d39fac3dfb50d66",
+          "rule_id": "AI003",
+          "title": "Approval control not observed for high-impact tool capability",
+          "category": "ai-agency",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/billing_agent.py",
+          "line": 27,
+          "column": 1,
+          "snippet": "high-impact capability for candidate billing_executor",
+          "remediation": "Confirm an approval or human-in-the-loop control gates this capability; none was observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI003-7d39fac3dfb5",
+          "canonical_name": "STOA-LLM08-UNOBSERVED-APPROVAL",
+          "owasp": {
+            "llm_top10_v1_1": "LLM08",
+            "llm_top10_2025": "LLM06"
+          },
+          "dimensions": [
+            "scope-violation",
+            "unauthorized-action"
+          ],
+          "message": "Agent candidate `billing_executor` binds a tool whose body contains high-impact capability call sites (payment-access). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat."
         },
         {
           "fingerprint": "148732f274e8103c",
@@ -469,7 +996,11 @@
           "remediation": "Confirm authentication is enforced before this agent acts; it was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "operational-control",
+            "unauthorized-action"
+          ]
         },
         {
           "fingerprint": "2dfe5ab653fa6145",
@@ -485,7 +1016,12 @@
           "remediation": "Confirm inputs are validated before this agent acts; validation was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "adversarial-manipulation",
+            "operational-control",
+            "output-integrity"
+          ]
         },
         {
           "fingerprint": "2b9a0f8475b97694",
@@ -501,7 +1037,36 @@
           "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ]
+        },
+        {
+          "fingerprint": "7193b0bda1f73c55",
+          "rule_id": "CTRL004",
+          "title": "Observability construct not observed for agent tool execution",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/billing_agent.py",
+          "line": 27,
+          "column": 1,
+          "snippet": "observability for candidate billing_executor",
+          "remediation": "Confirm logging or tracing covers this agent's tool execution; none was observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "CTRL004-7193b0bda1f7",
+          "canonical_name": "STOA-CTRL-OBSERVABILITY",
+          "owasp": {
+            "llm_top10_v1_1": "LLM10",
+            "llm_top10_2025": "LLM10"
+          },
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "Agent candidate `billing_executor` binds tools executing capability call sites; no logging or tracing construct was observed in this file. Observability may exist at middleware or platform level and would not be visible to this scan. One review prompt per candidate."
         },
         {
           "fingerprint": "0e339988fc3f38a2",
@@ -517,7 +1082,10 @@
           "remediation": "Use parameterized queries instead of string interpolation.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "output-integrity"
+          ]
         },
         {
           "fingerprint": "26c82d2f829684bb",
@@ -533,10 +1101,132 @@
           "remediation": "Pass an explicit timeout so a hung upstream cannot stall the agent.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ]
         }
       ],
-      "highest_severity": "critical"
+      "highest_severity": "critical",
+      "dimension_assessment": {
+        "taxonomy": {
+          "id": "stoa-default-8",
+          "version": "1.0"
+        },
+        "dimensions": [
+          {
+            "id": "scope-violation",
+            "assessability": "strong",
+            "exposure": "low",
+            "score": 19,
+            "contributing_findings": [
+              "AI003-7d39fac3dfb5"
+            ],
+            "contributing_capabilities": [
+              "payment_access"
+            ],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "data-exfiltration",
+            "assessability": "strong",
+            "exposure": "elevated",
+            "score": 58,
+            "contributing_findings": [
+              "cebc7553a36c2c90"
+            ],
+            "contributing_capabilities": [
+              "external_http"
+            ],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "unauthorized-action",
+            "assessability": "strong",
+            "exposure": "low",
+            "score": 19,
+            "contributing_findings": [
+              "148732f274e8103c",
+              "AI003-7d39fac3dfb5"
+            ],
+            "contributing_capabilities": [
+              "payment_access"
+            ],
+            "controls_observed": [],
+            "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "output-integrity",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 16,
+            "contributing_findings": [
+              "0e339988fc3f38a2",
+              "2dfe5ab653fa6145"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "2 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "adversarial-manipulation",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 1,
+            "contributing_findings": [
+              "2dfe5ab653fa6145"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "behavioral-instability",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 2,
+            "contributing_findings": [
+              "AI005-4b8fbb8f5057"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 1 finding(s) and 0 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "model-drift",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 10,
+            "contributing_findings": [
+              "AI005-4b8fbb8f5057"
+            ],
+            "contributing_capabilities": [
+              "provider:openai"
+            ],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 1 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "operational-control",
+            "assessability": "partial",
+            "exposure": "moderate",
+            "score": 46,
+            "contributing_findings": [
+              "148732f274e8103c",
+              "26c82d2f829684bb",
+              "2b9a0f8475b97694",
+              "2dfe5ab653fa6145",
+              "CTRL004-7193b0bda1f7",
+              "cebc7553a36c2c90"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "6 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          }
+        ]
+      }
     },
     {
       "id": "fdc8f858ec45",
@@ -586,6 +1276,98 @@
       "codeowners": [],
       "findings": [
         {
+          "fingerprint": "09241da3b22e108a",
+          "rule_id": "AI003",
+          "title": "Approval control not observed for high-impact tool capability",
+          "category": "ai-agency",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/escalation_agent.py",
+          "line": 20,
+          "column": 1,
+          "snippet": "high-impact capability for candidate escalation_agent",
+          "remediation": "Confirm an approval or human-in-the-loop control gates this capability; none was observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI003-09241da3b22e",
+          "canonical_name": "STOA-LLM08-UNOBSERVED-APPROVAL",
+          "owasp": {
+            "llm_top10_v1_1": "LLM08",
+            "llm_top10_2025": "LLM06"
+          },
+          "dimensions": [
+            "scope-violation",
+            "unauthorized-action"
+          ],
+          "message": "Agent candidate `escalation_agent` binds a tool whose body contains high-impact capability call sites (messaging). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat."
+        },
+        {
+          "fingerprint": "76e776d699b3a736",
+          "rule_id": "AI004",
+          "title": "Identifier suggesting sensitive data observed in an external model call",
+          "category": "ai-disclosure",
+          "severity": "high",
+          "confidence": "high",
+          "path": "agents/escalation_agent.py",
+          "line": 20,
+          "column": 1,
+          "snippet": "response = client.messages.create(",
+          "remediation": "Pseudonymize sensitive fields before the model call and rejoin identifiers afterward.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI004-76e776d699b3",
+          "canonical_name": "STOA-LLM06-SENSITIVE-INTERPOLATION",
+          "owasp": {
+            "llm_top10_v1_1": "LLM06",
+            "llm_top10_2025": "LLM02"
+          },
+          "variant": "secret",
+          "flow": [
+            {
+              "role": "source",
+              "line": 11,
+              "snippet": "client = Anthropic(api_key=os.environ[\"ANTHROPIC_API_KEY\"])"
+            },
+            {
+              "role": "sink",
+              "line": 20,
+              "snippet": "response = client.messages.create("
+            }
+          ],
+          "dimensions": [
+            "data-exfiltration"
+          ],
+          "message": "An identifier suggesting a credential (`client = Anthropic(api_key=os.environ[\"ANTHROPIC_API_KEY\"])`, line 11) is interpolated into a prompt passed to a model call at line 20. Identifier names suggest — but do not prove — sensitive data (OWASP LLM06). Values are never read or transmitted by Stoa; this finding is based on identifier names and flow shape only. Analysis is intra-file; flows through other files are not visible."
+        },
+        {
+          "fingerprint": "60d17606ec95b1ab",
+          "rule_id": "AI007",
+          "title": "Deterministic sampling not observed on high-impact-adjacent call sites",
+          "category": "ai-stability",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/escalation_agent.py",
+          "line": 20,
+          "column": 1,
+          "snippet": "sampling config for candidate escalation_agent",
+          "remediation": "Pin deterministic sampling (temperature=0) on consequential model call sites, or confirm variability is intended.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI007-60d17606ec95",
+          "canonical_name": "STOA-SAMPLING-CONFIG",
+          "owasp": {
+            "llm_top10_v1_1": "LLM05",
+            "llm_top10_2025": "LLM03"
+          },
+          "dimensions": [
+            "behavioral-instability"
+          ],
+          "message": "Agent candidate `escalation_agent` binds messaging, and model call sites in this file do not set a sampling bound (lines 20). This is a proxy signal only: sampling configuration influences, but does not determine, behavioral consistency, and runtime evaluation is required for direct assessment. One review prompt per candidate — this notice will not repeat."
+        },
+        {
           "fingerprint": "15537888d79c9626",
           "rule_id": "CTRL001",
           "title": "Authentication control not observed",
@@ -599,7 +1381,11 @@
           "remediation": "Confirm authentication is enforced before this agent acts; it was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "operational-control",
+            "unauthorized-action"
+          ]
         },
         {
           "fingerprint": "7ba73fb413f17245",
@@ -615,7 +1401,12 @@
           "remediation": "Confirm inputs are validated before this agent acts; validation was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "adversarial-manipulation",
+            "operational-control",
+            "output-integrity"
+          ]
         },
         {
           "fingerprint": "44fb533cec2dbaa7",
@@ -631,7 +1422,64 @@
           "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ]
+        },
+        {
+          "fingerprint": "56b1866bbcc0de10",
+          "rule_id": "CTRL004",
+          "title": "Observability construct not observed for agent tool execution",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/escalation_agent.py",
+          "line": 20,
+          "column": 1,
+          "snippet": "observability for candidate escalation_agent",
+          "remediation": "Confirm logging or tracing covers this agent's tool execution; none was observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "CTRL004-56b1866bbcc0",
+          "canonical_name": "STOA-CTRL-OBSERVABILITY",
+          "owasp": {
+            "llm_top10_v1_1": "LLM10",
+            "llm_top10_2025": "LLM10"
+          },
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "Agent candidate `escalation_agent` binds tools executing capability call sites; no logging or tracing construct was observed in this file. Observability may exist at middleware or platform level and would not be visible to this scan. One review prompt per candidate."
+        },
+        {
+          "fingerprint": "10e09b0d08548606",
+          "rule_id": "AI005",
+          "title": "Model, endpoint, or artifact dependency observed without a pin or integrity control",
+          "category": "ai-supplychain",
+          "severity": "low",
+          "confidence": "low",
+          "path": "agents/escalation_agent.py",
+          "line": 21,
+          "column": 1,
+          "snippet": "model=\"claude-sonnet-4-5\"",
+          "remediation": "Pin a reviewed model revision or dated snapshot and use a TLS endpoint from an allowlist.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI005-10e09b0d0854",
+          "canonical_name": "STOA-LLM05-UNPINNED-MODEL",
+          "owasp": {
+            "llm_top10_v1_1": "LLM05",
+            "llm_top10_2025": "LLM03"
+          },
+          "variant": "floating-alias",
+          "dimensions": [
+            "behavioral-instability",
+            "model-drift"
+          ],
+          "message": "Model string `claude-sonnet-4-5` (line 21) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
         },
         {
           "fingerprint": "ffff1bf58d00c7ee",
@@ -647,10 +1495,131 @@
           "remediation": "Handle or log the exception instead of silently discarding it.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ]
         }
       ],
-      "highest_severity": "medium"
+      "highest_severity": "high",
+      "dimension_assessment": {
+        "taxonomy": {
+          "id": "stoa-default-8",
+          "version": "1.0"
+        },
+        "dimensions": [
+          {
+            "id": "scope-violation",
+            "assessability": "strong",
+            "exposure": "low",
+            "score": 19,
+            "contributing_findings": [
+              "AI003-09241da3b22e"
+            ],
+            "contributing_capabilities": [
+              "messaging"
+            ],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "data-exfiltration",
+            "assessability": "strong",
+            "exposure": "moderate",
+            "score": 43,
+            "contributing_findings": [
+              "AI004-76e776d699b3"
+            ],
+            "contributing_capabilities": [
+              "external_http"
+            ],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "unauthorized-action",
+            "assessability": "strong",
+            "exposure": "low",
+            "score": 19,
+            "contributing_findings": [
+              "15537888d79c9626",
+              "AI003-09241da3b22e"
+            ],
+            "contributing_capabilities": [
+              "messaging"
+            ],
+            "controls_observed": [],
+            "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "output-integrity",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 1,
+            "contributing_findings": [
+              "7ba73fb413f17245"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "adversarial-manipulation",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 1,
+            "contributing_findings": [
+              "7ba73fb413f17245"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "behavioral-instability",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 2,
+            "contributing_findings": [
+              "AI005-10e09b0d0854",
+              "AI007-60d17606ec95"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 2 finding(s) and 0 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "model-drift",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 10,
+            "contributing_findings": [
+              "AI005-10e09b0d0854"
+            ],
+            "contributing_capabilities": [
+              "provider:anthropic"
+            ],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 1 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "operational-control",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 14,
+            "contributing_findings": [
+              "15537888d79c9626",
+              "44fb533cec2dbaa7",
+              "7ba73fb413f17245",
+              "CTRL004-56b1866bbcc0",
+              "ffff1bf58d00c7ee"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "5 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          }
+        ]
+      }
     },
     {
       "id": "cedc6e23f6c2",
@@ -700,7 +1669,11 @@
           "remediation": "Confirm authentication is enforced before this agent acts; it was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "operational-control",
+            "unauthorized-action"
+          ]
         },
         {
           "fingerprint": "d6aaa766cfa73385",
@@ -716,7 +1689,12 @@
           "remediation": "Confirm inputs are validated before this agent acts; validation was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "adversarial-manipulation",
+            "operational-control",
+            "output-integrity"
+          ]
         },
         {
           "fingerprint": "ad3929aa4caea5e0",
@@ -732,7 +1710,10 @@
           "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ]
         },
         {
           "fingerprint": "c1a75acbd1a57b33",
@@ -748,10 +1729,120 @@
           "remediation": "Use HTTPS for non-local endpoints.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "data-exfiltration",
+            "model-drift"
+          ]
         }
       ],
-      "highest_severity": "medium"
+      "highest_severity": "medium",
+      "dimension_assessment": {
+        "taxonomy": {
+          "id": "stoa-default-8",
+          "version": "1.0"
+        },
+        "dimensions": [
+          {
+            "id": "scope-violation",
+            "assessability": "strong",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "No exposure observed in scanned files."
+          },
+          {
+            "id": "data-exfiltration",
+            "assessability": "strong",
+            "exposure": "moderate",
+            "score": 25,
+            "contributing_findings": [
+              "c1a75acbd1a57b33"
+            ],
+            "contributing_capabilities": [
+              "external_http"
+            ],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "unauthorized-action",
+            "assessability": "strong",
+            "exposure": "low",
+            "score": 1,
+            "contributing_findings": [
+              "f1bd314f6b3e6292"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "output-integrity",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 1,
+            "contributing_findings": [
+              "d6aaa766cfa73385"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "adversarial-manipulation",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 19,
+            "contributing_findings": [
+              "d6aaa766cfa73385"
+            ],
+            "contributing_capabilities": [
+              "web_search"
+            ],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "behavioral-instability",
+            "assessability": "proxy",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "model-drift",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 7,
+            "contributing_findings": [
+              "c1a75acbd1a57b33"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 1 finding(s) and 0 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "operational-control",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 2,
+            "contributing_findings": [
+              "ad3929aa4caea5e0",
+              "d6aaa766cfa73385",
+              "f1bd314f6b3e6292"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "3 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          }
+        ]
+      }
     },
     {
       "id": "1d4b2bf249f8",
@@ -793,7 +1884,11 @@
           "remediation": "Confirm authentication is enforced before this agent acts; it was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "operational-control",
+            "unauthorized-action"
+          ]
         },
         {
           "fingerprint": "f6aaabe03d2fc365",
@@ -809,7 +1904,12 @@
           "remediation": "Confirm inputs are validated before this agent acts; validation was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "adversarial-manipulation",
+            "operational-control",
+            "output-integrity"
+          ]
         },
         {
           "fingerprint": "917bac3405b1adcb",
@@ -825,10 +1925,111 @@
           "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ]
         }
       ],
-      "highest_severity": "info"
+      "highest_severity": "info",
+      "dimension_assessment": {
+        "taxonomy": {
+          "id": "stoa-default-8",
+          "version": "1.0"
+        },
+        "dimensions": [
+          {
+            "id": "scope-violation",
+            "assessability": "strong",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "No exposure observed in scanned files."
+          },
+          {
+            "id": "data-exfiltration",
+            "assessability": "strong",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "No exposure observed in scanned files."
+          },
+          {
+            "id": "unauthorized-action",
+            "assessability": "strong",
+            "exposure": "low",
+            "score": 1,
+            "contributing_findings": [
+              "e8e0cf3881a716fa"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "output-integrity",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 1,
+            "contributing_findings": [
+              "f6aaabe03d2fc365"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "adversarial-manipulation",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 1,
+            "contributing_findings": [
+              "f6aaabe03d2fc365"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "behavioral-instability",
+            "assessability": "proxy",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "model-drift",
+            "assessability": "proxy",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "operational-control",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 2,
+            "contributing_findings": [
+              "917bac3405b1adcb",
+              "e8e0cf3881a716fa",
+              "f6aaabe03d2fc365"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "3 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          }
+        ]
+      }
     },
     {
       "id": "fb1ce23ad2d3",
@@ -864,6 +2065,34 @@
       "codeowners": [],
       "findings": [
         {
+          "fingerprint": "78cfa2955f2e0f94",
+          "rule_id": "AI005",
+          "title": "Model, endpoint, or artifact dependency observed without a pin or integrity control",
+          "category": "ai-supplychain",
+          "severity": "low",
+          "confidence": "low",
+          "path": "orchestrator.py",
+          "line": 14,
+          "column": 1,
+          "snippet": "ChatOpenAI(model=\"gpt-4o\"",
+          "remediation": "Pin a reviewed model revision or dated snapshot and use a TLS endpoint from an allowlist.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI005-78cfa2955f2e",
+          "canonical_name": "STOA-LLM05-UNPINNED-MODEL",
+          "owasp": {
+            "llm_top10_v1_1": "LLM05",
+            "llm_top10_2025": "LLM03"
+          },
+          "variant": "floating-alias",
+          "dimensions": [
+            "behavioral-instability",
+            "model-drift"
+          ],
+          "message": "Model string `gpt-4o` (line 14) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+        },
+        {
           "fingerprint": "9bf36e675df365e8",
           "rule_id": "CTRL001",
           "title": "Authentication control not observed",
@@ -877,7 +2106,11 @@
           "remediation": "Confirm authentication is enforced before this agent acts; it was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "operational-control",
+            "unauthorized-action"
+          ]
         },
         {
           "fingerprint": "098e0027b85109bd",
@@ -893,7 +2126,12 @@
           "remediation": "Confirm inputs are validated before this agent acts; validation was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "adversarial-manipulation",
+            "operational-control",
+            "output-integrity"
+          ]
         },
         {
           "fingerprint": "a29ffefb12faff17",
@@ -909,10 +2147,117 @@
           "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ]
         }
       ],
-      "highest_severity": "info"
+      "highest_severity": "low",
+      "dimension_assessment": {
+        "taxonomy": {
+          "id": "stoa-default-8",
+          "version": "1.0"
+        },
+        "dimensions": [
+          {
+            "id": "scope-violation",
+            "assessability": "strong",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "No exposure observed in scanned files."
+          },
+          {
+            "id": "data-exfiltration",
+            "assessability": "strong",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "No exposure observed in scanned files."
+          },
+          {
+            "id": "unauthorized-action",
+            "assessability": "strong",
+            "exposure": "low",
+            "score": 1,
+            "contributing_findings": [
+              "9bf36e675df365e8"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "output-integrity",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 1,
+            "contributing_findings": [
+              "098e0027b85109bd"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "adversarial-manipulation",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 1,
+            "contributing_findings": [
+              "098e0027b85109bd"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "behavioral-instability",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 2,
+            "contributing_findings": [
+              "AI005-78cfa2955f2e"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 1 finding(s) and 0 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "model-drift",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 10,
+            "contributing_findings": [
+              "AI005-78cfa2955f2e"
+            ],
+            "contributing_capabilities": [
+              "provider:openai"
+            ],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 1 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "operational-control",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 2,
+            "contributing_findings": [
+              "098e0027b85109bd",
+              "9bf36e675df365e8",
+              "a29ffefb12faff17"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "3 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          }
+        ]
+      }
     },
     {
       "id": "48fabeacee46",
@@ -959,6 +2304,45 @@
       "codeowners": [],
       "findings": [
         {
+          "fingerprint": "a51827ef1d5ce4a8",
+          "rule_id": "AI004",
+          "title": "Identifier suggesting sensitive data observed in an external model call",
+          "category": "ai-disclosure",
+          "severity": "high",
+          "confidence": "high",
+          "path": "web/support_widget.ts",
+          "line": 13,
+          "column": 1,
+          "snippet": "const completion = await client.chat.completions.create({",
+          "remediation": "Pseudonymize sensitive fields before the model call and rejoin identifiers afterward.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI004-a51827ef1d5c",
+          "canonical_name": "STOA-LLM06-SENSITIVE-INTERPOLATION",
+          "owasp": {
+            "llm_top10_v1_1": "LLM06",
+            "llm_top10_2025": "LLM02"
+          },
+          "variant": "secret",
+          "flow": [
+            {
+              "role": "source",
+              "line": 5,
+              "snippet": "const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });"
+            },
+            {
+              "role": "sink",
+              "line": 13,
+              "snippet": "const completion = await client.chat.completions.create({"
+            }
+          ],
+          "dimensions": [
+            "data-exfiltration"
+          ],
+          "message": "An identifier suggesting a credential (`const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });`, line 5) is interpolated into a prompt passed to a model call at line 13. Identifier names suggest — but do not prove — sensitive data (OWASP LLM06). Values are never read or transmitted by Stoa; this finding is based on identifier names and flow shape only. Analysis is intra-file; flows through other files are not visible."
+        },
+        {
           "fingerprint": "8e24872fa3936dc4",
           "rule_id": "CTRL001",
           "title": "Authentication control not observed",
@@ -972,7 +2356,11 @@
           "remediation": "Confirm authentication is enforced before this agent acts; it was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "operational-control",
+            "unauthorized-action"
+          ]
         },
         {
           "fingerprint": "ce301ed875286e6e",
@@ -988,7 +2376,12 @@
           "remediation": "Confirm inputs are validated before this agent acts; validation was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "adversarial-manipulation",
+            "operational-control",
+            "output-integrity"
+          ]
         },
         {
           "fingerprint": "7dace16d9b8eddc6",
@@ -1004,10 +2397,176 @@
           "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
           "suppressed": false,
           "suppression_reason": null,
-          "is_new": false
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ]
+        },
+        {
+          "fingerprint": "5175a6a00fa26ec0",
+          "rule_id": "CTRL004",
+          "title": "Observability construct not observed for agent tool execution",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "web/support_widget.ts",
+          "line": 13,
+          "column": 1,
+          "snippet": "observability for candidate support_widget",
+          "remediation": "Confirm logging or tracing covers this agent's tool execution; none was observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "CTRL004-5175a6a00fa2",
+          "canonical_name": "STOA-CTRL-OBSERVABILITY",
+          "owasp": {
+            "llm_top10_v1_1": "LLM10",
+            "llm_top10_2025": "LLM10"
+          },
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "Agent candidate `support_widget` binds tools executing capability call sites; no logging or tracing construct was observed in this file. Observability may exist at middleware or platform level and would not be visible to this scan. One review prompt per candidate."
+        },
+        {
+          "fingerprint": "adb8d7fbc83e7723",
+          "rule_id": "AI005",
+          "title": "Model, endpoint, or artifact dependency observed without a pin or integrity control",
+          "category": "ai-supplychain",
+          "severity": "low",
+          "confidence": "low",
+          "path": "web/support_widget.ts",
+          "line": 14,
+          "column": 1,
+          "snippet": "model: \"gpt-4o-mini\"",
+          "remediation": "Pin a reviewed model revision or dated snapshot and use a TLS endpoint from an allowlist.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI005-adb8d7fbc83e",
+          "canonical_name": "STOA-LLM05-UNPINNED-MODEL",
+          "owasp": {
+            "llm_top10_v1_1": "LLM05",
+            "llm_top10_2025": "LLM03"
+          },
+          "variant": "floating-alias",
+          "dimensions": [
+            "behavioral-instability",
+            "model-drift"
+          ],
+          "message": "Model string `gpt-4o-mini` (line 14) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
         }
       ],
-      "highest_severity": "info"
+      "highest_severity": "high",
+      "dimension_assessment": {
+        "taxonomy": {
+          "id": "stoa-default-8",
+          "version": "1.0"
+        },
+        "dimensions": [
+          {
+            "id": "scope-violation",
+            "assessability": "strong",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "No exposure observed in scanned files."
+          },
+          {
+            "id": "data-exfiltration",
+            "assessability": "strong",
+            "exposure": "moderate",
+            "score": 43,
+            "contributing_findings": [
+              "AI004-a51827ef1d5c"
+            ],
+            "contributing_capabilities": [
+              "external_http"
+            ],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "unauthorized-action",
+            "assessability": "strong",
+            "exposure": "low",
+            "score": 1,
+            "contributing_findings": [
+              "8e24872fa3936dc4"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "output-integrity",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 1,
+            "contributing_findings": [
+              "ce301ed875286e6e"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "adversarial-manipulation",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 1,
+            "contributing_findings": [
+              "ce301ed875286e6e"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "behavioral-instability",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 2,
+            "contributing_findings": [
+              "AI005-adb8d7fbc83e"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 1 finding(s) and 0 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "model-drift",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 10,
+            "contributing_findings": [
+              "AI005-adb8d7fbc83e"
+            ],
+            "contributing_capabilities": [
+              "provider:openai"
+            ],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 1 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "operational-control",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 2,
+            "contributing_findings": [
+              "7dace16d9b8eddc6",
+              "8e24872fa3936dc4",
+              "CTRL004-5175a6a00fa2",
+              "ce301ed875286e6e"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "4 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          }
+        ]
+      }
     }
   ],
   "repository_findings": [
@@ -1025,7 +2584,11 @@
       "remediation": "Load the credential from a secret manager or environment variable.",
       "suppressed": false,
       "suppression_reason": null,
-      "is_new": false
+      "is_new": false,
+      "dimensions": [
+        "data-exfiltration",
+        "operational-control"
+      ]
     },
     {
       "fingerprint": "09e32fd78a73e06f",
@@ -1041,9 +2604,84 @@
       "remediation": "Use parameterized queries instead of string interpolation.",
       "suppressed": true,
       "suppression_reason": "table name comes from the REPORT_TABLES enum above",
-      "is_new": false
+      "is_new": false,
+      "dimensions": [
+        "output-integrity"
+      ]
     }
   ],
   "skipped_files": [],
-  "warnings": []
+  "warnings": [],
+  "dimension_summary": {
+    "taxonomy": {
+      "id": "stoa-default-8",
+      "version": "1.0"
+    },
+    "dimensions": [
+      {
+        "id": "scope-violation",
+        "name": "Scope violation",
+        "assessability": "strong",
+        "max_exposure": "moderate",
+        "agents_elevated": 0,
+        "agents_moderate": 2
+      },
+      {
+        "id": "data-exfiltration",
+        "name": "Data exfiltration",
+        "assessability": "strong",
+        "max_exposure": "elevated",
+        "agents_elevated": 2,
+        "agents_moderate": 5
+      },
+      {
+        "id": "unauthorized-action",
+        "name": "Unauthorized action",
+        "assessability": "strong",
+        "max_exposure": "moderate",
+        "agents_elevated": 0,
+        "agents_moderate": 2
+      },
+      {
+        "id": "output-integrity",
+        "name": "Output integrity",
+        "assessability": "partial",
+        "max_exposure": "low",
+        "agents_elevated": 0,
+        "agents_moderate": 0
+      },
+      {
+        "id": "adversarial-manipulation",
+        "name": "Adversarial manipulation",
+        "assessability": "partial",
+        "max_exposure": "low",
+        "agents_elevated": 0,
+        "agents_moderate": 0
+      },
+      {
+        "id": "behavioral-instability",
+        "name": "Behavioral instability",
+        "assessability": "proxy",
+        "max_exposure": "low",
+        "agents_elevated": 0,
+        "agents_moderate": 0
+      },
+      {
+        "id": "model-drift",
+        "name": "Model drift",
+        "assessability": "proxy",
+        "max_exposure": "low",
+        "agents_elevated": 0,
+        "agents_moderate": 0
+      },
+      {
+        "id": "operational-control",
+        "name": "Operational control failure",
+        "assessability": "partial",
+        "max_exposure": "moderate",
+        "agents_elevated": 0,
+        "agents_moderate": 4
+      }
+    ]
+  }
 }

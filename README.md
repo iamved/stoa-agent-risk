@@ -183,6 +183,32 @@ AI002 is the only new rule that can fail a build, and only for the exec class
 (model output reaching `eval`/`exec`/`subprocess`, …) at high confidence — the
 one case a static flow can essentially prove.
 
+## Dimension exposure
+
+Every agent is assessed across an eight-dimension risk taxonomy — **five
+verified statically, three flagged for runtime follow-up** — rendered as a
+no-JavaScript Dimension Exposure Matrix at the top of the HTML report, with
+per-agent drill-downs. Proxy-tier dimensions are capped at "moderate" (Stoa
+never implies it measured behavior it only saw a config signal for). The
+registry carries a per-agent `dimension_assessment` and a top-level
+`dimension_summary`; `--sarif` emits `stoa-dim:<dimension>` tags for GitHub Code
+Scanning. Replace the taxonomy with `[dimensions].taxonomy`. See
+[docs/dimensions.md](docs/dimensions.md).
+
+## Agent capability drift (`stoa diff`)
+
+`stoa diff` compares two registries and reports whether any agent's *reach*
+changed — capabilities, integrations, providers, findings, and dimension deltas —
+as call sites added or removed in code, never runtime behavior:
+
+```bash
+stoa scan . --diff-against origin/main --fail-on-drift high
+stoa approve --agent-id <id> --capability shell-exec --reason "reviewed" --by @you
+```
+
+Intentional changes are approved in-repo (`.stoa/approvals.toml`), reviewed like
+code — no bot, no server. See [docs/diff.md](docs/diff.md).
+
 ## Security model
 
 - **Local-first.** No source code is uploaded anywhere; Stoa makes no network
