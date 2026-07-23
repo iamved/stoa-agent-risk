@@ -11,6 +11,12 @@ from .agent_detection import detect_agents
 from .ai_rules import detect_ai005, detect_ai_correlations
 from .ai_taint import detect_ai_taint
 from .ast_layer import AstCache
+from .dimensions import (
+    assess_agent,
+    dimension_summary,
+    load_taxonomy,
+    set_finding_dimensions,
+)
 from .config import StoaConfig, load_config
 from .integration_detection import (
     detect_capabilities,
@@ -46,6 +52,8 @@ class ScanOptions:
     verbose: bool = False
     experimental_ast: bool = False  # deprecated no-op: AST is on by default
     no_ast: bool = False  # opt out of the AST layer (regex-only, no taint rules)
+    no_dimensions: bool = False
+    taxonomy_path: Path | None = None
 
 
 def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResult:
@@ -68,6 +76,8 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
     agents: list[AgentCandidate] = []
     warnings: list[str] = []
     degraded_files: list[str] = []
+    agent_content: dict[str, str] = {}
+    agent_providers: dict[str, list[str]] = {}
 
     # AST layer is on by default; --no-ast (regex-only) disables it and the
     # taint rules. The legacy --experimental-ast flag is a no-op.
@@ -169,6 +179,9 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
         all_findings.extend(file_findings)
         all_findings.extend(candidate_findings)
         agents.extend(file_agents)
+        if file_agents:
+            agent_content[source.relative_path] = content
+            agent_providers[source.relative_path] = providers
 
     repo_name = root.name
     git_ref: str | None = None
@@ -203,6 +216,20 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
     for agent in agents:
         agent.findings = _apply_supersedes(agent.findings)
 
+    dim_summary: dict | None = None
+    if not options.no_dimensions:
+        taxonomy = load_taxonomy(options.taxonomy_path or config.dimensions_taxonomy)
+        set_finding_dimensions(all_findings, taxonomy)
+        for agent in agents:
+            set_finding_dimensions(agent.findings, taxonomy)
+            agent.dimension_assessment = assess_agent(
+                agent,
+                agent_content.get(agent.path, ""),
+                agent_providers.get(agent.path, []),
+                taxonomy,
+            )
+        dim_summary = dimension_summary(agents, taxonomy)
+
     agents.sort(key=lambda a: (a.path, a.symbol))
     all_findings.sort(key=lambda f: (f.path, f.line, f.rule_id, f.fingerprint))
 
@@ -220,6 +247,7 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
         warnings=warnings,
         diff_available=diff_available,
         degraded_files=degraded_files,
+        dimension_summary=dim_summary,
     )
 
 

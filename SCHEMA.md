@@ -36,9 +36,14 @@ document produced by `stoa scan`.
 | `supersedes` | array | rule ids this finding dedups (e.g. AI002/sql supersedes SEC003) |
 | `evidence_tags` | array | e.g. `system_role_interpolation`, `local_endpoint_observed` |
 
-**On an agent candidate:** `dimension_assessment` — per-dimension exposure block
-(see the dimensions doc). **Top-level:** `degraded_files` — files whose AST parse
-degraded under `--experimental-ast` (regex-only fallback applied).
+**On an agent candidate:** `dimension_assessment` — per-dimension exposure
+block: `{taxonomy: {id, version}, dimensions: [{id, assessability, exposure,
+score, contributing_findings, contributing_capabilities, controls_observed,
+statement}]}`. `exposure` ∈ `elevated | moderate | low | none-observed |
+not-assessable` (never "safe"/"covered"); proxy-tier dimensions are capped at
+`moderate`. **On a finding:** `dimensions` — the dimension ids it contributes
+to. **Top-level:** `dimension_summary` — org rollup (per-dimension max exposure
+and agent counts); `degraded_files` — files whose AST parse degraded.
 
 ## Top-level document
 

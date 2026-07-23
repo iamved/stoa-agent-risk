@@ -148,6 +148,8 @@ def build_document(result: ScanResult, config: StoaConfig) -> dict:
     # regex-mode output byte-identical to schema 1.0 aside from the version).
     if result.degraded_files:
         document["degraded_files"] = sorted(result.degraded_files)
+    if result.dimension_summary is not None:
+        document["dimension_summary"] = result.dimension_summary
     validate_document(document)
     return document
 

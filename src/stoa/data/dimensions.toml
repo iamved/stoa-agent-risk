@@ -1,0 +1,122 @@
+# Stoa default dimension taxonomy (Part IV §A). Versioned with the binary.
+# Users may replace it via stoa.toml [dimensions] taxonomy = "path".
+# Dimension ids are hyphenated; capability/rule ids are Stoa's own (underscored).
+
+[taxonomy]
+id = "stoa-default-8"
+version = "1.0"
+
+[[dimensions]]
+id = "scope-violation"
+name = "Scope violation"
+definition = "Agent reach exceeding its intended operating scope"
+assessability = "strong"
+
+[[dimensions]]
+id = "data-exfiltration"
+name = "Data exfiltration"
+definition = "Sensitive data leaving the trust boundary via model calls or network egress"
+assessability = "strong"
+
+[[dimensions]]
+id = "unauthorized-action"
+name = "Unauthorized action"
+definition = "High-impact actions reachable without an observed authorization or approval control"
+assessability = "strong"
+
+[[dimensions]]
+id = "output-integrity"
+name = "Output integrity"
+definition = "Incorrect or unsafe model output causing downstream harm"
+assessability = "partial"
+
+[[dimensions]]
+id = "adversarial-manipulation"
+name = "Adversarial manipulation"
+definition = "Susceptibility surface for prompt injection, poisoning, or supply-chain tampering"
+assessability = "partial"
+
+[[dimensions]]
+id = "behavioral-instability"
+name = "Behavioral instability"
+definition = "Non-deterministic or inconsistent agent behavior"
+assessability = "proxy"
+
+[[dimensions]]
+id = "model-drift"
+name = "Model drift"
+definition = "Model behavior changing over time (upstream swaps, performance decay)"
+assessability = "proxy"
+
+[[dimensions]]
+id = "operational-control"
+name = "Operational control failure"
+definition = "Absence of operating controls: auth, validation, rate limits, observability"
+assessability = "partial"
+
+# --- scoring weights (Part IV §A.5) ---------------------------------------
+[finding_weights]
+critical = 40
+high = 25
+medium = 12
+low = 5
+info = 2
+
+[confidence_multipliers]
+high = 1.0
+medium = 0.6
+low = 0.3
+
+[scoring]
+capability_weight = 18   # each mapped capability contributes this per dimension
+provider_weight = 8      # external provider usage -> model-drift
+control_credit = 20      # each observed control subtracts this (floor 0)
+
+# --- rule -> dimensions ----------------------------------------------------
+[rule_dimensions]
+SEC001 = ["data-exfiltration", "operational-control"]
+SEC002 = ["data-exfiltration", "operational-control"]
+SEC003 = ["output-integrity"]
+REL001 = ["operational-control"]
+NET001 = ["data-exfiltration", "model-drift"]
+NET002 = ["operational-control"]
+CTRL001 = ["unauthorized-action", "operational-control"]
+CTRL002 = ["output-integrity", "adversarial-manipulation", "operational-control"]
+CTRL003 = ["operational-control"]
+CTRL004 = ["operational-control"]
+AI001 = ["adversarial-manipulation"]
+AI002 = ["output-integrity"]
+AI003 = ["scope-violation", "unauthorized-action"]
+AI004 = ["data-exfiltration"]
+AI006 = ["data-exfiltration"]
+AI007 = ["behavioral-instability"]
+# AI005 is variant-aware (handled in code): floating-alias -> D6+D7,
+# trust-remote-code/unpinned-artifact -> D5, insecure-endpoint -> D7.
+AI005 = ["adversarial-manipulation", "model-drift"]
+
+# --- capability -> dimensions (Stoa capability ids) ------------------------
+[capability_dimensions]
+payment_access = ["scope-violation", "unauthorized-action"]
+database_write = ["scope-violation", "unauthorized-action"]
+email_send = ["scope-violation", "unauthorized-action"]
+messaging = ["scope-violation", "unauthorized-action"]
+shell_execution = ["scope-violation", "unauthorized-action"]
+code_execution = ["scope-violation", "unauthorized-action"]
+filesystem_write = ["scope-violation", "unauthorized-action"]
+source_control = ["scope-violation", "unauthorized-action"]
+cloud_resource_access = ["scope-violation", "unauthorized-action"]
+external_http = ["data-exfiltration"]
+vector_search = ["adversarial-manipulation"]
+web_search = ["adversarial-manipulation"]
+browser_automation = ["adversarial-manipulation"]
+filesystem_read = ["adversarial-manipulation"]
+
+# --- observed control -> dimensions it credits -----------------------------
+[control_dimensions]
+approval = ["scope-violation", "unauthorized-action"]
+authentication = ["unauthorized-action", "operational-control"]
+validation = ["output-integrity", "operational-control"]
+rate_limit = ["operational-control"]
+observability = ["operational-control"]
+deterministic_sampling = ["behavioral-instability"]
+pinned_model = ["model-drift"]

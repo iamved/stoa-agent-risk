@@ -68,6 +68,7 @@ class StoaConfig:
     # [rules.AI004] pii_terms — extra PII identifiers to match.
     ai004_pii_terms: list[str] = field(default_factory=list)
     gate_additional_rules: list[str] = field(default_factory=list)
+    dimensions_taxonomy: "Path | None" = None
 
     def rule_enabled(self, rule_id: str) -> bool:
         return self.enabled_rules.get(rule_id, True)
@@ -145,6 +146,10 @@ def load_config(root: Path, config_path: Path | None = None) -> StoaConfig:
                 _load_rule_options(config, rule_id, value)
             else:
                 config.enabled_rules[rule_id] = bool(value)
+
+    dimensions = data.get("dimensions", {})
+    if dimensions.get("taxonomy"):
+        config.dimensions_taxonomy = (root / dimensions["taxonomy"]).resolve()
 
     gate = data.get("gate", {})
     if gate:

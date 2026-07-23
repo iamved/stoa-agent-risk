@@ -161,6 +161,8 @@ class ScanResult:
     diff_available: bool = False
     # Files whose AST parse was degraded under --experimental-ast (schema 1.1).
     degraded_files: list[str] = field(default_factory=list)
+    # Org-level dimension rollup (schema 1.1); None when --no-dimensions.
+    dimension_summary: Optional[dict] = None
 
     def unsuppressed_findings(self) -> list[Finding]:
         return [f for f in self.findings if not f.suppressed]

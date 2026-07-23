@@ -16,6 +16,7 @@ from pathlib import Path
 
 from . import __version__
 from .config import FAIL_LEVELS, ConfigError, load_config
+from .dimensions import TaxonomyError
 from .github import emit_annotations, write_summary
 from .models import SEVERITIES, ScanResult
 from .report_html import write_html
@@ -81,6 +82,10 @@ def build_parser() -> argparse.ArgumentParser:
     scan.add_argument("--no-ast", action="store_true",
                       help="Disable the tree-sitter AST layer and all flow-based "
                            "(AI001/AI002/AI004/AI006) rules; run regex-only")
+    scan.add_argument("--no-dimensions", action="store_true",
+                      help="Skip the dimension exposure assessment and matrix")
+    scan.add_argument("--taxonomy", metavar="PATH", default=None,
+                      help="Custom dimension taxonomy TOML (replaces the default)")
 
     init = subparsers.add_parser("init", help="Generate integration files")
     init.add_argument("target", choices=["github"], help="Integration to initialize")
@@ -105,6 +110,9 @@ def main(argv: list[str] | None = None) -> int:
             return _run_init_command(args)
     except ConfigError as exc:
         print(f"stoa: configuration error: {exc}", file=sys.stderr)
+        return EXIT_USAGE
+    except TaxonomyError as exc:
+        print(f"stoa: taxonomy error: {exc}", file=sys.stderr)
         return EXIT_USAGE
     except KeyboardInterrupt:
         print("stoa: interrupted", file=sys.stderr)
@@ -143,6 +151,8 @@ def _run_scan_command(args: argparse.Namespace) -> int:
         verbose=args.verbose,
         experimental_ast=args.experimental_ast,
         no_ast=args.no_ast,
+        no_dimensions=args.no_dimensions,
+        taxonomy_path=Path(args.taxonomy) if args.taxonomy else None,
     )
     result = run_scan(options, config)
 
