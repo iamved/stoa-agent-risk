@@ -173,6 +173,16 @@ def write_json(result: ScanResult, config: StoaConfig, output_path: Path) -> Non
 
 
 def _atomic_write(path: Path, text: str) -> None:
+    path = Path(path)
+    # Special files (e.g. /dev/null) can't be atomically replaced via a
+    # temp-file rename; write to them directly so "discard" idioms work.
+    try:
+        if path.exists() and not path.is_file():
+            with open(path, "w", encoding="utf-8") as handle:
+                handle.write(text)
+            return
+    except OSError:
+        pass
     path.parent.mkdir(parents=True, exist_ok=True)
     handle = tempfile.NamedTemporaryFile(
         "w", encoding="utf-8", dir=str(path.parent), delete=False, suffix=".tmp"

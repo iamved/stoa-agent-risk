@@ -74,3 +74,16 @@ def test_experimental_ast_adds_no_new_findings(tmp_path: Path):
     with_ast = _scan(tmp_path, experimental_ast=True)
     assert len(without.findings) == len(with_ast.findings)
     assert {f.rule_id for f in with_ast.findings} == {f.rule_id for f in without.findings}
+
+
+def test_write_to_dev_null_does_not_crash(tmp_path: Path):
+    """Reports can be written to /dev/null (discard idiom) without erroring."""
+    import os
+    if not os.path.exists("/dev/null"):
+        return
+    from stoa.report_html import write_html
+    from stoa.report_json import write_json
+    (tmp_path / "a.py").write_text("x = 1\n", encoding="utf-8")
+    result = _scan(tmp_path)
+    write_json(result, StoaConfig(), Path("/dev/null"))
+    write_html(result, StoaConfig(), Path("/dev/null"))
