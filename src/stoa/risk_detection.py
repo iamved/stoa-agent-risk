@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from .config import StoaConfig
 from .models import Finding, finding_fingerprint
-from .redaction import redact_line, shannon_entropy
+from .redaction import redact_line, redact_secret, shannon_entropy
 from .rules import (
     COMMENT_ONLY_LINE,
     CONTROL_PATTERNS,
@@ -155,11 +155,15 @@ def _detect_passwords(
     severity = None
     if confidence == "high" and "SEC002" not in builder.config.severity_overrides:
         severity = "critical"
+    # The password literal is not an API-key shape, so redact_line() alone
+    # leaves it intact — redact the matched value explicitly (P0: no secret,
+    # including passwords, may reach any artifact).
+    snippet = redact_line(raw_line).replace(value, redact_secret(value)).strip()
     builder.add(
         rule_id="SEC002",
         line=number,
         column=match.start() + 1,
-        redacted_snippet=redact_line(raw_line).strip(),
+        redacted_snippet=snippet,
         confidence=confidence,
         severity=severity,
     )

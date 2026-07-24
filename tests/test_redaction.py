@@ -69,3 +69,20 @@ def test_redacted_form_keeps_short_prefix():
     redacted = redact_secret(secret)
     assert redacted.startswith(secret[:6])
     assert secret[8:] not in redacted
+
+
+def test_sec002_password_value_is_redacted(tmp_path):
+    """P0 regression: a hardcoded password must not leak into any artifact."""
+    import json as _json
+    from stoa.report_html import render_html
+    from stoa.report_json import build_document
+    from stoa.scanner import ScanOptions, run_scan
+
+    pw = "Sup3rS3cretPr0d!2026x"
+    (tmp_path / "c.py").write_text(f'DB_PASSWORD = "{pw}"\n', encoding="utf-8")
+    result = run_scan(ScanOptions(root=tmp_path, no_git=True))
+    sec = [f for f in result.findings if f.rule_id == "SEC002"]
+    assert sec, "expected SEC002"
+    assert pw not in sec[0].snippet and "[REDACTED:" in sec[0].snippet
+    assert pw not in _json.dumps(build_document(result, StoaConfig()))
+    assert pw not in render_html(result, StoaConfig())

@@ -3,6 +3,20 @@
 All notable changes to Stoa are documented here. The registry JSON schema is
 versioned separately (see [SCHEMA.md](SCHEMA.md)).
 
+## 0.2.1
+
+### Fixed
+- **P0 redaction:** SEC002 (hardcoded password) emitted the raw password value
+  in its snippet — only API-key shapes were redacted. The detected value is now
+  redacted in every artifact (JSON, HTML, SARIF, annotations, summary).
+  Regression test added. Found by the new Meridian end-to-end test bed.
+
+### Added
+- `examples/meridian-ops/` — a comprehensive end-to-end test bed (8 agents
+  across every framework, both languages, one deliberately well-controlled
+  agent) with a `run-e2e.sh` driver asserting 53 checks over the whole tool
+  surface, wired into the pytest suite.
+
 ## 0.2.0 — v0.2 "Dimension Exposure"
 
 **Every agent assessed across eight risk dimensions — five verified statically,

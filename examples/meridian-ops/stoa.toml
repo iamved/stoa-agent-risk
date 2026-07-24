@@ -1,0 +1,17 @@
+fail_on = "none"
+fail_on_new = "critical"
+
+[severity]
+NET002 = "info"           # downgrade timeout observations
+
+[rules]
+CTRL003 = false           # we enforce rate limits at the gateway
+
+[gate]
+additional_rules = ["AI001"]   # opt prompt-exposure into the gate
+
+[rules.AI006]
+allowed_hosts = ["api.internal.corp"]   # approved egress
+
+[rules.AI004]
+pii_terms = ["account_number", "routing_number"]
