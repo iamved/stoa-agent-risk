@@ -38,6 +38,10 @@ NAV = [
         ("Configuration", "configuration"),
         ("JSON schema", "schema"),
     ]),
+    ("More", [
+        ("Case study", "/case-study"),
+        ("Live scan report", "/demo-report"),
+    ]),
 ]
 
 # --- link rewriting for markdown-internal links ----------------------------
@@ -157,7 +161,10 @@ def sidebar(active: str) -> str:
     for section, items in NAV:
         parts.append(f'<div class="nav-section">{html.escape(section)}</div>')
         for label, slug in items:
-            href = "/docs" if slug == "" else f"/docs/{slug}"
+            if slug.startswith("/"):  # absolute link (case study, report)
+                parts.append(f'<a class="nav-link" href="{slug}">{html.escape(label)}</a>')
+                continue
+            href = "/" if slug == "" else f"/docs/{slug}"
             cls = "nav-link active" if slug == active else "nav-link"
             parts.append(f'<a class="{cls}" href="{href}">{html.escape(label)}</a>')
     parts.append("</nav>")
@@ -551,11 +558,18 @@ CARDS = [
 
 def landing_body() -> str:
     intro = (
-        '<h1>Stoa documentation</h1>'
-        '<p>Stoa is a local-first static scanner that inventories AI agents in '
-        'Python, JS, and TypeScript, maps their capabilities and integrations, '
-        'assesses them across eight risk dimensions, and gates newly introduced '
-        'high-confidence critical risks — without uploading a line of code.</p>'
+        '<span class="hero-eyebrow">Stoa · Agent Risk Scanner</span>'
+        '<h1 class="hero-h1">Every agent inventoried.<br>Every claim evidenced.</h1>'
+        '<p class="hero-lede">A <strong>local-first static scanner</strong> that finds likely '
+        'AI agents in Python, JavaScript, and TypeScript, maps what they can reach, scores them '
+        'across eight risk dimensions, and blocks newly introduced high-confidence critical '
+        'risks — <strong>without uploading a line of code</strong>.</p>'
+        '<pre class="code hero-term"><code>'
+        '<span class="p">$</span> pipx install stoa-agent-risk\n'
+        '<span class="p">$</span> stoa scan .  <span class="d">&amp;&amp;</span>  open stoa-report.html</code></pre>'
+        '<div class="chips">'
+        '<span>Local-first</span><span>Zero telemetry</span><span>No accounts</span>'
+        '<span>Python 3.10+</span><span>MIT</span></div>'
         '<div class="cards">'
     )
     for icon, title, desc, href in CARDS:
@@ -566,7 +580,19 @@ def landing_body() -> str:
         )
     intro += "</div>"
     intro += (
-        '<style>.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:22px}'
+        '<style>'
+        '.hero-eyebrow{font-family:"Plex Mono",monospace;font-size:12px;letter-spacing:.2em;'
+        'text-transform:uppercase;color:var(--accent)}'
+        '.hero-h1{font-family:Marcellus,Georgia,serif;font-weight:400;font-size:clamp(30px,4.4vw,44px);'
+        'line-height:1.12;margin:12px 0 14px;border:none;padding:0}'
+        '.hero-lede{font-size:16.5px;color:var(--mute);max-width:60ch;margin:0 0 18px}'
+        '.hero-lede strong{color:var(--ink);font-weight:600}'
+        '.hero-term{max-width:560px}.hero-term .p{color:#6fbfad}.hero-term .d{color:#7c8a84}'
+        '.chips{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 26px}'
+        '.chips span{font-family:"Plex Mono",monospace;font-size:11.5px;color:var(--mute);'
+        'border:1px solid var(--line);border-radius:999px;padding:3px 11px;background:var(--raise)}'
+        '.chips span::before{content:"· ";color:var(--accent)}'
+        '.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}'
         '@media(max-width:620px){.cards{grid-template-columns:1fr}}'
         '.card{display:block;background:var(--raise);border:1px solid var(--line);border-radius:12px;padding:18px 20px}'
         '.card:hover{border-color:var(--accent);text-decoration:none}'
@@ -593,27 +619,40 @@ for rule in ("AI001", "AI002", "AI003", "AI004", "AI005", "AI006", "AI007", "CTR
     PAGES.append((f"rules/{rule}", rule, read(REPO / f"docs/rules/{rule}.md"), None, f"Stoa rule {rule}."))
 
 
+def _href(slug: str) -> str:
+    return "/" if slug == "" else f"/docs/{slug}"
+
+
 def main():
-    flat = [(slug, label) for _, items in NAV for label, slug in items]
-    for idx, (slug, title, content, _toc, desc) in enumerate(PAGES):
+    # flat nav for prev/next, excluding absolute-link items (case study, report)
+    flat = [(slug, label) for _, items in NAV for label, slug in items
+            if not slug.startswith("/")]
+    site_root = REPO / "site"
+    for slug, title, content, _toc, desc in PAGES:
         if callable(content):
             body, toc = content(), []
         else:
             body, toc = md_to_html(content)
-        # prev/next
         pos = next((i for i, (s, _l) in enumerate(flat) if s == slug), None)
         if pos is not None:
             nav = '<div class="pagenav">'
-            nav += (f'<a href="/docs/{flat[pos-1][0] or ""}">← {html.escape(flat[pos-1][1])}</a>'
+            nav += (f'<a href="{_href(flat[pos-1][0])}">← {html.escape(flat[pos-1][1])}</a>'
                     if pos > 0 else "<span></span>")
-            nav += (f'<a href="/docs/{flat[pos+1][0]}">{html.escape(flat[pos+1][1])} →</a>'
+            nav += (f'<a href="{_href(flat[pos+1][0])}">{html.escape(flat[pos+1][1])} →</a>'
                     if pos < len(flat) - 1 else "<span></span>")
             nav += "</div>"
             body += nav
-        out_dir = DOCS_OUT if slug == "" else DOCS_OUT / slug
-        out_dir.mkdir(parents=True, exist_ok=True)
-        (out_dir / "index.html").write_text(page(title, slug, body, toc, desc), encoding="utf-8")
-    print(f"generated {len(PAGES)} docs pages -> {DOCS_OUT}")
+        rendered = page(title, slug, body, toc, desc)
+        if slug == "":
+            # the unified landing at the site root, plus /docs for compatibility
+            (site_root / "index.html").write_text(rendered, encoding="utf-8")
+            DOCS_OUT.mkdir(parents=True, exist_ok=True)
+            (DOCS_OUT / "index.html").write_text(rendered, encoding="utf-8")
+        else:
+            out_dir = DOCS_OUT / slug
+            out_dir.mkdir(parents=True, exist_ok=True)
+            (out_dir / "index.html").write_text(rendered, encoding="utf-8")
+    print(f"generated {len(PAGES)} pages; landing at site root + {DOCS_OUT}")
 
 
 if __name__ == "__main__":
