@@ -19,6 +19,9 @@ NAV = [
         ("Dimension exposure", "dimensions"),
         ("Capability drift", "diff"),
     ]),
+    ("Examples", [
+        ("Meridian — a multi-agent app", "example"),
+    ]),
     ("Rules", [
         ("Rules overview", "rules"),
         ("AI001 · Prompt exposure", "rules/AI001"),
@@ -412,13 +415,136 @@ def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+# --- Meridian worked example (Stoa-themed agent mesh) ----------------------
+import math as _math
+
+_AGENTS = [
+    ("payments", "LangChain", "Refunds & payouts", "Stripe · Postgres", "crit", "Elevated"),
+    ("fraud", "CrewAI", "RAG case triage", "Pinecone · SIEM", "crit", "Elevated"),
+    ("compliance", "LangGraph", "Regulatory filings", "Audit log · HITL", "good", "Controlled"),
+    ("devops", "Agno", "Infra operations", "Shell · AWS", "crit", "Elevated"),
+    ("research", "OpenAI Agents SDK", "Market research", "Tavily · HF models", "warn", "Moderate"),
+    ("marketing", "AutoGen", "Campaign send", "SendGrid", "warn", "Moderate"),
+    ("support", "Vercel AI SDK", "First-line chat", "Zendesk · Slack", "warn", "Moderate"),
+    ("triage", "PydanticAI", "Intent routing", "—", "low", "Baseline"),
+]
+_DIMS = [
+    ("Scope violation", "strong"), ("Data exfiltration", "strong"),
+    ("Unauthorized action", "strong"), ("Output integrity", "partial"),
+    ("Adversarial manipulation", "partial"), ("Behavioral instability", "proxy"),
+    ("Model drift", "proxy"), ("Operational control", "partial"),
+]
+
+
+def _mesh_positions(n, rx=41, ry=39):
+    return [(50 + rx * _math.cos(-_math.pi / 2 + i * 2 * _math.pi / n),
+             50 + ry * _math.sin(-_math.pi / 2 + i * 2 * _math.pi / n)) for i in range(n)]
+
+
+def meridian_body() -> str:
+    pos = _mesh_positions(len(_AGENTS))
+    conn = "".join(f'<line x1="50" y1="50" x2="{x:.1f}" y2="{y:.1f}"/>' for x, y in pos)
+    nodes = "".join(
+        f'<div class="mnode m-{st}" style="left:{x:.1f}%;top:{y:.1f}%">'
+        f'<span class="mdot"></span><span class="mn">{n}</span>'
+        f'<span class="mf">{fw}</span></div>'
+        for (n, fw, _h, _r, st, _l), (x, y) in zip(_AGENTS, pos)
+    )
+    roster = "".join(
+        f'<tr><td><code>{n}</code></td><td>{fw}</td><td>{h}</td><td>{r}</td>'
+        f'<td><span class="mchip mc-{st}">{lbl}</span></td></tr>'
+        for (n, fw, h, r, st, lbl) in _AGENTS
+    )
+    dims = "".join(
+        f'<span class="mdim d-{t}">{name}<span>{t}</span></span>' for name, t in _DIMS
+    )
+    mobile = "".join(
+        f'<div class="mrow"><span class="mdot m-{st}"></span><code>{n}</code> · {fw}</div>'
+        for (n, fw, _h, _r, st, _l) in _AGENTS
+    )
+    return f"""
+<h1>Example: a multi-agent app</h1>
+<p><strong>Meridian</strong> is a demonstration multi-agent backend for a neobank — eight
+specialist agents behind one supervisor, across eight frameworks and two languages. It is
+Stoa's reference application: every risk is planted on purpose, and one agent
+(<code>compliance</code>) is deliberately well-controlled so a scan shows contrast, not just red.
+The full source is in <a href="https://github.com/iamved/stoa-agent-risk/tree/main/examples/meridian-ops">examples/meridian-ops</a>.</p>
+
+<div class="mesh">
+  <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">{conn}</svg>
+  <div class="mcore"><span class="ml">Supervisor</span><span class="mcn">orchestrator</span>
+    <span class="mf">LangGraph · routes by intent</span></div>
+  {nodes}
+</div>
+<div class="mesh-mobile">{mobile}</div>
+<div class="mlegend">
+  <span><i class="m-crit"></i>Elevated</span><span><i class="m-warn"></i>Moderate</span>
+  <span><i class="m-good"></i>Controlled</span><span><i class="m-low"></i>Baseline</span>
+</div>
+
+<h2>The agent mesh</h2>
+<p>Each agent owns a slice of the bank's operations. Control status below is from a real Stoa
+scan of the codebase.</p>
+<div class="table-wrap"><table><thead><tr><th>Agent</th><th>Framework</th><th>Handles</th>
+<th>Reaches</th><th>Control status</th></tr></thead><tbody>{roster}</tbody></table></div>
+
+<h2>What a scan reports</h2>
+<p>Stoa inventories the agents, maps capabilities and integrations, and scores each across eight
+risk dimensions — five assessed directly, three proxy signals flagged for runtime follow-up.</p>
+<div class="mdims">{dims}</div>
+<div class="callout">Run it yourself: <code>stoa scan examples/meridian-ops</code>, or open the
+<a href="/demo-report">live scan report</a>. The comprehensive
+<a href="https://github.com/iamved/stoa-agent-risk/blob/main/examples/meridian-ops/run-e2e.sh">run-e2e.sh</a>
+driver asserts 53 checks across the whole tool surface.</p>
+
+<style>
+.mesh{{position:relative;width:100%;max-width:720px;margin:20px auto 6px;aspect-ratio:1.6/1}}
+.mesh svg{{position:absolute;inset:0;width:100%;height:100%;overflow:visible}}
+.mesh line{{stroke:var(--line);stroke-width:1}}
+.mcore{{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;
+  background:var(--raise);border:1px solid var(--accent);border-radius:11px;padding:10px 14px;
+  box-shadow:0 0 0 5px var(--accent-soft);z-index:2}}
+.mcore .ml{{display:block;font-family:"Plex Mono",monospace;font-size:9.5px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--accent)}}
+.mcore .mcn{{display:block;font-family:Marcellus,Georgia,serif;font-size:16px}}
+.mnode{{position:absolute;transform:translate(-50%,-50%);background:var(--raise);
+  border:1px solid var(--line);border-radius:9px;padding:7px 10px;min-width:96px;text-align:center;z-index:2}}
+.mdot{{width:8px;height:8px;border-radius:50%;display:inline-block;margin-bottom:2px}}
+.mnode .mn{{display:block;font-family:"Plex Mono",monospace;font-size:12.5px;color:var(--ink)}}
+.mf{{display:block;color:var(--mute);font-size:10px}}
+.m-crit .mdot,.mdot.m-crit,.mlegend i.m-crit{{background:#c2554a}}
+.m-warn .mdot,.mdot.m-warn,.mlegend i.m-warn{{background:#c2872f}}
+.m-good .mdot,.mdot.m-good,.mlegend i.m-good{{background:#3f9d74}}
+.m-low .mdot,.mdot.m-low,.mlegend i.m-low{{background:#5a86a8}}
+.mlegend{{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;font-family:"Plex Mono",monospace;
+  font-size:11px;color:var(--mute);margin-bottom:8px}}
+.mlegend i{{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle}}
+.mchip{{font-family:"Plex Mono",monospace;font-size:11px;padding:2px 8px;border-radius:20px;
+  border:1px solid currentColor}}
+.mc-crit{{color:#b3402f}} .mc-warn{{color:#a06a12}} .mc-good{{color:#2f7a53}} .mc-low{{color:#3f688a}}
+:root[data-theme=dark] .mc-crit{{color:#e0705e}} :root[data-theme=dark] .mc-warn{{color:#e0a23b}}
+:root[data-theme=dark] .mc-good{{color:#57b98a}} :root[data-theme=dark] .mc-low{{color:#5fa8c9}}
+@media(prefers-color-scheme:dark){{.mc-crit{{color:#e0705e}}.mc-warn{{color:#e0a23b}}.mc-good{{color:#57b98a}}.mc-low{{color:#5fa8c9}}}}
+.mdims{{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 16px}}
+.mdim{{font-family:"Plex Mono",monospace;font-size:11.5px;padding:4px 9px;border-radius:8px;
+  border:1px solid var(--line);display:inline-flex;gap:7px;align-items:center}}
+.mdim span{{font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}}
+.mdim.d-proxy{{opacity:.7}}
+.mesh-mobile{{display:none}}
+.mrow{{display:flex;align-items:center;gap:9px;padding:8px 11px;border:1px solid var(--line);
+  border-radius:8px;margin-bottom:7px;font-size:13px}}
+@media(max-width:700px){{.mesh{{display:none}}.mesh-mobile{{display:block;margin:16px 0}}}}
+</style>
+"""
+
+
 # --- landing (card grid) ---------------------------------------------------
 CARDS = [
     ("🚀", "Install & first scan", "From pipx install to your first HTML report in three commands.", "/docs/getting-started"),
     ("🧭", "Dimension exposure", "Eight risk dimensions — five direct, three proxy — with deterministic scoring.", "/docs/dimensions"),
     ("📈", "Capability drift", "stoa diff: did any agent's reach change? Approve intentional changes in-repo.", "/docs/diff"),
     ("🛡️", "Rules", "Nine core rules plus eight AI rules mapped to the OWASP LLM Top 10.", "/docs/rules"),
-    ("⌨️", "CLI reference", "Every command, flag, and exit code.", "/docs/cli"),
+    ("🏦", "Meridian example", "A full multi-agent app, scanned end to end — the reference to follow.", "/docs/example"),
     ("🧬", "JSON schema", "The registry schema (1.1), additive-first, with reserved fields.", "/docs/schema"),
 ]
 
@@ -461,6 +587,7 @@ PAGES = [
     ("cli", "CLI", CLI, None, "Stoa CLI reference."),
     ("configuration", "Configuration", CONFIGURATION, None, "stoa.toml, suppression, and .stoaignore."),
     ("schema", "JSON schema", read(REPO / "SCHEMA.md"), None, "The stoa-registry.json schema."),
+    ("example", "Example: Meridian", meridian_body, None, "A worked multi-agent app (Meridian) scanned end to end by Stoa."),
 ]
 for rule in ("AI001", "AI002", "AI003", "AI004", "AI005", "AI006", "AI007", "CTRL004"):
     PAGES.append((f"rules/{rule}", rule, read(REPO / f"docs/rules/{rule}.md"), None, f"Stoa rule {rule}."))
