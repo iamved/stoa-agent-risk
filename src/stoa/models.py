@@ -124,6 +124,8 @@ class AgentCandidate:
     # Schema 1.2 (Assurance layer). None unless stoa-declared.toml declares
     # this agent id — the raw declared record, serialized as-is.
     declared: Optional[dict] = None
+    # Schema 1.2 (Assurance layer, reserved since 1.0). {level, signals, reason}.
+    autonomy_level: Optional[dict] = None
 
     @property
     def highest_severity(self) -> Optional[str]:

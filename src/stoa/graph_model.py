@@ -128,6 +128,7 @@ class GraphNode:
     path: str | None = None  # populated for "agent"/"mcp_server" nodes only
     symbol: str | None = None
     findings: tuple[FindingRef, ...] = ()  # all findings on this agent's file
+    autonomy_level: str | None = None  # agent/mcp_server nodes only
 
 
 @dataclass
@@ -192,6 +193,7 @@ def build_graph(registry: dict) -> Graph:
             path=agent.get("path"),
             symbol=agent.get("symbol"),
             findings=node_findings,
+            autonomy_level=(agent.get("autonomy_level") or {}).get("level"),
         )
 
         findings_by_rule: dict[str, list[dict]] = {}
@@ -266,6 +268,7 @@ def to_json_dict(graph: Graph) -> dict:
                 "display_severity": severities.get(n.id),
                 "path": n.path,
                 "symbol": n.symbol,
+                "autonomy_level": n.autonomy_level,
                 "findings": [_finding_ref_dict(f) for f in n.findings],
             }
             for n in graph.nodes

@@ -245,6 +245,14 @@ footer { margin-top: 44px; padding-top: 14px; border-top: 1px solid #e3e6ec;
   .graph-layout { flex-direction: column; }
   .graph-panel { flex-basis: auto; max-height: 260px; }
 }
+.autonomy-badge { display: inline-block; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.02em; padding: 2px 8px;
+  border-radius: 8px; margin: 2px 0 6px; }
+.autonomy-crit { background: #fde8e8; color: #b42318; }
+.autonomy-warn { background: #fdf0e0; color: #b54708; }
+.autonomy-ok { background: #e8f5ef; color: #14714f; }
+.autonomy-info { background: #e8f0fe; color: #1d4ed8; }
+.autonomy-unknown { background: #f1f3f6; color: #5a6272; font-style: italic; }
 """
 
 _EXP_GLYPH = {"elevated": "●", "moderate": "◐", "low": "○",
@@ -658,6 +666,7 @@ def _agent_card(agent: AgentCandidate, diff_available: bool) -> str:
         "</div>"
         f'<p class="meta"><code>{html_text(agent.path)}</code> · '
         f"{_confidence_label(agent.confidence)} confidence</p>"
+        f"{_autonomy_badge(agent)}"
         f'<div class="meter" role="img" aria-label="Static exposure score {score}">'
         f'<span style="width: {meter_pct}%"></span></div>'
         f'<div class="chips">{chips}</div>'
@@ -665,6 +674,26 @@ def _agent_card(agent: AgentCandidate, diff_available: bool) -> str:
         f"{detail}"
         "</div>"
     )
+
+
+_AUTONOMY_LABELS = {
+    "recommend_only": ("Recommend-only", "autonomy-info"),
+    "human_approved": ("Human-approved", "autonomy-ok"),
+    "bounded_autonomous": ("Bounded-autonomous", "autonomy-warn"),
+    "unrestricted_autonomous": ("Unrestricted-autonomous", "autonomy-crit"),
+    "indeterminate": ("Autonomy indeterminate", "autonomy-unknown"),
+}
+
+
+def _autonomy_badge(agent: AgentCandidate) -> str:
+    if agent.autonomy_level is None:
+        return ""
+    level = agent.autonomy_level.get("level")
+    label, css_class = _AUTONOMY_LABELS.get(level, (level, "autonomy-unknown"))
+    title = ""
+    if level == "indeterminate" and agent.autonomy_level.get("reason"):
+        title = f' title="{html_text(agent.autonomy_level["reason"])}"'
+    return f'<p class="autonomy-badge {css_class}"{title}>{html_text(label)}</p>'
 
 
 def _agent_card_details(agent: AgentCandidate, diff_available: bool) -> str:

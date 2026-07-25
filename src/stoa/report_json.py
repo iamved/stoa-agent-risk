@@ -98,6 +98,11 @@ def agent_to_dict(agent: AgentCandidate, include_suppressed: bool) -> dict:
             else {}
         ),
         **({"declared": agent.declared} if agent.declared is not None else {}),
+        **(
+            {"autonomy_level": agent.autonomy_level}
+            if agent.autonomy_level is not None
+            else {}
+        ),
     }
 
 

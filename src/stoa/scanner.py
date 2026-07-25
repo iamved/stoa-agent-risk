@@ -11,6 +11,7 @@ from .agent_detection import detect_agents
 from .ai_rules import detect_ai005, detect_ai_correlations
 from .ai_taint import detect_ai_taint
 from .ast_layer import AstCache
+from .autonomy import infer_autonomy
 from .dimensions import (
     assess_agent,
     dimension_summary,
@@ -253,6 +254,9 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
                 taxonomy,
             )
         dim_summary = dimension_summary(agents, taxonomy)
+
+    for agent in agents:
+        agent.autonomy_level = infer_autonomy(agent, agent_content.get(agent.path, ""))
 
     agents.sort(key=lambda a: (a.path, a.symbol))
     all_findings.sort(key=lambda f: (f.path, f.line, f.rule_id, f.fingerprint))

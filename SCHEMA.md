@@ -47,23 +47,35 @@ and agent counts); `degraded_files` — files whose AST parse degraded.
 
 ## Schema 1.2 additions (Assurance layer)
 
-Declared metadata from `stoa-declared.toml` — human-supplied business facts
-the scanner cannot derive from code, cross-checked against scan results (see
-`docs/declarations.md`). Absent entirely unless that file exists (opt-in by
-presence; a scan with no `stoa-declared.toml` serializes byte-identically to
-`1.1` apart from `schema_version`).
+Two independent additions. **Declared metadata** is opt-in by presence: a
+scan with no `stoa-declared.toml` serializes byte-identically to `1.1` apart
+from `schema_version`. **Autonomy inference** is unconditional, like
+`highest_severity` — every agent candidate gets an `autonomy_level`,
+regardless of declarations.
 
-**On an agent candidate:** `declared` — the raw declared record for that
-agent id, when present: `{name, owner, purpose, users, geography,
-production_status, autonomy_intent, data_classes, economic_authority}`.
-`economic_authority`, when set, is `{max_per_action?, daily_aggregate?,
-worst_case_customer_loss?}`, each `{amount: number, currency: string}`.
+**On an agent candidate — declared metadata** (present only when
+`stoa-declared.toml` declares this agent id): `declared` — the raw declared
+record: `{name, owner, purpose, users, geography, production_status,
+autonomy_intent, data_classes, economic_authority}`. `economic_authority`,
+when set, is `{max_per_action?, daily_aggregate?, worst_case_customer_loss?}`,
+each `{amount: number, currency: string}`.
+
+**On an agent candidate — autonomy inference** (always present):
+`autonomy_level` — `{level, signals, reason}`. `level` ∈ `recommend_only |
+human_approved | bounded_autonomous | unrestricted_autonomous |
+indeterminate` — a static classification of how unattended the agent's
+side-effecting reach appears to be, derived from existing detectors (AI002
+side-effecting sinks, AI003 approval-absence, a same-file bounding signal).
+`signals` — the evidence list, `[{signal (a rule id or a named pattern like
+`"approval_construct"`/`"bounding"`), path, line}]`. `reason` — populated
+only when `level == "indeterminate"`: the classifier never guesses when
+signals don't cleanly resolve.
 
 **Top-level:** `business` — `{industries?, regulated_activities?,
 max_customer_dependency?}`. `governance` — `{release_approval,
 incident_response, risk_acceptance?}`. `evidence` — pointers only, grouped by
 category (`testing`, `monitoring`, `contracts`, `historical`), each entry
-`{kind, ref, date?}`.
+`{kind, ref, date?}`. All three present only when `stoa-declared.toml` exists.
 
 ## Top-level document
 

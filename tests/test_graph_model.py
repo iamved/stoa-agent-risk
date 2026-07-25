@@ -11,7 +11,7 @@ def finding(rule_id, severity="high", path="a.py", line=1, message=None):
 
 def agent(id="a1", name="agt", path="a.py", symbol="agt", frameworks=None,
           caps=None, integs=None, providers=None, call_sites=None, findings=None,
-          dims=None, highest_severity=None):
+          dims=None, highest_severity=None, autonomy_level=None):
     a = {
         "id": id, "name": name, "path": path, "symbol": symbol,
         "frameworks": frameworks or [], "capabilities": caps or [],
@@ -21,6 +21,8 @@ def agent(id="a1", name="agt", path="a.py", symbol="agt", frameworks=None,
     }
     if dims is not None:
         a["dimension_assessment"] = {"dimensions": dims}
+    if autonomy_level is not None:
+        a["autonomy_level"] = {"level": autonomy_level, "signals": [], "reason": None}
     return a
 
 
@@ -196,3 +198,19 @@ def test_to_json_dict_round_trips_through_json():
     reloaded = json.loads(text)
     assert len(reloaded["nodes"]) == len(g.nodes)
     assert len(reloaded["edges"]) == len(g.edges)
+
+
+def test_autonomy_level_propagates_to_agent_node():
+    a = agent(id="a1", autonomy_level="unrestricted_autonomous")
+    g = build_graph(registry([a]))
+    node = next(n for n in g.nodes if n.id == "a1")
+    assert node.autonomy_level == "unrestricted_autonomous"
+    payload = to_json_dict(g)
+    assert payload["nodes"][0]["autonomy_level"] == "unrestricted_autonomous"
+
+
+def test_autonomy_level_absent_when_not_populated():
+    a = agent(id="a1")
+    g = build_graph(registry([a]))
+    node = next(n for n in g.nodes if n.id == "a1")
+    assert node.autonomy_level is None
