@@ -433,6 +433,7 @@ def _run_init_command(args: argparse.Namespace) -> int:
     for destination, template_name in INIT_FILES.items():
         target = Path(destination)
         content = (template_root / template_name).read_text(encoding="utf-8")
+        content = content.replace("{{VERSION}}", __version__)
         if target.exists():
             if not args.force:
                 skipped.append(destination)

@@ -16,8 +16,8 @@ value = "..."  # stoa: ignore[AI002] reviewed: dispatched through a static allow
 | SEC001 | Possible hardcoded API credential | critical | yes (high conf.) |
 | SEC002 | Possible hardcoded password | high→critical | yes (high conf.) |
 | SEC003 | Interpolated SQL statement | high | no |
-| REL001 | Swallowed exception | medium | no |
-| NET001 | Insecure non-local HTTP endpoint | medium | no |
+| REL001 | Swallowed exception | low | no |
+| NET001 | Insecure non-local HTTP endpoint | low | no |
 | NET002 | Request timeout not observed | medium | no |
 | CTRL001–003 | Auth / validation / rate-limit not observed | info | never |
 

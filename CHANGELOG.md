@@ -3,6 +3,40 @@
 All notable changes to Stoa are documented here. The registry JSON schema is
 versioned separately (see [SCHEMA.md](SCHEMA.md)).
 
+## 0.3.0 — "Real-world detection quality"
+
+Driven by running Stoa against a production codebase. Three problems it exposed —
+a missed agentic surface, a wall of low-value noise, and control false negatives —
+are addressed directly.
+
+### Agent inventory accuracy
+- **Framework-independent agentic control flow.** Stoa now detects a model call
+  inside a loop (via AST) and multi-step generation (≥2 model call sites) as
+  agentic, so hand-rolled agents built on direct provider SDKs — not LangChain/
+  CrewAI/etc. — are inventoried instead of slipping through.
+- **MCP servers are an agentic surface.** `FastMCP(...)`, `@mcp.tool`, and
+  `@modelcontextprotocol/sdk` are detected (framework `mcp`) and mapped to the
+  scope-violation and unauthorized-action dimensions.
+- **Provider/pipeline files are no longer mislabeled agents.** A candidate now
+  requires an actual agentic signal (loop-driven or multi-step model use, tools,
+  an execution surface, or an agent constructor); an LLM SDK import plus a single
+  one-shot generation call — an image/TTS/generation utility — no longer qualifies.
+
+### Noise reduction & prioritization
+- **NET001 (insecure HTTP) and REL001 (swallowed exception) are dropped to `low`**
+  and **skipped in test paths**, where they were the dominant false positives.
+  They are code smells, rarely risks.
+- **Every finding now carries a `message`.** Core rules previously left the field
+  null in JSON, breaking downstream prioritization; it is now always populated.
+
+### Control detection
+- **Broadened control recognition** — auth (Firebase/Clerk/Auth0/JWT/session),
+  input validation, rate limiting, and observability (Loki/Datadog/Sentry/OTel/
+  Prometheus) — so common stacks are credited.
+- **Repo-level control awareness.** A CTRL prompt now fires only when the control
+  is observed neither in the file nor anywhere in the repository, eliminating
+  "not observed" findings for controls that live in shared middleware/infra.
+
 ## 0.2.1
 
 ### Fixed
