@@ -227,6 +227,24 @@ footer { margin-top: 44px; padding-top: 14px; border-top: 1px solid #e3e6ec;
   .dim-drill { display: block; }
   .dim-drill > summary { font-weight: 700; }
 }
+.graph-controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+  background: #fff; border: 1px solid #e3e6ec; border-radius: 8px;
+  padding: 10px 14px; margin: 10px 0; font-size: 12.5px; color: #465063; }
+.graph-controls select, .graph-controls input[type="text"] {
+  font-size: 12.5px; border: 1px solid #e3e6ec; border-radius: 6px; padding: 3px 6px; }
+.graph-layout { display: flex; gap: 12px; align-items: stretch; }
+.graph-canvas { flex: 1 1 auto; height: 520px; background: #fff;
+  border: 1px solid #e3e6ec; border-radius: 10px; min-width: 0; }
+.graph-panel { flex: 0 0 280px; background: #fff; border: 1px solid #e3e6ec;
+  border-radius: 10px; padding: 12px 14px; font-size: 12.5px; overflow-y: auto;
+  max-height: 520px; }
+.graph-panel h4 { margin: 10px 0 4px; font-size: 12px; text-transform: uppercase;
+  letter-spacing: 0.03em; color: #5a6272; }
+.graph-panel h4:first-child { margin-top: 0; }
+@media (max-width: 760px) {
+  .graph-layout { flex-direction: column; }
+  .graph-panel { flex-basis: auto; max-height: 260px; }
+}
 """
 
 _EXP_GLYPH = {"elevated": "●", "moderate": "◐", "low": "○",
@@ -264,11 +282,19 @@ def render_html(result: ScanResult, config: StoaConfig) -> str:
         else f"{critical} critical finding{'s' if critical != 1 else ''}"
     )
 
+    script_src = ""
+    cytoscape_version = None
+    if not config.no_graph:
+        from .report_graph import CYTOSCAPE_VERSION, csp_script_src
+
+        script_src = " " + csp_script_src()
+        cytoscape_version = CYTOSCAPE_VERSION
     parts.append(
         "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n"
         "<meta charset=\"utf-8\">\n"
         "<meta http-equiv=\"Content-Security-Policy\" "
-        "content=\"default-src 'none'; style-src 'unsafe-inline'; img-src data:;\">\n"
+        "content=\"default-src 'none'; style-src 'unsafe-inline'; img-src data:;"
+        f"{script_src}\">\n"
         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
         f"<title>Stoa Agent Risk Report — {html_text(result.repository.name)}</title>\n"
         f"<style>{_CSS}</style>\n</head>\n<body>\n"
@@ -359,6 +385,15 @@ def render_html(result: ScanResult, config: StoaConfig) -> str:
         parts.append('<p class="empty">No agent candidates were detected.</p>')
     parts.append("</section>")
 
+    # Architecture graph -------------------------------------------------------
+    if not config.no_graph:
+        from .graph_model import build_graph
+        from .report_graph import render_graph_section
+        from .report_json import build_document
+
+        graph = build_graph(build_document(result, config))
+        parts.append(render_graph_section(graph))
+
     # Finding sections, collapsed by default ---------------------------------
     active = result.unsuppressed_findings()
     security = [
@@ -399,7 +434,13 @@ def render_html(result: ScanResult, config: StoaConfig) -> str:
         "<footer>Stoa performs static, pattern-based analysis. Findings and agent "
         "classifications should be reviewed by an engineer. Runtime behavior and "
         "organization-wide controls may not be visible in the scanned repository."
-        "</footer>\n</main>\n</body>\n</html>\n"
+        + (
+            "" if cytoscape_version is None else
+            " The architecture graph is rendered with "
+            f"<a href=\"https://js.cytoscape.org/\">Cytoscape.js</a> {cytoscape_version} "
+            "(MIT License, vendored — no network request is made)."
+        )
+        + "</footer>\n</main>\n</body>\n</html>\n"
     )
     return "".join(parts)
 

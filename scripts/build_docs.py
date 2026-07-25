@@ -18,6 +18,7 @@ NAV = [
     ("Concepts", [
         ("Dimension exposure", "dimensions"),
         ("Capability drift", "diff"),
+        ("Architecture graph", "graph"),
     ]),
     ("Examples", [
         ("Meridian — a multi-agent app", "example"),
@@ -330,6 +331,7 @@ CLI = """# CLI
 ```bash
 stoa scan [PATH]            # scan a repository (report-only by default)
 stoa diff BASE HEAD         # diff agent reach between two registries
+stoa graph [REGISTRY]       # render the architecture graph (Mermaid)
 stoa approve ...            # record an intentional drift approval
 stoa init github            # scaffold the CI workflow
 ```
@@ -345,6 +347,7 @@ stoa init github            # scaffold the CI workflow
 --strict                         fail on high-confidence criticals
 --no-ast                         disable the AST layer + flow-based AI rules
 --no-dimensions                  skip the dimension assessment + matrix
+--no-graph                       skip the architecture graph in the HTML report
 --taxonomy PATH                  custom dimension taxonomy
 --diff-against GIT_REF           scan, then diff reach against a ref
 --fail-on-drift {none,low,medium,high}
@@ -365,6 +368,17 @@ stoa init github            # scaffold the CI workflow
 ## `stoa diff` and `stoa approve`
 
 See [Capability drift](/docs/diff).
+
+## `stoa graph`
+
+```
+[REGISTRY]                       existing stoa-registry.json (omit: scan the worktree)
+--format mermaid                 output format (default, only option today)
+--out PATH                       write to PATH (default: stdout)
+--focus AGENT_ID                 render only that node + its direct neighbors
+```
+
+See [Architecture graph](/docs/graph).
 """
 
 CONFIGURATION = """# Configuration
@@ -550,6 +564,7 @@ CARDS = [
     ("🚀", "Install & first scan", "From pipx install to your first HTML report in three commands.", "/docs/getting-started"),
     ("🧭", "Dimension exposure", "Eight risk dimensions — five direct, three proxy — with deterministic scoring.", "/docs/dimensions"),
     ("📈", "Capability drift", "stoa diff: did any agent's reach change? Approve intentional changes in-repo.", "/docs/diff"),
+    ("🕸️", "Architecture graph", "Agents, tools, and capability-sinks as a Mermaid or interactive graph — click any edge for its evidence.", "/docs/graph"),
     ("🛡️", "Rules", "Nine core rules plus eight AI rules mapped to the OWASP LLM Top 10.", "/docs/rules"),
     ("🏦", "Meridian example", "A full multi-agent app, scanned end to end — the reference to follow.", "/docs/example"),
     ("🧬", "JSON schema", "The registry schema (1.1), additive-first, with reserved fields.", "/docs/schema"),
@@ -609,6 +624,7 @@ PAGES = [
     ("getting-started", "Install & first scan", GETTING_STARTED, None, "Install Stoa and run your first scan."),
     ("dimensions", "Dimension exposure", read(REPO / "docs/dimensions.md"), None, "Stoa's eight-dimension risk taxonomy and scoring."),
     ("diff", "Capability drift", read(REPO / "docs/diff.md"), None, "stoa diff: detect and approve agent capability drift."),
+    ("graph", "Architecture graph", read(REPO / "docs/graph.md"), None, "stoa graph: agents, tools, and capability-sinks as a Mermaid or interactive graph."),
     ("rules", "Rules overview", read(REPO / "docs/rules/README.md"), None, "Stoa's core and AI security rules."),
     ("cli", "CLI", CLI, None, "Stoa CLI reference."),
     ("configuration", "Configuration", CONFIGURATION, None, "stoa.toml, suppression, and .stoaignore."),

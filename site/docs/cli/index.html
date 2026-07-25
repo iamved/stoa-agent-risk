@@ -71,11 +71,12 @@ hr{border:none;border-top:1px solid var(--line);margin:26px 0}
   <button class="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">◐</button>
 </header>
 <div class="layout">
-<nav class="sidebar" id="sidebar"><div class="nav-section">Getting started</div><a class="nav-link" href="/">Overview</a><a class="nav-link" href="/docs/getting-started">Install &amp; first scan</a><div class="nav-section">Concepts</div><a class="nav-link" href="/docs/dimensions">Dimension exposure</a><a class="nav-link" href="/docs/diff">Capability drift</a><div class="nav-section">Examples</div><a class="nav-link" href="/docs/example">Meridian — a multi-agent app</a><div class="nav-section">Rules</div><a class="nav-link" href="/docs/rules">Rules overview</a><a class="nav-link" href="/docs/rules/AI001">AI001 · Prompt exposure</a><a class="nav-link" href="/docs/rules/AI002">AI002 · Output → exec</a><a class="nav-link" href="/docs/rules/AI003">AI003 · Unobserved approval</a><a class="nav-link" href="/docs/rules/AI004">AI004 · Sensitive interpolation</a><a class="nav-link" href="/docs/rules/AI005">AI005 · Unpinned model</a><a class="nav-link" href="/docs/rules/AI006">AI006 · Network exfiltration</a><a class="nav-link" href="/docs/rules/AI007">AI007 · Sampling config</a><a class="nav-link" href="/docs/rules/CTRL004">CTRL004 · Observability</a><div class="nav-section">Reference</div><a class="nav-link active" href="/docs/cli">CLI</a><a class="nav-link" href="/docs/configuration">Configuration</a><a class="nav-link" href="/docs/schema">JSON schema</a><div class="nav-section">More</div><a class="nav-link" href="/case-study">Case study</a><a class="nav-link" href="/demo-report">Live scan report</a></nav>
+<nav class="sidebar" id="sidebar"><div class="nav-section">Getting started</div><a class="nav-link" href="/">Overview</a><a class="nav-link" href="/docs/getting-started">Install &amp; first scan</a><div class="nav-section">Concepts</div><a class="nav-link" href="/docs/dimensions">Dimension exposure</a><a class="nav-link" href="/docs/diff">Capability drift</a><a class="nav-link" href="/docs/graph">Architecture graph</a><div class="nav-section">Examples</div><a class="nav-link" href="/docs/example">Meridian — a multi-agent app</a><div class="nav-section">Rules</div><a class="nav-link" href="/docs/rules">Rules overview</a><a class="nav-link" href="/docs/rules/AI001">AI001 · Prompt exposure</a><a class="nav-link" href="/docs/rules/AI002">AI002 · Output → exec</a><a class="nav-link" href="/docs/rules/AI003">AI003 · Unobserved approval</a><a class="nav-link" href="/docs/rules/AI004">AI004 · Sensitive interpolation</a><a class="nav-link" href="/docs/rules/AI005">AI005 · Unpinned model</a><a class="nav-link" href="/docs/rules/AI006">AI006 · Network exfiltration</a><a class="nav-link" href="/docs/rules/AI007">AI007 · Sampling config</a><a class="nav-link" href="/docs/rules/CTRL004">CTRL004 · Observability</a><div class="nav-section">Reference</div><a class="nav-link active" href="/docs/cli">CLI</a><a class="nav-link" href="/docs/configuration">Configuration</a><a class="nav-link" href="/docs/schema">JSON schema</a><div class="nav-section">More</div><a class="nav-link" href="/case-study">Case study</a><a class="nav-link" href="/demo-report">Live scan report</a></nav>
 <main>
 <h1 id="cli">CLI</h1>
 <pre class="code" data-lang="bash"><code>stoa scan [PATH]            # scan a repository (report-only by default)
 stoa diff BASE HEAD         # diff agent reach between two registries
+stoa graph [REGISTRY]       # render the architecture graph (Mermaid)
 stoa approve ...            # record an intentional drift approval
 stoa init github            # scaffold the CI workflow</code></pre>
 <h2 id="stoa-scan"><code>stoa scan</code></h2>
@@ -87,6 +88,7 @@ stoa init github            # scaffold the CI workflow</code></pre>
 --strict                         fail on high-confidence criticals
 --no-ast                         disable the AST layer + flow-based AI rules
 --no-dimensions                  skip the dimension assessment + matrix
+--no-graph                       skip the architecture graph in the HTML report
 --taxonomy PATH                  custom dimension taxonomy
 --diff-against GIT_REF           scan, then diff reach against a ref
 --fail-on-drift {none,low,medium,high}
@@ -96,9 +98,15 @@ stoa init github            # scaffold the CI workflow</code></pre>
 <h2 id="exit-codes">Exit codes</h2>
 <div class="table-wrap"><table><thead><tr><th>Code</th><th>Meaning</th></tr></thead><tbody><tr><td>0</td><td>scan completed, gate passed</td></tr><tr><td>1</td><td>findings (or drift) exceeded the configured gate</td></tr><tr><td>2</td><td>invalid arguments or configuration</td></tr><tr><td>3</td><td>scanner execution error</td></tr></tbody></table></div>
 <h2 id="stoa-diff-and-stoa-approve"><code>stoa diff</code> and <code>stoa approve</code></h2>
-<p>See <a href="/docs/diff">Capability drift</a>.</p><div class="pagenav"><a href="/docs/rules/CTRL004">← CTRL004 · Observability</a><a href="/docs/configuration">Configuration →</a></div>
+<p>See <a href="/docs/diff">Capability drift</a>.</p>
+<h2 id="stoa-graph"><code>stoa graph</code></h2>
+<pre class="code" data-lang=""><code>[REGISTRY]                       existing stoa-registry.json (omit: scan the worktree)
+--format mermaid                 output format (default, only option today)
+--out PATH                       write to PATH (default: stdout)
+--focus AGENT_ID                 render only that node + its direct neighbors</code></pre>
+<p>See <a href="/docs/graph">Architecture graph</a>.</p><div class="pagenav"><a href="/docs/rules/CTRL004">← CTRL004 · Observability</a><a href="/docs/configuration">Configuration →</a></div>
 </main>
-<aside class="toc"><div class="toc-title">On this page</div><a class="toc-l2" href="#stoa-scan">`stoa scan`</a><a class="toc-l2" href="#exit-codes">Exit codes</a><a class="toc-l2" href="#stoa-diff-and-stoa-approve">`stoa diff` and `stoa approve`</a></aside>
+<aside class="toc"><div class="toc-title">On this page</div><a class="toc-l2" href="#stoa-scan">`stoa scan`</a><a class="toc-l2" href="#exit-codes">Exit codes</a><a class="toc-l2" href="#stoa-diff-and-stoa-approve">`stoa diff` and `stoa approve`</a><a class="toc-l2" href="#stoa-graph">`stoa graph`</a></aside>
 </div>
 <script>
 function toggleTheme(){var r=document.documentElement;var cur=r.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');var next=cur==='dark'?'light':'dark';r.setAttribute('data-theme',next);try{localStorage.setItem('stoa-theme',next)}catch(e){}}

@@ -30,7 +30,10 @@ def _result(tmp_path):
 
 
 def test_matrix_renders_with_no_script(tmp_path):
-    html = render_html(_result(tmp_path), StoaConfig())
+    # no_graph=True: the dimension-matrix section itself introduces no script;
+    # the architecture graph (a separate, deliberately scoped exception) is
+    # covered by its own tests in test_html_escape.py / test_report_graph.py.
+    html = render_html(_result(tmp_path), StoaConfig(no_graph=True))
     assert "Dimension exposure" in html
     assert "<script" not in html.lower()
     assert "Content-Security-Policy" in html

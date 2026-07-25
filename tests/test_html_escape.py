@@ -65,17 +65,40 @@ def test_html_text_escapes_quotes_and_tags():
 
 
 def test_malicious_values_escaped_everywhere():
-    html = render_html(_malicious_result(), StoaConfig())
+    # The visible HTML body still escapes every repo-derived value.
+    html = render_html(_malicious_result(), StoaConfig(no_graph=True))
     assert "<script>" not in html
     assert "alert('xss')" not in html
     assert "&lt;script&gt;" in html
 
 
-def test_report_has_csp_and_no_javascript():
+def test_malicious_values_cannot_break_out_of_graph_json(tmp_path):
+    # With the graph on, the same value flows into the JSON data blob inside
+    # a <script type="application/json"> tag. It must not be able to close
+    # that tag early and smuggle in a real, executing script: the dangerous
+    # exact substring "</script" must never appear unescaped, and the only
+    # *unescaped* closing tags in the whole report are the report's own
+    # fixed, hash-pinned scripts (vendor + glue) plus the JSON data tag.
+    import re
+
     html = render_html(_malicious_result(), StoaConfig())
+    assert "alert('xss')</script>" not in html
+    assert len(re.findall(r"(?i)</script", html)) == 3
+
+
+def test_report_has_csp_and_no_javascript_by_default_off():
+    html = render_html(_malicious_result(), StoaConfig(no_graph=True))
     assert "Content-Security-Policy" in html
     assert "default-src 'none'" in html
     assert "<script" not in html.lower()
+
+
+def test_report_graph_csp_is_hash_pinned_not_unsafe_inline():
+    html = render_html(_malicious_result(), StoaConfig())
+    assert "Content-Security-Policy" in html
+    assert "default-src 'none'" in html
+    assert "script-src 'sha256-" in html
+    assert "unsafe-inline" not in html.split("script-src")[1].split(";")[0]
 
 
 def test_scan_of_malicious_source_produces_escaped_report(tmp_path: Path):
@@ -90,7 +113,7 @@ def test_scan_of_malicious_source_produces_escaped_report(tmp_path: Path):
     )
     (tmp_path / "evil_agent.py").write_text(source, encoding="utf-8")
     result = run_scan(ScanOptions(root=tmp_path, no_git=True))
-    html = render_html(result, StoaConfig())
+    html = render_html(result, StoaConfig(no_graph=True))
     assert "<script>" not in html
 
 

@@ -95,6 +95,8 @@ def build_parser() -> argparse.ArgumentParser:
                            "(AI001/AI002/AI004/AI006) rules; run regex-only")
     scan.add_argument("--no-dimensions", action="store_true",
                       help="Skip the dimension exposure assessment and matrix")
+    scan.add_argument("--no-graph", action="store_true",
+                      help="Skip the architecture graph section in the HTML report")
     scan.add_argument("--taxonomy", metavar="PATH", default=None,
                       help="Custom dimension taxonomy TOML (replaces the default)")
 
@@ -128,6 +130,18 @@ def build_parser() -> argparse.ArgumentParser:
     diff.add_argument("--config", metavar="PATH", default=None)
     diff.add_argument("--no-git", action="store_true")
 
+    graph = subparsers.add_parser("graph", help="Render the architecture graph")
+    graph.add_argument("registry", nargs="?", default=None,
+                       help="stoa-registry.json to render (default: scan the worktree)")
+    graph.add_argument("--format", choices=["mermaid"], default="mermaid",
+                       help="Output format (default: mermaid)")
+    graph.add_argument("--out", metavar="PATH", default=None,
+                       help="Write output to PATH (default: stdout)")
+    graph.add_argument("--focus", metavar="AGENT_ID", default=None,
+                       help="Render only this node's direct neighbors")
+    graph.add_argument("--config", metavar="PATH", default=None)
+    graph.add_argument("--no-git", action="store_true")
+
     approve = subparsers.add_parser("approve", help="Record an intentional drift approval")
     approve.add_argument("--agent", metavar="NAME", help="Agent name (informational)")
     approve.add_argument("--agent-id", metavar="ID", help="Stable agent id to bind to")
@@ -159,6 +173,8 @@ def main(argv: list[str] | None = None) -> int:
             return _run_init_command(args)
         if args.command == "diff":
             return _run_diff_command(args)
+        if args.command == "graph":
+            return _run_graph_command(args)
         if args.command == "approve":
             return _run_approve_command(args)
     except ConfigError as exc:
@@ -208,6 +224,7 @@ def _run_scan_command(args: argparse.Namespace) -> int:
         experimental_ast=args.experimental_ast,
         no_ast=args.no_ast,
         no_dimensions=args.no_dimensions,
+        no_graph=args.no_graph,
         taxonomy_path=Path(args.taxonomy) if args.taxonomy else None,
     )
     result = run_scan(options, config)
@@ -346,6 +363,38 @@ def _load_or_scan_head(args, config) -> dict:
         return json.loads(Path(args.head).read_text(encoding="utf-8"))
     result = run_scan(ScanOptions(root=Path("."), no_git=args.no_git), config)
     return build_document(result, config)
+
+
+def _run_graph_command(args: argparse.Namespace) -> int:
+    from .graph_mermaid import render_mermaid
+    from .graph_model import build_graph
+    from .report_json import build_document
+
+    config = load_config(Path(".").resolve(), Path(args.config) if args.config else None)
+    if args.registry:
+        registry_path = Path(args.registry)
+        if not registry_path.is_file():
+            print(f"stoa: registry not found: {args.registry}", file=sys.stderr)
+            return EXIT_USAGE
+        document = json.loads(registry_path.read_text(encoding="utf-8"))
+    else:
+        result = run_scan(ScanOptions(root=Path("."), no_git=args.no_git), config)
+        document = build_document(result, config)
+
+    graph = build_graph(document)
+    if graph.is_empty:
+        print("stoa: no agent candidates detected — nothing to graph", file=sys.stderr)
+
+    if args.focus and not any(n.id == args.focus for n in graph.nodes):
+        print(f"stoa: warning: focus id not found in graph: {args.focus}", file=sys.stderr)
+
+    output = render_mermaid(graph, focus=args.focus)
+    if args.out:
+        Path(args.out).write_text(output, encoding="utf-8")
+        print(f"stoa: wrote {args.out}")
+    else:
+        print(output, end="")
+    return EXIT_OK
 
 
 def _run_approve_command(args: argparse.Namespace) -> int:

@@ -142,3 +142,64 @@ def test_init_github_force_overwrites(tmp_path, monkeypatch, capsys):
 def test_no_command_prints_help(capsys):
     assert main([]) == 2
     assert "stoa" in capsys.readouterr().out
+
+
+# --- stoa graph --------------------------------------------------------------
+
+
+def test_graph_from_existing_registry_prints_mermaid(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    main(["scan", str(EXAMPLE_REPO), "--no-git", "--json", "reg.json", "--html", "out.html"])
+    capsys.readouterr()
+    code = main(["graph", "reg.json"])
+    assert code == 0
+    out = capsys.readouterr().out
+    assert out.startswith("graph LR")
+
+
+def test_graph_fresh_scan_mode_no_registry_arg(monkeypatch, capsys):
+    # No registry positional -> scans the current directory, mirroring how
+    # `stoa diff` resolves its head registry (_load_or_scan_head).
+    monkeypatch.chdir(EXAMPLE_REPO)
+    code = main(["graph", "--no-git"])
+    assert code == 0
+    assert capsys.readouterr().out.startswith("graph LR")
+
+
+def test_graph_out_flag_writes_file(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    main(["scan", str(EXAMPLE_REPO), "--no-git", "--json", "reg.json", "--html", "out.html"])
+    capsys.readouterr()
+    code = main(["graph", "reg.json", "--out", "graph.mmd"])
+    assert code == 0
+    assert (tmp_path / "graph.mmd").is_file()
+    assert (tmp_path / "graph.mmd").read_text(encoding="utf-8").startswith("graph LR")
+    assert "wrote graph.mmd" in capsys.readouterr().out
+
+
+def test_graph_focus_narrows_output(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    main(["scan", str(EXAMPLE_REPO), "--no-git", "--json", "reg.json", "--html", "out.html"])
+    capsys.readouterr()
+    registry = json.loads((tmp_path / "reg.json").read_text(encoding="utf-8"))
+    agent_id = registry["agents"][0]["id"]
+    code = main(["graph", "reg.json", "--focus", agent_id])
+    assert code == 0
+    out = capsys.readouterr().out
+    full_code = main(["graph", "reg.json"])
+    full_out = capsys.readouterr().out
+    assert len(out) <= len(full_out)
+
+
+def test_graph_missing_registry_file_is_usage_error(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    code = main(["graph", "does-not-exist.json"])
+    assert code == 2
+    assert "not found" in capsys.readouterr().err
+
+
+def test_graph_invalid_format_choice_rejected(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(SystemExit) as excinfo:
+        main(["graph", "--format", "dot"])
+    assert excinfo.value.code == 2

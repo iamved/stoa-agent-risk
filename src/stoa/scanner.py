@@ -53,6 +53,7 @@ class ScanOptions:
     experimental_ast: bool = False  # deprecated no-op: AST is on by default
     no_ast: bool = False  # opt out of the AST layer (regex-only, no taint rules)
     no_dimensions: bool = False
+    no_graph: bool = False
     taxonomy_path: Path | None = None
 
 
@@ -69,6 +70,8 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
         config.fail_on = options.fail_on
     if options.fail_on_new is not None:
         config.fail_on_new = options.fail_on_new
+    if options.no_graph:
+        config.no_graph = True
 
     files, skipped = traverse(root, config)
 

@@ -69,6 +69,7 @@ class StoaConfig:
     ai004_pii_terms: list[str] = field(default_factory=list)
     gate_additional_rules: list[str] = field(default_factory=list)
     dimensions_taxonomy: "Path | None" = None
+    no_graph: bool = False
 
     def rule_enabled(self, rule_id: str) -> bool:
         return self.enabled_rules.get(rule_id, True)

@@ -8,6 +8,17 @@ identical inputs give byte-identical output.
 
 This is a separate module from ``diff.py`` (git line-diff gating); that machine
 is untouched.
+
+TODO(graph-diff): ``stoa diff --graph`` — render drift as a graph rather than
+a changelog. Approach: build a ``Graph`` (``graph_model.build_graph``) for
+both the base and head documents, diff their edge sets by
+``(source, target, kind)``, then render via ``graph_mermaid`` with three
+extra Mermaid link-style classes: added edges red/dashed, removed edges
+gray/dashed (drawn from the base graph, since ``render_mermaid`` only ever
+walks live edges today), unchanged edges muted/thin. Node identity is stable
+across scans (agent ids are a content hash, tool/resource ids are the
+capability/integration string), so no fuzzy matching is needed — a
+same-signature reachability diff, not a text diff.
 """
 
 from __future__ import annotations
