@@ -262,3 +262,49 @@ def test_scan_without_strict_does_not_escalate_declaration_warnings(tmp_path, mo
     )
     code = main(["scan", ".", "--no-git"])
     assert code == 0
+
+
+# --- stoa export --assurance --------------------------------------------------
+
+
+def test_export_assurance_requires_the_flag(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(SystemExit) as excinfo:
+        main(["export"])
+    assert excinfo.value.code == 2
+
+
+def test_export_assurance_from_existing_registry_md(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    main(["scan", str(EXAMPLE_REPO), "--no-git", "--json", "reg.json", "--html", "out.html"])
+    capsys.readouterr()
+    code = main(["export", "reg.json", "--assurance"])
+    assert code == 0
+    out = capsys.readouterr().out
+    assert out.startswith("## Stoa · Assurance Packet")
+    assert "Area 1" in out
+
+
+def test_export_assurance_json_format(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    main(["scan", str(EXAMPLE_REPO), "--no-git", "--json", "reg.json", "--html", "out.html"])
+    capsys.readouterr()
+    code = main(["export", "reg.json", "--assurance", "--format", "json", "--out", "packet.json"])
+    assert code == 0
+    packet = json.loads((tmp_path / "packet.json").read_text(encoding="utf-8"))
+    assert packet["schema"] == "assurance-packet/1.0"
+    assert len(packet["areas"]) == 14
+
+
+def test_export_assurance_fresh_scan_mode(monkeypatch, capsys):
+    monkeypatch.chdir(EXAMPLE_REPO)
+    code = main(["export", "--assurance", "--no-git"])
+    assert code == 0
+    assert capsys.readouterr().out.startswith("## Stoa · Assurance Packet")
+
+
+def test_export_assurance_missing_registry_is_usage_error(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    code = main(["export", "does-not-exist.json", "--assurance"])
+    assert code == 2
+    assert "not found" in capsys.readouterr().err

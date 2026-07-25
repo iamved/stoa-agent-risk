@@ -146,6 +146,18 @@ def build_parser() -> argparse.ArgumentParser:
     graph.add_argument("--config", metavar="PATH", default=None)
     graph.add_argument("--no-git", action="store_true")
 
+    export = subparsers.add_parser("export", help="Export a downstream artifact (assurance packet)")
+    export.add_argument("registry", nargs="?", default=None,
+                        help="stoa-registry.json to export from (default: scan the worktree)")
+    export.add_argument("--assurance", action="store_true", required=True,
+                        help="Export the 14-area assurance packet (the only export kind today)")
+    export.add_argument("--format", choices=["json", "md"], default="md",
+                        help="Output format (default: md)")
+    export.add_argument("--out", metavar="PATH", default=None,
+                        help="Write output to PATH (default: stdout)")
+    export.add_argument("--config", metavar="PATH", default=None)
+    export.add_argument("--no-git", action="store_true")
+
     approve = subparsers.add_parser("approve", help="Record an intentional drift approval")
     approve.add_argument("--agent", metavar="NAME", help="Agent name (informational)")
     approve.add_argument("--agent-id", metavar="ID", help="Stable agent id to bind to")
@@ -179,6 +191,8 @@ def main(argv: list[str] | None = None) -> int:
             return _run_diff_command(args)
         if args.command == "graph":
             return _run_graph_command(args)
+        if args.command == "export":
+            return _run_export_command(args)
         if args.command == "approve":
             return _run_approve_command(args)
     except ConfigError as exc:
@@ -406,6 +420,50 @@ def _run_graph_command(args: argparse.Namespace) -> int:
         print(f"stoa: wrote {args.out}")
     else:
         print(output, end="")
+    return EXIT_OK
+
+
+def _run_export_command(args: argparse.Namespace) -> int:
+    # TODO(assurance-sign): a --sign flag belongs here once a signing
+    # mechanism (e.g. `stoa attest`) exists in this repo. It doesn't today —
+    # deliberately deferred rather than half-implemented.
+    from datetime import datetime, timezone
+
+    from .assurance import build_assurance_packet, render_assurance_markdown
+    from .report_json import build_document
+
+    config = load_config(Path(".").resolve(), Path(args.config) if args.config else None)
+    if args.registry:
+        registry_path = Path(args.registry)
+        if not registry_path.is_file():
+            print(f"stoa: registry not found: {args.registry}", file=sys.stderr)
+            return EXIT_USAGE
+        document = json.loads(registry_path.read_text(encoding="utf-8"))
+    else:
+        result = run_scan(ScanOptions(root=Path("."), no_git=args.no_git), config)
+        document = build_document(result, config)
+
+    git_sha = (document.get("repository") or {}).get("git_ref")
+    scan_timestamp = datetime.now(timezone.utc).isoformat()
+    packet = build_assurance_packet(document, git_sha=git_sha, scan_timestamp=scan_timestamp)
+
+    if args.format == "json":
+        output = json.dumps(packet, indent=2, ensure_ascii=False, sort_keys=False) + "\n"
+    else:
+        output = render_assurance_markdown(packet)
+
+    if args.out:
+        Path(args.out).write_text(output, encoding="utf-8")
+        print(f"stoa: wrote {args.out}")
+    else:
+        print(output, end="")
+
+    if packet["header"]["contradiction_count"]:
+        print(
+            f"stoa: {packet['header']['contradiction_count']} contradiction(s) found "
+            "(see the Contradictions section)",
+            file=sys.stderr,
+        )
     return EXIT_OK
 
 

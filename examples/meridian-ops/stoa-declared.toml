@@ -1,0 +1,51 @@
+# Declared facts for Meridian, cross-checked by the scanner (Assurance
+# layer). One entry is deliberately wrong -- support_bot is declared
+# recommend-only, but the scanner infers unrestricted_autonomous (an
+# unguarded output->exec path with no approval or bounding). That's
+# DECL001, on purpose: it's what run-e2e.sh asserts fires.
+
+version = 1
+
+[business]
+industries = ["fintech", "e-commerce"]
+regulated_activities = ["payments"]
+max_customer_dependency = "high"
+
+[agents."2e0ab9a50e4e"]                 # web/support_bot.ts :: support_bot
+name = "support_bot"
+owner = "support-eng@meridian.example"
+purpose = "Front-door customer support chat, tools out to Zendesk/Slack"
+users = "customers"
+production_status = "production"
+autonomy_intent = "recommend_only"      # WRONG on purpose -- see header
+data_classes = ["personal"]
+
+[agents."a09ff38687e9"]                 # agents/payments.py :: agent
+name = "payments_agent"
+owner = "payments-eng@meridian.example"
+purpose = "Issues refunds and payouts"
+production_status = "production"
+autonomy_intent = "human_approved"
+data_classes = ["financial", "personal"]
+
+[agents."a09ff38687e9".economic_authority]
+max_per_action = {amount = 2000, currency = "USD"}
+daily_aggregate = {amount = 20000, currency = "USD"}
+worst_case_customer_loss = {amount = 100000, currency = "USD"}
+
+[governance]
+release_approval = "Documented in RELEASING.md"
+incident_response = "runbooks/incident-response.md"
+
+[governance.risk_acceptance]
+owner = "cto@meridian.example"
+date = "2026-06-01"
+
+[[evidence.testing]]
+kind = "prompt_injection"
+ref = "evals/pi-suite/results.json"
+date = "2026-07-01"
+
+[[evidence.monitoring]]
+kind = "dashboard"
+ref = "https://grafana.internal/d/meridian-agents"

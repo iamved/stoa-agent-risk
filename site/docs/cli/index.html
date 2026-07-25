@@ -71,21 +71,24 @@ hr{border:none;border-top:1px solid var(--line);margin:26px 0}
   <button class="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">◐</button>
 </header>
 <div class="layout">
-<nav class="sidebar" id="sidebar"><div class="nav-section">Getting started</div><a class="nav-link" href="/">Overview</a><a class="nav-link" href="/docs/getting-started">Install &amp; first scan</a><div class="nav-section">Concepts</div><a class="nav-link" href="/docs/dimensions">Dimension exposure</a><a class="nav-link" href="/docs/diff">Capability drift</a><a class="nav-link" href="/docs/graph">Architecture graph</a><div class="nav-section">Examples</div><a class="nav-link" href="/docs/example">Meridian — a multi-agent app</a><div class="nav-section">Rules</div><a class="nav-link" href="/docs/rules">Rules overview</a><a class="nav-link" href="/docs/rules/AI001">AI001 · Prompt exposure</a><a class="nav-link" href="/docs/rules/AI002">AI002 · Output → exec</a><a class="nav-link" href="/docs/rules/AI003">AI003 · Unobserved approval</a><a class="nav-link" href="/docs/rules/AI004">AI004 · Sensitive interpolation</a><a class="nav-link" href="/docs/rules/AI005">AI005 · Unpinned model</a><a class="nav-link" href="/docs/rules/AI006">AI006 · Network exfiltration</a><a class="nav-link" href="/docs/rules/AI007">AI007 · Sampling config</a><a class="nav-link" href="/docs/rules/CTRL004">CTRL004 · Observability</a><a class="nav-link" href="/docs/rules/CTRL005">CTRL005 · Rate limiting on loops</a><a class="nav-link" href="/docs/rules/CTRL006">CTRL006 · Sandboxing on exec paths</a><a class="nav-link" href="/docs/rules/CTRL007">CTRL007 · Kill-switch signal</a><div class="nav-section">Reference</div><a class="nav-link active" href="/docs/cli">CLI</a><a class="nav-link" href="/docs/configuration">Configuration</a><a class="nav-link" href="/docs/schema">JSON schema</a><div class="nav-section">More</div><a class="nav-link" href="/case-study">Case study</a><a class="nav-link" href="/demo-report">Live scan report</a></nav>
+<nav class="sidebar" id="sidebar"><div class="nav-section">Getting started</div><a class="nav-link" href="/">Overview</a><a class="nav-link" href="/docs/getting-started">Install &amp; first scan</a><div class="nav-section">Concepts</div><a class="nav-link" href="/docs/dimensions">Dimension exposure</a><a class="nav-link" href="/docs/diff">Capability drift</a><a class="nav-link" href="/docs/graph">Architecture graph</a><a class="nav-link" href="/docs/declarations">Declarations</a><a class="nav-link" href="/docs/autonomy">Autonomy inference</a><a class="nav-link" href="/docs/assurance-export">Assurance export</a><div class="nav-section">Examples</div><a class="nav-link" href="/docs/example">Meridian — a multi-agent app</a><div class="nav-section">Rules</div><a class="nav-link" href="/docs/rules">Rules overview</a><a class="nav-link" href="/docs/rules/AI001">AI001 · Prompt exposure</a><a class="nav-link" href="/docs/rules/AI002">AI002 · Output → exec</a><a class="nav-link" href="/docs/rules/AI003">AI003 · Unobserved approval</a><a class="nav-link" href="/docs/rules/AI004">AI004 · Sensitive interpolation</a><a class="nav-link" href="/docs/rules/AI005">AI005 · Unpinned model</a><a class="nav-link" href="/docs/rules/AI006">AI006 · Network exfiltration</a><a class="nav-link" href="/docs/rules/AI007">AI007 · Sampling config</a><a class="nav-link" href="/docs/rules/CTRL004">CTRL004 · Observability</a><a class="nav-link" href="/docs/rules/CTRL005">CTRL005 · Rate limiting on loops</a><a class="nav-link" href="/docs/rules/CTRL006">CTRL006 · Sandboxing on exec paths</a><a class="nav-link" href="/docs/rules/CTRL007">CTRL007 · Kill-switch signal</a><a class="nav-link" href="/docs/rules/DECL001">DECL001 · Autonomy contradiction</a><a class="nav-link" href="/docs/rules/DECL002">DECL002 · No enforcement observed</a><a class="nav-link" href="/docs/rules/DECL003">DECL003 · No economic authority declared</a><a class="nav-link" href="/docs/rules/DECL004">DECL004 · Undeclared data class</a><a class="nav-link" href="/docs/rules/DECL005">DECL005 · Production, no observability</a><a class="nav-link" href="/docs/rules/DECL006">DECL006 · No declaration entry</a><a class="nav-link" href="/docs/rules/DECL007">DECL007 · Stale declaration</a><div class="nav-section">Reference</div><a class="nav-link active" href="/docs/cli">CLI</a><a class="nav-link" href="/docs/configuration">Configuration</a><a class="nav-link" href="/docs/schema">JSON schema</a><div class="nav-section">More</div><a class="nav-link" href="/case-study">Case study</a><a class="nav-link" href="/demo-report">Live scan report</a></nav>
 <main>
 <h1 id="cli">CLI</h1>
 <pre class="code" data-lang="bash"><code>stoa scan [PATH]            # scan a repository (report-only by default)
 stoa diff BASE HEAD         # diff agent reach between two registries
 stoa graph [REGISTRY]       # render the architecture graph (Mermaid)
+stoa export --assurance     # export the 14-area assurance packet
 stoa approve ...            # record an intentional drift approval
-stoa init github            # scaffold the CI workflow</code></pre>
+stoa init github            # scaffold the CI workflow
+stoa init declarations      # stub stoa-declared.toml from the last scan</code></pre>
 <h2 id="stoa-scan"><code>stoa scan</code></h2>
 <pre class="code" data-lang=""><code>--html PATH / --json PATH        report + registry output paths
 --sarif PATH                     SARIF 2.1.0 with stoa-dim:* tags
 --base GIT_REF                   diff-aware gating (added lines only)
 --fail-on {none,high,critical}   gate on all findings at/above a severity
 --fail-on-new {none,high,critical}
---strict                         fail on high-confidence criticals
+--strict                         fail on high-confidence criticals, and
+                                  escalate stoa-declared.toml warnings to errors
 --no-ast                         disable the AST layer + flow-based AI rules
 --no-dimensions                  skip the dimension assessment + matrix
 --no-graph                       skip the architecture graph in the HTML report
@@ -104,9 +107,19 @@ stoa init github            # scaffold the CI workflow</code></pre>
 --format mermaid                 output format (default, only option today)
 --out PATH                       write to PATH (default: stdout)
 --focus AGENT_ID                 render only that node + its direct neighbors</code></pre>
-<p>See <a href="/docs/graph">Architecture graph</a>.</p><div class="pagenav"><a href="/docs/rules/CTRL007">← CTRL007 · Kill-switch signal</a><a href="/docs/configuration">Configuration →</a></div>
+<p>See <a href="/docs/graph">Architecture graph</a>.</p>
+<h2 id="stoa-export-assurance"><code>stoa export --assurance</code></h2>
+<pre class="code" data-lang=""><code>[REGISTRY]                       existing stoa-registry.json (omit: scan the worktree)
+--assurance                      required -- the only export kind today
+--format {json,md}               output format (default: md)
+--out PATH                       write to PATH (default: stdout)</code></pre>
+<p>See <a href="/docs/assurance-export">Assurance export</a>.</p>
+<h2 id="stoa-init-declarations"><code>stoa init declarations</code></h2>
+<pre class="code" data-lang=""><code>stoa init declarations [--registry PATH] [--force]</code></pre>
+<p>Stubs <code>stoa-declared.toml</code> with every real scanned agent id. Requires a prior <code>stoa scan</code> (reads <code>stoa-registry.json</code> by default) -- prints a clear message if none is found rather than emitting an empty, useless stub.</p>
+<p>See <a href="/docs/declarations">Declarations</a>.</p><div class="pagenav"><a href="/docs/rules/DECL007">← DECL007 · Stale declaration</a><a href="/docs/configuration">Configuration →</a></div>
 </main>
-<aside class="toc"><div class="toc-title">On this page</div><a class="toc-l2" href="#stoa-scan">`stoa scan`</a><a class="toc-l2" href="#exit-codes">Exit codes</a><a class="toc-l2" href="#stoa-diff-and-stoa-approve">`stoa diff` and `stoa approve`</a><a class="toc-l2" href="#stoa-graph">`stoa graph`</a></aside>
+<aside class="toc"><div class="toc-title">On this page</div><a class="toc-l2" href="#stoa-scan">`stoa scan`</a><a class="toc-l2" href="#exit-codes">Exit codes</a><a class="toc-l2" href="#stoa-diff-and-stoa-approve">`stoa diff` and `stoa approve`</a><a class="toc-l2" href="#stoa-graph">`stoa graph`</a><a class="toc-l2" href="#stoa-export-assurance">`stoa export --assurance`</a><a class="toc-l2" href="#stoa-init-declarations">`stoa init declarations`</a></aside>
 </div>
 <script>
 function toggleTheme(){var r=document.documentElement;var cur=r.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');var next=cur==='dark'?'light':'dark';r.setAttribute('data-theme',next);try{localStorage.setItem('stoa-theme',next)}catch(e){}}

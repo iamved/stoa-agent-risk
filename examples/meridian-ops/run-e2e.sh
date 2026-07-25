@@ -4,7 +4,9 @@
 # supersedes dedup, dimensions + matrix + controls-observed, SARIF, GitHub
 # annotations/summary, the AI002 exec gate, stoa diff (drift), stoa approve,
 # drift gates, redaction, determinism, suppressions, false-positive controls,
-# --no-dimensions and custom-taxonomy (unclassified).
+# --no-dimensions and custom-taxonomy (unclassified), and the Assurance layer
+# (stoa-declared.toml, autonomy inference, the DECL001 contradiction,
+# stoa export --assurance).
 #
 # Usage:  STOA=/path/to/stoa ./run-e2e.sh   (defaults to `stoa` on PATH)
 set -uo pipefail
@@ -154,6 +156,31 @@ TAX
 "$STOA" scan . --taxonomy custom-tax.toml --json ct.json --html /dev/null --quiet >/dev/null 2>&1
 check "custom taxonomy + unclassified safety net" \
   "J ct.json \"any(x['id']=='unclassified' for a in d['agents'] if a.get('dimension_assessment') for x in a['dimension_assessment']['dimensions'])\""
+
+echo "== assurance layer: declared metadata + autonomy + contradictions =="
+check "support_bot autonomy inferred unrestricted_autonomous" \
+  "J reg.json \"any(a['autonomy_level']['level']=='unrestricted_autonomous' for a in d['agents'] if a['path']=='web/support_bot.ts')\""
+check "DECL001 fires for support_bot (declared recommend_only, inferred unrestricted)" \
+  "J reg.json \"any(f['rule_id']=='DECL001' for a in d['agents'] for f in a['findings'])\""
+check "DECL001 carries both code evidence (path/line) and declared_ref" \
+  "J reg.json \"next(f for a in d['agents'] for f in a['findings'] if f['rule_id']=='DECL001')['path'] and next(f for a in d['agents'] for f in a['findings'] if f['rule_id']=='DECL001')['declared_ref']['key']\""
+check "declared business block present (industries, regulated_activities)" \
+  "J reg.json \"d.get('business',{}).get('industries')==['fintech','e-commerce']\""
+check "payments_agent has declared economic_authority" \
+  "J reg.json \"any((a.get('declared') or {}).get('economic_authority') for a in d['agents'])\""
+check "Contradictions section present in HTML report" "grep -q 'id=\"contradictions\"' rep.html"
+check "Contradictions section shows both evidence links" \
+  "grep -q 'support_bot.ts' rep.html && grep -q 'stoa-declared.toml' rep.html"
+
+echo "== assurance export =="
+"$STOA" export --assurance reg.json --format md --out packet.md 2>export-stderr.txt
+check "assurance packet exported" "[ -s packet.md ]"
+check "assurance packet has all 14 areas" \
+  "[ \$(grep -c '^### Area ' packet.md) -eq 14 ]"
+check "assurance packet Contradictions section lists DECL001" "grep -q DECL001 packet.md"
+"$STOA" export --assurance reg.json --format json --out packet.json >/dev/null 2>&1
+check "assurance packet JSON is valid with 14 areas" \
+  "J packet.json \"d['schema']=='assurance-packet/1.0' and len(d['areas'])==14\""
 
 echo
 printf 'RESULT: \033[32m%d passed\033[0m, ' "$pass"

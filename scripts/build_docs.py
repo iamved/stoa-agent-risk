@@ -19,6 +19,9 @@ NAV = [
         ("Dimension exposure", "dimensions"),
         ("Capability drift", "diff"),
         ("Architecture graph", "graph"),
+        ("Declarations", "declarations"),
+        ("Autonomy inference", "autonomy"),
+        ("Assurance export", "assurance-export"),
     ]),
     ("Examples", [
         ("Meridian — a multi-agent app", "example"),
@@ -36,6 +39,13 @@ NAV = [
         ("CTRL005 · Rate limiting on loops", "rules/CTRL005"),
         ("CTRL006 · Sandboxing on exec paths", "rules/CTRL006"),
         ("CTRL007 · Kill-switch signal", "rules/CTRL007"),
+        ("DECL001 · Autonomy contradiction", "rules/DECL001"),
+        ("DECL002 · No enforcement observed", "rules/DECL002"),
+        ("DECL003 · No economic authority declared", "rules/DECL003"),
+        ("DECL004 · Undeclared data class", "rules/DECL004"),
+        ("DECL005 · Production, no observability", "rules/DECL005"),
+        ("DECL006 · No declaration entry", "rules/DECL006"),
+        ("DECL007 · Stale declaration", "rules/DECL007"),
     ]),
     ("Reference", [
         ("CLI", "cli"),
@@ -63,7 +73,7 @@ def rewrite_link(href: str) -> str:
         return "/docs/dimensions"
     if h.startswith("docs/diff"):
         return "/docs/diff"
-    m = re.match(r"(AI\d{3}|CTRL\d{3})\.md$", h)
+    m = re.match(r"(AI\d{3}|CTRL\d{3}|DECL\d{3})\.md$", h)
     if m:
         return f"/docs/rules/{m.group(1)}"
     if h.endswith(".md"):
@@ -335,8 +345,10 @@ CLI = """# CLI
 stoa scan [PATH]            # scan a repository (report-only by default)
 stoa diff BASE HEAD         # diff agent reach between two registries
 stoa graph [REGISTRY]       # render the architecture graph (Mermaid)
+stoa export --assurance     # export the 14-area assurance packet
 stoa approve ...            # record an intentional drift approval
 stoa init github            # scaffold the CI workflow
+stoa init declarations      # stub stoa-declared.toml from the last scan
 ```
 
 ## `stoa scan`
@@ -347,7 +359,8 @@ stoa init github            # scaffold the CI workflow
 --base GIT_REF                   diff-aware gating (added lines only)
 --fail-on {none,high,critical}   gate on all findings at/above a severity
 --fail-on-new {none,high,critical}
---strict                         fail on high-confidence criticals
+--strict                         fail on high-confidence criticals, and
+                                  escalate stoa-declared.toml warnings to errors
 --no-ast                         disable the AST layer + flow-based AI rules
 --no-dimensions                  skip the dimension assessment + matrix
 --no-graph                       skip the architecture graph in the HTML report
@@ -382,6 +395,29 @@ See [Capability drift](/docs/diff).
 ```
 
 See [Architecture graph](/docs/graph).
+
+## `stoa export --assurance`
+
+```
+[REGISTRY]                       existing stoa-registry.json (omit: scan the worktree)
+--assurance                      required -- the only export kind today
+--format {json,md}               output format (default: md)
+--out PATH                       write to PATH (default: stdout)
+```
+
+See [Assurance export](/docs/assurance-export).
+
+## `stoa init declarations`
+
+```
+stoa init declarations [--registry PATH] [--force]
+```
+
+Stubs `stoa-declared.toml` with every real scanned agent id. Requires a
+prior `stoa scan` (reads `stoa-registry.json` by default) -- prints a clear
+message if none is found rather than emitting an empty, useless stub.
+
+See [Declarations](/docs/declarations).
 """
 
 CONFIGURATION = """# Configuration
@@ -568,9 +604,10 @@ CARDS = [
     ("🧭", "Dimension exposure", "Eight risk dimensions — five direct, three proxy — with deterministic scoring.", "/docs/dimensions"),
     ("📈", "Capability drift", "stoa diff: did any agent's reach change? Approve intentional changes in-repo.", "/docs/diff"),
     ("🕸️", "Architecture graph", "Agents, tools, and capability-sinks as a Mermaid or interactive graph — click any edge for its evidence.", "/docs/graph"),
-    ("🛡️", "Rules", "Nine core rules plus eight AI rules mapped to the OWASP LLM Top 10.", "/docs/rules"),
+    ("📋", "Assurance export", "The 14-area assurance packet — declared facts cross-checked against what the scan observed, gaps included.", "/docs/assurance-export"),
+    ("🛡️", "Rules", "Sixteen core/control rules, eight AI rules, and seven contradiction rules.", "/docs/rules"),
     ("🏦", "Meridian example", "A full multi-agent app, scanned end to end — the reference to follow.", "/docs/example"),
-    ("🧬", "JSON schema", "The registry schema (1.1), additive-first, with reserved fields.", "/docs/schema"),
+    ("🧬", "JSON schema", "The registry schema (1.2), additive-first, with reserved fields.", "/docs/schema"),
 ]
 
 
@@ -628,6 +665,9 @@ PAGES = [
     ("dimensions", "Dimension exposure", read(REPO / "docs/dimensions.md"), None, "Stoa's eight-dimension risk taxonomy and scoring."),
     ("diff", "Capability drift", read(REPO / "docs/diff.md"), None, "stoa diff: detect and approve agent capability drift."),
     ("graph", "Architecture graph", read(REPO / "docs/graph.md"), None, "stoa graph: agents, tools, and capability-sinks as a Mermaid or interactive graph."),
+    ("declarations", "Declarations", read(REPO / "docs/declarations.md"), None, "stoa-declared.toml: declared facts, cross-checked by the scanner."),
+    ("autonomy", "Autonomy inference", read(REPO / "docs/autonomy.md"), None, "How Stoa classifies agents on the autonomy ladder from static signals."),
+    ("assurance-export", "Assurance export", read(REPO / "docs/assurance-export.md"), None, "stoa export --assurance: the 14-area assurance packet."),
     ("rules", "Rules overview", read(REPO / "docs/rules/README.md"), None, "Stoa's core and AI security rules."),
     ("cli", "CLI", CLI, None, "Stoa CLI reference."),
     ("configuration", "Configuration", CONFIGURATION, None, "stoa.toml, suppression, and .stoaignore."),
@@ -635,7 +675,8 @@ PAGES = [
     ("example", "Example: Meridian", meridian_body, None, "A worked multi-agent app (Meridian) scanned end to end by Stoa."),
 ]
 for rule in ("AI001", "AI002", "AI003", "AI004", "AI005", "AI006", "AI007",
-             "CTRL004", "CTRL005", "CTRL006", "CTRL007"):
+             "CTRL004", "CTRL005", "CTRL006", "CTRL007",
+             "DECL001", "DECL002", "DECL003", "DECL004", "DECL005", "DECL006", "DECL007"):
     PAGES.append((f"rules/{rule}", rule, read(REPO / f"docs/rules/{rule}.md"), None, f"Stoa rule {rule}."))
 
 
