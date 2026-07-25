@@ -2,4 +2,4 @@
 
 __version__ = "0.3.0"
 
-SCHEMA_VERSION = "1.1"
+SCHEMA_VERSION = "1.2"

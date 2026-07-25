@@ -34,7 +34,7 @@ def test_scan_json_structure(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     main(["scan", str(EXAMPLE_REPO), "--no-git", "--json", "out.json", "--html", "out.html"])
     document = json.loads((tmp_path / "out.json").read_text(encoding="utf-8"))
-    assert document["schema_version"] == "1.1"
+    assert document["schema_version"] == "1.2"
     assert document["summary"]["agent_candidates"] >= 1
     assert document["agents"][0]["evidence"]
     assert (tmp_path / "out.html").is_file()
@@ -203,3 +203,62 @@ def test_graph_invalid_format_choice_rejected(tmp_path, monkeypatch, capsys):
     with pytest.raises(SystemExit) as excinfo:
         main(["graph", "--format", "dot"])
     assert excinfo.value.code == 2
+
+
+# --- stoa init declarations ---------------------------------------------------
+
+
+def test_init_declarations_without_prior_scan_is_usage_error(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    code = main(["init", "declarations"])
+    assert code == 2
+    assert "stoa scan" in capsys.readouterr().err
+
+
+def test_init_declarations_stubs_real_agent_ids(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    main(["scan", str(EXAMPLE_REPO), "--no-git", "--json", "stoa-registry.json",
+          "--html", "out.html"])
+    capsys.readouterr()
+    code = main(["init", "declarations"])
+    assert code == 0
+    stub = (tmp_path / "stoa-declared.toml").read_text(encoding="utf-8")
+    registry = json.loads((tmp_path / "stoa-registry.json").read_text(encoding="utf-8"))
+    agent_id = registry["agents"][0]["id"]
+    assert f'[agents."{agent_id}"]' in stub
+
+
+def test_init_declarations_skips_existing_without_force(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    main(["scan", str(EXAMPLE_REPO), "--no-git", "--json", "stoa-registry.json",
+          "--html", "out.html"])
+    (tmp_path / "stoa-declared.toml").write_text("custom = true\n", encoding="utf-8")
+    capsys.readouterr()
+    code = main(["init", "declarations"])
+    assert code == 0
+    assert "skipped" in capsys.readouterr().out
+    assert (tmp_path / "stoa-declared.toml").read_text(encoding="utf-8") == "custom = true\n"
+
+
+# --- stoa scan --strict escalates declaration warnings -----------------------
+
+
+def test_scan_strict_escalates_declaration_warnings(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "a.py").write_text("x = 1\n", encoding="utf-8")
+    (tmp_path / "stoa-declared.toml").write_text(
+        '[agents."doesnotexist"]\nname = "ghost"\n', encoding="utf-8"
+    )
+    code = main(["scan", ".", "--no-git", "--strict"])
+    assert code == 2
+    assert "--strict" in capsys.readouterr().err
+
+
+def test_scan_without_strict_does_not_escalate_declaration_warnings(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "a.py").write_text("x = 1\n", encoding="utf-8")
+    (tmp_path / "stoa-declared.toml").write_text(
+        '[agents."doesnotexist"]\nname = "ghost"\n', encoding="utf-8"
+    )
+    code = main(["scan", ".", "--no-git"])
+    assert code == 0

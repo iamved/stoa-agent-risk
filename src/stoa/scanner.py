@@ -18,6 +18,12 @@ from .dimensions import (
     set_finding_dimensions,
 )
 from .config import StoaConfig, load_config
+from .declarations import (
+    Declarations,
+    agent_declaration_to_dict,
+    evidence_to_dict,
+    governance_to_dict,
+)
 from .integration_detection import (
     detect_capabilities,
     detect_integrations,
@@ -55,6 +61,7 @@ class ScanOptions:
     no_dimensions: bool = False
     no_graph: bool = False
     taxonomy_path: Path | None = None
+    declarations_path: Path | None = None
 
 
 def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResult:
@@ -250,6 +257,32 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
     agents.sort(key=lambda a: (a.path, a.symbol))
     all_findings.sort(key=lambda f: (f.path, f.line, f.rule_id, f.fingerprint))
 
+    # Declared metadata (schema 1.2, Assurance layer) — opt-in-by-presence.
+    # No stoa-declared.toml → every declared field stays absent, zero change
+    # to existing output.
+    declarations, decl_warnings = Declarations.load(
+        options.declarations_path or (root / "stoa-declared.toml")
+    )
+    business = governance = evidence = None
+    if declarations.exists:
+        unknown_ids = declarations.unknown_agent_ids({a.id for a in agents})
+        if unknown_ids:
+            decl_warnings.append(
+                f"{declarations.path}: declared agent id(s) not found in this scan: "
+                + ", ".join(unknown_ids)
+            )
+        for agent in agents:
+            decl = declarations.agents.get(agent.id)
+            if decl is not None:
+                agent.declared = agent_declaration_to_dict(decl)
+        if declarations.business:
+            business = declarations.business
+        if declarations.governance is not None:
+            governance = governance_to_dict(declarations.governance)
+        if declarations.evidence:
+            evidence = evidence_to_dict(declarations.evidence)
+    warnings.extend(decl_warnings)
+
     return ScanResult(
         repository=RepositoryInfo(
             name=repo_name,
@@ -265,6 +298,10 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
         diff_available=diff_available,
         degraded_files=degraded_files,
         dimension_summary=dim_summary,
+        business=business,
+        governance=governance,
+        evidence=evidence,
+        declaration_warnings=decl_warnings,
     )
 
 

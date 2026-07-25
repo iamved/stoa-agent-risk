@@ -97,6 +97,7 @@ def agent_to_dict(agent: AgentCandidate, include_suppressed: bool) -> dict:
             if agent.dimension_assessment is not None
             else {}
         ),
+        **({"declared": agent.declared} if agent.declared is not None else {}),
     }
 
 
@@ -150,6 +151,12 @@ def build_document(result: ScanResult, config: StoaConfig) -> dict:
         document["degraded_files"] = sorted(result.degraded_files)
     if result.dimension_summary is not None:
         document["dimension_summary"] = result.dimension_summary
+    if result.business is not None:
+        document["business"] = result.business
+    if result.governance is not None:
+        document["governance"] = result.governance
+    if result.evidence is not None:
+        document["evidence"] = result.evidence
     validate_document(document)
     return document
 

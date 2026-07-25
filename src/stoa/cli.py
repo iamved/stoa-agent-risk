@@ -112,9 +112,13 @@ def build_parser() -> argparse.ArgumentParser:
     scan.add_argument("--approvals", metavar="PATH", default=".stoa/approvals.toml")
 
     init = subparsers.add_parser("init", help="Generate integration files")
-    init.add_argument("target", choices=["github"], help="Integration to initialize")
+    init.add_argument("target", choices=["github", "declarations"],
+                      help="Integration to initialize. 'declarations' requires a prior "
+                           "`stoa scan` — it stubs out stoa-declared.toml with real agent ids.")
     init.add_argument("--force", action="store_true",
                       help="Overwrite existing files")
+    init.add_argument("--registry", metavar="PATH", default="stoa-registry.json",
+                      help="With 'declarations': registry to read agent ids from")
 
     diff = subparsers.add_parser("diff", help="Diff agent reach between two registries")
     diff.add_argument("base", nargs="?", help="Base stoa-registry.json (omit in --base-ref mode)")
@@ -243,6 +247,14 @@ def _run_scan_command(args: argparse.Namespace) -> int:
 
     for warning in result.warnings:
         print(f"stoa: warning: {warning}", file=sys.stderr)
+
+    if args.strict and result.declaration_warnings:
+        print(
+            f"stoa: --strict: {len(result.declaration_warnings)} stoa-declared.toml "
+            "issue(s) treated as errors (see warnings above)",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
 
     tripped = gate_findings(result, config)
     if not args.quiet:
@@ -439,6 +451,30 @@ def _run_approve_command(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _run_init_declarations(args: argparse.Namespace) -> int:
+    from .declarations import generate_stub
+
+    registry_path = Path(args.registry)
+    if not registry_path.is_file():
+        print(
+            f"stoa: init declarations needs a registry — run `stoa scan` first "
+            f"(looked for {args.registry})",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    document = json.loads(registry_path.read_text(encoding="utf-8"))
+    target = Path("stoa-declared.toml")
+    if target.exists() and not args.force:
+        print(f"skipped:     {target} (already exists; use --force to overwrite)")
+        return EXIT_OK
+    existed = target.exists()
+    target.write_text(generate_stub(document.get("agents", [])), encoding="utf-8")
+    print(f"{'overwritten:' if existed else 'created:    '} {target}")
+    print(f"\n{len(document.get('agents', []))} agent id(s) stubbed from {args.registry}. "
+          "Uncomment and fill in what you know; commit the file — it's reviewed like code.")
+    return EXIT_OK
+
+
 def _print_scan_summary(
     result: ScanResult, args: argparse.Namespace, json_path: Path, html_path: Path
 ) -> None:
@@ -475,6 +511,8 @@ def _print_scan_summary(
 
 
 def _run_init_command(args: argparse.Namespace) -> int:
+    if args.target == "declarations":
+        return _run_init_declarations(args)
     created: list[str] = []
     skipped: list[str] = []
     overwritten: list[str] = []

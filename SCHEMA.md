@@ -3,7 +3,7 @@
 This document describes the structure of `stoa-registry.json`, the JSON
 document produced by `stoa scan`.
 
-**Current schema version: `1.1`**
+**Current schema version: `1.2`**
 
 ## Versioning policy
 
@@ -44,6 +44,26 @@ not-assessable` (never "safe"/"covered"); proxy-tier dimensions are capped at
 `moderate`. **On a finding:** `dimensions` — the dimension ids it contributes
 to. **Top-level:** `dimension_summary` — org rollup (per-dimension max exposure
 and agent counts); `degraded_files` — files whose AST parse degraded.
+
+## Schema 1.2 additions (Assurance layer)
+
+Declared metadata from `stoa-declared.toml` — human-supplied business facts
+the scanner cannot derive from code, cross-checked against scan results (see
+`docs/declarations.md`). Absent entirely unless that file exists (opt-in by
+presence; a scan with no `stoa-declared.toml` serializes byte-identically to
+`1.1` apart from `schema_version`).
+
+**On an agent candidate:** `declared` — the raw declared record for that
+agent id, when present: `{name, owner, purpose, users, geography,
+production_status, autonomy_intent, data_classes, economic_authority}`.
+`economic_authority`, when set, is `{max_per_action?, daily_aggregate?,
+worst_case_customer_loss?}`, each `{amount: number, currency: string}`.
+
+**Top-level:** `business` — `{industries?, regulated_activities?,
+max_customer_dependency?}`. `governance` — `{release_approval,
+incident_response, risk_acceptance?}`. `evidence` — pointers only, grouped by
+category (`testing`, `monitoring`, `contracts`, `historical`), each entry
+`{kind, ref, date?}`.
 
 ## Top-level document
 

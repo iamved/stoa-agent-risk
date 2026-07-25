@@ -121,6 +121,9 @@ class AgentCandidate:
     findings: list[Finding] = field(default_factory=list)
     # Schema 1.1 (Part IV). None until the dimension engine runs (Phase 4).
     dimension_assessment: Optional[dict] = None
+    # Schema 1.2 (Assurance layer). None unless stoa-declared.toml declares
+    # this agent id — the raw declared record, serialized as-is.
+    declared: Optional[dict] = None
 
     @property
     def highest_severity(self) -> Optional[str]:
@@ -163,6 +166,13 @@ class ScanResult:
     degraded_files: list[str] = field(default_factory=list)
     # Org-level dimension rollup (schema 1.1); None when --no-dimensions.
     dimension_summary: Optional[dict] = None
+    # Schema 1.2 (Assurance layer). None unless stoa-declared.toml exists.
+    business: Optional[dict] = None
+    governance: Optional[dict] = None
+    evidence: Optional[dict] = None
+    # stoa-declared.toml parse/semantic warnings (also folded into `warnings`);
+    # kept separate so `stoa scan --strict` can escalate just these to an error.
+    declaration_warnings: list[str] = field(default_factory=list)
 
     def unsuppressed_findings(self) -> list[Finding]:
         return [f for f in self.findings if not f.suppressed]
