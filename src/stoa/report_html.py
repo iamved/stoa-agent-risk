@@ -253,6 +253,13 @@ footer { margin-top: 44px; padding-top: 14px; border-top: 1px solid #e3e6ec;
 .autonomy-ok { background: #e8f5ef; color: #14714f; }
 .autonomy-info { background: #e8f0fe; color: #1d4ed8; }
 .autonomy-unknown { background: #f1f3f6; color: #5a6272; font-style: italic; }
+.contradiction-list { display: flex; flex-direction: column; gap: 10px; }
+.contradiction-card { background: #fff; border: 1px solid #e3e6ec;
+  border-left: 5px solid #b42318; border-radius: 8px; padding: 12px 16px; }
+.contradiction-card .top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.contradiction-card .rule { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas,
+  monospace; font-weight: 700; font-size: 13px; color: #b42318; }
+.contradiction-card p { margin: 4px 0; font-size: 13px; }
 """
 
 _EXP_GLYPH = {"elevated": "●", "moderate": "◐", "low": "○",
@@ -392,6 +399,11 @@ def render_html(result: ScanResult, config: StoaConfig) -> str:
     else:
         parts.append('<p class="empty">No agent candidates were detected.</p>')
     parts.append("</section>")
+
+    # Contradictions -----------------------------------------------------------
+    contradictions_html = _contradictions_section(result)
+    if contradictions_html:
+        parts.append(contradictions_html)
 
     # Architecture graph -------------------------------------------------------
     if not config.no_graph:
@@ -625,6 +637,61 @@ def _severity_bar(severity_counts: dict[str, int]) -> str:
         '<span><i style="background:#7c8aa0"></i>Low</span>'
         '<span><i style="background:#3b6fce"></i>Info</span>'
         "</div></section>"
+    )
+
+
+def _contradictions_section(result: ScanResult) -> str:
+    """Declared-vs-scanned mismatches (DECL001-007) — the headline for an
+    assurance reviewer. Omitted entirely when no stoa-declared.toml was used
+    at all; shown with a positive "none found" message when it was used but
+    produced zero contradictions."""
+    decl_findings = [
+        f for f in result.findings if f.rule_id.startswith("DECL") and not f.suppressed
+    ]
+    used_declarations = any(a.declared is not None for a in result.agents) or bool(
+        [f for f in result.findings if f.rule_id.startswith("DECL")]
+    )
+    if not used_declarations:
+        return ""
+
+    parts = [
+        '<section id="contradictions"><h2>Contradictions</h2>',
+        '<p class="note">Declared facts (<code>stoa-declared.toml</code>) cross-checked '
+        "against what this scan actually observed. A contradiction here is the one "
+        "thing a self-attested questionnaire can't catch.</p>",
+    ]
+    if not decl_findings:
+        parts.append('<p class="empty">No contradictions found.</p>')
+    else:
+        parts.append('<div class="contradiction-list">')
+        ranked = sorted(
+            decl_findings, key=lambda f: (-SEVERITY_ORDER[f.severity], f.path, f.line)
+        )
+        for finding in ranked:
+            parts.append(_contradiction_card(finding))
+        parts.append("</div>")
+    parts.append("</section>")
+    return "".join(parts)
+
+
+def _contradiction_card(finding: Finding) -> str:
+    declared_link = ""
+    if finding.declared_ref:
+        declared_link = (
+            '<p class="kv"><span class="k">declared:</span> '
+            f'<code>{html_text(finding.declared_ref["path"])}</code> '
+            f'<code>{html_text(finding.declared_ref["key"])}</code></p>'
+        )
+    return (
+        '<div class="contradiction-card">'
+        f'<div class="top"><span class="rule">{html_text(finding.rule_id)}</span>'
+        f"{_severity_badge(finding.severity)}</div>"
+        f"<p>{html_text(finding.title)}</p>"
+        f'<p class="kv"><span class="k">code:</span> '
+        f"<code>{html_text(finding.path)}:{finding.line}</code></p>"
+        f"{declared_link}"
+        + (f'<p class="meta">{html_text(finding.message)}</p>' if finding.message else "")
+        + "</div>"
     )
 
 

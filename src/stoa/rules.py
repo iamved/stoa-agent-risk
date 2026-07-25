@@ -209,6 +209,77 @@ RULES: dict[str, RuleSpec] = {
                      "agent without a deploy; none was observed. This is the weakest "
                      "signal in the control set -- informational only.",
     ),
+    # --- Assurance layer: contradiction detector (declared vs. scanned) ----
+    "DECL001": RuleSpec(
+        rule_id="DECL001",
+        title="Declared autonomy contradicts inferred autonomy",
+        category="contradiction",
+        default_severity="critical",
+        gateable=True,
+        remediation="This agent was declared recommend-only or human-approved, but "
+                     "the scanner found a side-effecting path with no correlated "
+                     "approval gate. Either add the missing approval control, or "
+                     "correct the declaration.",
+    ),
+    "DECL002": RuleSpec(
+        rule_id="DECL002",
+        title="Declared economic authority has no enforcement observed",
+        category="contradiction",
+        default_severity="high",
+        gateable=True,
+        remediation="An economic limit was declared for this agent's money-moving "
+                     "path, but no cap check or rate limiter was observed enforcing "
+                     "it in code.",
+    ),
+    "DECL003": RuleSpec(
+        rule_id="DECL003",
+        title="Money-moving or contract-signing permission with no declared economic authority",
+        category="contradiction",
+        default_severity="high",
+        gateable=True,
+        remediation="This agent can move funds, approve transactions, or sign "
+                     "contracts, but stoa-declared.toml has no economic_authority "
+                     "for it. Declare a limit.",
+    ),
+    "DECL004": RuleSpec(
+        rule_id="DECL004",
+        title="Scanned data class not present in declared data classes",
+        category="contradiction",
+        default_severity="high",
+        gateable=True,
+        remediation="The scanner found evidence of a data class this agent touches "
+                     "that isn't in its declared data_classes. Update the declaration "
+                     "or confirm the finding is a false positive.",
+    ),
+    "DECL005": RuleSpec(
+        rule_id="DECL005",
+        title="Production agent has no observability observed",
+        category="contradiction",
+        default_severity="medium",
+        gateable=True,
+        remediation="This agent is declared production_status = \"production\", but "
+                     "no observability construct was observed (CTRL004). Add logging "
+                     "or tracing before relying on this in production.",
+    ),
+    "DECL006": RuleSpec(
+        rule_id="DECL006",
+        title="Scanned agent has no declaration entry",
+        category="contradiction",
+        default_severity="medium",
+        gateable=False,
+        remediation="stoa-declared.toml exists but doesn't mention this agent. Add "
+                     "an [agents.\"<id>\"] entry, even a partial one.",
+    ),
+    "DECL007": RuleSpec(
+        rule_id="DECL007",
+        title="Declaration references an agent id no longer produced by the scanner",
+        category="contradiction",
+        default_severity="low",
+        gateable=False,
+        remediation="This declared agent id no longer matches any scanned agent -- "
+                     "the code may have moved or been removed. Update or delete the "
+                     "stale declaration.",
+    ),
 }
 
 # AI rules use a 2-letter prefix; CTRL/SEC/NET/REL use 3+.

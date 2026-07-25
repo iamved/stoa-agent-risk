@@ -74,6 +74,11 @@ class Finding:
     variant: Optional[str] = None
     evidence_tags: list[str] = field(default_factory=list)
     message: Optional[str] = None  # full templated explanation (AI rules)
+    # Schema 1.2 (Assurance layer). DECL-family findings only: the declared
+    # side of the contradiction (path/key into stoa-declared.toml), so a
+    # reviewer can click straight to it alongside `path`/`line` (the code
+    # side). None on every other rule.
+    declared_ref: Optional[dict] = None
 
     @property
     def stable_id(self) -> str:

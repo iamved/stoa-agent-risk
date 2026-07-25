@@ -93,6 +93,17 @@ AI007 = ["behavioral-instability"]
 # AI005 is variant-aware (handled in code): floating-alias -> D6+D7,
 # trust-remote-code/unpinned-artifact -> D5, insecure-endpoint -> D7.
 AI005 = ["adversarial-manipulation", "model-drift"]
+CTRL005 = ["operational-control"]
+CTRL006 = ["operational-control", "scope-violation"]
+CTRL007 = ["operational-control"]
+# Assurance layer contradiction detector: declared-vs-scanned mismatches.
+DECL001 = ["unauthorized-action", "scope-violation"]
+DECL002 = ["unauthorized-action"]
+DECL003 = ["unauthorized-action"]
+DECL004 = ["data-exfiltration"]
+DECL005 = ["operational-control"]
+DECL006 = ["operational-control"]
+DECL007 = ["operational-control"]
 
 # --- capability -> dimensions (Stoa capability ids) ------------------------
 [capability_dimensions]

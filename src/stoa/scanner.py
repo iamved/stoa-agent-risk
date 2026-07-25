@@ -19,6 +19,7 @@ from .dimensions import (
     set_finding_dimensions,
 )
 from .config import StoaConfig, load_config
+from .contradiction_rules import detect_agent_contradictions, detect_stale_declarations
 from .declarations import (
     Declarations,
     agent_declaration_to_dict,
@@ -257,25 +258,8 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
     for agent in agents:
         agent.findings = _apply_supersedes(agent.findings)
 
-    dim_summary: dict | None = None
-    if not options.no_dimensions:
-        taxonomy = load_taxonomy(options.taxonomy_path or config.dimensions_taxonomy)
-        set_finding_dimensions(all_findings, taxonomy)
-        for agent in agents:
-            set_finding_dimensions(agent.findings, taxonomy)
-            agent.dimension_assessment = assess_agent(
-                agent,
-                agent_content.get(agent.path, ""),
-                agent_providers.get(agent.path, []),
-                taxonomy,
-            )
-        dim_summary = dimension_summary(agents, taxonomy)
-
     for agent in agents:
         agent.autonomy_level = infer_autonomy(agent, agent_content.get(agent.path, ""))
-
-    agents.sort(key=lambda a: (a.path, a.symbol))
-    all_findings.sort(key=lambda f: (f.path, f.line, f.rule_id, f.fingerprint))
 
     # Declared metadata (schema 1.2, Assurance layer) — opt-in-by-presence.
     # No stoa-declared.toml → every declared field stays absent, zero change
@@ -284,6 +268,7 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
         options.declarations_path or (root / "stoa-declared.toml")
     )
     business = governance = evidence = None
+    unknown_ids: list[str] = []
     if declarations.exists:
         unknown_ids = declarations.unknown_agent_ids({a.id for a in agents})
         if unknown_ids:
@@ -302,6 +287,44 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
         if declarations.evidence:
             evidence = evidence_to_dict(declarations.evidence)
     warnings.extend(decl_warnings)
+
+    # Contradiction detector (Assurance layer Phase 4) — declared vs. scanned.
+    # Runs after autonomy inference and declared-metadata attachment, before
+    # dimension tagging, so DECL findings get dimension-tagged like any other.
+    try:
+        declarations_path_str = str(declarations.path.relative_to(root))
+    except ValueError:
+        declarations_path_str = declarations.path.name
+    for agent in agents:
+        contradictions = detect_agent_contradictions(
+            agent, declarations_path_str, declarations.exists, config,
+        )
+        if contradictions:
+            agent.findings = sorted(
+                agent.findings + contradictions,
+                key=lambda f: (f.line, f.rule_id, f.fingerprint),
+            )
+            all_findings.extend(contradictions)
+    if declarations.exists and unknown_ids:
+        stale_findings = detect_stale_declarations(unknown_ids, declarations_path_str, config)
+        all_findings.extend(stale_findings)
+
+    dim_summary: dict | None = None
+    if not options.no_dimensions:
+        taxonomy = load_taxonomy(options.taxonomy_path or config.dimensions_taxonomy)
+        set_finding_dimensions(all_findings, taxonomy)
+        for agent in agents:
+            set_finding_dimensions(agent.findings, taxonomy)
+            agent.dimension_assessment = assess_agent(
+                agent,
+                agent_content.get(agent.path, ""),
+                agent_providers.get(agent.path, []),
+                taxonomy,
+            )
+        dim_summary = dimension_summary(agents, taxonomy)
+
+    agents.sort(key=lambda a: (a.path, a.symbol))
+    all_findings.sort(key=lambda f: (f.path, f.line, f.rule_id, f.fingerprint))
 
     return ScanResult(
         repository=RepositoryInfo(

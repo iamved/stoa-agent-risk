@@ -47,11 +47,13 @@ and agent counts); `degraded_files` — files whose AST parse degraded.
 
 ## Schema 1.2 additions (Assurance layer)
 
-Two independent additions. **Declared metadata** is opt-in by presence: a
-scan with no `stoa-declared.toml` serializes byte-identically to `1.1` apart
-from `schema_version`. **Autonomy inference** is unconditional, like
-`highest_severity` — every agent candidate gets an `autonomy_level`,
-regardless of declarations.
+Three independent additions. **Declared metadata** and **the contradiction
+detector** are opt-in by presence: a scan with no `stoa-declared.toml`
+serializes byte-identically to `1.1` apart from `schema_version`.
+**Autonomy inference** is unconditional, like `highest_severity` — every
+agent candidate gets an `autonomy_level`, regardless of declarations.
+**Permission tags** (`permission_tags` on every agent candidate) are also
+unconditional, like `capabilities`.
 
 **On an agent candidate — declared metadata** (present only when
 `stoa-declared.toml` declares this agent id): `declared` — the raw declared
@@ -70,6 +72,20 @@ side-effecting sinks, AI003 approval-absence, a same-file bounding signal).
 `"approval_construct"`/`"bounding"`), path, line}]`. `reason` — populated
 only when `level == "indeterminate"`: the classifier never guesses when
 signals don't cleanly resolve.
+
+**On an agent candidate — permission tags** (always present, possibly
+empty): `permission_tags` — a higher-stakes layer on top of `capabilities`:
+`move_funds`, `approve_transactions`, `sign_contracts`, `delete`,
+`communicate` (an alias over `email_send`/`messaging`).
+
+**On a finding — the contradiction detector** (`DECL001`-`DECL007` only):
+`declared_ref` — `{path, key}`, the declaration-side evidence (the
+`stoa-declared.toml` key path this finding contradicts), alongside the
+finding's own `path`/`line` (the code-side evidence). Cross-checks declared
+facts against what the scan actually observed — e.g. `DECL001` fires when
+`autonomy_intent` is `recommend_only`/`human_approved` but the inferred
+`autonomy_level` is `bounded_autonomous`/`unrestricted_autonomous`. See
+[docs/declarations.md](docs/declarations.md) for the full rule table.
 
 **Top-level:** `business` — `{industries?, regulated_activities?,
 max_customer_dependency?}`. `governance` — `{release_approval,

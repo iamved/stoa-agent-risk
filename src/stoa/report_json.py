@@ -57,6 +57,8 @@ def finding_to_dict(finding: Finding) -> dict:
         record["evidence_tags"] = sorted(finding.evidence_tags)
     if finding.message is not None:
         record["message"] = finding.message
+    if finding.declared_ref is not None:
+        record["declared_ref"] = finding.declared_ref
     return record
 
 
@@ -178,6 +180,13 @@ def validate_document(document: dict) -> None:
             raise ValueError("Agent record missing id or path")
         if agent["path"].startswith("/") or ":\\" in agent["path"]:
             raise ValueError(f"Agent path is not repository-relative: {agent['path']}")
+    all_document_findings = (
+        [f for a in document["agents"] for f in a["findings"]] + document["repository_findings"]
+    )
+    for finding in all_document_findings:
+        ref = finding.get("declared_ref")
+        if ref and (ref["path"].startswith("/") or ":\\" in ref["path"]):
+            raise ValueError(f"declared_ref path is not repository-relative: {ref['path']}")
 
 
 def write_json(result: ScanResult, config: StoaConfig, output_path: Path) -> None:
