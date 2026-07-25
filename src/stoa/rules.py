@@ -179,6 +179,36 @@ RULES: dict[str, RuleSpec] = {
         canonical_name="STOA-CTRL-OBSERVABILITY",
         owasp={"llm_top10_v1_1": "LLM10", "llm_top10_2025": "LLM10"},
     ),
+    # --- Assurance layer (area 8: technical controls) ----------------------
+    "CTRL005": RuleSpec(
+        rule_id="CTRL005",
+        title="Rate limiting not observed on a high-impact-capability loop",
+        category="control",
+        default_severity="low",
+        gateable=False,
+        remediation="Confirm this loop is rate-limited or bounded; no limiter or "
+                     "backoff construct was observed within it.",
+    ),
+    "CTRL006": RuleSpec(
+        rule_id="CTRL006",
+        title="Sandboxing not observed on an exec path",
+        category="control",
+        default_severity="low",
+        gateable=False,
+        remediation="Confirm this execution path runs in a restricted environment "
+                     "(restricted env, container, sandboxed interpreter); none was "
+                     "observed near it.",
+    ),
+    "CTRL007": RuleSpec(
+        rule_id="CTRL007",
+        title="No kill-switch signal observed on the agent's entry path",
+        category="control",
+        default_severity="info",
+        gateable=False,
+        remediation="Consider a feature-flag or env-var gate that can disable this "
+                     "agent without a deploy; none was observed. This is the weakest "
+                     "signal in the control set -- informational only.",
+    ),
 }
 
 # AI rules use a 2-letter prefix; CTRL/SEC/NET/REL use 3+.
@@ -528,6 +558,38 @@ CAPABILITY_PATTERNS: dict[str, re.Pattern[str]] = {
     ),
 }
 
+# ---------------------------------------------------------------------------
+# Semantic permission tags (Assurance layer, Part IV area 4) — a higher-stakes
+# layer *on top of* the capability model above, not a replacement. Narrows
+# generic capabilities (payment_access, database_write, filesystem_write) to
+# the specific high-consequence actions an assurance reviewer asks about.
+# Pattern-based, will have false negatives — same extensibility mechanism as
+# every other rule table in this module.
+# ---------------------------------------------------------------------------
+SEMANTIC_PERMISSION_PATTERNS: dict[str, re.Pattern[str]] = {
+    "move_funds": re.compile(
+        r"\bstripe\.(?:Transfer|Payout)\b|\bstripe\.(?:transfers|payouts)\b|"
+        r"(?i:\bpaypal\b.{0,40}\b(?:payout|transfer)\b)|"
+        r"(?i:\bplaid\b.{0,40}\btransfer\b)|"
+        r"(?i:\badyen\b.{0,40}\b(?:payout|transfer)\b)|"
+        r"(?i:\b(?:ach|wire)[_-]?transfer\w*\b)"
+    ),
+    "approve_transactions": re.compile(
+        r"\bstripe\.(?:PaymentIntent|Charge)\.(?:confirm|capture)\b|"
+        r"(?i:\bpaypal\b.{0,40}\bapprove\b)|"
+        r"(?i:\bplaid\b.{0,40}\bauthorize\b)|"
+        r"(?i:\badyen\b.{0,40}\b(?:capture|authoris|authoriz)\w*\b)"
+    ),
+    "sign_contracts": re.compile(
+        r"(?i)\bdocusign\b|\bdropbox[_-]?sign\b|\bhellosign\b|\badobe[_-]?sign\b"
+    ),
+    "delete": re.compile(
+        r"(?i)\bDROP\s+TABLE\b|\bDELETE\s+FROM\b|\.delete_one\s*\(|\.delete_many\s*\(|"
+        r"\.deleteOne\s*\(|\.deleteMany\s*\(|\bshutil\.rmtree\b|"
+        r"\bos\.(?:remove|unlink|rmdir)\s*\(|\bfs\.(?:unlink|rm\w*)\s*\("
+    ),
+}
+
 HIGH_IMPACT_CAPABILITIES = frozenset(
     {
         "payment_access",
@@ -729,6 +791,12 @@ TIMEOUT_ARG = re.compile(r"\btimeout\s*=")
 
 COMMENT_ONLY_LINE = re.compile(r"^\s*(?:#|//|\*|/\*)")
 
+KILL_SWITCH_CONSTRUCT = re.compile(
+    r"os\.(?:environ|getenv)\([^)]*(?:ENABLE|DISABLE|KILL_SWITCH|FEATURE_FLAG)|"
+    r"process\.env\.\w*(?:ENABLE|DISABLE|KILL_SWITCH|FEATURE_FLAG)|"
+    r"(?i:\blaunchdarkly\b|\bunleash\b|\bflagsmith\b|\bfeature[_-]?flag\w*\b)"
+)
+
 CONTROL_PATTERNS: dict[str, re.Pattern[str]] = {
     "CTRL001": re.compile(
         r"(?i)\bauthenticat\w+\b|\bauthoriz\w+\b|\bauth[_-]?token\b|"
@@ -753,6 +821,7 @@ CONTROL_PATTERNS: dict[str, re.Pattern[str]] = {
         r"\bexpress-rate-limit\b|\brate-?limiter-?flexible\b|@ratelimit\b|"
         r"\bupstash[/_]ratelimit\b|\bRateLimiter\b"
     ),
+    "CTRL007": KILL_SWITCH_CONSTRUCT,
 }
 
 BOT_AUTHOR = re.compile(r"(dependabot|renovate|github-actions|\[bot\])", re.IGNORECASE)
@@ -816,3 +885,14 @@ OBSERVABILITY_CONSTRUCT = re.compile(
     r"\bprometheus\b|\botel\b|\bhoneycomb\b|\bpino\b|\bslog\b|\bzap\.\w+\b"
 )
 ADHOC_OUTPUT = re.compile(r"\bprint\s*\(|\bconsole\.log\s*\(")
+
+# --- Assurance layer: CTRL005-006 pattern-level signals ---------------------
+SLEEP_OR_BACKOFF = re.compile(
+    r"(?i:\btime\.sleep\s*\(|\bawait\s+asyncio\.sleep\s*\(|\bsetTimeout\s*\(|"
+    r"\bbackoff\b|\btenacity\b)"
+)
+SANDBOX_CONSTRUCT = re.compile(
+    r"(?i:\bsubprocess\.\w+\([^)]*\benv\s*=|\bdocker\b|\bnsjail\b|\bfirejail\b|"
+    r"\bRestrictedPython\b|\bfirecracker\b|\bgvisor\b|\bWorkerSandbox\b|"
+    r"\bisolated-vm\b)|\bvm\.(?:createContext|runInNewContext)\b"
+)

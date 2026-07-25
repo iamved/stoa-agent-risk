@@ -218,12 +218,15 @@ def test_multiline_timeout_on_fifth_line_not_flagged():
 
 def test_control_prompts_emitted_once_per_category():
     findings = detect_control_prompts("agent = build()", "src/a.py", "agent", 1, StoaConfig())
-    assert sorted(f.rule_id for f in findings) == ["CTRL001", "CTRL002", "CTRL003"]
+    assert sorted(f.rule_id for f in findings) == ["CTRL001", "CTRL002", "CTRL003", "CTRL007"]
     assert all(f.severity == "info" for f in findings)
 
 
 def test_control_prompt_skipped_when_control_observed():
-    content = "from limits import rate_limit\nvalidate(input)\nauthenticate(user)\n"
+    content = (
+        "from limits import rate_limit\nvalidate(input)\nauthenticate(user)\n"
+        "feature_flag_enabled('x')\n"
+    )
     assert detect_control_prompts(content, "src/a.py", "agent", 1, StoaConfig()) == []
 
 

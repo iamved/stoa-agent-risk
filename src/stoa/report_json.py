@@ -82,6 +82,7 @@ def agent_to_dict(agent: AgentCandidate, include_suppressed: bool) -> dict:
         "frameworks": agent.frameworks,
         "integrations": agent.integrations,
         "capabilities": agent.capabilities,
+        "permission_tags": agent.permission_tags,
         "call_sites": agent.call_sites,
         "last_touched_by": agent.last_touched_by,
         "last_commit": (

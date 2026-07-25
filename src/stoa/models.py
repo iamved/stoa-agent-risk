@@ -114,6 +114,8 @@ class AgentCandidate:
     frameworks: list[str] = field(default_factory=list)
     integrations: list[str] = field(default_factory=list)
     capabilities: list[str] = field(default_factory=list)
+    # Assurance layer, area 4 — higher-stakes tags layered on capabilities.
+    permission_tags: list[str] = field(default_factory=list)
     call_sites: dict[str, int] = field(default_factory=dict)
     last_touched_by: Optional[str] = None
     last_commit: Optional[CommitInfo] = None

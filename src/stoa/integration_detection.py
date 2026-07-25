@@ -14,6 +14,7 @@ from .rules import (
     LITELLM_MODEL_PREFIX,
     LITELLM_PREFIX_TO_PROVIDER,
     PROVIDER_PATTERNS,
+    SEMANTIC_PERMISSION_PATTERNS,
 )
 
 
@@ -47,6 +48,20 @@ def detect_capabilities(content: str) -> list[str]:
         for capability, pattern in CAPABILITY_PATTERNS.items()
         if pattern.search(content)
     )
+
+
+def detect_permission_tags(content: str, capabilities: list[str]) -> list[str]:
+    """Semantic permission tags (Assurance layer, area 4) — a higher-stakes
+    layer on top of ``detect_capabilities``, not a replacement. ``communicate``
+    is an alias over the existing email_send/messaging capabilities rather
+    than its own pattern, since those already cover it."""
+    tags = {
+        tag for tag, pattern in SEMANTIC_PERMISSION_PATTERNS.items()
+        if pattern.search(content)
+    }
+    if "email_send" in capabilities or "messaging" in capabilities:
+        tags.add("communicate")
+    return sorted(tags)
 
 
 def detect_integrations(content: str) -> tuple[list[str], dict[str, int]]:

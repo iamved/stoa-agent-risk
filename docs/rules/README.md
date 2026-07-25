@@ -20,6 +20,9 @@ value = "..."  # stoa: ignore[AI002] reviewed: dispatched through a static allow
 | NET001 | Insecure non-local HTTP endpoint | low | no |
 | NET002 | Request timeout not observed | medium | no |
 | CTRL001–003 | Auth / validation / rate-limit not observed | info | never |
+| CTRL005 | Rate limiting not observed on a high-impact-capability loop | low | never |
+| CTRL006 | Sandboxing not observed on an exec path | low | never |
+| CTRL007 | No kill-switch signal on the agent's entry path | info | never |
 
 ## AI agent security rules (OWASP LLM Top 10, v0.2)
 

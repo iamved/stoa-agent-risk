@@ -33,6 +33,9 @@ NAV = [
         ("AI006 · Network exfiltration", "rules/AI006"),
         ("AI007 · Sampling config", "rules/AI007"),
         ("CTRL004 · Observability", "rules/CTRL004"),
+        ("CTRL005 · Rate limiting on loops", "rules/CTRL005"),
+        ("CTRL006 · Sandboxing on exec paths", "rules/CTRL006"),
+        ("CTRL007 · Kill-switch signal", "rules/CTRL007"),
     ]),
     ("Reference", [
         ("CLI", "cli"),
@@ -631,7 +634,8 @@ PAGES = [
     ("schema", "JSON schema", read(REPO / "SCHEMA.md"), None, "The stoa-registry.json schema."),
     ("example", "Example: Meridian", meridian_body, None, "A worked multi-agent app (Meridian) scanned end to end by Stoa."),
 ]
-for rule in ("AI001", "AI002", "AI003", "AI004", "AI005", "AI006", "AI007", "CTRL004"):
+for rule in ("AI001", "AI002", "AI003", "AI004", "AI005", "AI006", "AI007",
+             "CTRL004", "CTRL005", "CTRL006", "CTRL007"):
     PAGES.append((f"rules/{rule}", rule, read(REPO / f"docs/rules/{rule}.md"), None, f"Stoa rule {rule}."))
 
 

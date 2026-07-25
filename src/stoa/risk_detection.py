@@ -20,7 +20,9 @@ from .rules import (
     PASSWORD_SAFE_CONTEXT,
     PLACEHOLDER_SECRET,
     RULES,
+    SANDBOX_CONSTRUCT,
     SECRET_PATTERN,
+    SLEEP_OR_BACKOFF,
     SQL_INTERPOLATION_PATTERNS,
     SWALLOWED_CATCH_JS,
     SWALLOWED_EXCEPT_PY,
@@ -256,7 +258,7 @@ def _detect_swallowed_exceptions(
 
 # Which repo-level control satisfies each CTRL rule.
 CTRL_REPO_KEY = {"CTRL001": "authentication", "CTRL002": "validation",
-                 "CTRL003": "rate_limit"}
+                 "CTRL003": "rate_limit", "CTRL007": "kill_switch"}
 
 
 def detect_control_prompts(
@@ -267,7 +269,7 @@ def detect_control_prompts(
     config: StoaConfig,
     repo_controls: set[str] | None = None,
 ) -> list[Finding]:
-    """CTRL001–003: at most one review prompt per agent candidate and category.
+    """CTRL001–003, CTRL007: at most one review prompt per agent candidate and category.
 
     A prompt fires only when the control is observed neither in this file nor
     anywhere in the repository (``repo_controls``) — auth, validation, and rate
@@ -301,3 +303,74 @@ def scan_repo_controls(contents: list[str]) -> set[str]:
     if OBSERVABILITY_CONSTRUCT.search(joined):
         observed.add("observability")
     return observed
+
+
+_LOOP_TYPES = {"for_statement", "while_statement", "for_in_statement",
+               "do_statement", "comprehension"}
+
+
+def detect_ctrl005(
+    parsed,
+    relative_path: str,
+    symbol: str,
+    config: StoaConfig,
+) -> list[Finding]:
+    """CTRL005: a loop containing a high-impact-capability call site, with no
+    rate-limiter or backoff/sleep construct observed *within that loop* — a
+    proximity signal scoped to the loop's own text, not the whole file, so a
+    limiter guarding a different loop doesn't silently satisfy this one."""
+    if not config.rule_enabled("CTRL005"):
+        return []
+    if parsed is None or not getattr(parsed, "available", False):
+        return []
+    from .rules import CAPABILITY_PATTERNS, HIGH_IMPACT_CAPABILITIES
+
+    builder = _FindingBuilder(relative_path, config)
+    for node in parsed.walk():
+        if node.type not in _LOOP_TYPES:
+            continue
+        loop_text = node.text.decode("utf-8", "replace")
+        has_high_impact = any(
+            CAPABILITY_PATTERNS[cap].search(loop_text) for cap in HIGH_IMPACT_CAPABILITIES
+        )
+        if not has_high_impact:
+            continue
+        if CONTROL_PATTERNS["CTRL003"].search(loop_text) or SLEEP_OR_BACKOFF.search(loop_text):
+            continue
+        builder.add(
+            rule_id="CTRL005",
+            line=node.start_point[0] + 1,
+            column=1,
+            redacted_snippet=f"{RULES['CTRL005'].title} for candidate {symbol}",
+            confidence="low",
+        )
+        break  # one prompt per candidate, matching CTRL001-004's semantics
+    return builder.findings
+
+
+def detect_ctrl006(
+    file_findings: list[Finding],
+    content: str,
+    relative_path: str,
+    symbol: str,
+    anchor_line: int,
+    config: StoaConfig,
+) -> list[Finding]:
+    """CTRL006: an AI002 exec-class sink exists in this file, with no
+    sandboxing construct observed anywhere in it."""
+    if not config.rule_enabled("CTRL006"):
+        return []
+    has_exec_sink = any(
+        f.rule_id == "AI002" and f.variant == "exec" for f in file_findings
+    )
+    if not has_exec_sink or SANDBOX_CONSTRUCT.search(content):
+        return []
+    builder = _FindingBuilder(relative_path, config)
+    builder.add(
+        rule_id="CTRL006",
+        line=anchor_line,
+        column=1,
+        redacted_snippet=f"{RULES['CTRL006'].title} for candidate {symbol}",
+        confidence="low",
+    )
+    return builder.findings

@@ -28,6 +28,7 @@ from .declarations import (
 from .integration_detection import (
     detect_capabilities,
     detect_integrations,
+    detect_permission_tags,
     detect_providers,
 )
 from .models import (
@@ -38,7 +39,13 @@ from .models import (
     SkippedFile,
     severity_at_least,
 )
-from .risk_detection import detect_control_prompts, detect_risks, scan_repo_controls
+from .risk_detection import (
+    detect_control_prompts,
+    detect_ctrl005,
+    detect_ctrl006,
+    detect_risks,
+    scan_repo_controls,
+)
 from .rules import RULES
 from .suppressions import parse_suppressions
 from .traversal import read_source, traverse
@@ -147,6 +154,7 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
         file_agents: list[AgentCandidate] = []
         if detections:
             capabilities = detect_capabilities(content)
+            permission_tags = detect_permission_tags(content, capabilities)
             integrations, call_sites = detect_integrations(content)
             for detection in detections:
                 if detection.confidence in ("medium", "high"):
@@ -168,6 +176,13 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
                         config,
                         repo_controls,
                     )
+                    prompts += detect_ctrl005(
+                        parsed_file, source.relative_path, detection.symbol, config,
+                    )
+                    prompts += detect_ctrl006(
+                        file_findings, content, source.relative_path,
+                        detection.symbol, anchor, config,
+                    )
                 else:
                     prompts = []
                 candidate_findings.extend(prompts)
@@ -185,6 +200,7 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
                         frameworks=detection.frameworks,
                         integrations=integrations,
                         capabilities=capabilities,
+                        permission_tags=permission_tags,
                         call_sites=call_sites,
                         findings=prompts,
                     )
