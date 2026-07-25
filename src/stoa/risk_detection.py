@@ -14,6 +14,7 @@ from .rules import (
     CONTROL_PATTERNS,
     HTTP_URL,
     LOCAL_HTTP_HOST,
+    OBSERVABILITY_CONSTRUCT,
     OUTGOING_REQUEST_CALL,
     PASSWORD_ASSIGNMENT,
     PASSWORD_SAFE_CONTEXT,
@@ -56,19 +57,23 @@ class _FindingBuilder:
         count = self._context_counts.get(key, 0)
         self._context_counts[key] = count + 1
         context = normalized if count == 0 else f"{normalized}#{count}"
+        sev = severity or self.config.effective_severity(rule_id)
         self.findings.append(
             Finding(
                 fingerprint=finding_fingerprint(rule_id, self.relative_path, context),
                 rule_id=rule_id,
                 title=spec.title,
                 category=spec.category,
-                severity=severity or self.config.effective_severity(rule_id),
+                severity=sev,
                 confidence=confidence,
                 path=self.relative_path,
                 line=line,
                 column=column,
                 snippet=normalized[:SNIPPET_MAX_LENGTH],
                 remediation=spec.remediation,
+                # Every finding carries a message so JSON consumers never see a
+                # null; core rules template it from title + remediation.
+                message=f"{spec.title} ({self.relative_path}:{line}). {spec.remediation}",
             )
         )
 
@@ -90,10 +95,10 @@ def detect_risks(
         _detect_passwords(builder, raw_line, number, is_comment, is_testlike, config)
         if not is_comment:
             _detect_sql_interpolation(builder, raw_line, number, is_testlike)
-            _detect_insecure_http(builder, raw_line, number)
+            _detect_insecure_http(builder, raw_line, number, is_testlike)
             _detect_missing_timeout(builder, lines, raw_line, number)
 
-    _detect_swallowed_exceptions(builder, content, language)
+    _detect_swallowed_exceptions(builder, content, language, is_testlike)
     return builder.findings
 
 
@@ -186,8 +191,14 @@ def _detect_sql_interpolation(
             return
 
 
-def _detect_insecure_http(builder: _FindingBuilder, raw_line: str, number: int) -> None:
-    """NET001: plain HTTP to a non-local, non-test host."""
+def _detect_insecure_http(
+    builder: _FindingBuilder, raw_line: str, number: int, is_testlike: bool
+) -> None:
+    """NET001: plain HTTP to a non-local host. Skipped in test paths, where
+    ``http://`` URLs are almost always mocks/fixtures — the dominant NET001
+    false positive on real repos."""
+    if is_testlike:
+        return
     for match in HTTP_URL.finditer(raw_line):
         host = match.group(1)
         if LOCAL_HTTP_HOST.match(host):
@@ -223,9 +234,13 @@ def _detect_missing_timeout(
 
 
 def _detect_swallowed_exceptions(
-    builder: _FindingBuilder, content: str, language: str
+    builder: _FindingBuilder, content: str, language: str, is_testlike: bool
 ) -> None:
-    """REL001: except/catch blocks that silently discard errors."""
+    """REL001: except/catch blocks that silently discard errors. Skipped in
+    test paths (swallowing is common and low-signal there); low severity by
+    default elsewhere — a code smell, rarely a security issue."""
+    if is_testlike:
+        return
     pattern = SWALLOWED_EXCEPT_PY if language == "python" else SWALLOWED_CATCH_JS
     for match in pattern.finditer(content):
         line = content.count("\n", 0, match.start()) + 1
@@ -239,22 +254,33 @@ def _detect_swallowed_exceptions(
         )
 
 
+# Which repo-level control satisfies each CTRL rule.
+CTRL_REPO_KEY = {"CTRL001": "authentication", "CTRL002": "validation",
+                 "CTRL003": "rate_limit"}
+
+
 def detect_control_prompts(
     content: str,
     relative_path: str,
     symbol: str,
     anchor_line: int,
     config: StoaConfig,
+    repo_controls: set[str] | None = None,
 ) -> list[Finding]:
     """CTRL001–003: at most one review prompt per agent candidate and category.
 
-    These describe controls *not observed in this file*; they are never
-    definitive vulnerabilities and never gate.
+    A prompt fires only when the control is observed neither in this file nor
+    anywhere in the repository (``repo_controls``) — auth, validation, and rate
+    limiting usually live in middleware, so a per-file check alone produces
+    false "not observed" prompts on real codebases.
     """
+    repo_controls = repo_controls or set()
     builder = _FindingBuilder(relative_path, config)
     for rule_id, pattern in CONTROL_PATTERNS.items():
         if pattern.search(content):
             continue
+        if CTRL_REPO_KEY.get(rule_id) in repo_controls:
+            continue  # observed elsewhere in the repository
         builder.add(
             rule_id=rule_id,
             line=anchor_line,
@@ -263,3 +289,15 @@ def detect_control_prompts(
             confidence="low",
         )
     return builder.findings
+
+
+def scan_repo_controls(contents: list[str]) -> set[str]:
+    """Which control types are observed anywhere in the repository."""
+    joined = "\n".join(contents)
+    observed: set[str] = set()
+    for rule_id, key in CTRL_REPO_KEY.items():
+        if CONTROL_PATTERNS[rule_id].search(joined):
+            observed.add(key)
+    if OBSERVABILITY_CONSTRUCT.search(joined):
+        observed.add("observability")
+    return observed

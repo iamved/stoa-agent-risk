@@ -40,14 +40,16 @@ check "≥10 agent candidates detected" "J reg.json \"d['summary']['agent_candid
 check "8 frameworks (langchain/langgraph/crewai/autogen/pydantic_ai/openai_agents_sdk/agno)" \
   "J reg.json \"{'langchain','langgraph','crewai','autogen','pydantic_ai','openai_agents_sdk','agno'} <= {fw for a in d['agents'] for fw in a['frameworks']}\""
 check "TypeScript agent (support_bot) detected" "J reg.json \"any(a['language']=='typescript' for a in d['agents'])\""
+check "MCP server detected as an agentic surface (framework-independent)" "J reg.json \"any('mcp' in a['frameworks'] for a in d['agents'])\""
 
 RULES="python3 -c \"import json;d=json.load(open('reg.json'));ff=[f for a in d['agents'] for f in a['findings']]+d['repository_findings'];print(' '.join(sorted({f['rule_id'] for f in ff})))\""
 FIRED=$(eval $RULES)
-for r in SEC001 SEC002 SEC003 REL001 NET002 CTRL001 CTRL002 CTRL004 AI001 AI002 AI003 AI004 AI005 AI006 AI007; do
+for r in SEC001 SEC002 SEC003 REL001 NET002 AI001 AI002 AI003 AI004 AI005 AI006 AI007; do
   check "rule $r fired" "echo '$FIRED' | grep -qw $r"
 done
 check "NET001 superseded by AI005 (absent)" "! echo '$FIRED' | grep -qw NET001"
 check "CTRL003 disabled via stoa.toml (absent)" "! echo '$FIRED' | grep -qw CTRL003"
+check "CTRL001/002/004 suppressed by repo-level control awareness" "! echo '$FIRED' | grep -qwE 'CTRL001|CTRL002|CTRL004'"
 
 echo "== 2. AI rule depth =="
 check "AI002 covers exec+markup+sql+request sinks" \

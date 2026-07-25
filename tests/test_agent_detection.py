@@ -295,10 +295,22 @@ export const agent = createReactAgent({ llm: model, tools: [] });
 """
 
 
-def test_aisdk_single_shot_is_low_candidate_with_provider():
-    detections = detect_agents(AISDK_SINGLE_SHOT, "app/api/plan/route.ts", False)
-    assert detections, "single-shot generateText should still surface as a candidate"
-    assert detections[0].confidence == "low"
+def test_aisdk_single_shot_is_not_an_agent():
+    # A single generateText call with no tools/loop/multi-step is a generation
+    # call site, not an agent — its risks still surface via the AI taint rules.
+    assert detect_agents(AISDK_SINGLE_SHOT, "app/api/plan/route.ts", False) == []
+    # ...but the provider is still detected, so taint rules run on the file.
+    from stoa.integration_detection import detect_providers
+    assert "groq" in detect_providers(AISDK_SINGLE_SHOT)
+
+
+def test_aisdk_with_tools_is_an_agent():
+    src = AISDK_SINGLE_SHOT.replace(
+        "generateText({ model: groq('llama-3.3-70b'), prompt });",
+        "generateText({ model: groq('llama-3.3-70b'), prompt, tools: { t } });",
+    )
+    d = detect_agents(src, "app/api/plan/route.ts", False)
+    assert d, "generateText with a tools binding is agentic"
 
 
 def test_aisdk_agentic_is_high_confidence():
@@ -344,3 +356,46 @@ def test_langchain_js_react_agent_high():
     detection = _single(LANGCHAIN_JS, "src/agent.ts")
     assert "langgraph" in detection.frameworks
     assert detection.confidence == "high"
+
+
+# --- feedback fixes: agentic control flow, MCP, provider-file precision -----
+
+def test_hand_rolled_loop_agent_detected_without_framework():
+    from stoa.ast_layer import parse
+    src = (
+        "import openai\n"
+        "client = openai.OpenAI()\n"
+        "def run(goal):\n"
+        "    messages = [{'role':'user','content':goal}]\n"
+        "    while not done:\n"
+        "        r = client.chat.completions.create(model='gpt-4o', messages=messages)\n"
+        "        messages.append(step(r))\n"
+    )
+    d = detect_agents(src, "svc/agent.py", False, parse("svc/agent.py", "python", src))
+    assert d, "a model call in a loop is an agent even with no framework"
+    assert any(e.rule_id == "AGENT_LOOP" for e in d[0].evidence)
+
+
+def test_mcp_server_is_an_agentic_surface():
+    from stoa.ast_layer import parse
+    src = (
+        "from mcp.server.fastmcp import FastMCP\n"
+        "mcp = FastMCP('tools')\n"
+        "@mcp.tool()\n"
+        "def do_thing(x: str) -> str:\n    return run(x)\n"
+    )
+    d = detect_agents(src, "mcp/server.py", False, parse("mcp/server.py", "python", src))
+    assert d and "mcp" in d[0].frameworks
+
+
+def test_provider_pipeline_file_is_not_an_agent():
+    from stoa.ast_layer import parse
+    src = (
+        "from openai import OpenAI\n"
+        "client = OpenAI()\n"
+        "def make_audio(text, path):\n"
+        "    audio = client.audio.speech.create(model='tts-1', input=text)\n"
+        "    open(path, 'wb').write(audio.content)\n"
+    )
+    # LLM import + a single provider call + file IO = a pipeline utility, not an agent.
+    assert detect_agents(src, "media/tts.py", False, parse("media/tts.py", "python", src)) == []

@@ -149,7 +149,7 @@ def test_except_exception_pass_detected():
     content = "try:\n    work()\nexcept Exception:\n    pass\n"
     findings = by_rule(scan(content), "REL001")
     assert len(findings) == 1
-    assert findings[0].severity == "medium"
+    assert findings[0].severity == "low"  # de-escalated: a smell, rarely a risk
 
 
 def test_empty_js_catch_detected():
@@ -283,3 +283,42 @@ def test_vector_db_integrations_detected():
         "from pinecone import Pinecone\nimport chromadb\nfrom qdrant_client import QdrantClient"
     )
     assert {"pinecone", "chroma", "qdrant"}.issubset(set(integrations))
+
+
+# --- feedback fixes: noise reduction + broadened/repo-level controls --------
+
+def test_net001_skipped_in_test_paths():
+    findings = scan('r = requests.get("http://api.partner.example-corp.io/v1")', path="tests/test_x.py", testlike=True)
+    assert by_rule(findings, "NET001") == []
+
+
+def test_rel001_skipped_in_tests_and_low_severity():
+    tf = scan("try:\n    x()\nexcept:\n    pass\n", path="tests/test_y.py", testlike=True)
+    assert by_rule(tf, "REL001") == []
+    prod = scan("try:\n    x()\nexcept:\n    pass\n")
+    assert by_rule(prod, "REL001") and by_rule(prod, "REL001")[0].severity == "low"
+
+
+def test_all_findings_carry_a_message():
+    findings = scan('api_key = "sk-proj-Zx9mKq3vNp7rTb2wYc5dHj8fLg4sVn6a"')
+    assert findings and all(f.message for f in findings)
+
+
+def test_broadened_controls_firebase_and_loki():
+    from stoa.rules import CONTROL_PATTERNS, OBSERVABILITY_CONSTRUCT
+    assert CONTROL_PATTERNS["CTRL001"].search("await verifyIdToken(req.headers.authorization)")
+    assert CONTROL_PATTERNS["CTRL001"].search("import firebase_admin")
+    assert OBSERVABILITY_CONSTRUCT.search("logger = loki.Client()")
+
+
+def test_repo_level_controls_suppress_ctrl_prompts():
+    from stoa.risk_detection import detect_control_prompts, scan_repo_controls
+    # auth lives in a middleware file, the agent file has none
+    repo = scan_repo_controls([
+        "def middleware(req):\n    verify_id_token(req.token)\n",
+        "def agent():\n    stripe.Refund.create()\n",
+    ])
+    assert "authentication" in repo
+    prompts = detect_control_prompts("def agent(): stripe.Refund.create()", "a.py",
+                                     "agent", 1, StoaConfig(), repo)
+    assert not any(f.rule_id == "CTRL001" for f in prompts)  # observed in the repo

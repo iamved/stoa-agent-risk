@@ -228,9 +228,11 @@ def detect_ai_correlations(
     capabilities: list[str],
     anchor_line: int,
     config: StoaConfig,
+    repo_controls: set[str] | None = None,
 ) -> list[Finding]:
     """AI003, AI007, CTRL004 for one agent candidate (≥ medium confidence)."""
     findings: list[Finding] = []
+    repo_controls = repo_controls or set()
     high_impact = sorted(HIGH_IMPACT_CAPABILITIES.intersection(capabilities))
     has_tool = bool(TOOL_BINDING.search(content))
 
@@ -278,8 +280,9 @@ def detect_ai_correlations(
                 context_key=f"AI007:{symbol}",
             ))
 
-    # CTRL004 — tool-binding candidate with no observability construct at all.
-    if config.rule_enabled("CTRL004") and has_tool:
+    # CTRL004 — tool-binding candidate with no observability observed in this
+    # file or anywhere in the repository (logging/tracing is often centralized).
+    if config.rule_enabled("CTRL004") and has_tool and "observability" not in repo_controls:
         if not OBSERVABILITY_CONSTRUCT.search(content):
             tags = ["ad_hoc_output_observed"] if ADHOC_OUTPUT.search(content) else None
             findings.append(_finding(

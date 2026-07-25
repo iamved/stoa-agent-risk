@@ -54,7 +54,7 @@ RULES: dict[str, RuleSpec] = {
         rule_id="REL001",
         title="Swallowed exception",
         category="reliability",
-        default_severity="medium",
+        default_severity="low",
         gateable=False,
         remediation="Handle or log the exception instead of silently discarding it.",
     ),
@@ -62,7 +62,7 @@ RULES: dict[str, RuleSpec] = {
         rule_id="NET001",
         title="Insecure non-local HTTP endpoint",
         category="network",
-        default_severity="medium",
+        default_severity="low",
         gateable=False,
         remediation="Use HTTPS for non-local endpoints.",
     ),
@@ -240,7 +240,31 @@ HIGH_AGENT_PATTERNS: dict[str, re.Pattern[str]] = {
         r"^\s*from\s+strands(?:_tools|_agents)?\s+import\b|^\s*import\s+strands\b",
         re.MULTILINE,
     ),
+    # MCP server: a tool-provider surface for agents. Detecting the server (its
+    # exposed tools) is exactly the agentic surface hand-rolled systems expose.
+    "mcp": re.compile(
+        r"\bFastMCP\s*\(|@(?:mcp|app|server)\.tool\b|"
+        r"@(?:mcp|server)\.(?:list_tools|call_tool|resource|prompt)\b|"
+        r"['\"]@modelcontextprotocol/sdk|\bMcpServer\s*\(|"
+        r"^\s*from\s+mcp\.server(?:\.\w+)*\s+import\b",
+        re.MULTILINE,
+    ),
 }
+
+# MCP tool definitions (for inventorying what a server exposes).
+MCP_TOOL_DEF = re.compile(
+    r"@(?:mcp|app|server)\.tool\s*\([^)]*\)\s*\n\s*(?:async\s+)?def\s+(\w+)|"
+    r"\bserver\.(?:setRequestHandler|tool)\s*\(\s*['\"]([\w-]+)"
+)
+
+# A recognized model call, for control-flow (model-call-in-loop) detection.
+MODEL_CALL_FOR_FLOW = re.compile(
+    r"\b(?:chat\.completions|responses|messages)\.create\s*\(|"
+    r"\b(?:generate_content|generateContent)\s*\(|"
+    r"\.(?:invoke|ainvoke|stream)\s*\(|"
+    r"\b(?:generateText|streamText|generateObject|streamObject)\s*\(|"
+    r"\blitellm\.(?:completion|acompletion)\s*\("
+)
 
 SUPPORTING_PATTERNS: dict[str, re.Pattern[str]] = {
     "provider_call": re.compile(
@@ -709,15 +733,25 @@ CONTROL_PATTERNS: dict[str, re.Pattern[str]] = {
     "CTRL001": re.compile(
         r"(?i)\bauthenticat\w+\b|\bauthoriz\w+\b|\bauth[_-]?token\b|"
         r"@login_required|\bverify_jwt\b|\bcheck_auth\b|\brequire[_-]?auth\b|"
-        r"\bBearer\b|\bapi[_-]?key[_-]?(?:check|verify|required)\b"
+        r"\bBearer\b|\bapi[_-]?key[_-]?(?:check|verify|required)\b|"
+        # framework/provider auth commonly used in real apps
+        r"\bfirebase[_-]?admin\b|\bverify_?id_?token\b|\bgetAuth\b|\bcurrentUser\b|"
+        r"\bcurrent_user\b|\breq\.user\b|\bctx\.user\b|@requires?_auth\b|"
+        r"\b(?:jwt|jose|pyjwt)\b|@jwt_required|\bensureAuthenticated\b|"
+        r"\bclerk\b|\bauth0\b|\bnext-?auth\b|\bpassport\b|\bsupabase\.auth\b|"
+        r"\bsession\[|\bget_current_user\b|\bHTTPBearer\b|\bOAuth2\w*\b"
     ),
     "CTRL002": re.compile(
         r"(?i)\bvalidat\w+\b|\bpydantic\b|\bmarshmallow\b|\bcerberus\b|"
-        r"\bzod\b|\bjoi\b|\bBaseModel\b|\bsanitiz\w+\b|\bschema\s*\.\s*parse\b"
+        r"\bzod\b|\bjoi\b|\bBaseModel\b|\bsanitiz\w+\b|\bschema\s*\.\s*parse\b|"
+        r"\byup\b|\bajv\b|\bclass-validator\b|\bvalidator\b|\.parse\s*\(|"
+        r"\bis_?valid\b|\bValidationError\b|\bEmailStr\b|\bconstr\s*\("
     ),
     "CTRL003": re.compile(
         r"(?i)\brate[_-]?limit\w*\b|\bthrottl\w+\b|\bLimiter\b|\bslowapi\b|"
-        r"\bbottleneck\b|\btoken[_-]?bucket\b"
+        r"\bbottleneck\b|\btoken[_-]?bucket\b|\bflask[_-]?limiter\b|"
+        r"\bexpress-rate-limit\b|\brate-?limiter-?flexible\b|@ratelimit\b|"
+        r"\bupstash[/_]ratelimit\b|\bRateLimiter\b"
     ),
 }
 
@@ -775,6 +809,10 @@ OBSERVABILITY_CONSTRUCT = re.compile(
     r"\b(?:logging|logger|log)\.(?:info|warning|warn|error|debug|exception|critical)\s*\(|"
     r"\bstructlog\b|\bloguru\b|@observe\b|\blangsmith\b|\blangfuse\b|"
     r"\bopentelemetry\b|\btraceloop\b|\bwandb\b|\btracer\.start_?[sS]pan\b|"
-    r"\b(?:winston|pino|bunyan)\b|\bconsole\.(?:error|warn)\s*\("
+    r"\b(?:winston|pino|bunyan)\b|\bconsole\.(?:error|warn)\s*\(|"
+    # common log/trace/metrics backends and clients on real deployments
+    r"\bloki\b|\bgrafana\b|\bdatadog\b|\bddtrace\b|\bsentry(?:_sdk)?\b|"
+    r"\bnew_?relic\b|\belastic(?:apm|search)\b|\bfluentd?\b|\bstatsd\b|"
+    r"\bprometheus\b|\botel\b|\bhoneycomb\b|\bpino\b|\bslog\b|\bzap\.\w+\b"
 )
 ADHOC_OUTPUT = re.compile(r"\bprint\s*\(|\bconsole\.log\s*\(")

@@ -48,13 +48,13 @@ def test_v01_findings_carry_no_new_fields(tmp_path: Path):
     all_findings = [f for a in doc["agents"] for f in a["findings"]] + doc["repository_findings"]
     sec = [f for f in all_findings if f["rule_id"] == "SEC001"]
     assert sec, "expected a SEC001 finding"
-    # A v0.1 rule gains `dimensions` (every rule maps to dimensions in v0.2)
-    # but never the AI-flow-specific fields.
-    ai_only = {"id", "canonical_name", "owasp", "flow", "gate_eligible",
-               "supersedes", "message"}
+    # A v0.1 rule gains `dimensions` and a templated `message` (all findings
+    # now carry one) but never the AI-flow-specific fields.
+    ai_only = {"id", "canonical_name", "owasp", "flow", "gate_eligible", "supersedes"}
     for finding in sec:
         assert ai_only.isdisjoint(finding.keys()), finding
         assert "dimensions" in finding
+        assert finding.get("message")  # every finding has a message now
 
 
 def test_experimental_ast_flag_off_by_default_no_degraded_key():

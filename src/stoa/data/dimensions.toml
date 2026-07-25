@@ -110,6 +110,8 @@ vector_search = ["adversarial-manipulation"]
 web_search = ["adversarial-manipulation"]
 browser_automation = ["adversarial-manipulation"]
 filesystem_read = ["adversarial-manipulation"]
+# An MCP server exposes tools to agents — a scope/authorization surface.
+mcp_tools = ["scope-violation", "unauthorized-action"]
 
 # --- observed control -> dimensions it credits -----------------------------
 [control_dimensions]

@@ -31,7 +31,7 @@ from .models import (
     SkippedFile,
     severity_at_least,
 )
-from .risk_detection import detect_control_prompts, detect_risks
+from .risk_detection import detect_control_prompts, detect_risks, scan_repo_controls
 from .rules import RULES
 from .suppressions import parse_suppressions
 from .traversal import read_source, traverse
@@ -86,10 +86,21 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
     use_git = not options.no_git and git_metadata.is_git_repository(root)
     codeowners = git_metadata.load_codeowners(root)
 
+    # Pre-pass: read every file once and learn which controls exist anywhere
+    # in the repo, so per-candidate CTRL prompts don't fire for controls that
+    # live in middleware/infra (auth on a route decorator, centralized logging).
+    file_contents: dict[str, str] = {}
     for source in files:
         content = read_source(source)
         if content is None:
             skipped.append(SkippedFile(source.relative_path, "unreadable"))
+        else:
+            file_contents[source.relative_path] = content
+    repo_controls = scan_repo_controls(list(file_contents.values()))
+
+    for source in files:
+        content = file_contents.get(source.relative_path)
+        if content is None:
             continue
 
         suppressions = parse_suppressions(content, source.relative_path)
@@ -107,22 +118,23 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
         )
 
         providers = detect_providers(content)
+        parsed_file = None
         if ast_cache is not None:
-            parsed = ast_cache.get(source.relative_path, source.language, content)
-            if parsed.degraded:
+            parsed_file = ast_cache.get(source.relative_path, source.language, content)
+            if parsed_file.degraded:
                 degraded_files.append(source.relative_path)
             file_findings.extend(
                 detect_ai_taint(
-                    parsed, source.relative_path, source.is_testlike, config, providers
+                    parsed_file, source.relative_path, source.is_testlike, config, providers
                 )
             )
 
-        detections = detect_agents(content, source.relative_path, source.is_testlike)
+        detections = detect_agents(
+            content, source.relative_path, source.is_testlike, parsed_file
+        )
         candidate_findings: list[Finding] = []
         file_agents: list[AgentCandidate] = []
         if detections:
-            capabilities = detect_capabilities(content)
-            integrations, call_sites = detect_integrations(content)
             capabilities = detect_capabilities(content)
             integrations, call_sites = detect_integrations(content)
             for detection in detections:
@@ -134,6 +146,7 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
                         detection.symbol,
                         anchor,
                         config,
+                        repo_controls,
                     )
                     prompts += detect_ai_correlations(
                         content,
@@ -142,6 +155,7 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
                         capabilities,
                         anchor,
                         config,
+                        repo_controls,
                     )
                 else:
                     prompts = []
