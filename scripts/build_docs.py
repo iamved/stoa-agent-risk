@@ -26,6 +26,7 @@ NAV = [
     ("Examples", [
         ("Meridian — a multi-agent app", "example"),
         ("Threshold — a voice-agent stress test", "threshold"),
+        ("Sparkwing — an ed-tech dimension map", "sparkwing"),
     ]),
     ("Rules", [
         ("Rules overview", "rules"),
@@ -572,6 +573,76 @@ driver asserts 26 checks, including both MCP gaps and the DECL001/DECL003 contra
 """
 
 
+def sparkwing_body() -> str:
+    return """
+<h1>Sparkwing — an ed-tech dimension map</h1>
+<p><strong>Sparkwing</strong> is a fictional mentored-project-learning platform for K-12
+students — mentor pairing, a project-sector chat advisor, an auto-grading sandbox, portfolio
+certification, and parent progress updates. It's kept deliberately smaller than
+<a href="/docs/example">Meridian</a>: five agents, no MCP layer, one language. The point of this
+fixture is the pitch, not the feature count — every one of Sparkwing's real product surfaces maps
+onto a specific Stoa risk dimension, with file:line evidence, not a generic checklist applied after
+the fact. The full source is in
+<a href="https://github.com/iamved/stoa-agent-risk/tree/main/examples/sparkwing">examples/sparkwing</a>.</p>
+
+<h2>Architecture</h2>
+<pre><code>staff (confirms) → mentor_matcher         (LangGraph, recommend-only, golden baseline)
+student chat     → sector_advisor         (framework-free, raw loop)
+submission       → project_sandbox        (LangChain, runs a model-suggested shell
+                                            check with no sandbox construct)
+submission       → portfolio_certifier    (LangChain, decides + writes the badge
+                                            outcome straight to the DB, no gate)
+weekly cron      → progress_notifier      (LangChain, SendGrid + third-party HTTP)
+</code></pre>
+
+<h2>Every real feature, mapped to a dimension</h2>
+<div class="table-wrap"><table><thead><tr><th>Real feature</th><th>Agent</th><th>Planted finding(s)</th>
+<th>Dimensions lit</th></tr></thead><tbody>
+<tr><td>Mentor pairing (staff-confirmed)</td><td><code>mentor_matcher</code></td>
+<td>none — golden baseline</td><td>contrast case</td></tr>
+<tr><td>Project-sector chat with a student</td><td><code>sector_advisor</code></td>
+<td>AI001, AI005 floating-alias, AI007</td>
+<td>adversarial-manipulation, model-drift, behavioral-instability</td></tr>
+<tr><td>Portfolio badge certification</td><td><code>portfolio_certifier</code></td>
+<td>AI002/sql, AI003, <strong>DECL001</strong></td>
+<td>output-integrity, unauthorized-action, scope-violation</td></tr>
+<tr><td>Auto-grading sandbox</td><td><code>project_sandbox</code></td>
+<td><strong>AI002/exec (gate-eligible)</strong>, CTRL006, <strong>DECL006</strong></td>
+<td>scope-violation, unauthorized-action, operational-control</td></tr>
+<tr><td>Parent updates + usage sync</td><td><code>progress_notifier</code></td>
+<td>AI006, REL001, NET002</td>
+<td>data-exfiltration, operational-control</td></tr>
+</tbody></table></div>
+<p>Resulting matrix, from a real scan: <strong>scope-violation and unauthorized-action reach
+elevated</strong> — driven entirely by the contradiction detector below — while
+data-exfiltration, output-integrity, and adversarial-manipulation reach moderate.
+Behavioral-instability and model-drift correctly stay low: they're proxy dimensions, capped below
+elevated by design, never claiming to have measured runtime behavior from a config signal alone.</p>
+
+<h2>The contradiction detector, twice</h2>
+<p><strong>portfolio_certifier is declared <code>human_approved</code></strong> in
+<code>stoa-declared.toml</code> — a second set of eyes on every badge outcome, per policy. The scan
+finds no such thing: the model's verdict is interpolated straight into an <code>UPDATE</code>
+(AI002/sql, critical) with no approval construct anywhere in the file, so the scanner infers
+<code>unrestricted_autonomous</code>. <strong>DECL001</strong> fires with both sides cited — the
+code evidence and the exact declaration key it contradicts. A self-attested questionnaire can't
+catch this; a same-run cross-check can.</p>
+<p><strong>project_sandbox isn't declared at all.</strong> It's a real scanned agent — the
+auto-grading harness runs a model-suggested shell command with no sandbox construct (CTRL006), and
+that command is gate-eligible on its own (AI002/exec, the one finding here that fails
+<code>stoa scan --strict</code> unassisted). Nobody wrote it into <code>stoa-declared.toml</code>.
+<strong>DECL006</strong> names exactly that gap.</p>
+
+<div class="callout">Run it yourself: <code>stoa scan examples/sparkwing</code>, or read the
+<a href="https://github.com/iamved/stoa-agent-risk/blob/main/examples/sparkwing/RISK_MAP.md">dimension-by-dimension risk map</a>
+and the
+<a href="https://github.com/iamved/stoa-agent-risk/blob/main/examples/sparkwing/COVERAGE.md">verification log</a>
+— every finding on this page was confirmed against a live scan, not asserted from a docstring.
+Pre-generated output is committed in
+<a href="https://github.com/iamved/stoa-agent-risk/tree/main/examples/sparkwing/sample-output">sample-output/</a>.</div>
+"""
+
+
 def meridian_body() -> str:
     pos = _mesh_positions(len(_AGENTS))
     conn = "".join(f'<line x1="50" y1="50" x2="{x:.1f}" y2="{y:.1f}"/>' for x, y in pos)
@@ -746,6 +817,7 @@ PAGES = [
     ("schema", "JSON schema", read(REPO / "SCHEMA.md"), None, "The stoa-registry.json schema."),
     ("example", "Example: Meridian", meridian_body, None, "A worked multi-agent app (Meridian) scanned end to end by Stoa."),
     ("threshold", "Example: Threshold", threshold_body, None, "A generic voice-agent stress test: MCP client/server gaps, autonomy ladder, and the contradiction detector."),
+    ("sparkwing", "Example: Sparkwing", sparkwing_body, None, "A K-12 ed-tech example: every real feature mapped to one of Stoa's eight risk dimensions, plus two contradiction-detector findings."),
 ]
 for rule in ("AI001", "AI002", "AI003", "AI004", "AI005", "AI006", "AI007",
              "CTRL004", "CTRL005", "CTRL006", "CTRL007",
