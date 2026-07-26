@@ -504,7 +504,7 @@ def _mesh_positions(n, rx=41, ry=39):
 
 def threshold_body() -> str:
     return """
-<h1>Example: a generic voice-agent stress test</h1>
+<h1>Threshold — a generic voice-agent stress test</h1>
 <p><strong>Threshold</strong> is a fictional voice-based screening/intake platform — the kind of
 thing that could sit under hiring pre-screens, research-participant recruitment, or program
 eligibility checks. It's deliberately horizontal: the point isn't the business, it's the risk
