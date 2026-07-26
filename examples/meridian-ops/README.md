@@ -19,10 +19,12 @@ pipx install stoa-agent-risk
 The driver copies the fixture into a throwaway git repo, builds a base and head
 commit (so `stoa diff` has drift to find), then runs the whole tool surface and
 asserts each outcome. See [COVERAGE.md](COVERAGE.md) for the feature→assertion
-map, or [WALKTHROUGH.md](WALKTHROUGH.md) for a step-by-step tour — one command
+map, [WALKTHROUGH.md](WALKTHROUGH.md) for a step-by-step tour — one command
 per step, each producing a different output (HTML report, SARIF, the diff
 changelog, the assurance packet, the architecture graph) with real output
-captured from this fixture.
+captured from this fixture — or [PIPELINE.md](PIPELINE.md) for what Meridian
+itself does: each agent's real code walkthrough, an illustrative input/output
+example, and which findings it produces.
 
 ## The agents
 
