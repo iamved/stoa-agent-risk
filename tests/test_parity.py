@@ -36,7 +36,7 @@ def test_html_byte_identical_across_runs():
 
 def test_schema_version_is_1_2():
     doc = build_document(_scan(EXAMPLE_REPO), StoaConfig())
-    assert doc["schema_version"] == "1.2"
+    assert doc["schema_version"] == "1.3"
 
 
 def test_v01_findings_carry_no_new_fields(tmp_path: Path):

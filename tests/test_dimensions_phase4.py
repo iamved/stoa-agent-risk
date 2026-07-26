@@ -42,7 +42,7 @@ def test_dimension_assessment_present_on_agents(tmp_path):
     agent = result.agents[0]
     assert agent.dimension_assessment is not None
     ids = {d["id"] for d in agent.dimension_assessment["dimensions"]}
-    assert "data-exfiltration" in ids and "unauthorized-action" in ids
+    assert "boundary-leakage" in ids and "unreviewed-high-impact-action" in ids
 
 
 def test_proxy_cap_invariant_property(tmp_path):
@@ -57,7 +57,7 @@ def test_proxy_cap_invariant_property(tmp_path):
 def test_proxy_cap_forced_even_with_huge_score():
     """A synthetic high score on a proxy dimension is capped at moderate."""
     tax = default_taxonomy()
-    # AI007 -> behavioral-instability (proxy). Stack many to push score high.
+    # AI007 -> conduct-variability (proxy). Stack many to push score high.
     findings = [
         Finding(fingerprint=f"fp{i}", rule_id="AI007", title="t", category="ai-stability",
                 severity="info", confidence="high", path="a.py", line=i, column=1,
@@ -67,13 +67,13 @@ def test_proxy_cap_forced_even_with_huge_score():
     agent = AgentCandidate(id="x", name="a", symbol="a", path="a.py", language="python",
                            confidence="high", detection_score=9, findings=findings)
     block = assess_agent(agent, "content", [], tax)
-    behav = next(d for d in block["dimensions"] if d["id"] == "behavioral-instability")
+    behav = next(d for d in block["dimensions"] if d["id"] == "conduct-variability")
     assert behav["assessability"] == "proxy"
     assert behav["exposure"] == "moderate"  # capped, never elevated
 
 
 def test_controls_reduce_exposure(tmp_path):
-    """Observed approval + logging lower unauthorized-action / operational exposure."""
+    """Observed approval + logging lower unreviewed-high-impact-action / operational exposure."""
     safe = RISKY_AGENT.replace(
         "    reply = response",
         "    logger.info('x')\n    if not interrupt({}).get('approved'):\n        return\n    reply = response",
@@ -81,7 +81,7 @@ def test_controls_reduce_exposure(tmp_path):
     (tmp_path / "a.py").write_text(safe, encoding="utf-8")
     result = run_scan(ScanOptions(root=tmp_path, no_git=True))
     agent = result.agents[0]
-    ua = next(d for d in agent.dimension_assessment["dimensions"] if d["id"] == "unauthorized-action")
+    ua = next(d for d in agent.dimension_assessment["dimensions"] if d["id"] == "unreviewed-high-impact-action")
     assert "approval" in ua["controls_observed"]
 
 

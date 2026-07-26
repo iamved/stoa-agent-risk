@@ -3,6 +3,39 @@
 All notable changes to Stoa are documented here. The registry JSON schema is
 versioned separately (see [SCHEMA.md](SCHEMA.md)).
 
+## 0.4.0 — "AIUC-1 alignment"
+
+Registry schema → 1.3 (additive); assurance packet schema → `assurance-packet/1.1`.
+
+### Changed — dimension taxonomy renamed and grouped
+- The default taxonomy (`stoa-aiuc-8`, v2.0, replaces `stoa-default-8` v1.0)
+  renames all eight dimensions and groups them under the six standard
+  categories of [AIUC-1](https://www.aiuc-1.com/), the AI agent trust
+  standard — Data & Privacy, Security, Safety, Reliability, Accountability,
+  Society. Every `dimension_assessment`/`dimension_summary` entry gains a
+  `group` field. See [docs/dimensions.md](docs/dimensions.md) for the full
+  old→new id mapping. Custom taxonomies (`[dimensions] taxonomy`) are
+  unaffected; `group` is optional and defaults to empty.
+- The HTML report's Dimension Exposure Matrix renders a group header row
+  above the dimension columns.
+
+### Added — assurance packet grouped under AIUC-1 + a new insurance-only group
+- `stoa export --assurance`'s 14 areas become 18, organized under the same
+  six AIUC-1 categories plus a seventh Stoa-only group (`G` — insurance-
+  specific exposure: business exposure, economic authority, claims evidence)
+  that AIUC-1 doesn't cover. New areas: Security testing (split out from the
+  old combined Testing area), Safety evaluation, Reliability scores
+  (surfaces per-agent Reliability-group dimension scores in the packet for
+  the first time), Vendor due diligence, and Societal impact (declared,
+  attestation-only, never scored). "Governance" is renamed "Accountability".
+  See [docs/assurance-export.md](docs/assurance-export.md).
+- Two new declared fields: `business.societal_risk_flags`,
+  `governance.harmful_output_policy`. Two new `evidence` categories:
+  `safety_testing`, `vendor`. See [docs/declarations.md](docs/declarations.md).
+
+This grouping is a display header and interoperability aid, not an AIUC-1
+certification claim — certification requires their accredited-auditor process.
+
 ## 0.3.0 — "Real-world detection quality"
 
 Driven by running Stoa against a production codebase. Three problems it exposed —

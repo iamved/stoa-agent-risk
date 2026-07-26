@@ -69,10 +69,10 @@ check "NET002 severity overridden to info" \
 
 echo "== 3. dimensions =="
 check "dimension_summary present with 8 dimensions" "J reg.json \"len(d['dimension_summary']['dimensions'])==8\""
-check "data-exfiltration reaches elevated" \
-  "J reg.json \"any(x['id']=='data-exfiltration' and x['max_exposure']=='elevated' for x in d['dimension_summary']['dimensions'])\""
-check "proxy dims never elevated (behavioral-instability, model-drift)" \
-  "J reg.json \"all(x['max_exposure']!='elevated' for x in d['dimension_summary']['dimensions'] if x['id'] in ('behavioral-instability','model-drift'))\""
+check "boundary-leakage reaches elevated" \
+  "J reg.json \"any(x['id']=='boundary-leakage' and x['max_exposure']=='elevated' for x in d['dimension_summary']['dimensions'])\""
+check "proxy dims never elevated (conduct-variability, dependency-drift)" \
+  "J reg.json \"all(x['max_exposure']!='elevated' for x in d['dimension_summary']['dimensions'] if x['id'] in ('conduct-variability','dependency-drift'))\""
 check "compliance_agent shows 6 control types (good-news path)" \
   "J reg.json \"{'approval','authentication','validation','deterministic_sampling','pinned_model','observability'} <= {c for a in d['agents'] if a['name']=='compliance_agent' for x in a['dimension_assessment']['dimensions'] for c in x['controls_observed']}\""
 check "findings carry dimensions" \
@@ -175,12 +175,12 @@ check "Contradictions section shows both evidence links" \
 echo "== assurance export =="
 "$STOA" export --assurance reg.json --format md --out packet.md 2>export-stderr.txt
 check "assurance packet exported" "[ -s packet.md ]"
-check "assurance packet has all 14 areas" \
-  "[ \$(grep -c '^### Area ' packet.md) -eq 14 ]"
+check "assurance packet has all 18 areas" \
+  "[ \$(grep -c '^### Area ' packet.md) -eq 18 ]"
 check "assurance packet Contradictions section lists DECL001" "grep -q DECL001 packet.md"
 "$STOA" export --assurance reg.json --format json --out packet.json >/dev/null 2>&1
-check "assurance packet JSON is valid with 14 areas" \
-  "J packet.json \"d['schema']=='assurance-packet/1.0' and len(d['areas'])==14\""
+check "assurance packet JSON is valid with 18 areas" \
+  "J packet.json \"d['schema']=='assurance-packet/1.1' and len(d['areas'])==18\""
 
 echo
 printf 'RESULT: \033[32m%d passed\033[0m, ' "$pass"

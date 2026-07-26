@@ -1,22 +1,39 @@
 # Dimension exposure
 
-v0.2 assesses every agent candidate across a taxonomy of risk **dimensions** and
-renders a Dimension Exposure Matrix at the top of the HTML report. The default
-taxonomy has eight dimensions; **five are assessable statically, three are proxy
-signals flagged for runtime follow-up** — all with line-level evidence.
+Every agent candidate is assessed across a taxonomy of risk **dimensions** and
+rendered as a Dimension Exposure Matrix at the top of the HTML report. The
+default taxonomy (`stoa-aiuc-8`, v2.0) has eight dimensions, grouped under the
+six standard categories of [AIUC-1](https://www.aiuc-1.com/) — the AI agent
+trust standard (Data & Privacy, Security, Safety, Reliability, Accountability,
+Society). **Five dimensions are assessable statically, three are proxy signals
+flagged for runtime follow-up** — all with line-level evidence.
+
+Grouping under AIUC-1's categories is a display header, not a certification
+claim — AIUC-1 certification requires their accredited-auditor process. It's
+also not the complete AIUC-1 picture: the technical dimensions below only
+cover what static analysis can score. The parts of AIUC-1 that require
+governance documentation or third-party testing evidence (most of Safety,
+Accountability, and Society) live in `stoa-declared.toml` and surface in
+[`stoa export --assurance`](assurance-export.md) instead, under the same six
+group letters plus a seventh, Stoa-only group for insurance-specific exposure.
 
 ## The eight default dimensions
 
-| Dimension | Assessability | What static analysis sees |
-|---|---|---|
-| Scope violation | strong | reach beyond intended scope |
-| Data exfiltration | strong | sensitive data leaving via model calls or egress |
-| Unauthorized action | strong | high-impact actions without an observed approval |
-| Output integrity | partial | unsafe model-output handling (correctness is runtime) |
-| Adversarial manipulation | partial | prompt-injection / supply-chain surface (robustness is runtime) |
-| Behavioral instability | **proxy** | only config signals (e.g. unpinned sampling) |
-| Model drift | **proxy** | only upstream-pin signals |
-| Operational control | partial | auth / validation / rate-limit / observability |
+| Group | Dimension | Assessability | What static analysis sees |
+|---|---|---|---|
+| A — Data & Privacy | Boundary leakage | strong | sensitive data leaving via model calls or egress |
+| B — Security | Mandate overreach | strong | reach beyond declared scope |
+| B — Security | Injection & tamper surface | partial | prompt-injection / supply-chain surface (robustness is runtime) |
+| B — Security | Control coverage gap | partial | auth / validation / rate-limit / observability |
+| C — Safety | Unreviewed high-impact action | strong | high-impact actions without an observed approval |
+| D — Reliability | Output fidelity | partial | unsafe model-output handling (correctness is runtime) |
+| D — Reliability | Conduct variability | **proxy** | only config signals (e.g. unpinned sampling) |
+| D — Reliability | Dependency drift | **proxy** | only upstream-pin signals |
+
+Notice groups **E (Accountability)** and **F (Society)** have no scanned
+dimension — that's deliberate, not a gap to be padded. A static code scan has
+no way to assess vendor due diligence or societal-scale misuse risk; those
+live entirely in the declared/ingested layers of the assurance packet.
 
 **Assessability tiers** cap what Stoa may claim. A `proxy` dimension can never
 render `elevated` — it is capped at `moderate`, enforced by a property test.
@@ -70,9 +87,11 @@ Flags: `--no-dimensions` (skip assessment + matrix), `--taxonomy PATH`.
 
 The registry's per-agent `dimension_assessment` block and the top-level
 `dimension_summary` are the machine interface: *"read stoa-registry.json and
-address all elevated data-exfiltration contributors"* is a valid agent
+address all elevated boundary-leakage contributors"* is a valid agent
 instruction with zero extra tooling. SARIF results carry a `stoa-dim:<dimension>`
-tag so GitHub Code Scanning can filter by dimension.
+tag so GitHub Code Scanning can filter by dimension. Every dimension entry also
+carries `group` (one of `A`–`D`, or empty for a custom taxonomy that doesn't
+use groups).
 
 ## What Stoa says / never says
 

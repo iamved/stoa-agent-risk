@@ -43,10 +43,10 @@ def registry(agents=None, business=None, governance=None, evidence=None,
 # --- structural completeness: every area present, gaps explicit ------------
 
 
-def test_all_14_areas_present_even_for_empty_registry():
+def test_all_18_areas_present_even_for_empty_registry():
     packet = build_assurance_packet(registry())
-    assert len(packet["areas"]) == 14
-    assert {key for _, key, _, _ in AREAS} == set(packet["areas"].keys())
+    assert len(packet["areas"]) == 18
+    assert {key for _, _, key, _, _ in AREAS} == set(packet["areas"].keys())
 
 
 def test_empty_registry_has_zero_contradictions_and_valid_header():
@@ -54,7 +54,7 @@ def test_empty_registry_has_zero_contradictions_and_valid_header():
     assert packet["contradictions"] == []
     assert packet["header"]["agent_count"] == 0
     assert packet["header"]["contradiction_count"] == 0
-    assert packet["schema"] == "assurance-packet/1.0"
+    assert packet["schema"] == "assurance-packet/1.1"
 
 
 def test_business_exposure_rows_are_all_not_provided_when_undeclared():
@@ -192,7 +192,7 @@ def test_markdown_renders_all_areas_and_contradictions():
     assert "DECL001" in md
     assert "a.py:5" in md
     assert "x.y" in md
-    for _, _, name, _ in AREAS:
+    for _, _, _, name, _ in AREAS:
         assert f"— {name} (" in md or name in md
 
 

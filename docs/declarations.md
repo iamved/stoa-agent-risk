@@ -18,6 +18,8 @@ version = 1
 industries = ["fintech"]
 regulated_activities = ["payments"]
 max_customer_dependency = "high"   # low|medium|high|critical
+societal_risk_flags = []           # critical_infrastructure|biosecurity_adjacent|mass_influence
+                                    # attestation only (AIUC-1 Society) — Stoa never scores this
 
 [agents."66d8239dad0b"]            # keyed by the scanned agent id (the
 name = "billing_agent"             # stable 12-hex hash), not a human slug —
@@ -37,6 +39,7 @@ worst_case_customer_loss = {amount = 50000, currency = "USD"}
 [governance]
 release_approval = "Documented in RELEASING.md"
 incident_response = "runbooks/ir.md"
+harmful_output_policy = "docs/safety/risk-taxonomy.md"   # AIUC-1 Safety
 
 [governance.risk_acceptance]
 owner = "cto@acme.com"
@@ -46,11 +49,24 @@ date = "2026-07-01"
 kind = "prompt_injection"
 ref = "evals/pi-suite/results.json"
 date = "2026-07-10"
+
+[[evidence.safety_testing]]
+kind = "harmful_output"
+ref = "evals/safety-suite/results.json"
+date = "2026-07-10"
+
+[[evidence.vendor]]
+kind = "vendor_review"
+ref = "vendor/openai-review-2026.pdf"
+date = "2026-06-01"
 ```
 
-`evidence` accepts four categories: `testing`, `monitoring`, `contracts`,
-`historical` — each a list of `{kind, ref, date?}` pointers. Stoa never reads
-or validates the referenced artifact; it only records that a pointer exists.
+`evidence` accepts any category — Stoa recognizes `testing`, `safety_testing`,
+`monitoring`, `contracts`, `historical`, `vendor` (each a list of
+`{kind, ref, date?}` pointers) and surfaces them in the matching
+[assurance packet](assurance-export.md) area; unrecognized categories are
+preserved but won't be picked up by a named area. Stoa never reads or
+validates the referenced artifact; it only records that a pointer exists.
 
 ## Getting started
 

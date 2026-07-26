@@ -8,6 +8,7 @@ value passes through :func:`html_text` before interpolation.
 
 from __future__ import annotations
 
+from itertools import groupby
 from html import escape
 from pathlib import Path
 
@@ -18,6 +19,17 @@ from .report_json import _atomic_write
 from .rules import HIGH_IMPACT_CAPABILITIES, SENSITIVE_INTEGRATIONS
 
 SEVERITY_RANK_FOR_EXPOSURE = {"critical": 4, "high": 3, "medium": 1, "low": 0, "info": 0}
+
+# AIUC-1-aligned display groups for the default taxonomy; a custom taxonomy
+# with no `group` set on its dimensions simply renders without this row.
+DIMENSION_GROUP_NAMES = {
+    "A": "A · Data & Privacy",
+    "B": "B · Security",
+    "C": "C · Safety",
+    "D": "D · Reliability",
+    "E": "E · Accountability",
+    "F": "F · Society",
+}
 CONFIDENCE_LABELS = {"high": "High", "medium": "Medium", "low": "Low"}
 
 # Display-only exposure tiers derived from the static exposure score.
@@ -204,6 +216,8 @@ footer { margin-top: 44px; padding-top: 14px; border-top: 1px solid #e3e6ec;
 .matrix th.dim { writing-mode: vertical-rl; transform: rotate(180deg);
   white-space: nowrap; padding: 8px 4px; font-size: 11px; height: 88px; vertical-align: bottom; }
 .matrix th.dim.proxy { background: repeating-linear-gradient(45deg, #fafbfc, #fafbfc 4px, #eef0f4 4px, #eef0f4 8px); }
+.matrix th.dim-group { font-size: 10.5px; font-weight: 700; letter-spacing: 0.03em;
+  color: #5a6272; background: #f3f5f8; border-left: 1px solid #e3e6ec; padding: 4px 6px; }
 .matrix td.agent { font-weight: 600; white-space: nowrap; }
 .matrix tr.org td { background: #f3f5f8; font-weight: 700; }
 .matrix td.cell { text-align: center; font-weight: 700; }
@@ -534,7 +548,16 @@ def _dimension_matrix(result: ScanResult) -> str:
     )
 
     # header
-    head = ['<div class="table-wrap"><table class="matrix"><thead><tr><th class="agent">Agent</th>']
+    head = ['<div class="table-wrap"><table class="matrix"><thead>']
+    groups = [dim_meta[did].get("group", "") for did in dim_order]
+    if any(groups):
+        head.append('<tr class="dim-groups"><th class="agent"></th>')
+        for g, run in groupby(groups):
+            span = len(list(run))
+            label = DIMENSION_GROUP_NAMES.get(g, g or "—")
+            head.append(f'<th class="dim-group" colspan="{span}">{html_text(label)}</th>')
+        head.append("</tr>")
+    head.append('<tr><th class="agent">Agent</th>')
     for did in dim_order:
         m = dim_meta[did]
         cls = "dim proxy" if m["assessability"] == "proxy" else "dim"

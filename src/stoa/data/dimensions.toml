@@ -1,58 +1,71 @@
 # Stoa default dimension taxonomy (Part IV §A). Versioned with the binary.
 # Users may replace it via stoa.toml [dimensions] taxonomy = "path".
 # Dimension ids are hyphenated; capability/rule ids are Stoa's own (underscored).
+#
+# v2: grouped under AIUC-1's six standard categories (Data & Privacy, Security,
+# Safety, Reliability, Accountability, Society) — see docs/dimensions.md. The
+# `group` letter is Stoa's own display grouping, not part of the scoring math;
+# `group = ""` (unset) is valid for a custom taxonomy that doesn't use groups.
 
 [taxonomy]
-id = "stoa-default-8"
-version = "1.0"
+id = "stoa-aiuc-8"
+version = "2.0"
 
 [[dimensions]]
-id = "scope-violation"
-name = "Scope violation"
-definition = "Agent reach exceeding its intended operating scope"
+id = "mandate-overreach"
+name = "Mandate overreach"
+definition = "Agent reach exceeding its declared operating scope"
 assessability = "strong"
+group = "B"
 
 [[dimensions]]
-id = "data-exfiltration"
-name = "Data exfiltration"
+id = "boundary-leakage"
+name = "Boundary leakage"
 definition = "Sensitive data leaving the trust boundary via model calls or network egress"
 assessability = "strong"
+group = "A"
 
 [[dimensions]]
-id = "unauthorized-action"
-name = "Unauthorized action"
+id = "unreviewed-high-impact-action"
+name = "Unreviewed high-impact action"
 definition = "High-impact actions reachable without an observed authorization or approval control"
 assessability = "strong"
+group = "C"
 
 [[dimensions]]
-id = "output-integrity"
-name = "Output integrity"
-definition = "Incorrect or unsafe model output causing downstream harm"
+id = "output-fidelity"
+name = "Output fidelity"
+definition = "Incorrect or unsafe model output causing downstream harm; correctness itself is a runtime property"
 assessability = "partial"
+group = "D"
 
 [[dimensions]]
-id = "adversarial-manipulation"
-name = "Adversarial manipulation"
+id = "injection-tamper-surface"
+name = "Injection & tamper surface"
 definition = "Susceptibility surface for prompt injection, poisoning, or supply-chain tampering"
 assessability = "partial"
+group = "B"
 
 [[dimensions]]
-id = "behavioral-instability"
-name = "Behavioral instability"
+id = "conduct-variability"
+name = "Conduct variability"
 definition = "Non-deterministic or inconsistent agent behavior"
 assessability = "proxy"
+group = "D"
 
 [[dimensions]]
-id = "model-drift"
-name = "Model drift"
+id = "dependency-drift"
+name = "Dependency drift"
 definition = "Model behavior changing over time (upstream swaps, performance decay)"
 assessability = "proxy"
+group = "D"
 
 [[dimensions]]
-id = "operational-control"
-name = "Operational control failure"
-definition = "Absence of operating controls: auth, validation, rate limits, observability"
+id = "control-coverage-gap"
+name = "Control coverage gap"
+definition = "Absence of observed operating controls: auth, validation, rate limits, observability"
 assessability = "partial"
+group = "B"
 
 # --- scoring weights (Part IV §A.5) ---------------------------------------
 [finding_weights]
@@ -69,67 +82,68 @@ low = 0.3
 
 [scoring]
 capability_weight = 18   # each mapped capability contributes this per dimension
-provider_weight = 8      # external provider usage -> model-drift
+provider_weight = 8      # external provider usage -> dependency-drift
 control_credit = 20      # each observed control subtracts this (floor 0)
 
 # --- rule -> dimensions ----------------------------------------------------
 [rule_dimensions]
-SEC001 = ["data-exfiltration", "operational-control"]
-SEC002 = ["data-exfiltration", "operational-control"]
-SEC003 = ["output-integrity"]
-REL001 = ["operational-control"]
-NET001 = ["data-exfiltration", "model-drift"]
-NET002 = ["operational-control"]
-CTRL001 = ["unauthorized-action", "operational-control"]
-CTRL002 = ["output-integrity", "adversarial-manipulation", "operational-control"]
-CTRL003 = ["operational-control"]
-CTRL004 = ["operational-control"]
-AI001 = ["adversarial-manipulation"]
-AI002 = ["output-integrity"]
-AI003 = ["scope-violation", "unauthorized-action"]
-AI004 = ["data-exfiltration"]
-AI006 = ["data-exfiltration"]
-AI007 = ["behavioral-instability"]
-# AI005 is variant-aware (handled in code): floating-alias -> D6+D7,
-# trust-remote-code/unpinned-artifact -> D5, insecure-endpoint -> D7.
-AI005 = ["adversarial-manipulation", "model-drift"]
-CTRL005 = ["operational-control"]
-CTRL006 = ["operational-control", "scope-violation"]
-CTRL007 = ["operational-control"]
+SEC001 = ["boundary-leakage", "control-coverage-gap"]
+SEC002 = ["boundary-leakage", "control-coverage-gap"]
+SEC003 = ["output-fidelity"]
+REL001 = ["control-coverage-gap"]
+NET001 = ["boundary-leakage", "dependency-drift"]
+NET002 = ["control-coverage-gap"]
+CTRL001 = ["unreviewed-high-impact-action", "control-coverage-gap"]
+CTRL002 = ["output-fidelity", "injection-tamper-surface", "control-coverage-gap"]
+CTRL003 = ["control-coverage-gap"]
+CTRL004 = ["control-coverage-gap"]
+AI001 = ["injection-tamper-surface"]
+AI002 = ["output-fidelity"]
+AI003 = ["mandate-overreach", "unreviewed-high-impact-action"]
+AI004 = ["boundary-leakage"]
+AI006 = ["boundary-leakage"]
+AI007 = ["conduct-variability"]
+# AI005 is variant-aware (handled in code): floating-alias -> conduct-variability
+# + dependency-drift, trust-remote-code/unpinned-artifact -> injection-tamper-surface,
+# insecure-endpoint -> dependency-drift.
+AI005 = ["injection-tamper-surface", "dependency-drift"]
+CTRL005 = ["control-coverage-gap"]
+CTRL006 = ["control-coverage-gap", "mandate-overreach"]
+CTRL007 = ["control-coverage-gap"]
 # Assurance layer contradiction detector: declared-vs-scanned mismatches.
-DECL001 = ["unauthorized-action", "scope-violation"]
-DECL002 = ["unauthorized-action"]
-DECL003 = ["unauthorized-action"]
-DECL004 = ["data-exfiltration"]
-DECL005 = ["operational-control"]
-DECL006 = ["operational-control"]
-DECL007 = ["operational-control"]
+DECL001 = ["unreviewed-high-impact-action", "mandate-overreach"]
+DECL002 = ["unreviewed-high-impact-action"]
+DECL003 = ["unreviewed-high-impact-action"]
+DECL004 = ["boundary-leakage"]
+DECL005 = ["control-coverage-gap"]
+DECL006 = ["control-coverage-gap"]
+DECL007 = ["control-coverage-gap"]
 
 # --- capability -> dimensions (Stoa capability ids) ------------------------
 [capability_dimensions]
-payment_access = ["scope-violation", "unauthorized-action"]
-database_write = ["scope-violation", "unauthorized-action"]
-email_send = ["scope-violation", "unauthorized-action"]
-messaging = ["scope-violation", "unauthorized-action"]
-shell_execution = ["scope-violation", "unauthorized-action"]
-code_execution = ["scope-violation", "unauthorized-action"]
-filesystem_write = ["scope-violation", "unauthorized-action"]
-source_control = ["scope-violation", "unauthorized-action"]
-cloud_resource_access = ["scope-violation", "unauthorized-action"]
-external_http = ["data-exfiltration"]
-vector_search = ["adversarial-manipulation"]
-web_search = ["adversarial-manipulation"]
-browser_automation = ["adversarial-manipulation"]
-filesystem_read = ["adversarial-manipulation"]
+payment_access = ["mandate-overreach", "unreviewed-high-impact-action"]
+database_write = ["mandate-overreach", "unreviewed-high-impact-action"]
+email_send = ["mandate-overreach", "unreviewed-high-impact-action"]
+messaging = ["mandate-overreach", "unreviewed-high-impact-action"]
+shell_execution = ["mandate-overreach", "unreviewed-high-impact-action"]
+code_execution = ["mandate-overreach", "unreviewed-high-impact-action"]
+filesystem_write = ["mandate-overreach", "unreviewed-high-impact-action"]
+source_control = ["mandate-overreach", "unreviewed-high-impact-action"]
+cloud_resource_access = ["mandate-overreach", "unreviewed-high-impact-action"]
+external_http = ["boundary-leakage"]
+vector_search = ["injection-tamper-surface"]
+web_search = ["injection-tamper-surface"]
+browser_automation = ["injection-tamper-surface"]
+filesystem_read = ["injection-tamper-surface"]
 # An MCP server exposes tools to agents — a scope/authorization surface.
-mcp_tools = ["scope-violation", "unauthorized-action"]
+mcp_tools = ["mandate-overreach", "unreviewed-high-impact-action"]
 
 # --- observed control -> dimensions it credits -----------------------------
 [control_dimensions]
-approval = ["scope-violation", "unauthorized-action"]
-authentication = ["unauthorized-action", "operational-control"]
-validation = ["output-integrity", "operational-control"]
-rate_limit = ["operational-control"]
-observability = ["operational-control"]
-deterministic_sampling = ["behavioral-instability"]
-pinned_model = ["model-drift"]
+approval = ["mandate-overreach", "unreviewed-high-impact-action"]
+authentication = ["unreviewed-high-impact-action", "control-coverage-gap"]
+validation = ["output-fidelity", "control-coverage-gap"]
+rate_limit = ["control-coverage-gap"]
+observability = ["control-coverage-gap"]
+deterministic_sampling = ["conduct-variability"]
+pinned_model = ["dependency-drift"]

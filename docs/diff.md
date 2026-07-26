@@ -45,7 +45,7 @@ as a fresh baseline.
 
 ```bash
 stoa diff --base-ref origin/main --fail-on-drift high
-stoa diff --base-ref origin/main --fail-on-dimension-increase data-exfiltration=elevated
+stoa diff --base-ref origin/main --fail-on-dimension-increase boundary-leakage=elevated
 ```
 
 `--fail-on-drift` evaluates the **unapproved** max drift; `--fail-on-dimension-increase`

@@ -43,12 +43,17 @@ USERS_VALUES = ("internal", "customers", "public")
 PRODUCTION_STATUSES = ("dev", "staging", "production", "deprecated")
 DEPENDENCY_LEVELS = ("low", "medium", "high", "critical")
 DATA_CLASSES = ("personal", "financial", "health", "confidential", "ip", "authentication")
+# AIUC-1 Society category: org-level attestation only, never scored by Stoa —
+# a static per-repo scan has no visibility into deployment-scale societal harm.
+SOCIETAL_RISK_FLAGS = ("critical_infrastructure", "biosecurity_adjacent", "mass_influence")
 
 _KNOWN_AGENT_KEYS = {
     "name", "owner", "purpose", "users", "geography", "production_status",
     "autonomy_intent", "data_classes", "economic_authority",
 }
-_KNOWN_BUSINESS_KEYS = {"industries", "regulated_activities", "max_customer_dependency"}
+_KNOWN_BUSINESS_KEYS = {
+    "industries", "regulated_activities", "max_customer_dependency", "societal_risk_flags",
+}
 _KNOWN_TOP_KEYS = {"version", "business", "agents", "governance", "evidence"}
 
 
@@ -78,6 +83,7 @@ class Governance:
     release_approval: str = ""
     incident_response: str = ""
     risk_acceptance: dict | None = None
+    harmful_output_policy: str = ""
 
 
 @dataclass
@@ -149,6 +155,15 @@ class Declarations:
                     f"{DEPENDENCY_LEVELS} — ignored"
                 )
                 del business["max_customer_dependency"]
+        if "societal_risk_flags" in business:
+            flags = business["societal_risk_flags"] or []
+            bad = [f for f in flags if f not in SOCIETAL_RISK_FLAGS]
+            if bad:
+                warnings.append(
+                    f"{path}: business.societal_risk_flags has unknown values {bad} "
+                    f"(expected a subset of {SOCIETAL_RISK_FLAGS}) — unknown values ignored"
+                )
+            business["societal_risk_flags"] = [f for f in flags if f in SOCIETAL_RISK_FLAGS]
 
         agents: dict[str, AgentDeclaration] = {}
         raw_agents = data.get("agents", {})
@@ -170,6 +185,7 @@ class Declarations:
                 release_approval=raw_gov.get("release_approval", ""),
                 incident_response=raw_gov.get("incident_response", ""),
                 risk_acceptance=raw_gov.get("risk_acceptance"),
+                harmful_output_policy=raw_gov.get("harmful_output_policy", ""),
             )
 
         evidence: list[EvidenceRef] = []
@@ -212,6 +228,7 @@ def generate_stub(agents: list[dict]) -> str:
         "# industries = []",
         "# regulated_activities = []",
         f"# max_customer_dependency = \"low\"  # {'|'.join(DEPENDENCY_LEVELS)}",
+        f"# societal_risk_flags = []  # {'|'.join(SOCIETAL_RISK_FLAGS)} — attestation only, never scored",
         "",
     ]
     for agent in sorted(agents, key=lambda a: (a.get("path", ""), a.get("symbol", ""))):
@@ -238,13 +255,24 @@ def generate_stub(agents: list[dict]) -> str:
         "# [governance]",
         '# release_approval = ""',
         '# incident_response = ""',
+        '# harmful_output_policy = ""  # AIUC-1 Safety: declared risk taxonomy / harmful-output policy',
         "#",
         "# [governance.risk_acceptance]",
         '# owner = ""',
         '# date = "2026-01-01"',
         "",
-        "# [[evidence.testing]]",
+        "# [[evidence.testing]]          # AIUC-1 Security: third-party adversarial testing",
         '# kind = "prompt_injection"',
+        '# ref = ""',
+        '# date = "2026-01-01"',
+        "",
+        "# [[evidence.safety_testing]]   # AIUC-1 Safety: third-party harmful-output / hallucination testing",
+        '# kind = "harmful_output"',
+        '# ref = ""',
+        '# date = "2026-01-01"',
+        "",
+        "# [[evidence.vendor]]           # AIUC-1 Accountability: vendor due diligence",
+        '# kind = "vendor_review"',
         '# ref = ""',
         '# date = "2026-01-01"',
         "",
@@ -278,6 +306,8 @@ def governance_to_dict(gov: Governance) -> dict:
     record = {"release_approval": gov.release_approval, "incident_response": gov.incident_response}
     if gov.risk_acceptance is not None:
         record["risk_acceptance"] = gov.risk_acceptance
+    if gov.harmful_output_policy:
+        record["harmful_output_policy"] = gov.harmful_output_policy
     return record
 
 

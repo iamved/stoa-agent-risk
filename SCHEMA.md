@@ -3,7 +3,7 @@
 This document describes the structure of `stoa-registry.json`, the JSON
 document produced by `stoa scan`.
 
-**Current schema version: `1.2`**
+**Current schema version: `1.3`**
 
 ## Versioning policy
 
@@ -37,13 +37,16 @@ document produced by `stoa scan`.
 | `evidence_tags` | array | e.g. `system_role_interpolation`, `local_endpoint_observed` |
 
 **On an agent candidate:** `dimension_assessment` — per-dimension exposure
-block: `{taxonomy: {id, version}, dimensions: [{id, assessability, exposure,
-score, contributing_findings, contributing_capabilities, controls_observed,
-statement}]}`. `exposure` ∈ `elevated | moderate | low | none-observed |
-not-assessable` (never "safe"/"covered"); proxy-tier dimensions are capped at
-`moderate`. **On a finding:** `dimensions` — the dimension ids it contributes
-to. **Top-level:** `dimension_summary` — org rollup (per-dimension max exposure
-and agent counts); `degraded_files` — files whose AST parse degraded.
+block: `{taxonomy: {id, version}, dimensions: [{id, group, assessability,
+exposure, score, contributing_findings, contributing_capabilities,
+controls_observed, statement}]}`. `exposure` ∈ `elevated | moderate | low |
+none-observed | not-assessable` (never "safe"/"covered"); proxy-tier
+dimensions are capped at `moderate`. `group` (schema 1.3+) is a display
+grouping letter (e.g. `A`–`D` on the default taxonomy) — empty string on a
+custom taxonomy that doesn't define groups. **On a finding:** `dimensions` —
+the dimension ids it contributes to. **Top-level:** `dimension_summary` — org
+rollup (per-dimension max exposure and agent counts); `degraded_files` —
+files whose AST parse degraded.
 
 ## Schema 1.2 additions (Assurance layer)
 
@@ -88,10 +91,35 @@ facts against what the scan actually observed — e.g. `DECL001` fires when
 [docs/declarations.md](docs/declarations.md) for the full rule table.
 
 **Top-level:** `business` — `{industries?, regulated_activities?,
-max_customer_dependency?}`. `governance` — `{release_approval,
-incident_response, risk_acceptance?}`. `evidence` — pointers only, grouped by
-category (`testing`, `monitoring`, `contracts`, `historical`), each entry
+max_customer_dependency?, societal_risk_flags?}`. `governance` —
+`{release_approval, incident_response, risk_acceptance?,
+harmful_output_policy?}`. `evidence` — pointers only, grouped by category
+(`testing`, `safety_testing`, `monitoring`, `contracts`, `vendor`,
+`historical`, or any other caller-supplied category name), each entry
 `{kind, ref, date?}`. All three present only when `stoa-declared.toml` exists.
+
+## Schema 1.3 additions (AIUC-1 alignment)
+
+Renames the default dimension taxonomy's ids and adds a display `group`
+field — see [docs/dimensions.md](docs/dimensions.md) for the full rationale
+and the old→new id mapping. This is the default taxonomy shipped with the
+binary (`stoa-aiuc-8`, v2.0, replacing `stoa-default-8` v1.0); a custom
+taxonomy supplied via `[dimensions] taxonomy` is unaffected.
+
+Two new optional declared fields, both additive and both attestation-only
+(never scored — see [docs/dimensions.md](docs/dimensions.md)):
+`business.societal_risk_flags` (list, subset of `critical_infrastructure |
+biosecurity_adjacent | mass_influence`) and `governance.harmful_output_policy`
+(string pointer). Two new recognized `evidence` categories:
+`safety_testing` and `vendor`, same `{kind, ref, date?}` shape as the
+existing categories.
+
+`assurance-packet/1.1` (produced by `stoa export --assurance`, not part of
+`stoa-registry.json` itself): the packet's 14 areas become 18, each now
+carrying a `group` key (one of `index`, `A`–`F`, `G`) that groups them under
+[AIUC-1](https://www.aiuc-1.com/)'s six standard categories plus a seventh,
+Stoa-only group for insurance-specific exposure. See
+[docs/assurance-export.md](docs/assurance-export.md).
 
 ## Top-level document
 

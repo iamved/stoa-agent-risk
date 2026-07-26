@@ -51,6 +51,7 @@ class Dimension:
     name: str
     definition: str
     assessability: str
+    group: str = ""
 
 
 @dataclass
@@ -85,7 +86,7 @@ def _parse_taxonomy(data: dict, source: str) -> Taxonomy:
         raise TaxonomyError(f"{source}: taxonomy needs [taxonomy] id/version and [[dimensions]]")
     dimensions = [
         Dimension(d["id"], d.get("name", d["id"]), d.get("definition", ""),
-                  d.get("assessability", "partial"))
+                  d.get("assessability", "partial"), d.get("group", ""))
         for d in dims_raw
     ]
     scoring = data.get("scoring", {})
@@ -127,11 +128,11 @@ def _rule_dims(finding: Finding, taxonomy: Taxonomy) -> list[str]:
     if finding.rule_id == "AI005":
         v = finding.variant
         if v == "floating-alias":
-            return ["behavioral-instability", "model-drift"]
+            return ["conduct-variability", "dependency-drift"]
         if v in ("trust-remote-code", "unpinned-artifact"):
-            return ["adversarial-manipulation"]
+            return ["injection-tamper-surface"]
         if v == "insecure-endpoint":
-            return ["model-drift"]
+            return ["dependency-drift"]
     return taxonomy.rule_dimensions.get(finding.rule_id, [])
 
 
@@ -207,7 +208,7 @@ def assess_agent(agent: AgentCandidate, content: str, providers: list[str],
                 score += taxonomy.capability_weight
                 contrib_cap.append(cap)
 
-        if dim.id == "model-drift" and providers:
+        if dim.id == "dependency-drift" and providers:
             score += taxonomy.provider_weight
             contrib_cap.append(f"provider:{sorted(providers)[0]}")
 
@@ -225,6 +226,7 @@ def assess_agent(agent: AgentCandidate, content: str, providers: list[str],
 
         entries.append({
             "id": dim.id,
+            "group": dim.group,
             "assessability": dim.assessability,
             "exposure": exposure,
             "score": final,
@@ -242,6 +244,7 @@ def assess_agent(agent: AgentCandidate, content: str, providers: list[str],
     if unclassified_findings:
         entries.append({
             "id": UNCLASSIFIED,
+            "group": "",
             "assessability": "partial",
             "exposure": "low",
             "score": 0,
@@ -269,6 +272,7 @@ def dimension_summary(agents: list[AgentCandidate], taxonomy: Taxonomy) -> dict:
         dims.append({
             "id": dim.id,
             "name": dim.name,
+            "group": dim.group,
             "assessability": dim.assessability,
             "max_exposure": max_exp,
             "agents_elevated": levels.count("elevated"),
