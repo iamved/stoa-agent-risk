@@ -25,6 +25,7 @@ NAV = [
     ]),
     ("Examples", [
         ("Meridian — a multi-agent app", "example"),
+        ("Threshold — a voice-agent stress test", "threshold"),
     ]),
     ("Rules", [
         ("Rules overview", "rules"),
@@ -501,6 +502,76 @@ def _mesh_positions(n, rx=41, ry=39):
              50 + ry * _math.sin(-_math.pi / 2 + i * 2 * _math.pi / n)) for i in range(n)]
 
 
+def threshold_body() -> str:
+    return """
+<h1>Example: a generic voice-agent stress test</h1>
+<p><strong>Threshold</strong> is a fictional voice-based screening/intake platform — the kind of
+thing that could sit under hiring pre-screens, research-participant recruitment, or program
+eligibility checks. It's deliberately horizontal: the point isn't the business, it's the risk
+shape a live, unsupervised conversation with a real person creates, and whether Stoa's detectors
+hold up against it. Eleven agents, MCP client + server + two deliberate MCP detection gaps, one
+finding planted per Stoa risk dimension, and a genuine participant-incentive payout agent so all
+14 assurance-packet areas — including Economic authority — have real content, not an empty box.
+The full source is in
+<a href="https://github.com/iamved/stoa-agent-risk/tree/main/examples/threshold-voice">examples/threshold-voice</a>.</p>
+
+<h2>Architecture</h2>
+<pre><code>caller (voice) → orchestrator → conversation_agent → intake MCP server
+                     ↓                                     ↑
+                extraction_agent                  escalation_agent
+                     ↓                                     ↓
+                 (database)                          (database, no gate)
+                                                            ↓
+                                                       notifier → analytics
+</code></pre>
+
+<h2>The agents</h2>
+<div class="table-wrap"><table><thead><tr><th>Agent</th><th>Framework</th><th>Planted to exercise</th></tr></thead><tbody>
+<tr><td><code>orchestrator</code></td><td>hand-rolled</td><td>AI001 — voice transcript → prompt</td></tr>
+<tr><td><code>conversation_agent</code></td><td>LangGraph</td><td>AI005 floating-alias; declares a data class Stoa can't scan for</td></tr>
+<tr><td><code>extraction_agent</code></td><td>hand-rolled</td><td>AI002/sql, CTRL005 — lands <code>indeterminate</code> on the autonomy ladder</td></tr>
+<tr><td><code>escalation_agent</code></td><td>CrewAI</td><td>AI002/sql, AI003 — inferred <code>unrestricted_autonomous</code>, declared <code>human_approved</code> → DECL001</td></tr>
+<tr><td><code>incentive_agent</code></td><td>LangChain</td><td>pays participants via Stripe (<code>move_funds</code>), a real spend ceiling → inferred <code>bounded_autonomous</code> — undeclared → DECL003</td></tr>
+<tr><td><code>consent_manager</code></td><td>LangChain</td><td>the well-controlled baseline — zero contradictions</td></tr>
+<tr><td><code>notifier</code></td><td>hand-rolled (not agentic)</td><td>AI006 — participant email → third-party analytics</td></tr>
+<tr><td><code>intake_tools</code></td><td>MCP server</td><td>a genuine agentic surface in its own right</td></tr>
+<tr><td><code>calendar_client</code></td><td>pure MCP client (py)</td><td>invisible on purpose — no other agentic signal</td></tr>
+<tr><td><code>widget_client</code></td><td>pure MCP client (ts)</td><td>misclassified on purpose — labeled "MCP server" despite being a client</td></tr>
+</tbody></table></div>
+
+<h2>All four autonomy-ladder levels, one fixture</h2>
+<div class="table-wrap"><table><thead><tr><th>Level</th><th>Agent</th><th>Why</th></tr></thead><tbody>
+<tr><td><code>recommend_only</code></td><td>consent_manager, conversation_agent, orchestrator</td><td>no side-effecting path from model output, or no other correlating signal</td></tr>
+<tr><td><code>bounded_autonomous</code></td><td>incentive_agent</td><td>a real hardcoded spend ceiling, no approval gate</td></tr>
+<tr><td><code>unrestricted_autonomous</code></td><td>escalation_agent</td><td>high-impact database write, no approval, no bounding</td></tr>
+<tr><td><code>indeterminate</code></td><td>extraction_agent</td><td>a real sink and a real high-impact capability, but no tool-binding evidence — the classifier won't guess</td></tr>
+</tbody></table></div>
+<p><code>human_approved</code> is the one level not demonstrated here — Meridian's <code>payments.py</code>
+already covers it.</p>
+
+<h2>Two discovered detection gaps</h2>
+<p>Building this fixture surfaced two real gaps worth knowing about — the point of a stress-test
+fixture is to make gaps concrete, not paper over them.</p>
+<p><strong>MCP client vs. server isn't disambiguated.</strong> <code>intake_tools.py</code> is a
+genuine server; <code>widget_client.ts</code> only imports the SDK's client subpath. Both get
+<code>frameworks=["mcp"]</code> and render identically as an MCP-server node, because the JS/TS
+trigger is a bare substring match on <code>@modelcontextprotocol/sdk</code> with no path
+awareness. <code>calendar_client.py</code> shows the inverse on the Python side: pure client glue
+with no other agentic signal never clears the agentic-signal floor at all.</p>
+<p><strong>A declared data class can be scan-blind.</strong> <code>conversation_agent</code>
+accurately declares <code>data_classes = ["personal"]</code>. DECL004 (undeclared data class)
+only cross-checks the <code>"authentication"</code> class today, tied to a leaked-secret signal —
+there's no scan-side pattern for "this code touches personal data" at all. The declaration is
+accurate and will never be contradicted, correct or not.</p>
+
+<div class="callout">Run it yourself: <code>stoa scan examples/threshold-voice</code>, or read the
+<a href="https://github.com/iamved/stoa-agent-risk/blob/main/examples/threshold-voice/README.md">full README</a>
+for the dimension-coverage map. The
+<a href="https://github.com/iamved/stoa-agent-risk/blob/main/examples/threshold-voice/run-e2e.sh">run-e2e.sh</a>
+driver asserts 26 checks, including both MCP gaps and the DECL001/DECL003 contradictions.</div>
+"""
+
+
 def meridian_body() -> str:
     pos = _mesh_positions(len(_AGENTS))
     conn = "".join(f'<line x1="50" y1="50" x2="{x:.1f}" y2="{y:.1f}"/>' for x, y in pos)
@@ -607,6 +678,7 @@ CARDS = [
     ("📋", "Assurance export", "The 14-area assurance packet — declared facts cross-checked against what the scan observed, gaps included.", "/docs/assurance-export"),
     ("🛡️", "Rules", "Sixteen core/control rules, eight AI rules, and seven contradiction rules.", "/docs/rules"),
     ("🏦", "Meridian example", "A full multi-agent app, scanned end to end — the reference to follow.", "/docs/example"),
+    ("🎙️", "Threshold example", "A generic voice agent stress test — MCP client/server gaps, the autonomy ladder, one finding per risk dimension.", "/docs/threshold"),
     ("🧬", "JSON schema", "The registry schema (1.2), additive-first, with reserved fields.", "/docs/schema"),
 ]
 
@@ -673,6 +745,7 @@ PAGES = [
     ("configuration", "Configuration", CONFIGURATION, None, "stoa.toml, suppression, and .stoaignore."),
     ("schema", "JSON schema", read(REPO / "SCHEMA.md"), None, "The stoa-registry.json schema."),
     ("example", "Example: Meridian", meridian_body, None, "A worked multi-agent app (Meridian) scanned end to end by Stoa."),
+    ("threshold", "Example: Threshold", threshold_body, None, "A generic voice-agent stress test: MCP client/server gaps, autonomy ladder, and the contradiction detector."),
 ]
 for rule in ("AI001", "AI002", "AI003", "AI004", "AI005", "AI006", "AI007",
              "CTRL004", "CTRL005", "CTRL006", "CTRL007",

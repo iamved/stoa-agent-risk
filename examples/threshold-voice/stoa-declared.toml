@@ -1,0 +1,70 @@
+# Declared facts for Threshold, cross-checked by the scanner (Assurance
+# layer). Two things here are deliberate:
+#
+# 1. escalation_agent (decision_agent) is declared human_approved -- the
+#    scanner infers unrestricted_autonomous (an UPDATE with no gating
+#    construct anywhere in the file). That's DECL001, on purpose.
+# 2. conversation_agent declares data_classes = ["personal"] -- accurately!
+#    But DECL004 only cross-checks the "authentication" class today (it's
+#    tied to a leaked-secret signal, not a general PII detector), so this
+#    declaration can never be contradicted even if it were wrong. That's
+#    not a bug in this fixture -- it's a real gap in what Stoa can verify,
+#    demonstrated on purpose. See the README.
+# 3. incentive_agent pays participants via Stripe (a real move_funds
+#    permission) and has a genuine hardcoded spend ceiling in code -- but is
+#    left OUT of this file entirely, so no economic_authority is declared
+#    for it. That's DECL003: the ceiling is real, it was just never
+#    governed. Deliberate, not an oversight.
+#
+# escalation_agent's other detection (`crew`), incentive_agent, and
+# intake_tools/orchestrator are left undeclared -- a realistic partial
+# rollout, and it exercises DECL006 (declared file exists, this agent
+# isn't in it).
+
+version = 1
+
+[business]
+industries = ["research", "hr-tech"]
+regulated_activities = ["automated_decision_making"]
+max_customer_dependency = "medium"
+
+[agents."10f550b50eee"]                 # agents/escalation_agent.py :: decision_agent
+name = "escalation_decision_agent"
+owner = "trust-safety@threshold.example"
+purpose = "Decides whether to advance or reject a completed screening interview"
+production_status = "production"
+autonomy_intent = "human_approved"      # WRONG on purpose -- see header
+data_classes = ["personal"]
+
+[agents."b9ae54475608"]                 # agents/conversation_agent.py :: graph
+name = "conversation_agent"
+owner = "product@threshold.example"
+purpose = "Runs the adaptive interview and decides what to ask next"
+production_status = "production"
+autonomy_intent = "recommend_only"
+data_classes = ["personal"]             # accurate, but scan-blind -- see header
+
+[agents."1637c00f9757"]                 # agents/consent_manager.py :: agent
+name = "consent_manager"
+owner = "privacy@threshold.example"
+purpose = "Verifies consent and recommends transcript redactions before storage"
+production_status = "production"
+autonomy_intent = "recommend_only"      # matches inferred -- zero contradictions
+data_classes = ["personal"]
+
+[governance]
+release_approval = "Documented in RELEASING.md"
+incident_response = "runbooks/incident-response.md"
+
+[governance.risk_acceptance]
+owner = "cto@threshold.example"
+date = "2026-06-01"
+
+[[evidence.testing]]
+kind = "prompt_injection"
+ref = "evals/voice-injection-suite/results.json"
+date = "2026-07-01"
+
+[[evidence.monitoring]]
+kind = "dashboard"
+ref = "https://grafana.internal/d/threshold-agents"
