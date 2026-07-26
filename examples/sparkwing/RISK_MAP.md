@@ -15,15 +15,15 @@ generic OWASP checklist bolted on afterward.
 | Real feature | Agent | Planted finding(s) | Dimensions lit |
 |---|---|---|---|
 | Mentor pairing (staff-confirmed) | `mentor_matcher` | **none** — golden baseline | *(contrast — see below)* |
-| Project-sector chat with a student | `sector_advisor` | AI001, AI005 floating-alias, AI007 | adversarial-manipulation, model-drift, behavioral-instability |
-| Portfolio badge certification | `portfolio_certifier` / `_executor` | AI002/sql, AI003, **DECL001** | output-integrity, unauthorized-action, scope-violation |
-| Auto-grading sandbox | `project_sandbox` / `_executor` | **AI002/exec (gate-eligible)**, CTRL006, **DECL006** | scope-violation, unauthorized-action, operational-control |
-| Parent progress updates + usage sync | `progress_notifier` / `_executor` | AI006, REL001, NET002 | data-exfiltration, operational-control |
+| Project-sector chat with a student | `sector_advisor` | AI001, AI005 floating-alias, AI007 | injection-tamper-surface, dependency-drift, conduct-variability |
+| Portfolio badge certification | `portfolio_certifier` / `_executor` | AI002/sql, AI003, **DECL001** | output-fidelity, unreviewed-high-impact-action, mandate-overreach |
+| Auto-grading sandbox | `project_sandbox` / `_executor` | **AI002/exec (gate-eligible)**, CTRL006, **DECL006** | mandate-overreach, unreviewed-high-impact-action, control-coverage-gap |
+| Parent progress updates + usage sync | `progress_notifier` / `_executor` | AI006, REL001, NET002 | boundary-leakage, control-coverage-gap |
 
-Resulting matrix: **scope-violation and unauthorized-action reach elevated**
-(2 agents each, driven by the DECL001 contradiction below); data-exfiltration,
-output-integrity, and adversarial-manipulation reach moderate; behavioral-
-instability and model-drift stay low, correctly — they're proxy dimensions,
+Resulting matrix: **mandate-overreach and unreviewed-high-impact-action reach elevated**
+(2 agents each, driven by the DECL001 contradiction below); boundary-leakage,
+output-fidelity, and injection-tamper-surface reach moderate; conduct-variability
+and dependency-drift stay low, correctly — they're proxy dimensions,
 capped below elevated by design, never claiming to have measured runtime
 behavior from a config signal alone.
 

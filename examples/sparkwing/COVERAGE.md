@@ -37,16 +37,16 @@ PII → unapproved egress), AI007 (no sampling bound, correlates with
   all (left out on purpose); fires on both symbols.
 - `stoa export --assurance` (both `--format md` and `--format json`) — the
   Contradictions section surfaces all 4 DECL findings with both evidence
-  links; the 14-area packet renders with no crash.
+  links; the 18-area packet renders with no crash.
 - **Zero declaration warnings** — every `stoa-declared.toml` key validates
   (no unknown agent ids, no invalid enum values).
 
 ## Dimensions
 All 8 populate with non-zero, non-"not-assessable" evidence:
-scope-violation and unauthorized-action reach **elevated** (via DECL001/006);
-data-exfiltration, output-integrity, adversarial-manipulation reach
-**moderate**; behavioral-instability and model-drift correctly stay **low**
-(proxy dimensions, capped below elevated by design); operational-control
+mandate-overreach and unreviewed-high-impact-action reach **elevated** (via DECL001/006);
+boundary-leakage, output-fidelity, injection-tamper-surface reach
+**moderate**; conduct-variability and dependency-drift correctly stay **low**
+(proxy dimensions, capped below elevated by design); control-coverage-gap
 stays **low** (its evidence is inherently low-severity review prompts).
 
 ## False positives (precision proof)

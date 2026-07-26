@@ -71,7 +71,7 @@ hr{border:none;border-top:1px solid var(--line);margin:26px 0}
   <button class="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">◐</button>
 </header>
 <div class="layout">
-<nav class="sidebar" id="sidebar"><div class="nav-section">Getting started</div><a class="nav-link" href="/">Overview</a><a class="nav-link" href="/docs/getting-started">Install &amp; first scan</a><div class="nav-section">Concepts</div><a class="nav-link" href="/docs/dimensions">Dimension exposure</a><a class="nav-link" href="/docs/diff">Capability drift</a><a class="nav-link" href="/docs/graph">Architecture graph</a><a class="nav-link active" href="/docs/declarations">Declarations</a><a class="nav-link" href="/docs/autonomy">Autonomy inference</a><a class="nav-link" href="/docs/assurance-export">Assurance export</a><div class="nav-section">Examples</div><a class="nav-link" href="/docs/example">Meridian — a multi-agent app</a><a class="nav-link" href="/docs/threshold">Threshold — a voice-agent stress test</a><a class="nav-link" href="/docs/sparkwing">Sparkwing — an ed-tech dimension map</a><div class="nav-section">Rules</div><a class="nav-link" href="/docs/rules">Rules overview</a><a class="nav-link" href="/docs/rules/AI001">AI001 · Prompt exposure</a><a class="nav-link" href="/docs/rules/AI002">AI002 · Output → exec</a><a class="nav-link" href="/docs/rules/AI003">AI003 · Unobserved approval</a><a class="nav-link" href="/docs/rules/AI004">AI004 · Sensitive interpolation</a><a class="nav-link" href="/docs/rules/AI005">AI005 · Unpinned model</a><a class="nav-link" href="/docs/rules/AI006">AI006 · Network exfiltration</a><a class="nav-link" href="/docs/rules/AI007">AI007 · Sampling config</a><a class="nav-link" href="/docs/rules/CTRL004">CTRL004 · Observability</a><a class="nav-link" href="/docs/rules/CTRL005">CTRL005 · Rate limiting on loops</a><a class="nav-link" href="/docs/rules/CTRL006">CTRL006 · Sandboxing on exec paths</a><a class="nav-link" href="/docs/rules/CTRL007">CTRL007 · Kill-switch signal</a><a class="nav-link" href="/docs/rules/DECL001">DECL001 · Autonomy contradiction</a><a class="nav-link" href="/docs/rules/DECL002">DECL002 · No enforcement observed</a><a class="nav-link" href="/docs/rules/DECL003">DECL003 · No economic authority declared</a><a class="nav-link" href="/docs/rules/DECL004">DECL004 · Undeclared data class</a><a class="nav-link" href="/docs/rules/DECL005">DECL005 · Production, no observability</a><a class="nav-link" href="/docs/rules/DECL006">DECL006 · No declaration entry</a><a class="nav-link" href="/docs/rules/DECL007">DECL007 · Stale declaration</a><div class="nav-section">Reference</div><a class="nav-link" href="/docs/cli">CLI</a><a class="nav-link" href="/docs/configuration">Configuration</a><a class="nav-link" href="/docs/schema">JSON schema</a><div class="nav-section">More</div><a class="nav-link" href="/case-study">Case study</a><a class="nav-link" href="/demo-report">Live scan report</a></nav>
+<nav class="sidebar" id="sidebar"><div class="nav-section">Getting started</div><a class="nav-link" href="/">Overview</a><a class="nav-link" href="/docs/getting-started">Install &amp; first scan</a><div class="nav-section">Concepts</div><a class="nav-link" href="/docs/dimensions">Dimension exposure</a><a class="nav-link" href="/docs/diff">Capability drift</a><a class="nav-link" href="/docs/graph">Architecture graph</a><a class="nav-link active" href="/docs/declarations">Declarations</a><a class="nav-link" href="/docs/autonomy">Autonomy inference</a><a class="nav-link" href="/docs/assurance-export">Assurance export</a><div class="nav-section">Pilot use cases</div><a class="nav-link" href="/docs/example">Meridian — a multi-agent app</a><a class="nav-link" href="/docs/threshold">Threshold — a voice-agent stress test</a><a class="nav-link" href="/docs/sparkwing">Sparkwing — an ed-tech dimension map</a><div class="nav-section">Rules</div><a class="nav-link" href="/docs/rules">Rules overview</a><a class="nav-link" href="/docs/rules/AI001">AI001 · Prompt exposure</a><a class="nav-link" href="/docs/rules/AI002">AI002 · Output → exec</a><a class="nav-link" href="/docs/rules/AI003">AI003 · Unobserved approval</a><a class="nav-link" href="/docs/rules/AI004">AI004 · Sensitive interpolation</a><a class="nav-link" href="/docs/rules/AI005">AI005 · Unpinned model</a><a class="nav-link" href="/docs/rules/AI006">AI006 · Network exfiltration</a><a class="nav-link" href="/docs/rules/AI007">AI007 · Sampling config</a><a class="nav-link" href="/docs/rules/CTRL004">CTRL004 · Observability</a><a class="nav-link" href="/docs/rules/CTRL005">CTRL005 · Rate limiting on loops</a><a class="nav-link" href="/docs/rules/CTRL006">CTRL006 · Sandboxing on exec paths</a><a class="nav-link" href="/docs/rules/CTRL007">CTRL007 · Kill-switch signal</a><a class="nav-link" href="/docs/rules/DECL001">DECL001 · Autonomy contradiction</a><a class="nav-link" href="/docs/rules/DECL002">DECL002 · No enforcement observed</a><a class="nav-link" href="/docs/rules/DECL003">DECL003 · No economic authority declared</a><a class="nav-link" href="/docs/rules/DECL004">DECL004 · Undeclared data class</a><a class="nav-link" href="/docs/rules/DECL005">DECL005 · Production, no observability</a><a class="nav-link" href="/docs/rules/DECL006">DECL006 · No declaration entry</a><a class="nav-link" href="/docs/rules/DECL007">DECL007 · Stale declaration</a><div class="nav-section">Reference</div><a class="nav-link" href="/docs/cli">CLI</a><a class="nav-link" href="/docs/configuration">Configuration</a><a class="nav-link" href="/docs/schema">JSON schema</a><div class="nav-section">More</div><a class="nav-link" href="/case-study">Case study</a><a class="nav-link" href="/demo-report">Live scan report</a></nav>
 <main>
 <h1 id="declarations-stoa-declared-toml">Declarations — <code>stoa-declared.toml</code></h1>
 <p>Code can't tell you who owns an agent, what it's for, or how much money it's allowed to move. <code>stoa-declared.toml</code> captures those human-supplied facts as structured, git-reviewed metadata — and the scanner cross-checks them against what it actually observes (see <a href="/docs/autonomy">Autonomy inference</a> and the <a href="#contradiction-detector">contradiction detector</a> below).</p>
@@ -83,6 +83,8 @@ hr{border:none;border-top:1px solid var(--line);margin:26px 0}
 industries = ["fintech"]
 regulated_activities = ["payments"]
 max_customer_dependency = "high"   # low|medium|high|critical
+societal_risk_flags = []           # critical_infrastructure|biosecurity_adjacent|mass_influence
+                                    # attestation only (AIUC-1 Society) — Stoa never scores this
 
 [agents."66d8239dad0b"]            # keyed by the scanned agent id (the
 name = "billing_agent"             # stable 12-hex hash), not a human slug —
@@ -102,6 +104,7 @@ worst_case_customer_loss = {amount = 50000, currency = "USD"}
 [governance]
 release_approval = "Documented in RELEASING.md"
 incident_response = "runbooks/ir.md"
+harmful_output_policy = "docs/safety/risk-taxonomy.md"   # AIUC-1 Safety
 
 [governance.risk_acceptance]
 owner = "cto@acme.com"
@@ -110,8 +113,18 @@ date = "2026-07-01"
 [[evidence.testing]]
 kind = "prompt_injection"
 ref = "evals/pi-suite/results.json"
-date = "2026-07-10"</code></pre>
-<p><code>evidence</code> accepts four categories: <code>testing</code>, <code>monitoring</code>, <code>contracts</code>, <code>historical</code> — each a list of <code>{kind, ref, date?}</code> pointers. Stoa never reads or validates the referenced artifact; it only records that a pointer exists.</p>
+date = "2026-07-10"
+
+[[evidence.safety_testing]]
+kind = "harmful_output"
+ref = "evals/safety-suite/results.json"
+date = "2026-07-10"
+
+[[evidence.vendor]]
+kind = "vendor_review"
+ref = "vendor/openai-review-2026.pdf"
+date = "2026-06-01"</code></pre>
+<p><code>evidence</code> accepts any category — Stoa recognizes <code>testing</code>, <code>safety_testing</code>, <code>monitoring</code>, <code>contracts</code>, <code>historical</code>, <code>vendor</code> (each a list of <code>{kind, ref, date?}</code> pointers) and surfaces them in the matching <a href="/docs/assurance-export">assurance packet</a> area; unrecognized categories are preserved but won't be picked up by a named area. Stoa never reads or validates the referenced artifact; it only records that a pointer exists.</p>
 <h2 id="getting-started">Getting started</h2>
 <pre class="code" data-lang="bash"><code>stoa scan .                 # produces stoa-registry.json with real agent ids
 stoa init declarations      # stubs stoa-declared.toml from those ids</code></pre>

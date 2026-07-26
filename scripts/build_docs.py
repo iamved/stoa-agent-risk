@@ -602,21 +602,21 @@ weekly cron      → progress_notifier      (LangChain, SendGrid + third-party H
 <td>none — golden baseline</td><td>contrast case</td></tr>
 <tr><td>Project-sector chat with a student</td><td><code>sector_advisor</code></td>
 <td>AI001, AI005 floating-alias, AI007</td>
-<td>adversarial-manipulation, model-drift, behavioral-instability</td></tr>
+<td>injection-tamper-surface, dependency-drift, conduct-variability</td></tr>
 <tr><td>Portfolio badge certification</td><td><code>portfolio_certifier</code></td>
 <td>AI002/sql, AI003, <strong>DECL001</strong></td>
-<td>output-integrity, unauthorized-action, scope-violation</td></tr>
+<td>output-fidelity, unreviewed-high-impact-action, mandate-overreach</td></tr>
 <tr><td>Auto-grading sandbox</td><td><code>project_sandbox</code></td>
 <td><strong>AI002/exec (gate-eligible)</strong>, CTRL006, <strong>DECL006</strong></td>
-<td>scope-violation, unauthorized-action, operational-control</td></tr>
+<td>mandate-overreach, unreviewed-high-impact-action, control-coverage-gap</td></tr>
 <tr><td>Parent updates + usage sync</td><td><code>progress_notifier</code></td>
 <td>AI006, REL001, NET002</td>
-<td>data-exfiltration, operational-control</td></tr>
+<td>boundary-leakage, control-coverage-gap</td></tr>
 </tbody></table></div>
-<p>Resulting matrix, from a real scan: <strong>scope-violation and unauthorized-action reach
+<p>Resulting matrix, from a real scan: <strong>mandate-overreach and unreviewed-high-impact-action reach
 elevated</strong> — driven entirely by the contradiction detector below — while
-data-exfiltration, output-integrity, and adversarial-manipulation reach moderate.
-Behavioral-instability and model-drift correctly stay low: they're proxy dimensions, capped below
+boundary-leakage, output-fidelity, and injection-tamper-surface reach moderate.
+Conduct-variability and dependency-drift correctly stay low: they're proxy dimensions, capped below
 elevated by design, never claiming to have measured runtime behavior from a config signal alone.</p>
 
 <h2>The contradiction detector, twice</h2>
