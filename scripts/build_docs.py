@@ -23,7 +23,7 @@ NAV = [
         ("Autonomy inference", "autonomy"),
         ("Assurance export", "assurance-export"),
     ]),
-    ("Examples", [
+    ("Pilot use cases", [
         ("Meridian — a multi-agent app", "example"),
         ("Threshold — a voice-agent stress test", "threshold"),
         ("Sparkwing — an ed-tech dimension map", "sparkwing"),
