@@ -19,7 +19,10 @@ pipx install stoa-agent-risk
 The driver copies the fixture into a throwaway git repo, builds a base and head
 commit (so `stoa diff` has drift to find), then runs the whole tool surface and
 asserts each outcome. See [COVERAGE.md](COVERAGE.md) for the feature→assertion
-map.
+map, or [WALKTHROUGH.md](WALKTHROUGH.md) for a step-by-step tour — one command
+per step, each producing a different output (HTML report, SARIF, the diff
+changelog, the assurance packet, the architecture graph) with real output
+captured from this fixture.
 
 ## The agents
 

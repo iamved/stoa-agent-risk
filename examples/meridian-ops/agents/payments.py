@@ -13,7 +13,7 @@ agent = create_tool_calling_agent(llm, tools, "You move money.")
 executor = AgentExecutor(agent=agent, tools=tools)
 
 def issue_refund(customer, amount):
-    stripe.Refund.create(amount=amount)                            # payment_access, no approval -> AI003
+    stripe.Refund.create(amount=amount)                            # payment_access, no gate -> AI003
     conn = psycopg2.connect(os.environ["DB_URL"])
     conn.cursor().execute(f"UPDATE ledger SET refunded=1 WHERE id={customer['id']}")  # db_write
 
