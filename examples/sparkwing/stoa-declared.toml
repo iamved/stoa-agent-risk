@@ -1,0 +1,83 @@
+# Declared facts for Sparkwing, cross-checked by the scanner (Assurance
+# layer). One entry is deliberately wrong -- portfolio_certifier is declared
+# human_approved (a second set of eyes on every badge outcome), but the
+# scanner infers unrestricted_autonomous (an unguarded model-output-to-SQL
+# write with no approval gate). That's DECL001, on purpose.
+#
+# project_sandbox is left out of this file entirely, on purpose too: it's a
+# real scanned agent with no declaration at all, which is exactly the gap
+# DECL006 exists to name.
+
+version = 1
+
+[business]
+industries = ["education"]
+regulated_activities = ["education_records"]
+max_customer_dependency = "high"
+
+[agents."f5336ad99023"]                 # agents/mentor_matcher.py :: agent
+name = "mentor_matcher"
+owner = "learning-eng@sparkwing.example"
+purpose = "Suggests a mentor pairing for staff to confirm"
+users = "internal"
+production_status = "production"
+autonomy_intent = "recommend_only"
+data_classes = ["personal"]
+
+[agents."2bbb1a53b942"]                 # agents/portfolio_certifier.py :: agent
+name = "portfolio_certifier"
+owner = "learning-eng@sparkwing.example"
+purpose = "Decides whether a project submission earns a portfolio badge"
+users = "customers"
+production_status = "production"
+autonomy_intent = "human_approved"      # WRONG on purpose -- see header
+data_classes = ["personal"]
+
+[agents."48d190c5af6c"]                 # agents/portfolio_certifier.py :: executor
+name = "portfolio_certifier_executor"
+owner = "learning-eng@sparkwing.example"
+purpose = "Decides whether a project submission earns a portfolio badge"
+users = "customers"
+production_status = "production"
+autonomy_intent = "human_approved"      # WRONG on purpose -- see header
+data_classes = ["personal"]
+
+[agents."a332ef61e9ee"]                 # agents/progress_notifier.py :: agent
+name = "progress_notifier"
+owner = "family-eng@sparkwing.example"
+purpose = "Drafts and sends the weekly parent progress update"
+users = "customers"
+production_status = "production"
+autonomy_intent = "recommend_only"
+data_classes = ["personal"]
+
+[agents."b7699551ca07"]                 # agents/progress_notifier.py :: executor
+name = "progress_notifier_executor"
+owner = "family-eng@sparkwing.example"
+purpose = "Drafts and sends the weekly parent progress update"
+users = "customers"
+production_status = "production"
+autonomy_intent = "recommend_only"
+data_classes = ["personal"]
+
+[agents."c237adc7c1e7"]                 # agents/sector_advisor.py :: sector_advisor
+name = "sector_advisor"
+owner = "learning-eng@sparkwing.example"
+purpose = "Chats with a student about which project sector to try next"
+users = "customers"
+production_status = "production"
+autonomy_intent = "recommend_only"
+data_classes = ["personal"]
+
+[governance]
+release_approval = "Documented in RELEASING.md"
+incident_response = "runbooks/incident-response.md"
+
+[governance.risk_acceptance]
+owner = "coo@sparkwing.example"
+date = "2026-06-01"
+
+[[evidence.testing]]
+kind = "prompt_injection"
+ref = "evals/pi-suite/results.json"
+date = "2026-07-01"

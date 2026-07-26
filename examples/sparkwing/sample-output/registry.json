@@ -1,0 +1,2992 @@
+{
+  "schema_version": "1.2",
+  "tool": {
+    "name": "stoa",
+    "version": "0.3.0"
+  },
+  "repository": {
+    "name": "sparkwing",
+    "root": ".",
+    "git_ref": null,
+    "base_ref": null
+  },
+  "summary": {
+    "files_scanned": 8,
+    "agent_candidates": 8,
+    "high_confidence_candidates": 8,
+    "integrations": 2,
+    "findings": {
+      "critical": 5,
+      "high": 1,
+      "medium": 4,
+      "low": 7,
+      "info": 29
+    },
+    "new_findings": {
+      "critical": 0,
+      "high": 0,
+      "medium": 0,
+      "low": 0,
+      "info": 0
+    },
+    "suppressed_findings": 0
+  },
+  "agents": [
+    {
+      "id": "f5336ad99023",
+      "name": "agent",
+      "symbol": "agent",
+      "path": "agents/mentor_matcher.py",
+      "language": "python",
+      "confidence": "high",
+      "detection_score": 16,
+      "evidence": [
+        {
+          "rule_id": "AGENT_LANGCHAIN",
+          "line": 27,
+          "description": "LangChain agent construct"
+        },
+        {
+          "rule_id": "AGENT_LANGGRAPH",
+          "line": 27,
+          "description": "LangGraph agent construct"
+        },
+        {
+          "rule_id": "AGENT_EXECUTION",
+          "line": 28,
+          "description": "Agent execution or orchestration call"
+        },
+        {
+          "rule_id": "AGENT_TOOLS",
+          "line": 27,
+          "description": "Tool or function schema"
+        },
+        {
+          "rule_id": "AGENT_PROVIDER_IMPORT",
+          "line": 14,
+          "description": "LLM provider import or reference"
+        }
+      ],
+      "providers": [
+        "anthropic"
+      ],
+      "frameworks": [
+        "langchain",
+        "langgraph"
+      ],
+      "integrations": [],
+      "capabilities": [
+        "tool_calling"
+      ],
+      "permission_tags": [],
+      "call_sites": {},
+      "last_touched_by": null,
+      "last_commit": null,
+      "codeowners": [],
+      "findings": [
+        {
+          "fingerprint": "619e16ba35b56911",
+          "rule_id": "CTRL003",
+          "title": "Rate limiting control not observed",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/mentor_matcher.py",
+          "line": 27,
+          "column": 1,
+          "snippet": "Rate limiting control not observed for candidate agent",
+          "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "Rate limiting control not observed (agents/mentor_matcher.py:27). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
+        },
+        {
+          "fingerprint": "d98614c228d68afc",
+          "rule_id": "CTRL007",
+          "title": "No kill-switch signal observed on the agent's entry path",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/mentor_matcher.py",
+          "line": 27,
+          "column": 1,
+          "snippet": "No kill-switch signal observed on the agent's entry path for candidate agent",
+          "remediation": "Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "No kill-switch signal observed on the agent's entry path (agents/mentor_matcher.py:27). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
+        }
+      ],
+      "highest_severity": "info",
+      "dimension_assessment": {
+        "taxonomy": {
+          "id": "stoa-default-8",
+          "version": "1.0"
+        },
+        "dimensions": [
+          {
+            "id": "scope-violation",
+            "assessability": "strong",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "No exposure observed in scanned files."
+          },
+          {
+            "id": "data-exfiltration",
+            "assessability": "strong",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "No exposure observed in scanned files."
+          },
+          {
+            "id": "unauthorized-action",
+            "assessability": "strong",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [
+              "authentication"
+            ],
+            "statement": "No exposure observed; controls observed: authentication."
+          },
+          {
+            "id": "output-integrity",
+            "assessability": "partial",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [
+              "validation"
+            ],
+            "statement": "No exposure observed; controls observed: validation."
+          },
+          {
+            "id": "adversarial-manipulation",
+            "assessability": "partial",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "No exposure observed in scanned files."
+          },
+          {
+            "id": "behavioral-instability",
+            "assessability": "proxy",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [
+              "deterministic_sampling"
+            ],
+            "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "model-drift",
+            "assessability": "proxy",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [
+              "provider:anthropic"
+            ],
+            "controls_observed": [
+              "pinned_model"
+            ],
+            "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "operational-control",
+            "assessability": "partial",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [
+              "619e16ba35b56911",
+              "d98614c228d68afc"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [
+              "authentication",
+              "observability",
+              "validation"
+            ],
+            "statement": "No exposure observed; controls observed: authentication, observability, validation."
+          }
+        ]
+      },
+      "declared": {
+        "name": "mentor_matcher",
+        "owner": "learning-eng@sparkwing.example",
+        "purpose": "Suggests a mentor pairing for staff to confirm",
+        "users": "internal",
+        "geography": [],
+        "production_status": "production",
+        "autonomy_intent": "recommend_only",
+        "data_classes": [
+          "personal"
+        ]
+      },
+      "autonomy_level": {
+        "level": "recommend_only",
+        "signals": [],
+        "reason": null
+      }
+    },
+    {
+      "id": "2bbb1a53b942",
+      "name": "agent",
+      "symbol": "agent",
+      "path": "agents/portfolio_certifier.py",
+      "language": "python",
+      "confidence": "high",
+      "detection_score": 10,
+      "evidence": [
+        {
+          "rule_id": "AGENT_LANGCHAIN",
+          "line": 21,
+          "description": "LangChain agent construct"
+        },
+        {
+          "rule_id": "AGENT_PROVIDER_CALL",
+          "line": 26,
+          "description": "LLM provider invocation"
+        },
+        {
+          "rule_id": "AGENT_TOOLS",
+          "line": 20,
+          "description": "Tool or function schema"
+        },
+        {
+          "rule_id": "AGENT_PROVIDER_IMPORT",
+          "line": 12,
+          "description": "LLM provider import or reference"
+        }
+      ],
+      "providers": [
+        "openai"
+      ],
+      "frameworks": [
+        "langchain"
+      ],
+      "integrations": [
+        "postgres"
+      ],
+      "capabilities": [
+        "database_write",
+        "tool_calling"
+      ],
+      "permission_tags": [],
+      "call_sites": {
+        "postgres": 3
+      },
+      "last_touched_by": null,
+      "last_commit": null,
+      "codeowners": [],
+      "findings": [
+        {
+          "fingerprint": "64a71f28fdde7c3f",
+          "rule_id": "AI005",
+          "title": "Model, endpoint, or artifact dependency observed without a pin or integrity control",
+          "category": "ai-supplychain",
+          "severity": "low",
+          "confidence": "low",
+          "path": "agents/portfolio_certifier.py",
+          "line": 19,
+          "column": 1,
+          "snippet": "ChatOpenAI(model=\"gpt-4o\"",
+          "remediation": "Pin a reviewed model revision or dated snapshot and use a TLS endpoint from an allowlist.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI005-64a71f28fdde",
+          "canonical_name": "STOA-LLM05-UNPINNED-MODEL",
+          "owasp": {
+            "llm_top10_v1_1": "LLM05",
+            "llm_top10_2025": "LLM03"
+          },
+          "variant": "floating-alias",
+          "dimensions": [
+            "behavioral-instability",
+            "model-drift"
+          ],
+          "message": "Model string `gpt-4o` (line 19) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+        },
+        {
+          "fingerprint": "0fdd5dd97258cbc6",
+          "rule_id": "AI003",
+          "title": "Approval control not observed for high-impact tool capability",
+          "category": "ai-agency",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/portfolio_certifier.py",
+          "line": 21,
+          "column": 1,
+          "snippet": "high-impact capability for candidate agent",
+          "remediation": "Confirm an approval or human-in-the-loop control gates this capability; none was observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI003-0fdd5dd97258",
+          "canonical_name": "STOA-LLM08-UNOBSERVED-APPROVAL",
+          "owasp": {
+            "llm_top10_v1_1": "LLM08",
+            "llm_top10_2025": "LLM06"
+          },
+          "dimensions": [
+            "scope-violation",
+            "unauthorized-action"
+          ],
+          "message": "Agent candidate `agent` binds a tool whose body contains high-impact capability call sites (database-write). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat."
+        },
+        {
+          "fingerprint": "562d367499ad629e",
+          "rule_id": "AI007",
+          "title": "Deterministic sampling not observed on high-impact-adjacent call sites",
+          "category": "ai-stability",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/portfolio_certifier.py",
+          "line": 21,
+          "column": 1,
+          "snippet": "sampling config for candidate agent",
+          "remediation": "Pin deterministic sampling (temperature=0) on consequential model call sites, or confirm variability is intended.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI007-562d367499ad",
+          "canonical_name": "STOA-SAMPLING-CONFIG",
+          "owasp": {
+            "llm_top10_v1_1": "LLM05",
+            "llm_top10_2025": "LLM03"
+          },
+          "dimensions": [
+            "behavioral-instability"
+          ],
+          "message": "Agent candidate `agent` binds database-write, and model call sites in this file do not set a sampling bound (lines 26). This is a proxy signal only: sampling configuration influences, but does not determine, behavioral consistency, and runtime evaluation is required for direct assessment. One review prompt per candidate — this notice will not repeat."
+        },
+        {
+          "fingerprint": "9bc35c59c96c356f",
+          "rule_id": "CTRL003",
+          "title": "Rate limiting control not observed",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/portfolio_certifier.py",
+          "line": 21,
+          "column": 1,
+          "snippet": "Rate limiting control not observed for candidate agent",
+          "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "Rate limiting control not observed (agents/portfolio_certifier.py:21). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
+        },
+        {
+          "fingerprint": "9404a171355dab37",
+          "rule_id": "CTRL007",
+          "title": "No kill-switch signal observed on the agent's entry path",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/portfolio_certifier.py",
+          "line": 21,
+          "column": 1,
+          "snippet": "No kill-switch signal observed on the agent's entry path for candidate agent",
+          "remediation": "Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "No kill-switch signal observed on the agent's entry path (agents/portfolio_certifier.py:21). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
+        },
+        {
+          "fingerprint": "774cfcc35b67dbe0",
+          "rule_id": "AI002",
+          "title": "Model output observed reaching a dangerous execution or injection sink",
+          "category": "ai-output",
+          "severity": "critical",
+          "confidence": "high",
+          "path": "agents/portfolio_certifier.py",
+          "line": 32,
+          "column": 1,
+          "snippet": "cursor.execute(f\"UPDATE portfolios SET badge_outcome = '{verdict}' WHERE student_id = '{student_id}'\")  # AI002/sql",
+          "remediation": "Dispatch through a static mapping of permitted actions; never execute or render model output directly.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI002-774cfcc35b67",
+          "canonical_name": "STOA-LLM02-OUTPUT-EXEC",
+          "owasp": {
+            "llm_top10_v1_1": "LLM02",
+            "llm_top10_2025": "LLM05"
+          },
+          "variant": "sql",
+          "flow": [
+            {
+              "role": "source",
+              "line": 26,
+              "snippet": "verdict = client.chat.completions.create("
+            },
+            {
+              "role": "sink",
+              "line": 32,
+              "snippet": "cursor.execute(f\"UPDATE portfolios SET badge_outcome = '{verdict}' WHERE student_id = '{student_id}'\")  # AI002/sql"
+            }
+          ],
+          "dimensions": [
+            "output-integrity"
+          ],
+          "supersedes": [
+            "SEC003"
+          ],
+          "message": "The value from `verdict = client.chat.completions.create(` (line 26) reaches a sql-class sink at line 32 with no interposed allowlist observed on the flow. Model output is attacker-influenceable whenever any untrusted content reaches the model (OWASP LLM02). Analysis is intra-file; flows through other files are not visible."
+        },
+        {
+          "fingerprint": "b903b29e14a5633c",
+          "rule_id": "DECL001",
+          "title": "Declared autonomy contradicts inferred autonomy",
+          "category": "contradiction",
+          "severity": "critical",
+          "confidence": "high",
+          "path": "agents/portfolio_certifier.py",
+          "line": 32,
+          "column": 1,
+          "snippet": "autonomy_intent='human_approved' vs inferred='unrestricted_autonomous'",
+          "remediation": "This agent was declared recommend-only or human-approved, but the scanner found a side-effecting path with no correlated approval gate. Either add the missing approval control, or correct the declaration.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "scope-violation",
+            "unauthorized-action"
+          ],
+          "message": "Agent `agent` is declared `human_approved`, but the scanner inferred `unrestricted_autonomous` from a side-effecting path with no correlated approval gate. Either the declaration is stale, or the approval control is missing.",
+          "declared_ref": {
+            "path": "stoa-declared.toml",
+            "key": "agents.\"2bbb1a53b942\".autonomy_intent"
+          }
+        }
+      ],
+      "highest_severity": "critical",
+      "dimension_assessment": {
+        "taxonomy": {
+          "id": "stoa-default-8",
+          "version": "1.0"
+        },
+        "dimensions": [
+          {
+            "id": "scope-violation",
+            "assessability": "strong",
+            "exposure": "elevated",
+            "score": 59,
+            "contributing_findings": [
+              "AI003-0fdd5dd97258",
+              "b903b29e14a5633c"
+            ],
+            "contributing_capabilities": [
+              "database_write"
+            ],
+            "controls_observed": [],
+            "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "data-exfiltration",
+            "assessability": "strong",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "No exposure observed in scanned files."
+          },
+          {
+            "id": "unauthorized-action",
+            "assessability": "strong",
+            "exposure": "elevated",
+            "score": 59,
+            "contributing_findings": [
+              "AI003-0fdd5dd97258",
+              "b903b29e14a5633c"
+            ],
+            "contributing_capabilities": [
+              "database_write"
+            ],
+            "controls_observed": [],
+            "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "output-integrity",
+            "assessability": "partial",
+            "exposure": "moderate",
+            "score": 40,
+            "contributing_findings": [
+              "AI002-774cfcc35b67"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "adversarial-manipulation",
+            "assessability": "partial",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "No exposure observed in scanned files."
+          },
+          {
+            "id": "behavioral-instability",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 2,
+            "contributing_findings": [
+              "AI005-64a71f28fdde",
+              "AI007-562d367499ad"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 2 finding(s) and 0 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "model-drift",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 10,
+            "contributing_findings": [
+              "AI005-64a71f28fdde"
+            ],
+            "contributing_capabilities": [
+              "provider:openai"
+            ],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 1 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "operational-control",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 1,
+            "contributing_findings": [
+              "9404a171355dab37",
+              "9bc35c59c96c356f"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "2 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          }
+        ]
+      },
+      "declared": {
+        "name": "portfolio_certifier",
+        "owner": "learning-eng@sparkwing.example",
+        "purpose": "Decides whether a project submission earns a portfolio badge",
+        "users": "customers",
+        "geography": [],
+        "production_status": "production",
+        "autonomy_intent": "human_approved",
+        "data_classes": [
+          "personal"
+        ]
+      },
+      "autonomy_level": {
+        "level": "unrestricted_autonomous",
+        "signals": [
+          {
+            "signal": "AI002",
+            "path": "agents/portfolio_certifier.py",
+            "line": 32
+          },
+          {
+            "signal": "AI003",
+            "path": "agents/portfolio_certifier.py",
+            "line": 21
+          }
+        ],
+        "reason": null
+      }
+    },
+    {
+      "id": "48d190c5af6c",
+      "name": "executor",
+      "symbol": "executor",
+      "path": "agents/portfolio_certifier.py",
+      "language": "python",
+      "confidence": "high",
+      "detection_score": 10,
+      "evidence": [
+        {
+          "rule_id": "AGENT_LANGCHAIN",
+          "line": 21,
+          "description": "LangChain agent construct"
+        },
+        {
+          "rule_id": "AGENT_PROVIDER_CALL",
+          "line": 26,
+          "description": "LLM provider invocation"
+        },
+        {
+          "rule_id": "AGENT_TOOLS",
+          "line": 20,
+          "description": "Tool or function schema"
+        },
+        {
+          "rule_id": "AGENT_PROVIDER_IMPORT",
+          "line": 12,
+          "description": "LLM provider import or reference"
+        }
+      ],
+      "providers": [
+        "openai"
+      ],
+      "frameworks": [
+        "langchain"
+      ],
+      "integrations": [
+        "postgres"
+      ],
+      "capabilities": [
+        "database_write",
+        "tool_calling"
+      ],
+      "permission_tags": [],
+      "call_sites": {
+        "postgres": 3
+      },
+      "last_touched_by": null,
+      "last_commit": null,
+      "codeowners": [],
+      "findings": [
+        {
+          "fingerprint": "64a71f28fdde7c3f",
+          "rule_id": "AI005",
+          "title": "Model, endpoint, or artifact dependency observed without a pin or integrity control",
+          "category": "ai-supplychain",
+          "severity": "low",
+          "confidence": "low",
+          "path": "agents/portfolio_certifier.py",
+          "line": 19,
+          "column": 1,
+          "snippet": "ChatOpenAI(model=\"gpt-4o\"",
+          "remediation": "Pin a reviewed model revision or dated snapshot and use a TLS endpoint from an allowlist.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI005-64a71f28fdde",
+          "canonical_name": "STOA-LLM05-UNPINNED-MODEL",
+          "owasp": {
+            "llm_top10_v1_1": "LLM05",
+            "llm_top10_2025": "LLM03"
+          },
+          "variant": "floating-alias",
+          "dimensions": [
+            "behavioral-instability",
+            "model-drift"
+          ],
+          "message": "Model string `gpt-4o` (line 19) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+        },
+        {
+          "fingerprint": "fe59b6d28c24c699",
+          "rule_id": "AI003",
+          "title": "Approval control not observed for high-impact tool capability",
+          "category": "ai-agency",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/portfolio_certifier.py",
+          "line": 21,
+          "column": 1,
+          "snippet": "high-impact capability for candidate executor",
+          "remediation": "Confirm an approval or human-in-the-loop control gates this capability; none was observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI003-fe59b6d28c24",
+          "canonical_name": "STOA-LLM08-UNOBSERVED-APPROVAL",
+          "owasp": {
+            "llm_top10_v1_1": "LLM08",
+            "llm_top10_2025": "LLM06"
+          },
+          "dimensions": [
+            "scope-violation",
+            "unauthorized-action"
+          ],
+          "message": "Agent candidate `executor` binds a tool whose body contains high-impact capability call sites (database-write). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat."
+        },
+        {
+          "fingerprint": "5963853dbbc048e8",
+          "rule_id": "AI007",
+          "title": "Deterministic sampling not observed on high-impact-adjacent call sites",
+          "category": "ai-stability",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/portfolio_certifier.py",
+          "line": 21,
+          "column": 1,
+          "snippet": "sampling config for candidate executor",
+          "remediation": "Pin deterministic sampling (temperature=0) on consequential model call sites, or confirm variability is intended.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI007-5963853dbbc0",
+          "canonical_name": "STOA-SAMPLING-CONFIG",
+          "owasp": {
+            "llm_top10_v1_1": "LLM05",
+            "llm_top10_2025": "LLM03"
+          },
+          "dimensions": [
+            "behavioral-instability"
+          ],
+          "message": "Agent candidate `executor` binds database-write, and model call sites in this file do not set a sampling bound (lines 26). This is a proxy signal only: sampling configuration influences, but does not determine, behavioral consistency, and runtime evaluation is required for direct assessment. One review prompt per candidate — this notice will not repeat."
+        },
+        {
+          "fingerprint": "3fd986cd1ad72677",
+          "rule_id": "CTRL003",
+          "title": "Rate limiting control not observed",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/portfolio_certifier.py",
+          "line": 21,
+          "column": 1,
+          "snippet": "Rate limiting control not observed for candidate executor",
+          "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "Rate limiting control not observed (agents/portfolio_certifier.py:21). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
+        },
+        {
+          "fingerprint": "f162908ebba7e6a5",
+          "rule_id": "CTRL007",
+          "title": "No kill-switch signal observed on the agent's entry path",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/portfolio_certifier.py",
+          "line": 21,
+          "column": 1,
+          "snippet": "No kill-switch signal observed on the agent's entry path for candidate executor",
+          "remediation": "Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "No kill-switch signal observed on the agent's entry path (agents/portfolio_certifier.py:21). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
+        },
+        {
+          "fingerprint": "774cfcc35b67dbe0",
+          "rule_id": "AI002",
+          "title": "Model output observed reaching a dangerous execution or injection sink",
+          "category": "ai-output",
+          "severity": "critical",
+          "confidence": "high",
+          "path": "agents/portfolio_certifier.py",
+          "line": 32,
+          "column": 1,
+          "snippet": "cursor.execute(f\"UPDATE portfolios SET badge_outcome = '{verdict}' WHERE student_id = '{student_id}'\")  # AI002/sql",
+          "remediation": "Dispatch through a static mapping of permitted actions; never execute or render model output directly.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI002-774cfcc35b67",
+          "canonical_name": "STOA-LLM02-OUTPUT-EXEC",
+          "owasp": {
+            "llm_top10_v1_1": "LLM02",
+            "llm_top10_2025": "LLM05"
+          },
+          "variant": "sql",
+          "flow": [
+            {
+              "role": "source",
+              "line": 26,
+              "snippet": "verdict = client.chat.completions.create("
+            },
+            {
+              "role": "sink",
+              "line": 32,
+              "snippet": "cursor.execute(f\"UPDATE portfolios SET badge_outcome = '{verdict}' WHERE student_id = '{student_id}'\")  # AI002/sql"
+            }
+          ],
+          "dimensions": [
+            "output-integrity"
+          ],
+          "supersedes": [
+            "SEC003"
+          ],
+          "message": "The value from `verdict = client.chat.completions.create(` (line 26) reaches a sql-class sink at line 32 with no interposed allowlist observed on the flow. Model output is attacker-influenceable whenever any untrusted content reaches the model (OWASP LLM02). Analysis is intra-file; flows through other files are not visible."
+        },
+        {
+          "fingerprint": "9a0aa9bf0e6770d2",
+          "rule_id": "DECL001",
+          "title": "Declared autonomy contradicts inferred autonomy",
+          "category": "contradiction",
+          "severity": "critical",
+          "confidence": "high",
+          "path": "agents/portfolio_certifier.py",
+          "line": 32,
+          "column": 1,
+          "snippet": "autonomy_intent='human_approved' vs inferred='unrestricted_autonomous'",
+          "remediation": "This agent was declared recommend-only or human-approved, but the scanner found a side-effecting path with no correlated approval gate. Either add the missing approval control, or correct the declaration.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "scope-violation",
+            "unauthorized-action"
+          ],
+          "message": "Agent `executor` is declared `human_approved`, but the scanner inferred `unrestricted_autonomous` from a side-effecting path with no correlated approval gate. Either the declaration is stale, or the approval control is missing.",
+          "declared_ref": {
+            "path": "stoa-declared.toml",
+            "key": "agents.\"48d190c5af6c\".autonomy_intent"
+          }
+        }
+      ],
+      "highest_severity": "critical",
+      "dimension_assessment": {
+        "taxonomy": {
+          "id": "stoa-default-8",
+          "version": "1.0"
+        },
+        "dimensions": [
+          {
+            "id": "scope-violation",
+            "assessability": "strong",
+            "exposure": "elevated",
+            "score": 59,
+            "contributing_findings": [
+              "9a0aa9bf0e6770d2",
+              "AI003-fe59b6d28c24"
+            ],
+            "contributing_capabilities": [
+              "database_write"
+            ],
+            "controls_observed": [],
+            "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "data-exfiltration",
+            "assessability": "strong",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "No exposure observed in scanned files."
+          },
+          {
+            "id": "unauthorized-action",
+            "assessability": "strong",
+            "exposure": "elevated",
+            "score": 59,
+            "contributing_findings": [
+              "9a0aa9bf0e6770d2",
+              "AI003-fe59b6d28c24"
+            ],
+            "contributing_capabilities": [
+              "database_write"
+            ],
+            "controls_observed": [],
+            "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "output-integrity",
+            "assessability": "partial",
+            "exposure": "moderate",
+            "score": 40,
+            "contributing_findings": [
+              "AI002-774cfcc35b67"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "adversarial-manipulation",
+            "assessability": "partial",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "No exposure observed in scanned files."
+          },
+          {
+            "id": "behavioral-instability",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 2,
+            "contributing_findings": [
+              "AI005-64a71f28fdde",
+              "AI007-5963853dbbc0"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 2 finding(s) and 0 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "model-drift",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 10,
+            "contributing_findings": [
+              "AI005-64a71f28fdde"
+            ],
+            "contributing_capabilities": [
+              "provider:openai"
+            ],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 1 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "operational-control",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 1,
+            "contributing_findings": [
+              "3fd986cd1ad72677",
+              "f162908ebba7e6a5"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "2 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          }
+        ]
+      },
+      "declared": {
+        "name": "portfolio_certifier_executor",
+        "owner": "learning-eng@sparkwing.example",
+        "purpose": "Decides whether a project submission earns a portfolio badge",
+        "users": "customers",
+        "geography": [],
+        "production_status": "production",
+        "autonomy_intent": "human_approved",
+        "data_classes": [
+          "personal"
+        ]
+      },
+      "autonomy_level": {
+        "level": "unrestricted_autonomous",
+        "signals": [
+          {
+            "signal": "AI002",
+            "path": "agents/portfolio_certifier.py",
+            "line": 32
+          },
+          {
+            "signal": "AI003",
+            "path": "agents/portfolio_certifier.py",
+            "line": 21
+          }
+        ],
+        "reason": null
+      }
+    },
+    {
+      "id": "a332ef61e9ee",
+      "name": "agent",
+      "symbol": "agent",
+      "path": "agents/progress_notifier.py",
+      "language": "python",
+      "confidence": "high",
+      "detection_score": 8,
+      "evidence": [
+        {
+          "rule_id": "AGENT_LANGCHAIN",
+          "line": 19,
+          "description": "LangChain agent construct"
+        },
+        {
+          "rule_id": "AGENT_TOOLS",
+          "line": 18,
+          "description": "Tool or function schema"
+        },
+        {
+          "rule_id": "AGENT_PROVIDER_IMPORT",
+          "line": 17,
+          "description": "LLM provider import or reference"
+        }
+      ],
+      "providers": [
+        "openai"
+      ],
+      "frameworks": [
+        "langchain"
+      ],
+      "integrations": [
+        "sendgrid"
+      ],
+      "capabilities": [
+        "email_send",
+        "external_http",
+        "tool_calling"
+      ],
+      "permission_tags": [
+        "communicate"
+      ],
+      "call_sites": {
+        "sendgrid": 3
+      },
+      "last_touched_by": null,
+      "last_commit": null,
+      "codeowners": [],
+      "findings": [
+        {
+          "fingerprint": "33d714cdc058690d",
+          "rule_id": "AI005",
+          "title": "Model, endpoint, or artifact dependency observed without a pin or integrity control",
+          "category": "ai-supplychain",
+          "severity": "low",
+          "confidence": "low",
+          "path": "agents/progress_notifier.py",
+          "line": 17,
+          "column": 1,
+          "snippet": "ChatOpenAI(model=\"gpt-4o\"",
+          "remediation": "Pin a reviewed model revision or dated snapshot and use a TLS endpoint from an allowlist.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI005-33d714cdc058",
+          "canonical_name": "STOA-LLM05-UNPINNED-MODEL",
+          "owasp": {
+            "llm_top10_v1_1": "LLM05",
+            "llm_top10_2025": "LLM03"
+          },
+          "variant": "floating-alias",
+          "dimensions": [
+            "behavioral-instability",
+            "model-drift"
+          ],
+          "message": "Model string `gpt-4o` (line 17) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+        },
+        {
+          "fingerprint": "3f86a672ef440bbe",
+          "rule_id": "AI003",
+          "title": "Approval control not observed for high-impact tool capability",
+          "category": "ai-agency",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/progress_notifier.py",
+          "line": 19,
+          "column": 1,
+          "snippet": "high-impact capability for candidate agent",
+          "remediation": "Confirm an approval or human-in-the-loop control gates this capability; none was observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI003-3f86a672ef44",
+          "canonical_name": "STOA-LLM08-UNOBSERVED-APPROVAL",
+          "owasp": {
+            "llm_top10_v1_1": "LLM08",
+            "llm_top10_2025": "LLM06"
+          },
+          "dimensions": [
+            "scope-violation",
+            "unauthorized-action"
+          ],
+          "message": "Agent candidate `agent` binds a tool whose body contains high-impact capability call sites (email-send). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat."
+        },
+        {
+          "fingerprint": "794242e17df24cfc",
+          "rule_id": "AI007",
+          "title": "Deterministic sampling not observed on high-impact-adjacent call sites",
+          "category": "ai-stability",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/progress_notifier.py",
+          "line": 19,
+          "column": 1,
+          "snippet": "sampling config for candidate agent",
+          "remediation": "Pin deterministic sampling (temperature=0) on consequential model call sites, or confirm variability is intended.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI007-794242e17df2",
+          "canonical_name": "STOA-SAMPLING-CONFIG",
+          "owasp": {
+            "llm_top10_v1_1": "LLM05",
+            "llm_top10_2025": "LLM03"
+          },
+          "dimensions": [
+            "behavioral-instability"
+          ],
+          "message": "Agent candidate `agent` binds email-send, and model call sites in this file do not set a sampling bound (lines 24). This is a proxy signal only: sampling configuration influences, but does not determine, behavioral consistency, and runtime evaluation is required for direct assessment. One review prompt per candidate — this notice will not repeat."
+        },
+        {
+          "fingerprint": "95011d06cf4d8009",
+          "rule_id": "CTRL003",
+          "title": "Rate limiting control not observed",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/progress_notifier.py",
+          "line": 19,
+          "column": 1,
+          "snippet": "Rate limiting control not observed for candidate agent",
+          "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "Rate limiting control not observed (agents/progress_notifier.py:19). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
+        },
+        {
+          "fingerprint": "f45a5306390fa4c2",
+          "rule_id": "CTRL007",
+          "title": "No kill-switch signal observed on the agent's entry path",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/progress_notifier.py",
+          "line": 19,
+          "column": 1,
+          "snippet": "No kill-switch signal observed on the agent's entry path for candidate agent",
+          "remediation": "Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "No kill-switch signal observed on the agent's entry path (agents/progress_notifier.py:19). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
+        },
+        {
+          "fingerprint": "9a5fac3930fe553d",
+          "rule_id": "REL001",
+          "title": "Swallowed exception",
+          "category": "reliability",
+          "severity": "low",
+          "confidence": "high",
+          "path": "agents/progress_notifier.py",
+          "line": 33,
+          "column": 1,
+          "snippet": "except Exception:",
+          "remediation": "Handle or log the exception instead of silently discarding it.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "Swallowed exception (agents/progress_notifier.py:33). Handle or log the exception instead of silently discarding it."
+        },
+        {
+          "fingerprint": "c01985cc22ce5176",
+          "rule_id": "AI006",
+          "title": "Identifier suggesting sensitive data observed flowing to a network egress sink",
+          "category": "ai-disclosure",
+          "severity": "medium",
+          "confidence": "medium",
+          "path": "agents/progress_notifier.py",
+          "line": 40,
+          "column": 1,
+          "snippet": "requests.post(",
+          "remediation": "Strip sensitive fields before egress, or add the destination to [rules.AI006].allowed_hosts if org-approved.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI006-c01985cc22ce",
+          "canonical_name": "STOA-EXFIL-NETWORK",
+          "owasp": {
+            "llm_top10_v1_1": "LLM06",
+            "llm_top10_2025": "LLM02"
+          },
+          "variant": "pii",
+          "flow": [
+            {
+              "role": "source",
+              "line": 39,
+              "snippet": "student_email = student.email"
+            },
+            {
+              "role": "sink",
+              "line": 40,
+              "snippet": "requests.post("
+            }
+          ],
+          "dimensions": [
+            "data-exfiltration"
+          ],
+          "supersedes": [
+            "AI004"
+          ],
+          "evidence_tags": [
+            "dynamic_destination"
+          ],
+          "message": "A value suggesting personal data (`student_email = student.email`, line 39) flows into a network egress sink at line 40, a destination not in the recognized-provider set or the allowed_hosts list. Identifier names and flow shape suggest — but do not prove — sensitive egress (OWASP LLM06). If org-approved, add the destination to [rules.AI006].allowed_hosts. Analysis is intra-file; flows through other files are not visible."
+        },
+        {
+          "fingerprint": "eb4b598a7f8f6517",
+          "rule_id": "NET002",
+          "title": "Request timeout not observed",
+          "category": "network",
+          "severity": "medium",
+          "confidence": "low",
+          "path": "agents/progress_notifier.py",
+          "line": 40,
+          "column": 5,
+          "snippet": "requests.post(",
+          "remediation": "Pass an explicit timeout so a hung upstream cannot stall the agent.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "Request timeout not observed (agents/progress_notifier.py:40). Pass an explicit timeout so a hung upstream cannot stall the agent."
+        }
+      ],
+      "highest_severity": "medium",
+      "dimension_assessment": {
+        "taxonomy": {
+          "id": "stoa-default-8",
+          "version": "1.0"
+        },
+        "dimensions": [
+          {
+            "id": "scope-violation",
+            "assessability": "strong",
+            "exposure": "low",
+            "score": 19,
+            "contributing_findings": [
+              "AI003-3f86a672ef44"
+            ],
+            "contributing_capabilities": [
+              "email_send"
+            ],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "data-exfiltration",
+            "assessability": "strong",
+            "exposure": "moderate",
+            "score": 25,
+            "contributing_findings": [
+              "AI006-c01985cc22ce"
+            ],
+            "contributing_capabilities": [
+              "external_http"
+            ],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "unauthorized-action",
+            "assessability": "strong",
+            "exposure": "low",
+            "score": 19,
+            "contributing_findings": [
+              "AI003-3f86a672ef44"
+            ],
+            "contributing_capabilities": [
+              "email_send"
+            ],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "output-integrity",
+            "assessability": "partial",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "No exposure observed in scanned files."
+          },
+          {
+            "id": "adversarial-manipulation",
+            "assessability": "partial",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "No exposure observed in scanned files."
+          },
+          {
+            "id": "behavioral-instability",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 2,
+            "contributing_findings": [
+              "AI005-33d714cdc058",
+              "AI007-794242e17df2"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 2 finding(s) and 0 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "model-drift",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 10,
+            "contributing_findings": [
+              "AI005-33d714cdc058"
+            ],
+            "contributing_capabilities": [
+              "provider:openai"
+            ],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 1 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "operational-control",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 10,
+            "contributing_findings": [
+              "95011d06cf4d8009",
+              "9a5fac3930fe553d",
+              "eb4b598a7f8f6517",
+              "f45a5306390fa4c2"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "4 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          }
+        ]
+      },
+      "declared": {
+        "name": "progress_notifier",
+        "owner": "family-eng@sparkwing.example",
+        "purpose": "Drafts and sends the weekly parent progress update",
+        "users": "customers",
+        "geography": [],
+        "production_status": "production",
+        "autonomy_intent": "recommend_only",
+        "data_classes": [
+          "personal"
+        ]
+      },
+      "autonomy_level": {
+        "level": "recommend_only",
+        "signals": [],
+        "reason": null
+      }
+    },
+    {
+      "id": "b7699551ca07",
+      "name": "executor",
+      "symbol": "executor",
+      "path": "agents/progress_notifier.py",
+      "language": "python",
+      "confidence": "high",
+      "detection_score": 8,
+      "evidence": [
+        {
+          "rule_id": "AGENT_LANGCHAIN",
+          "line": 19,
+          "description": "LangChain agent construct"
+        },
+        {
+          "rule_id": "AGENT_TOOLS",
+          "line": 18,
+          "description": "Tool or function schema"
+        },
+        {
+          "rule_id": "AGENT_PROVIDER_IMPORT",
+          "line": 17,
+          "description": "LLM provider import or reference"
+        }
+      ],
+      "providers": [
+        "openai"
+      ],
+      "frameworks": [
+        "langchain"
+      ],
+      "integrations": [
+        "sendgrid"
+      ],
+      "capabilities": [
+        "email_send",
+        "external_http",
+        "tool_calling"
+      ],
+      "permission_tags": [
+        "communicate"
+      ],
+      "call_sites": {
+        "sendgrid": 3
+      },
+      "last_touched_by": null,
+      "last_commit": null,
+      "codeowners": [],
+      "findings": [
+        {
+          "fingerprint": "33d714cdc058690d",
+          "rule_id": "AI005",
+          "title": "Model, endpoint, or artifact dependency observed without a pin or integrity control",
+          "category": "ai-supplychain",
+          "severity": "low",
+          "confidence": "low",
+          "path": "agents/progress_notifier.py",
+          "line": 17,
+          "column": 1,
+          "snippet": "ChatOpenAI(model=\"gpt-4o\"",
+          "remediation": "Pin a reviewed model revision or dated snapshot and use a TLS endpoint from an allowlist.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI005-33d714cdc058",
+          "canonical_name": "STOA-LLM05-UNPINNED-MODEL",
+          "owasp": {
+            "llm_top10_v1_1": "LLM05",
+            "llm_top10_2025": "LLM03"
+          },
+          "variant": "floating-alias",
+          "dimensions": [
+            "behavioral-instability",
+            "model-drift"
+          ],
+          "message": "Model string `gpt-4o` (line 17) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+        },
+        {
+          "fingerprint": "933e397ac1867844",
+          "rule_id": "AI003",
+          "title": "Approval control not observed for high-impact tool capability",
+          "category": "ai-agency",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/progress_notifier.py",
+          "line": 19,
+          "column": 1,
+          "snippet": "high-impact capability for candidate executor",
+          "remediation": "Confirm an approval or human-in-the-loop control gates this capability; none was observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI003-933e397ac186",
+          "canonical_name": "STOA-LLM08-UNOBSERVED-APPROVAL",
+          "owasp": {
+            "llm_top10_v1_1": "LLM08",
+            "llm_top10_2025": "LLM06"
+          },
+          "dimensions": [
+            "scope-violation",
+            "unauthorized-action"
+          ],
+          "message": "Agent candidate `executor` binds a tool whose body contains high-impact capability call sites (email-send). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat."
+        },
+        {
+          "fingerprint": "fa499c5d69e3657e",
+          "rule_id": "AI007",
+          "title": "Deterministic sampling not observed on high-impact-adjacent call sites",
+          "category": "ai-stability",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/progress_notifier.py",
+          "line": 19,
+          "column": 1,
+          "snippet": "sampling config for candidate executor",
+          "remediation": "Pin deterministic sampling (temperature=0) on consequential model call sites, or confirm variability is intended.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI007-fa499c5d69e3",
+          "canonical_name": "STOA-SAMPLING-CONFIG",
+          "owasp": {
+            "llm_top10_v1_1": "LLM05",
+            "llm_top10_2025": "LLM03"
+          },
+          "dimensions": [
+            "behavioral-instability"
+          ],
+          "message": "Agent candidate `executor` binds email-send, and model call sites in this file do not set a sampling bound (lines 24). This is a proxy signal only: sampling configuration influences, but does not determine, behavioral consistency, and runtime evaluation is required for direct assessment. One review prompt per candidate — this notice will not repeat."
+        },
+        {
+          "fingerprint": "7bdda7035b7ae859",
+          "rule_id": "CTRL003",
+          "title": "Rate limiting control not observed",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/progress_notifier.py",
+          "line": 19,
+          "column": 1,
+          "snippet": "Rate limiting control not observed for candidate executor",
+          "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "Rate limiting control not observed (agents/progress_notifier.py:19). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
+        },
+        {
+          "fingerprint": "feb38b86da911d81",
+          "rule_id": "CTRL007",
+          "title": "No kill-switch signal observed on the agent's entry path",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/progress_notifier.py",
+          "line": 19,
+          "column": 1,
+          "snippet": "No kill-switch signal observed on the agent's entry path for candidate executor",
+          "remediation": "Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "No kill-switch signal observed on the agent's entry path (agents/progress_notifier.py:19). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
+        },
+        {
+          "fingerprint": "9a5fac3930fe553d",
+          "rule_id": "REL001",
+          "title": "Swallowed exception",
+          "category": "reliability",
+          "severity": "low",
+          "confidence": "high",
+          "path": "agents/progress_notifier.py",
+          "line": 33,
+          "column": 1,
+          "snippet": "except Exception:",
+          "remediation": "Handle or log the exception instead of silently discarding it.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "Swallowed exception (agents/progress_notifier.py:33). Handle or log the exception instead of silently discarding it."
+        },
+        {
+          "fingerprint": "c01985cc22ce5176",
+          "rule_id": "AI006",
+          "title": "Identifier suggesting sensitive data observed flowing to a network egress sink",
+          "category": "ai-disclosure",
+          "severity": "medium",
+          "confidence": "medium",
+          "path": "agents/progress_notifier.py",
+          "line": 40,
+          "column": 1,
+          "snippet": "requests.post(",
+          "remediation": "Strip sensitive fields before egress, or add the destination to [rules.AI006].allowed_hosts if org-approved.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI006-c01985cc22ce",
+          "canonical_name": "STOA-EXFIL-NETWORK",
+          "owasp": {
+            "llm_top10_v1_1": "LLM06",
+            "llm_top10_2025": "LLM02"
+          },
+          "variant": "pii",
+          "flow": [
+            {
+              "role": "source",
+              "line": 39,
+              "snippet": "student_email = student.email"
+            },
+            {
+              "role": "sink",
+              "line": 40,
+              "snippet": "requests.post("
+            }
+          ],
+          "dimensions": [
+            "data-exfiltration"
+          ],
+          "supersedes": [
+            "AI004"
+          ],
+          "evidence_tags": [
+            "dynamic_destination"
+          ],
+          "message": "A value suggesting personal data (`student_email = student.email`, line 39) flows into a network egress sink at line 40, a destination not in the recognized-provider set or the allowed_hosts list. Identifier names and flow shape suggest — but do not prove — sensitive egress (OWASP LLM06). If org-approved, add the destination to [rules.AI006].allowed_hosts. Analysis is intra-file; flows through other files are not visible."
+        },
+        {
+          "fingerprint": "eb4b598a7f8f6517",
+          "rule_id": "NET002",
+          "title": "Request timeout not observed",
+          "category": "network",
+          "severity": "medium",
+          "confidence": "low",
+          "path": "agents/progress_notifier.py",
+          "line": 40,
+          "column": 5,
+          "snippet": "requests.post(",
+          "remediation": "Pass an explicit timeout so a hung upstream cannot stall the agent.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "Request timeout not observed (agents/progress_notifier.py:40). Pass an explicit timeout so a hung upstream cannot stall the agent."
+        }
+      ],
+      "highest_severity": "medium",
+      "dimension_assessment": {
+        "taxonomy": {
+          "id": "stoa-default-8",
+          "version": "1.0"
+        },
+        "dimensions": [
+          {
+            "id": "scope-violation",
+            "assessability": "strong",
+            "exposure": "low",
+            "score": 19,
+            "contributing_findings": [
+              "AI003-933e397ac186"
+            ],
+            "contributing_capabilities": [
+              "email_send"
+            ],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "data-exfiltration",
+            "assessability": "strong",
+            "exposure": "moderate",
+            "score": 25,
+            "contributing_findings": [
+              "AI006-c01985cc22ce"
+            ],
+            "contributing_capabilities": [
+              "external_http"
+            ],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "unauthorized-action",
+            "assessability": "strong",
+            "exposure": "low",
+            "score": 19,
+            "contributing_findings": [
+              "AI003-933e397ac186"
+            ],
+            "contributing_capabilities": [
+              "email_send"
+            ],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "output-integrity",
+            "assessability": "partial",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "No exposure observed in scanned files."
+          },
+          {
+            "id": "adversarial-manipulation",
+            "assessability": "partial",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "No exposure observed in scanned files."
+          },
+          {
+            "id": "behavioral-instability",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 2,
+            "contributing_findings": [
+              "AI005-33d714cdc058",
+              "AI007-fa499c5d69e3"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 2 finding(s) and 0 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "model-drift",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 10,
+            "contributing_findings": [
+              "AI005-33d714cdc058"
+            ],
+            "contributing_capabilities": [
+              "provider:openai"
+            ],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 1 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "operational-control",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 10,
+            "contributing_findings": [
+              "7bdda7035b7ae859",
+              "9a5fac3930fe553d",
+              "eb4b598a7f8f6517",
+              "feb38b86da911d81"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "4 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          }
+        ]
+      },
+      "declared": {
+        "name": "progress_notifier_executor",
+        "owner": "family-eng@sparkwing.example",
+        "purpose": "Drafts and sends the weekly parent progress update",
+        "users": "customers",
+        "geography": [],
+        "production_status": "production",
+        "autonomy_intent": "recommend_only",
+        "data_classes": [
+          "personal"
+        ]
+      },
+      "autonomy_level": {
+        "level": "recommend_only",
+        "signals": [],
+        "reason": null
+      }
+    },
+    {
+      "id": "e1598a668297",
+      "name": "agent",
+      "symbol": "agent",
+      "path": "agents/project_sandbox.py",
+      "language": "python",
+      "confidence": "high",
+      "detection_score": 8,
+      "evidence": [
+        {
+          "rule_id": "AGENT_LANGCHAIN",
+          "line": 16,
+          "description": "LangChain agent construct"
+        },
+        {
+          "rule_id": "AGENT_TOOLS",
+          "line": 15,
+          "description": "Tool or function schema"
+        },
+        {
+          "rule_id": "AGENT_PROVIDER_IMPORT",
+          "line": 14,
+          "description": "LLM provider import or reference"
+        }
+      ],
+      "providers": [
+        "openai"
+      ],
+      "frameworks": [
+        "langchain"
+      ],
+      "integrations": [],
+      "capabilities": [
+        "shell_execution",
+        "tool_calling"
+      ],
+      "permission_tags": [],
+      "call_sites": {},
+      "last_touched_by": null,
+      "last_commit": null,
+      "codeowners": [],
+      "findings": [
+        {
+          "fingerprint": "25bf79794314e4c7",
+          "rule_id": "AI005",
+          "title": "Model, endpoint, or artifact dependency observed without a pin or integrity control",
+          "category": "ai-supplychain",
+          "severity": "low",
+          "confidence": "low",
+          "path": "agents/project_sandbox.py",
+          "line": 14,
+          "column": 1,
+          "snippet": "ChatOpenAI(model=\"gpt-4o\"",
+          "remediation": "Pin a reviewed model revision or dated snapshot and use a TLS endpoint from an allowlist.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI005-25bf79794314",
+          "canonical_name": "STOA-LLM05-UNPINNED-MODEL",
+          "owasp": {
+            "llm_top10_v1_1": "LLM05",
+            "llm_top10_2025": "LLM03"
+          },
+          "variant": "floating-alias",
+          "dimensions": [
+            "behavioral-instability",
+            "model-drift"
+          ],
+          "message": "Model string `gpt-4o` (line 14) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+        },
+        {
+          "fingerprint": "e61f0fc078a26bba",
+          "rule_id": "AI003",
+          "title": "Approval control not observed for high-impact tool capability",
+          "category": "ai-agency",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/project_sandbox.py",
+          "line": 16,
+          "column": 1,
+          "snippet": "high-impact capability for candidate agent",
+          "remediation": "Confirm an approval or human-in-the-loop control gates this capability; none was observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI003-e61f0fc078a2",
+          "canonical_name": "STOA-LLM08-UNOBSERVED-APPROVAL",
+          "owasp": {
+            "llm_top10_v1_1": "LLM08",
+            "llm_top10_2025": "LLM06"
+          },
+          "dimensions": [
+            "scope-violation",
+            "unauthorized-action"
+          ],
+          "message": "Agent candidate `agent` binds a tool whose body contains high-impact capability call sites (shell-execution). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat."
+        },
+        {
+          "fingerprint": "0a93101047221f18",
+          "rule_id": "AI007",
+          "title": "Deterministic sampling not observed on high-impact-adjacent call sites",
+          "category": "ai-stability",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/project_sandbox.py",
+          "line": 16,
+          "column": 1,
+          "snippet": "sampling config for candidate agent",
+          "remediation": "Pin deterministic sampling (temperature=0) on consequential model call sites, or confirm variability is intended.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI007-0a9310104722",
+          "canonical_name": "STOA-SAMPLING-CONFIG",
+          "owasp": {
+            "llm_top10_v1_1": "LLM05",
+            "llm_top10_2025": "LLM03"
+          },
+          "dimensions": [
+            "behavioral-instability"
+          ],
+          "message": "Agent candidate `agent` binds shell-execution, and model call sites in this file do not set a sampling bound (lines 21). This is a proxy signal only: sampling configuration influences, but does not determine, behavioral consistency, and runtime evaluation is required for direct assessment. One review prompt per candidate — this notice will not repeat."
+        },
+        {
+          "fingerprint": "521d495405b80061",
+          "rule_id": "CTRL003",
+          "title": "Rate limiting control not observed",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/project_sandbox.py",
+          "line": 16,
+          "column": 1,
+          "snippet": "Rate limiting control not observed for candidate agent",
+          "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "Rate limiting control not observed (agents/project_sandbox.py:16). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
+        },
+        {
+          "fingerprint": "115e199347587c2f",
+          "rule_id": "CTRL006",
+          "title": "Sandboxing not observed on an exec path",
+          "category": "control",
+          "severity": "low",
+          "confidence": "low",
+          "path": "agents/project_sandbox.py",
+          "line": 16,
+          "column": 1,
+          "snippet": "Sandboxing not observed on an exec path for candidate agent",
+          "remediation": "Confirm this execution path runs in a restricted environment (restricted env, container, sandboxed interpreter); none was observed near it.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control",
+            "scope-violation"
+          ],
+          "message": "Sandboxing not observed on an exec path (agents/project_sandbox.py:16). Confirm this execution path runs in a restricted environment (restricted env, container, sandboxed interpreter); none was observed near it."
+        },
+        {
+          "fingerprint": "f9f686836329551f",
+          "rule_id": "CTRL007",
+          "title": "No kill-switch signal observed on the agent's entry path",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/project_sandbox.py",
+          "line": 16,
+          "column": 1,
+          "snippet": "No kill-switch signal observed on the agent's entry path for candidate agent",
+          "remediation": "Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "No kill-switch signal observed on the agent's entry path (agents/project_sandbox.py:16). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
+        },
+        {
+          "fingerprint": "a851dbdc641d6dc3",
+          "rule_id": "DECL006",
+          "title": "Scanned agent has no declaration entry",
+          "category": "contradiction",
+          "severity": "medium",
+          "confidence": "high",
+          "path": "agents/project_sandbox.py",
+          "line": 16,
+          "column": 1,
+          "snippet": "no declaration entry for `agent`",
+          "remediation": "stoa-declared.toml exists but doesn't mention this agent. Add an [agents.\"<id>\"] entry, even a partial one.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "stoa-declared.toml exists but has no [agents.\"e1598a668297\"] entry for `agent`.",
+          "declared_ref": {
+            "path": "stoa-declared.toml",
+            "key": "agents.\"e1598a668297\""
+          }
+        },
+        {
+          "fingerprint": "4bfcd637c4be37da",
+          "rule_id": "AI002",
+          "title": "Model output observed reaching a dangerous execution or injection sink",
+          "category": "ai-output",
+          "severity": "critical",
+          "confidence": "high",
+          "path": "agents/project_sandbox.py",
+          "line": 22,
+          "column": 1,
+          "snippet": "subprocess.run(resp.choices[0].message.content, shell=True)  # AI002 exec -> critical, gate-eligible",
+          "remediation": "Dispatch through a static mapping of permitted actions; never execute or render model output directly.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI002-4bfcd637c4be",
+          "canonical_name": "STOA-LLM02-OUTPUT-EXEC",
+          "owasp": {
+            "llm_top10_v1_1": "LLM02",
+            "llm_top10_2025": "LLM05"
+          },
+          "variant": "exec",
+          "flow": [
+            {
+              "role": "source",
+              "line": 21,
+              "snippet": "resp = llm.invoke(f\"Give one shell command that sanity-checks {submission_path}\")"
+            },
+            {
+              "role": "sink",
+              "line": 22,
+              "snippet": "subprocess.run(resp.choices[0].message.content, shell=True)  # AI002 exec -> critical, gate-eligible"
+            }
+          ],
+          "gate_eligible": true,
+          "dimensions": [
+            "output-integrity"
+          ],
+          "message": "The value from `resp = llm.invoke(f\"Give one shell command that sanity-checks {submission_path}\")` (line 21) reaches a exec-class sink at line 22 with no interposed allowlist observed on the flow. Model output is attacker-influenceable whenever any untrusted content reaches the model (OWASP LLM02). This finding is gate-eligible. Analysis is intra-file; flows through other files are not visible."
+        }
+      ],
+      "highest_severity": "critical",
+      "dimension_assessment": {
+        "taxonomy": {
+          "id": "stoa-default-8",
+          "version": "1.0"
+        },
+        "dimensions": [
+          {
+            "id": "scope-violation",
+            "assessability": "strong",
+            "exposure": "low",
+            "score": 20,
+            "contributing_findings": [
+              "115e199347587c2f",
+              "AI003-e61f0fc078a2"
+            ],
+            "contributing_capabilities": [
+              "shell_execution"
+            ],
+            "controls_observed": [],
+            "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "data-exfiltration",
+            "assessability": "strong",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "No exposure observed in scanned files."
+          },
+          {
+            "id": "unauthorized-action",
+            "assessability": "strong",
+            "exposure": "low",
+            "score": 19,
+            "contributing_findings": [
+              "AI003-e61f0fc078a2"
+            ],
+            "contributing_capabilities": [
+              "shell_execution"
+            ],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "output-integrity",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 20,
+            "contributing_findings": [
+              "AI002-4bfcd637c4be"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [
+              "validation"
+            ],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; 1 mitigating control(s) observed."
+          },
+          {
+            "id": "adversarial-manipulation",
+            "assessability": "partial",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "No exposure observed in scanned files."
+          },
+          {
+            "id": "behavioral-instability",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 2,
+            "contributing_findings": [
+              "AI005-25bf79794314",
+              "AI007-0a9310104722"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 2 finding(s) and 0 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "model-drift",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 10,
+            "contributing_findings": [
+              "AI005-25bf79794314"
+            ],
+            "contributing_capabilities": [
+              "provider:openai"
+            ],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 1 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "operational-control",
+            "assessability": "partial",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [
+              "115e199347587c2f",
+              "521d495405b80061",
+              "a851dbdc641d6dc3",
+              "f9f686836329551f"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [
+              "validation"
+            ],
+            "statement": "No exposure observed; controls observed: validation."
+          }
+        ]
+      },
+      "autonomy_level": {
+        "level": "unrestricted_autonomous",
+        "signals": [
+          {
+            "signal": "AI002",
+            "path": "agents/project_sandbox.py",
+            "line": 22
+          },
+          {
+            "signal": "AI003",
+            "path": "agents/project_sandbox.py",
+            "line": 16
+          }
+        ],
+        "reason": null
+      }
+    },
+    {
+      "id": "3566a52c29f8",
+      "name": "executor",
+      "symbol": "executor",
+      "path": "agents/project_sandbox.py",
+      "language": "python",
+      "confidence": "high",
+      "detection_score": 8,
+      "evidence": [
+        {
+          "rule_id": "AGENT_LANGCHAIN",
+          "line": 16,
+          "description": "LangChain agent construct"
+        },
+        {
+          "rule_id": "AGENT_TOOLS",
+          "line": 15,
+          "description": "Tool or function schema"
+        },
+        {
+          "rule_id": "AGENT_PROVIDER_IMPORT",
+          "line": 14,
+          "description": "LLM provider import or reference"
+        }
+      ],
+      "providers": [
+        "openai"
+      ],
+      "frameworks": [
+        "langchain"
+      ],
+      "integrations": [],
+      "capabilities": [
+        "shell_execution",
+        "tool_calling"
+      ],
+      "permission_tags": [],
+      "call_sites": {},
+      "last_touched_by": null,
+      "last_commit": null,
+      "codeowners": [],
+      "findings": [
+        {
+          "fingerprint": "25bf79794314e4c7",
+          "rule_id": "AI005",
+          "title": "Model, endpoint, or artifact dependency observed without a pin or integrity control",
+          "category": "ai-supplychain",
+          "severity": "low",
+          "confidence": "low",
+          "path": "agents/project_sandbox.py",
+          "line": 14,
+          "column": 1,
+          "snippet": "ChatOpenAI(model=\"gpt-4o\"",
+          "remediation": "Pin a reviewed model revision or dated snapshot and use a TLS endpoint from an allowlist.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI005-25bf79794314",
+          "canonical_name": "STOA-LLM05-UNPINNED-MODEL",
+          "owasp": {
+            "llm_top10_v1_1": "LLM05",
+            "llm_top10_2025": "LLM03"
+          },
+          "variant": "floating-alias",
+          "dimensions": [
+            "behavioral-instability",
+            "model-drift"
+          ],
+          "message": "Model string `gpt-4o` (line 14) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+        },
+        {
+          "fingerprint": "2cf74df0fe16a9f5",
+          "rule_id": "AI003",
+          "title": "Approval control not observed for high-impact tool capability",
+          "category": "ai-agency",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/project_sandbox.py",
+          "line": 16,
+          "column": 1,
+          "snippet": "high-impact capability for candidate executor",
+          "remediation": "Confirm an approval or human-in-the-loop control gates this capability; none was observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI003-2cf74df0fe16",
+          "canonical_name": "STOA-LLM08-UNOBSERVED-APPROVAL",
+          "owasp": {
+            "llm_top10_v1_1": "LLM08",
+            "llm_top10_2025": "LLM06"
+          },
+          "dimensions": [
+            "scope-violation",
+            "unauthorized-action"
+          ],
+          "message": "Agent candidate `executor` binds a tool whose body contains high-impact capability call sites (shell-execution). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat."
+        },
+        {
+          "fingerprint": "10d9a32b5868627c",
+          "rule_id": "AI007",
+          "title": "Deterministic sampling not observed on high-impact-adjacent call sites",
+          "category": "ai-stability",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/project_sandbox.py",
+          "line": 16,
+          "column": 1,
+          "snippet": "sampling config for candidate executor",
+          "remediation": "Pin deterministic sampling (temperature=0) on consequential model call sites, or confirm variability is intended.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI007-10d9a32b5868",
+          "canonical_name": "STOA-SAMPLING-CONFIG",
+          "owasp": {
+            "llm_top10_v1_1": "LLM05",
+            "llm_top10_2025": "LLM03"
+          },
+          "dimensions": [
+            "behavioral-instability"
+          ],
+          "message": "Agent candidate `executor` binds shell-execution, and model call sites in this file do not set a sampling bound (lines 21). This is a proxy signal only: sampling configuration influences, but does not determine, behavioral consistency, and runtime evaluation is required for direct assessment. One review prompt per candidate — this notice will not repeat."
+        },
+        {
+          "fingerprint": "a6a868d52265d82c",
+          "rule_id": "CTRL003",
+          "title": "Rate limiting control not observed",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/project_sandbox.py",
+          "line": 16,
+          "column": 1,
+          "snippet": "Rate limiting control not observed for candidate executor",
+          "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "Rate limiting control not observed (agents/project_sandbox.py:16). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
+        },
+        {
+          "fingerprint": "b0af3550810c257f",
+          "rule_id": "CTRL006",
+          "title": "Sandboxing not observed on an exec path",
+          "category": "control",
+          "severity": "low",
+          "confidence": "low",
+          "path": "agents/project_sandbox.py",
+          "line": 16,
+          "column": 1,
+          "snippet": "Sandboxing not observed on an exec path for candidate executor",
+          "remediation": "Confirm this execution path runs in a restricted environment (restricted env, container, sandboxed interpreter); none was observed near it.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control",
+            "scope-violation"
+          ],
+          "message": "Sandboxing not observed on an exec path (agents/project_sandbox.py:16). Confirm this execution path runs in a restricted environment (restricted env, container, sandboxed interpreter); none was observed near it."
+        },
+        {
+          "fingerprint": "8fbf631491e06796",
+          "rule_id": "CTRL007",
+          "title": "No kill-switch signal observed on the agent's entry path",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/project_sandbox.py",
+          "line": 16,
+          "column": 1,
+          "snippet": "No kill-switch signal observed on the agent's entry path for candidate executor",
+          "remediation": "Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "No kill-switch signal observed on the agent's entry path (agents/project_sandbox.py:16). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
+        },
+        {
+          "fingerprint": "7496861010de43c9",
+          "rule_id": "DECL006",
+          "title": "Scanned agent has no declaration entry",
+          "category": "contradiction",
+          "severity": "medium",
+          "confidence": "high",
+          "path": "agents/project_sandbox.py",
+          "line": 16,
+          "column": 1,
+          "snippet": "no declaration entry for `executor`",
+          "remediation": "stoa-declared.toml exists but doesn't mention this agent. Add an [agents.\"<id>\"] entry, even a partial one.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "stoa-declared.toml exists but has no [agents.\"3566a52c29f8\"] entry for `executor`.",
+          "declared_ref": {
+            "path": "stoa-declared.toml",
+            "key": "agents.\"3566a52c29f8\""
+          }
+        },
+        {
+          "fingerprint": "4bfcd637c4be37da",
+          "rule_id": "AI002",
+          "title": "Model output observed reaching a dangerous execution or injection sink",
+          "category": "ai-output",
+          "severity": "critical",
+          "confidence": "high",
+          "path": "agents/project_sandbox.py",
+          "line": 22,
+          "column": 1,
+          "snippet": "subprocess.run(resp.choices[0].message.content, shell=True)  # AI002 exec -> critical, gate-eligible",
+          "remediation": "Dispatch through a static mapping of permitted actions; never execute or render model output directly.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI002-4bfcd637c4be",
+          "canonical_name": "STOA-LLM02-OUTPUT-EXEC",
+          "owasp": {
+            "llm_top10_v1_1": "LLM02",
+            "llm_top10_2025": "LLM05"
+          },
+          "variant": "exec",
+          "flow": [
+            {
+              "role": "source",
+              "line": 21,
+              "snippet": "resp = llm.invoke(f\"Give one shell command that sanity-checks {submission_path}\")"
+            },
+            {
+              "role": "sink",
+              "line": 22,
+              "snippet": "subprocess.run(resp.choices[0].message.content, shell=True)  # AI002 exec -> critical, gate-eligible"
+            }
+          ],
+          "gate_eligible": true,
+          "dimensions": [
+            "output-integrity"
+          ],
+          "message": "The value from `resp = llm.invoke(f\"Give one shell command that sanity-checks {submission_path}\")` (line 21) reaches a exec-class sink at line 22 with no interposed allowlist observed on the flow. Model output is attacker-influenceable whenever any untrusted content reaches the model (OWASP LLM02). This finding is gate-eligible. Analysis is intra-file; flows through other files are not visible."
+        }
+      ],
+      "highest_severity": "critical",
+      "dimension_assessment": {
+        "taxonomy": {
+          "id": "stoa-default-8",
+          "version": "1.0"
+        },
+        "dimensions": [
+          {
+            "id": "scope-violation",
+            "assessability": "strong",
+            "exposure": "low",
+            "score": 20,
+            "contributing_findings": [
+              "AI003-2cf74df0fe16",
+              "b0af3550810c257f"
+            ],
+            "contributing_capabilities": [
+              "shell_execution"
+            ],
+            "controls_observed": [],
+            "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "data-exfiltration",
+            "assessability": "strong",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "No exposure observed in scanned files."
+          },
+          {
+            "id": "unauthorized-action",
+            "assessability": "strong",
+            "exposure": "low",
+            "score": 19,
+            "contributing_findings": [
+              "AI003-2cf74df0fe16"
+            ],
+            "contributing_capabilities": [
+              "shell_execution"
+            ],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "output-integrity",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 20,
+            "contributing_findings": [
+              "AI002-4bfcd637c4be"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [
+              "validation"
+            ],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; 1 mitigating control(s) observed."
+          },
+          {
+            "id": "adversarial-manipulation",
+            "assessability": "partial",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "No exposure observed in scanned files."
+          },
+          {
+            "id": "behavioral-instability",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 2,
+            "contributing_findings": [
+              "AI005-25bf79794314",
+              "AI007-10d9a32b5868"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 2 finding(s) and 0 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "model-drift",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 10,
+            "contributing_findings": [
+              "AI005-25bf79794314"
+            ],
+            "contributing_capabilities": [
+              "provider:openai"
+            ],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 1 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "operational-control",
+            "assessability": "partial",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [
+              "7496861010de43c9",
+              "8fbf631491e06796",
+              "a6a868d52265d82c",
+              "b0af3550810c257f"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [
+              "validation"
+            ],
+            "statement": "No exposure observed; controls observed: validation."
+          }
+        ]
+      },
+      "autonomy_level": {
+        "level": "unrestricted_autonomous",
+        "signals": [
+          {
+            "signal": "AI002",
+            "path": "agents/project_sandbox.py",
+            "line": 22
+          },
+          {
+            "signal": "AI003",
+            "path": "agents/project_sandbox.py",
+            "line": 16
+          }
+        ],
+        "reason": null
+      }
+    },
+    {
+      "id": "c237adc7c1e7",
+      "name": "sector_advisor",
+      "symbol": "sector_advisor",
+      "path": "agents/sector_advisor.py",
+      "language": "python",
+      "confidence": "high",
+      "detection_score": 9,
+      "evidence": [
+        {
+          "rule_id": "AGENT_PROVIDER_CALL",
+          "line": 28,
+          "description": "LLM provider invocation"
+        },
+        {
+          "rule_id": "AGENT_PROVIDER_IMPORT",
+          "line": 12,
+          "description": "LLM provider import or reference"
+        },
+        {
+          "rule_id": "AGENT_LOOP",
+          "line": 51,
+          "description": "Model call inside a loop (agentic control flow)"
+        },
+        {
+          "rule_id": "AGENT_MULTI_STEP",
+          "line": 1,
+          "description": "Multiple model call sites (2) — orchestration"
+        }
+      ],
+      "providers": [
+        "openai"
+      ],
+      "frameworks": [],
+      "integrations": [
+        "postgres"
+      ],
+      "capabilities": [
+        "database_write"
+      ],
+      "permission_tags": [],
+      "call_sites": {
+        "postgres": 3
+      },
+      "last_touched_by": null,
+      "last_commit": null,
+      "codeowners": [],
+      "findings": [
+        {
+          "fingerprint": "6ba939cfa5a0298a",
+          "rule_id": "AI001",
+          "title": "Untrusted input observed flowing into prompt construction",
+          "category": "ai-prompt",
+          "severity": "high",
+          "confidence": "high",
+          "path": "agents/sector_advisor.py",
+          "line": 28,
+          "column": 1,
+          "snippet": "reply = client.chat.completions.create(",
+          "remediation": "Move untrusted content into a delimited user-role message and keep instruction text static.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI001-6ba939cfa5a0",
+          "canonical_name": "STOA-LLM01-PROMPT-EXPOSURE",
+          "owasp": {
+            "llm_top10_v1_1": "LLM01",
+            "llm_top10_2025": "LLM01"
+          },
+          "flow": [
+            {
+              "role": "source",
+              "line": 24,
+              "snippet": "turn = request.get_json()"
+            },
+            {
+              "role": "propagation",
+              "line": 25,
+              "snippet": "student_said = turn[\"text\"]  # student-controlled — AI001 source"
+            },
+            {
+              "role": "propagation",
+              "line": 27,
+              "snippet": "prompt = f\"{SYSTEM}\\nStudent said: {student_said}\\nRespond with one suggestion.\""
+            },
+            {
+              "role": "sink",
+              "line": 28,
+              "snippet": "reply = client.chat.completions.create("
+            }
+          ],
+          "dimensions": [
+            "adversarial-manipulation"
+          ],
+          "message": "A request-derived value (`turn = request.get_json()`, line 24) flows into prompt construction reaching a model call at line 28. No boundary construct was observed on this flow. Content that reaches instruction text can override agent behavior (OWASP LLM01). Consider moving untrusted content into a delimited user-role message and keeping instruction text static. Analysis is intra-file; flows through other files are not visible."
+        },
+        {
+          "fingerprint": "0152dc54a449a1f7",
+          "rule_id": "AI007",
+          "title": "Deterministic sampling not observed on high-impact-adjacent call sites",
+          "category": "ai-stability",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/sector_advisor.py",
+          "line": 28,
+          "column": 1,
+          "snippet": "sampling config for candidate sector_advisor",
+          "remediation": "Pin deterministic sampling (temperature=0) on consequential model call sites, or confirm variability is intended.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI007-0152dc54a449",
+          "canonical_name": "STOA-SAMPLING-CONFIG",
+          "owasp": {
+            "llm_top10_v1_1": "LLM05",
+            "llm_top10_2025": "LLM03"
+          },
+          "dimensions": [
+            "behavioral-instability"
+          ],
+          "message": "Agent candidate `sector_advisor` binds database-write, and model call sites in this file do not set a sampling bound (lines 28, 51). This is a proxy signal only: sampling configuration influences, but does not determine, behavioral consistency, and runtime evaluation is required for direct assessment. One review prompt per candidate — this notice will not repeat."
+        },
+        {
+          "fingerprint": "f2979a8587b8fd70",
+          "rule_id": "CTRL003",
+          "title": "Rate limiting control not observed",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/sector_advisor.py",
+          "line": 28,
+          "column": 1,
+          "snippet": "Rate limiting control not observed for candidate sector_advisor",
+          "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "Rate limiting control not observed (agents/sector_advisor.py:28). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
+        },
+        {
+          "fingerprint": "7f97ff08a9d06a6c",
+          "rule_id": "CTRL007",
+          "title": "No kill-switch signal observed on the agent's entry path",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/sector_advisor.py",
+          "line": 28,
+          "column": 1,
+          "snippet": "No kill-switch signal observed on the agent's entry path for candidate sector_advisor",
+          "remediation": "Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "operational-control"
+          ],
+          "message": "No kill-switch signal observed on the agent's entry path (agents/sector_advisor.py:28). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
+        },
+        {
+          "fingerprint": "2d1febd03e8e8f25",
+          "rule_id": "AI005",
+          "title": "Model, endpoint, or artifact dependency observed without a pin or integrity control",
+          "category": "ai-supplychain",
+          "severity": "low",
+          "confidence": "low",
+          "path": "agents/sector_advisor.py",
+          "line": 29,
+          "column": 1,
+          "snippet": "model=\"gpt-4o\"",
+          "remediation": "Pin a reviewed model revision or dated snapshot and use a TLS endpoint from an allowlist.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI005-2d1febd03e8e",
+          "canonical_name": "STOA-LLM05-UNPINNED-MODEL",
+          "owasp": {
+            "llm_top10_v1_1": "LLM05",
+            "llm_top10_2025": "LLM03"
+          },
+          "variant": "floating-alias",
+          "dimensions": [
+            "behavioral-instability",
+            "model-drift"
+          ],
+          "message": "Model string `gpt-4o` (line 29) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+        }
+      ],
+      "highest_severity": "high",
+      "dimension_assessment": {
+        "taxonomy": {
+          "id": "stoa-default-8",
+          "version": "1.0"
+        },
+        "dimensions": [
+          {
+            "id": "scope-violation",
+            "assessability": "strong",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [
+              "database_write"
+            ],
+            "controls_observed": [
+              "approval"
+            ],
+            "statement": "No exposure observed; controls observed: approval."
+          },
+          {
+            "id": "data-exfiltration",
+            "assessability": "strong",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "No exposure observed in scanned files."
+          },
+          {
+            "id": "unauthorized-action",
+            "assessability": "strong",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [
+              "database_write"
+            ],
+            "controls_observed": [
+              "approval"
+            ],
+            "statement": "No exposure observed; controls observed: approval."
+          },
+          {
+            "id": "output-integrity",
+            "assessability": "partial",
+            "exposure": "none-observed",
+            "score": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "No exposure observed in scanned files."
+          },
+          {
+            "id": "adversarial-manipulation",
+            "assessability": "partial",
+            "exposure": "moderate",
+            "score": 25,
+            "contributing_findings": [
+              "AI001-6ba939cfa5a0"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          },
+          {
+            "id": "behavioral-instability",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 2,
+            "contributing_findings": [
+              "AI005-2d1febd03e8e",
+              "AI007-0152dc54a449"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 2 finding(s) and 0 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "model-drift",
+            "assessability": "proxy",
+            "exposure": "low",
+            "score": 10,
+            "contributing_findings": [
+              "AI005-2d1febd03e8e"
+            ],
+            "contributing_capabilities": [
+              "provider:openai"
+            ],
+            "controls_observed": [],
+            "statement": "Proxy signals only: 1 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+          },
+          {
+            "id": "operational-control",
+            "assessability": "partial",
+            "exposure": "low",
+            "score": 1,
+            "contributing_findings": [
+              "7f97ff08a9d06a6c",
+              "f2979a8587b8fd70"
+            ],
+            "contributing_capabilities": [],
+            "controls_observed": [],
+            "statement": "2 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+          }
+        ]
+      },
+      "declared": {
+        "name": "sector_advisor",
+        "owner": "learning-eng@sparkwing.example",
+        "purpose": "Chats with a student about which project sector to try next",
+        "users": "customers",
+        "geography": [],
+        "production_status": "production",
+        "autonomy_intent": "recommend_only",
+        "data_classes": [
+          "personal"
+        ]
+      },
+      "autonomy_level": {
+        "level": "recommend_only",
+        "signals": [],
+        "reason": null
+      }
+    }
+  ],
+  "repository_findings": [
+    {
+      "fingerprint": "cd8cd15df4588dd5",
+      "rule_id": "SEC001",
+      "title": "Possible hardcoded API credential",
+      "category": "secret",
+      "severity": "critical",
+      "confidence": "low",
+      "path": "tests/test_portfolio.py",
+      "line": 3,
+      "column": 26,
+      "snippet": "FAKE_STRIPE_STYLE_KEY = \"sk-pro…[REDACTED:654c43ce84ef]\"",
+      "remediation": "Load the credential from a secret manager or environment variable.",
+      "suppressed": false,
+      "suppression_reason": null,
+      "is_new": false,
+      "dimensions": [
+        "data-exfiltration",
+        "operational-control"
+      ],
+      "message": "Possible hardcoded API credential (tests/test_portfolio.py:3). Load the credential from a secret manager or environment variable."
+    }
+  ],
+  "skipped_files": [],
+  "warnings": [],
+  "dimension_summary": {
+    "taxonomy": {
+      "id": "stoa-default-8",
+      "version": "1.0"
+    },
+    "dimensions": [
+      {
+        "id": "scope-violation",
+        "name": "Scope violation",
+        "assessability": "strong",
+        "max_exposure": "elevated",
+        "agents_elevated": 2,
+        "agents_moderate": 0
+      },
+      {
+        "id": "data-exfiltration",
+        "name": "Data exfiltration",
+        "assessability": "strong",
+        "max_exposure": "moderate",
+        "agents_elevated": 0,
+        "agents_moderate": 2
+      },
+      {
+        "id": "unauthorized-action",
+        "name": "Unauthorized action",
+        "assessability": "strong",
+        "max_exposure": "elevated",
+        "agents_elevated": 2,
+        "agents_moderate": 0
+      },
+      {
+        "id": "output-integrity",
+        "name": "Output integrity",
+        "assessability": "partial",
+        "max_exposure": "moderate",
+        "agents_elevated": 0,
+        "agents_moderate": 2
+      },
+      {
+        "id": "adversarial-manipulation",
+        "name": "Adversarial manipulation",
+        "assessability": "partial",
+        "max_exposure": "moderate",
+        "agents_elevated": 0,
+        "agents_moderate": 1
+      },
+      {
+        "id": "behavioral-instability",
+        "name": "Behavioral instability",
+        "assessability": "proxy",
+        "max_exposure": "low",
+        "agents_elevated": 0,
+        "agents_moderate": 0
+      },
+      {
+        "id": "model-drift",
+        "name": "Model drift",
+        "assessability": "proxy",
+        "max_exposure": "low",
+        "agents_elevated": 0,
+        "agents_moderate": 0
+      },
+      {
+        "id": "operational-control",
+        "name": "Operational control failure",
+        "assessability": "partial",
+        "max_exposure": "low",
+        "agents_elevated": 0,
+        "agents_moderate": 0
+      }
+    ]
+  },
+  "business": {
+    "industries": [
+      "education"
+    ],
+    "regulated_activities": [
+      "education_records"
+    ],
+    "max_customer_dependency": "high"
+  },
+  "governance": {
+    "release_approval": "Documented in RELEASING.md",
+    "incident_response": "runbooks/incident-response.md",
+    "risk_acceptance": {
+      "owner": "coo@sparkwing.example",
+      "date": "2026-06-01"
+    }
+  },
+  "evidence": {
+    "testing": [
+      {
+        "kind": "prompt_injection",
+        "ref": "evals/pi-suite/results.json",
+        "date": "2026-07-01"
+      }
+    ]
+  }
+}
