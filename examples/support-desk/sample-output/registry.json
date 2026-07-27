@@ -1,8 +1,8 @@
 {
-  "schema_version": "1.1",
+  "schema_version": "1.3",
   "tool": {
     "name": "stoa",
-    "version": "0.2.0"
+    "version": "0.4.0"
   },
   "repository": {
     "name": "support-desk",
@@ -18,9 +18,9 @@
     "findings": {
       "critical": 3,
       "high": 3,
-      "medium": 3,
-      "low": 4,
-      "info": 35
+      "medium": 1,
+      "low": 6,
+      "info": 44
     },
     "new_findings": {
       "critical": 0,
@@ -63,6 +63,9 @@
         "database_write",
         "email_send"
       ],
+      "permission_tags": [
+        "communicate"
+      ],
       "call_sites": {
         "sendgrid": 4
       },
@@ -71,7 +74,7 @@
       "codeowners": [],
       "findings": [
         {
-          "fingerprint": "524191d8e9c415da",
+          "fingerprint": "33d19e4a4b20c3a0",
           "rule_id": "SEC002",
           "title": "Possible hardcoded password",
           "category": "secret",
@@ -80,15 +83,16 @@
           "path": "agents/account_agent.py",
           "line": 15,
           "column": 1,
-          "snippet": "DB_PASSWORD = \"Sup3rS3cretPr0d!2026\"",
+          "snippet": "DB_PASSWORD = \"Sup3rS…[REDACTED:92179e7ad06e]\"",
           "remediation": "Load the password from a secret manager or environment variable.",
           "suppressed": false,
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "data-exfiltration",
-            "operational-control"
-          ]
+            "boundary-leakage",
+            "control-coverage-gap"
+          ],
+          "message": "Possible hardcoded password (agents/account_agent.py:15). Load the password from a secret manager or environment variable."
         },
         {
           "fingerprint": "e44e70c48a235911",
@@ -106,9 +110,10 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "operational-control",
-            "unauthorized-action"
-          ]
+            "control-coverage-gap",
+            "unreviewed-high-impact-action"
+          ],
+          "message": "Authentication control not observed (agents/account_agent.py:17). Confirm authentication is enforced before this agent acts; it was not observed in this file."
         },
         {
           "fingerprint": "a17e389dbacc6d97",
@@ -126,10 +131,11 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "adversarial-manipulation",
-            "operational-control",
-            "output-integrity"
-          ]
+            "control-coverage-gap",
+            "injection-tamper-surface",
+            "output-fidelity"
+          ],
+          "message": "Input validation control not observed (agents/account_agent.py:17). Confirm inputs are validated before this agent acts; validation was not observed in this file."
         },
         {
           "fingerprint": "d8dd339da545edbc",
@@ -147,19 +153,41 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "operational-control"
-          ]
+            "control-coverage-gap"
+          ],
+          "message": "Rate limiting control not observed (agents/account_agent.py:17). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
+        },
+        {
+          "fingerprint": "9f3ec78afbb4ce64",
+          "rule_id": "CTRL007",
+          "title": "No kill-switch signal observed on the agent's entry path",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/account_agent.py",
+          "line": 17,
+          "column": 1,
+          "snippet": "No kill-switch signal observed on the agent's entry path for candidate account_agent",
+          "remediation": "Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "control-coverage-gap"
+          ],
+          "message": "No kill-switch signal observed on the agent's entry path (agents/account_agent.py:17). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
         }
       ],
       "highest_severity": "critical",
       "dimension_assessment": {
         "taxonomy": {
-          "id": "stoa-default-8",
-          "version": "1.0"
+          "id": "stoa-aiuc-8",
+          "version": "2.0"
         },
         "dimensions": [
           {
-            "id": "scope-violation",
+            "id": "mandate-overreach",
+            "group": "B",
             "assessability": "strong",
             "exposure": "moderate",
             "score": 36,
@@ -172,19 +200,21 @@
             "statement": "0 finding(s) and 2 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "data-exfiltration",
+            "id": "boundary-leakage",
+            "group": "A",
             "assessability": "strong",
             "exposure": "moderate",
             "score": 40,
             "contributing_findings": [
-              "524191d8e9c415da"
+              "33d19e4a4b20c3a0"
             ],
             "contributing_capabilities": [],
             "controls_observed": [],
             "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "unauthorized-action",
+            "id": "unreviewed-high-impact-action",
+            "group": "C",
             "assessability": "strong",
             "exposure": "moderate",
             "score": 37,
@@ -199,7 +229,8 @@
             "statement": "1 finding(s) and 2 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "output-integrity",
+            "id": "output-fidelity",
+            "group": "D",
             "assessability": "partial",
             "exposure": "low",
             "score": 1,
@@ -211,7 +242,8 @@
             "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "adversarial-manipulation",
+            "id": "injection-tamper-surface",
+            "group": "B",
             "assessability": "partial",
             "exposure": "low",
             "score": 1,
@@ -223,7 +255,8 @@
             "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "behavioral-instability",
+            "id": "conduct-variability",
+            "group": "D",
             "assessability": "proxy",
             "exposure": "none-observed",
             "score": 0,
@@ -233,7 +266,8 @@
             "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
           },
           {
-            "id": "model-drift",
+            "id": "dependency-drift",
+            "group": "D",
             "assessability": "proxy",
             "exposure": "none-observed",
             "score": 0,
@@ -243,21 +277,28 @@
             "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
           },
           {
-            "id": "operational-control",
+            "id": "control-coverage-gap",
+            "group": "B",
             "assessability": "partial",
             "exposure": "moderate",
             "score": 42,
             "contributing_findings": [
-              "524191d8e9c415da",
+              "33d19e4a4b20c3a0",
+              "9f3ec78afbb4ce64",
               "a17e389dbacc6d97",
               "d8dd339da545edbc",
               "e44e70c48a235911"
             ],
             "contributing_capabilities": [],
             "controls_observed": [],
-            "statement": "4 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+            "statement": "5 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           }
         ]
+      },
+      "autonomy_level": {
+        "level": "recommend_only",
+        "signals": [],
+        "reason": null
       }
     },
     {
@@ -291,6 +332,9 @@
         "database_write",
         "email_send"
       ],
+      "permission_tags": [
+        "communicate"
+      ],
       "call_sites": {
         "sendgrid": 4
       },
@@ -299,7 +343,7 @@
       "codeowners": [],
       "findings": [
         {
-          "fingerprint": "524191d8e9c415da",
+          "fingerprint": "33d19e4a4b20c3a0",
           "rule_id": "SEC002",
           "title": "Possible hardcoded password",
           "category": "secret",
@@ -308,15 +352,16 @@
           "path": "agents/account_agent.py",
           "line": 15,
           "column": 1,
-          "snippet": "DB_PASSWORD = \"Sup3rS3cretPr0d!2026\"",
+          "snippet": "DB_PASSWORD = \"Sup3rS…[REDACTED:92179e7ad06e]\"",
           "remediation": "Load the password from a secret manager or environment variable.",
           "suppressed": false,
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "data-exfiltration",
-            "operational-control"
-          ]
+            "boundary-leakage",
+            "control-coverage-gap"
+          ],
+          "message": "Possible hardcoded password (agents/account_agent.py:15). Load the password from a secret manager or environment variable."
         },
         {
           "fingerprint": "8d3a46531b8da73e",
@@ -334,9 +379,10 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "operational-control",
-            "unauthorized-action"
-          ]
+            "control-coverage-gap",
+            "unreviewed-high-impact-action"
+          ],
+          "message": "Authentication control not observed (agents/account_agent.py:17). Confirm authentication is enforced before this agent acts; it was not observed in this file."
         },
         {
           "fingerprint": "c46b71d141d9bb61",
@@ -354,10 +400,11 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "adversarial-manipulation",
-            "operational-control",
-            "output-integrity"
-          ]
+            "control-coverage-gap",
+            "injection-tamper-surface",
+            "output-fidelity"
+          ],
+          "message": "Input validation control not observed (agents/account_agent.py:17). Confirm inputs are validated before this agent acts; validation was not observed in this file."
         },
         {
           "fingerprint": "984e5615ba54c7da",
@@ -375,19 +422,41 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "operational-control"
-          ]
+            "control-coverage-gap"
+          ],
+          "message": "Rate limiting control not observed (agents/account_agent.py:17). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
+        },
+        {
+          "fingerprint": "9e80959f6b73cae7",
+          "rule_id": "CTRL007",
+          "title": "No kill-switch signal observed on the agent's entry path",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/account_agent.py",
+          "line": 17,
+          "column": 1,
+          "snippet": "No kill-switch signal observed on the agent's entry path for candidate crew",
+          "remediation": "Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "control-coverage-gap"
+          ],
+          "message": "No kill-switch signal observed on the agent's entry path (agents/account_agent.py:17). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
         }
       ],
       "highest_severity": "critical",
       "dimension_assessment": {
         "taxonomy": {
-          "id": "stoa-default-8",
-          "version": "1.0"
+          "id": "stoa-aiuc-8",
+          "version": "2.0"
         },
         "dimensions": [
           {
-            "id": "scope-violation",
+            "id": "mandate-overreach",
+            "group": "B",
             "assessability": "strong",
             "exposure": "moderate",
             "score": 36,
@@ -400,19 +469,21 @@
             "statement": "0 finding(s) and 2 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "data-exfiltration",
+            "id": "boundary-leakage",
+            "group": "A",
             "assessability": "strong",
             "exposure": "moderate",
             "score": 40,
             "contributing_findings": [
-              "524191d8e9c415da"
+              "33d19e4a4b20c3a0"
             ],
             "contributing_capabilities": [],
             "controls_observed": [],
             "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "unauthorized-action",
+            "id": "unreviewed-high-impact-action",
+            "group": "C",
             "assessability": "strong",
             "exposure": "moderate",
             "score": 37,
@@ -427,7 +498,8 @@
             "statement": "1 finding(s) and 2 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "output-integrity",
+            "id": "output-fidelity",
+            "group": "D",
             "assessability": "partial",
             "exposure": "low",
             "score": 1,
@@ -439,7 +511,8 @@
             "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "adversarial-manipulation",
+            "id": "injection-tamper-surface",
+            "group": "B",
             "assessability": "partial",
             "exposure": "low",
             "score": 1,
@@ -451,7 +524,8 @@
             "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "behavioral-instability",
+            "id": "conduct-variability",
+            "group": "D",
             "assessability": "proxy",
             "exposure": "none-observed",
             "score": 0,
@@ -461,7 +535,8 @@
             "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
           },
           {
-            "id": "model-drift",
+            "id": "dependency-drift",
+            "group": "D",
             "assessability": "proxy",
             "exposure": "none-observed",
             "score": 0,
@@ -471,21 +546,28 @@
             "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
           },
           {
-            "id": "operational-control",
+            "id": "control-coverage-gap",
+            "group": "B",
             "assessability": "partial",
             "exposure": "moderate",
             "score": 42,
             "contributing_findings": [
-              "524191d8e9c415da",
+              "33d19e4a4b20c3a0",
               "8d3a46531b8da73e",
               "984e5615ba54c7da",
+              "9e80959f6b73cae7",
               "c46b71d141d9bb61"
             ],
             "contributing_capabilities": [],
             "controls_observed": [],
-            "statement": "4 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+            "statement": "5 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           }
         ]
+      },
+      "autonomy_level": {
+        "level": "recommend_only",
+        "signals": [],
+        "reason": null
       }
     },
     {
@@ -529,6 +611,7 @@
         "payment_access",
         "tool_calling"
       ],
+      "permission_tags": [],
       "call_sites": {
         "postgres": 2,
         "stripe": 2
@@ -553,9 +636,10 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "data-exfiltration",
-            "operational-control"
-          ]
+            "boundary-leakage",
+            "control-coverage-gap"
+          ],
+          "message": "Possible hardcoded API credential (agents/billing_agent.py:16). Load the credential from a secret manager or environment variable."
         },
         {
           "fingerprint": "4b8fbb8f505770bd",
@@ -580,8 +664,8 @@
           },
           "variant": "floating-alias",
           "dimensions": [
-            "behavioral-instability",
-            "model-drift"
+            "conduct-variability",
+            "dependency-drift"
           ],
           "message": "Model string `gpt-4o` (line 20) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
         },
@@ -607,8 +691,8 @@
             "llm_top10_2025": "LLM06"
           },
           "dimensions": [
-            "scope-violation",
-            "unauthorized-action"
+            "mandate-overreach",
+            "unreviewed-high-impact-action"
           ],
           "message": "Agent candidate `billing_agent` binds a tool whose body contains high-impact capability call sites (payment-access). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat."
         },
@@ -628,9 +712,10 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "operational-control",
-            "unauthorized-action"
-          ]
+            "control-coverage-gap",
+            "unreviewed-high-impact-action"
+          ],
+          "message": "Authentication control not observed (agents/billing_agent.py:27). Confirm authentication is enforced before this agent acts; it was not observed in this file."
         },
         {
           "fingerprint": "aac80e8252504a50",
@@ -648,10 +733,11 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "adversarial-manipulation",
-            "operational-control",
-            "output-integrity"
-          ]
+            "control-coverage-gap",
+            "injection-tamper-surface",
+            "output-fidelity"
+          ],
+          "message": "Input validation control not observed (agents/billing_agent.py:27). Confirm inputs are validated before this agent acts; validation was not observed in this file."
         },
         {
           "fingerprint": "cb7a20bec4e37ae1",
@@ -669,8 +755,9 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "operational-control"
-          ]
+            "control-coverage-gap"
+          ],
+          "message": "Rate limiting control not observed (agents/billing_agent.py:27). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
         },
         {
           "fingerprint": "76f7383c70e911c8",
@@ -694,9 +781,29 @@
             "llm_top10_2025": "LLM10"
           },
           "dimensions": [
-            "operational-control"
+            "control-coverage-gap"
           ],
           "message": "Agent candidate `billing_agent` binds tools executing capability call sites; no logging or tracing construct was observed in this file. Observability may exist at middleware or platform level and would not be visible to this scan. One review prompt per candidate."
+        },
+        {
+          "fingerprint": "900d71f4da03c5c2",
+          "rule_id": "CTRL007",
+          "title": "No kill-switch signal observed on the agent's entry path",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/billing_agent.py",
+          "line": 27,
+          "column": 1,
+          "snippet": "No kill-switch signal observed on the agent's entry path for candidate billing_agent",
+          "remediation": "Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "control-coverage-gap"
+          ],
+          "message": "No kill-switch signal observed on the agent's entry path (agents/billing_agent.py:27). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
         },
         {
           "fingerprint": "0e339988fc3f38a2",
@@ -714,8 +821,9 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "output-integrity"
-          ]
+            "output-fidelity"
+          ],
+          "message": "Interpolated SQL statement (agents/billing_agent.py:38). Use parameterized queries instead of string interpolation."
         },
         {
           "fingerprint": "26c82d2f829684bb",
@@ -733,19 +841,21 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "operational-control"
-          ]
+            "control-coverage-gap"
+          ],
+          "message": "Request timeout not observed (agents/billing_agent.py:43). Pass an explicit timeout so a hung upstream cannot stall the agent."
         }
       ],
       "highest_severity": "critical",
       "dimension_assessment": {
         "taxonomy": {
-          "id": "stoa-default-8",
-          "version": "1.0"
+          "id": "stoa-aiuc-8",
+          "version": "2.0"
         },
         "dimensions": [
           {
-            "id": "scope-violation",
+            "id": "mandate-overreach",
+            "group": "B",
             "assessability": "strong",
             "exposure": "low",
             "score": 19,
@@ -759,7 +869,8 @@
             "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "data-exfiltration",
+            "id": "boundary-leakage",
+            "group": "A",
             "assessability": "strong",
             "exposure": "elevated",
             "score": 58,
@@ -773,7 +884,8 @@
             "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "unauthorized-action",
+            "id": "unreviewed-high-impact-action",
+            "group": "C",
             "assessability": "strong",
             "exposure": "low",
             "score": 19,
@@ -788,7 +900,8 @@
             "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "output-integrity",
+            "id": "output-fidelity",
+            "group": "D",
             "assessability": "partial",
             "exposure": "low",
             "score": 16,
@@ -801,7 +914,8 @@
             "statement": "2 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "adversarial-manipulation",
+            "id": "injection-tamper-surface",
+            "group": "B",
             "assessability": "partial",
             "exposure": "low",
             "score": 1,
@@ -813,7 +927,8 @@
             "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "behavioral-instability",
+            "id": "conduct-variability",
+            "group": "D",
             "assessability": "proxy",
             "exposure": "low",
             "score": 2,
@@ -825,7 +940,8 @@
             "statement": "Proxy signals only: 1 finding(s) and 0 capability signal(s) contribute. Runtime evaluation required for direct assessment."
           },
           {
-            "id": "model-drift",
+            "id": "dependency-drift",
+            "group": "D",
             "assessability": "proxy",
             "exposure": "low",
             "score": 10,
@@ -839,13 +955,15 @@
             "statement": "Proxy signals only: 1 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
           },
           {
-            "id": "operational-control",
+            "id": "control-coverage-gap",
+            "group": "B",
             "assessability": "partial",
             "exposure": "moderate",
-            "score": 46,
+            "score": 47,
             "contributing_findings": [
               "26c82d2f829684bb",
               "8b8f178652898f65",
+              "900d71f4da03c5c2",
               "CTRL004-76f7383c70e9",
               "aac80e8252504a50",
               "cb7a20bec4e37ae1",
@@ -853,9 +971,14 @@
             ],
             "contributing_capabilities": [],
             "controls_observed": [],
-            "statement": "6 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+            "statement": "7 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           }
         ]
+      },
+      "autonomy_level": {
+        "level": "recommend_only",
+        "signals": [],
+        "reason": null
       }
     },
     {
@@ -899,6 +1022,7 @@
         "payment_access",
         "tool_calling"
       ],
+      "permission_tags": [],
       "call_sites": {
         "postgres": 2,
         "stripe": 2
@@ -923,9 +1047,10 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "data-exfiltration",
-            "operational-control"
-          ]
+            "boundary-leakage",
+            "control-coverage-gap"
+          ],
+          "message": "Possible hardcoded API credential (agents/billing_agent.py:16). Load the credential from a secret manager or environment variable."
         },
         {
           "fingerprint": "4b8fbb8f505770bd",
@@ -950,8 +1075,8 @@
           },
           "variant": "floating-alias",
           "dimensions": [
-            "behavioral-instability",
-            "model-drift"
+            "conduct-variability",
+            "dependency-drift"
           ],
           "message": "Model string `gpt-4o` (line 20) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
         },
@@ -977,8 +1102,8 @@
             "llm_top10_2025": "LLM06"
           },
           "dimensions": [
-            "scope-violation",
-            "unauthorized-action"
+            "mandate-overreach",
+            "unreviewed-high-impact-action"
           ],
           "message": "Agent candidate `billing_executor` binds a tool whose body contains high-impact capability call sites (payment-access). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat."
         },
@@ -998,9 +1123,10 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "operational-control",
-            "unauthorized-action"
-          ]
+            "control-coverage-gap",
+            "unreviewed-high-impact-action"
+          ],
+          "message": "Authentication control not observed (agents/billing_agent.py:27). Confirm authentication is enforced before this agent acts; it was not observed in this file."
         },
         {
           "fingerprint": "2dfe5ab653fa6145",
@@ -1018,10 +1144,11 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "adversarial-manipulation",
-            "operational-control",
-            "output-integrity"
-          ]
+            "control-coverage-gap",
+            "injection-tamper-surface",
+            "output-fidelity"
+          ],
+          "message": "Input validation control not observed (agents/billing_agent.py:27). Confirm inputs are validated before this agent acts; validation was not observed in this file."
         },
         {
           "fingerprint": "2b9a0f8475b97694",
@@ -1039,8 +1166,9 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "operational-control"
-          ]
+            "control-coverage-gap"
+          ],
+          "message": "Rate limiting control not observed (agents/billing_agent.py:27). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
         },
         {
           "fingerprint": "7193b0bda1f73c55",
@@ -1064,9 +1192,29 @@
             "llm_top10_2025": "LLM10"
           },
           "dimensions": [
-            "operational-control"
+            "control-coverage-gap"
           ],
           "message": "Agent candidate `billing_executor` binds tools executing capability call sites; no logging or tracing construct was observed in this file. Observability may exist at middleware or platform level and would not be visible to this scan. One review prompt per candidate."
+        },
+        {
+          "fingerprint": "b3c228adef8a0429",
+          "rule_id": "CTRL007",
+          "title": "No kill-switch signal observed on the agent's entry path",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/billing_agent.py",
+          "line": 27,
+          "column": 1,
+          "snippet": "No kill-switch signal observed on the agent's entry path for candidate billing_executor",
+          "remediation": "Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "control-coverage-gap"
+          ],
+          "message": "No kill-switch signal observed on the agent's entry path (agents/billing_agent.py:27). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
         },
         {
           "fingerprint": "0e339988fc3f38a2",
@@ -1084,8 +1232,9 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "output-integrity"
-          ]
+            "output-fidelity"
+          ],
+          "message": "Interpolated SQL statement (agents/billing_agent.py:38). Use parameterized queries instead of string interpolation."
         },
         {
           "fingerprint": "26c82d2f829684bb",
@@ -1103,19 +1252,21 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "operational-control"
-          ]
+            "control-coverage-gap"
+          ],
+          "message": "Request timeout not observed (agents/billing_agent.py:43). Pass an explicit timeout so a hung upstream cannot stall the agent."
         }
       ],
       "highest_severity": "critical",
       "dimension_assessment": {
         "taxonomy": {
-          "id": "stoa-default-8",
-          "version": "1.0"
+          "id": "stoa-aiuc-8",
+          "version": "2.0"
         },
         "dimensions": [
           {
-            "id": "scope-violation",
+            "id": "mandate-overreach",
+            "group": "B",
             "assessability": "strong",
             "exposure": "low",
             "score": 19,
@@ -1129,7 +1280,8 @@
             "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "data-exfiltration",
+            "id": "boundary-leakage",
+            "group": "A",
             "assessability": "strong",
             "exposure": "elevated",
             "score": 58,
@@ -1143,7 +1295,8 @@
             "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "unauthorized-action",
+            "id": "unreviewed-high-impact-action",
+            "group": "C",
             "assessability": "strong",
             "exposure": "low",
             "score": 19,
@@ -1158,7 +1311,8 @@
             "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "output-integrity",
+            "id": "output-fidelity",
+            "group": "D",
             "assessability": "partial",
             "exposure": "low",
             "score": 16,
@@ -1171,7 +1325,8 @@
             "statement": "2 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "adversarial-manipulation",
+            "id": "injection-tamper-surface",
+            "group": "B",
             "assessability": "partial",
             "exposure": "low",
             "score": 1,
@@ -1183,7 +1338,8 @@
             "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "behavioral-instability",
+            "id": "conduct-variability",
+            "group": "D",
             "assessability": "proxy",
             "exposure": "low",
             "score": 2,
@@ -1195,7 +1351,8 @@
             "statement": "Proxy signals only: 1 finding(s) and 0 capability signal(s) contribute. Runtime evaluation required for direct assessment."
           },
           {
-            "id": "model-drift",
+            "id": "dependency-drift",
+            "group": "D",
             "assessability": "proxy",
             "exposure": "low",
             "score": 10,
@@ -1209,23 +1366,30 @@
             "statement": "Proxy signals only: 1 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
           },
           {
-            "id": "operational-control",
+            "id": "control-coverage-gap",
+            "group": "B",
             "assessability": "partial",
             "exposure": "moderate",
-            "score": 46,
+            "score": 47,
             "contributing_findings": [
               "148732f274e8103c",
               "26c82d2f829684bb",
               "2b9a0f8475b97694",
               "2dfe5ab653fa6145",
               "CTRL004-7193b0bda1f7",
+              "b3c228adef8a0429",
               "cebc7553a36c2c90"
             ],
             "contributing_capabilities": [],
             "controls_observed": [],
-            "statement": "6 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+            "statement": "7 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           }
         ]
+      },
+      "autonomy_level": {
+        "level": "recommend_only",
+        "signals": [],
+        "reason": null
       }
     },
     {
@@ -1267,6 +1431,9 @@
         "messaging",
         "tool_calling"
       ],
+      "permission_tags": [
+        "communicate"
+      ],
       "call_sites": {
         "slack": 1,
         "zendesk": 3
@@ -1297,8 +1464,8 @@
             "llm_top10_2025": "LLM06"
           },
           "dimensions": [
-            "scope-violation",
-            "unauthorized-action"
+            "mandate-overreach",
+            "unreviewed-high-impact-action"
           ],
           "message": "Agent candidate `escalation_agent` binds a tool whose body contains high-impact capability call sites (messaging). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat."
         },
@@ -1337,7 +1504,7 @@
             }
           ],
           "dimensions": [
-            "data-exfiltration"
+            "boundary-leakage"
           ],
           "message": "An identifier suggesting a credential (`client = Anthropic(api_key=os.environ[\"ANTHROPIC_API_KEY\"])`, line 11) is interpolated into a prompt passed to a model call at line 20. Identifier names suggest — but do not prove — sensitive data (OWASP LLM06). Values are never read or transmitted by Stoa; this finding is based on identifier names and flow shape only. Analysis is intra-file; flows through other files are not visible."
         },
@@ -1363,7 +1530,7 @@
             "llm_top10_2025": "LLM03"
           },
           "dimensions": [
-            "behavioral-instability"
+            "conduct-variability"
           ],
           "message": "Agent candidate `escalation_agent` binds messaging, and model call sites in this file do not set a sampling bound (lines 20). This is a proxy signal only: sampling configuration influences, but does not determine, behavioral consistency, and runtime evaluation is required for direct assessment. One review prompt per candidate — this notice will not repeat."
         },
@@ -1383,9 +1550,10 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "operational-control",
-            "unauthorized-action"
-          ]
+            "control-coverage-gap",
+            "unreviewed-high-impact-action"
+          ],
+          "message": "Authentication control not observed (agents/escalation_agent.py:20). Confirm authentication is enforced before this agent acts; it was not observed in this file."
         },
         {
           "fingerprint": "7ba73fb413f17245",
@@ -1403,10 +1571,11 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "adversarial-manipulation",
-            "operational-control",
-            "output-integrity"
-          ]
+            "control-coverage-gap",
+            "injection-tamper-surface",
+            "output-fidelity"
+          ],
+          "message": "Input validation control not observed (agents/escalation_agent.py:20). Confirm inputs are validated before this agent acts; validation was not observed in this file."
         },
         {
           "fingerprint": "44fb533cec2dbaa7",
@@ -1424,8 +1593,9 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "operational-control"
-          ]
+            "control-coverage-gap"
+          ],
+          "message": "Rate limiting control not observed (agents/escalation_agent.py:20). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
         },
         {
           "fingerprint": "56b1866bbcc0de10",
@@ -1449,9 +1619,29 @@
             "llm_top10_2025": "LLM10"
           },
           "dimensions": [
-            "operational-control"
+            "control-coverage-gap"
           ],
           "message": "Agent candidate `escalation_agent` binds tools executing capability call sites; no logging or tracing construct was observed in this file. Observability may exist at middleware or platform level and would not be visible to this scan. One review prompt per candidate."
+        },
+        {
+          "fingerprint": "4c24f6a06c78ba66",
+          "rule_id": "CTRL007",
+          "title": "No kill-switch signal observed on the agent's entry path",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/escalation_agent.py",
+          "line": 20,
+          "column": 1,
+          "snippet": "No kill-switch signal observed on the agent's entry path for candidate escalation_agent",
+          "remediation": "Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "control-coverage-gap"
+          ],
+          "message": "No kill-switch signal observed on the agent's entry path (agents/escalation_agent.py:20). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
         },
         {
           "fingerprint": "10e09b0d08548606",
@@ -1476,8 +1666,8 @@
           },
           "variant": "floating-alias",
           "dimensions": [
-            "behavioral-instability",
-            "model-drift"
+            "conduct-variability",
+            "dependency-drift"
           ],
           "message": "Model string `claude-sonnet-4-5` (line 21) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
         },
@@ -1486,7 +1676,7 @@
           "rule_id": "REL001",
           "title": "Swallowed exception",
           "category": "reliability",
-          "severity": "medium",
+          "severity": "low",
           "confidence": "high",
           "path": "agents/escalation_agent.py",
           "line": 44,
@@ -1497,19 +1687,21 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "operational-control"
-          ]
+            "control-coverage-gap"
+          ],
+          "message": "Swallowed exception (agents/escalation_agent.py:44). Handle or log the exception instead of silently discarding it."
         }
       ],
       "highest_severity": "high",
       "dimension_assessment": {
         "taxonomy": {
-          "id": "stoa-default-8",
-          "version": "1.0"
+          "id": "stoa-aiuc-8",
+          "version": "2.0"
         },
         "dimensions": [
           {
-            "id": "scope-violation",
+            "id": "mandate-overreach",
+            "group": "B",
             "assessability": "strong",
             "exposure": "low",
             "score": 19,
@@ -1523,7 +1715,8 @@
             "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "data-exfiltration",
+            "id": "boundary-leakage",
+            "group": "A",
             "assessability": "strong",
             "exposure": "moderate",
             "score": 43,
@@ -1537,7 +1730,8 @@
             "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "unauthorized-action",
+            "id": "unreviewed-high-impact-action",
+            "group": "C",
             "assessability": "strong",
             "exposure": "low",
             "score": 19,
@@ -1552,7 +1746,8 @@
             "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "output-integrity",
+            "id": "output-fidelity",
+            "group": "D",
             "assessability": "partial",
             "exposure": "low",
             "score": 1,
@@ -1564,7 +1759,8 @@
             "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "adversarial-manipulation",
+            "id": "injection-tamper-surface",
+            "group": "B",
             "assessability": "partial",
             "exposure": "low",
             "score": 1,
@@ -1576,7 +1772,8 @@
             "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "behavioral-instability",
+            "id": "conduct-variability",
+            "group": "D",
             "assessability": "proxy",
             "exposure": "low",
             "score": 2,
@@ -1589,7 +1786,8 @@
             "statement": "Proxy signals only: 2 finding(s) and 0 capability signal(s) contribute. Runtime evaluation required for direct assessment."
           },
           {
-            "id": "model-drift",
+            "id": "dependency-drift",
+            "group": "D",
             "assessability": "proxy",
             "exposure": "low",
             "score": 10,
@@ -1603,22 +1801,29 @@
             "statement": "Proxy signals only: 1 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
           },
           {
-            "id": "operational-control",
+            "id": "control-coverage-gap",
+            "group": "B",
             "assessability": "partial",
             "exposure": "low",
-            "score": 14,
+            "score": 8,
             "contributing_findings": [
               "15537888d79c9626",
               "44fb533cec2dbaa7",
+              "4c24f6a06c78ba66",
               "7ba73fb413f17245",
               "CTRL004-56b1866bbcc0",
               "ffff1bf58d00c7ee"
             ],
             "contributing_capabilities": [],
             "controls_observed": [],
-            "statement": "5 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+            "statement": "6 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           }
         ]
+      },
+      "autonomy_level": {
+        "level": "recommend_only",
+        "signals": [],
+        "reason": null
       }
     },
     {
@@ -1650,6 +1855,7 @@
         "external_http",
         "web_search"
       ],
+      "permission_tags": [],
       "call_sites": {},
       "last_touched_by": null,
       "last_commit": null,
@@ -1671,9 +1877,10 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "operational-control",
-            "unauthorized-action"
-          ]
+            "control-coverage-gap",
+            "unreviewed-high-impact-action"
+          ],
+          "message": "Authentication control not observed (agents/research_agent.py:9). Confirm authentication is enforced before this agent acts; it was not observed in this file."
         },
         {
           "fingerprint": "d6aaa766cfa73385",
@@ -1691,10 +1898,11 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "adversarial-manipulation",
-            "operational-control",
-            "output-integrity"
-          ]
+            "control-coverage-gap",
+            "injection-tamper-surface",
+            "output-fidelity"
+          ],
+          "message": "Input validation control not observed (agents/research_agent.py:9). Confirm inputs are validated before this agent acts; validation was not observed in this file."
         },
         {
           "fingerprint": "ad3929aa4caea5e0",
@@ -1712,15 +1920,36 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "operational-control"
-          ]
+            "control-coverage-gap"
+          ],
+          "message": "Rate limiting control not observed (agents/research_agent.py:9). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
+        },
+        {
+          "fingerprint": "cc76f40f4fe9db82",
+          "rule_id": "CTRL007",
+          "title": "No kill-switch signal observed on the agent's entry path",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/research_agent.py",
+          "line": 9,
+          "column": 1,
+          "snippet": "No kill-switch signal observed on the agent's entry path for candidate research_agent",
+          "remediation": "Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "control-coverage-gap"
+          ],
+          "message": "No kill-switch signal observed on the agent's entry path (agents/research_agent.py:9). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
         },
         {
           "fingerprint": "c1a75acbd1a57b33",
           "rule_id": "NET001",
           "title": "Insecure non-local HTTP endpoint",
           "category": "network",
-          "severity": "medium",
+          "severity": "low",
           "confidence": "medium",
           "path": "agents/research_agent.py",
           "line": 31,
@@ -1731,20 +1960,22 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "data-exfiltration",
-            "model-drift"
-          ]
+            "boundary-leakage",
+            "dependency-drift"
+          ],
+          "message": "Insecure non-local HTTP endpoint (agents/research_agent.py:31). Use HTTPS for non-local endpoints."
         }
       ],
-      "highest_severity": "medium",
+      "highest_severity": "low",
       "dimension_assessment": {
         "taxonomy": {
-          "id": "stoa-default-8",
-          "version": "1.0"
+          "id": "stoa-aiuc-8",
+          "version": "2.0"
         },
         "dimensions": [
           {
-            "id": "scope-violation",
+            "id": "mandate-overreach",
+            "group": "B",
             "assessability": "strong",
             "exposure": "none-observed",
             "score": 0,
@@ -1754,10 +1985,11 @@
             "statement": "No exposure observed in scanned files."
           },
           {
-            "id": "data-exfiltration",
+            "id": "boundary-leakage",
+            "group": "A",
             "assessability": "strong",
-            "exposure": "moderate",
-            "score": 25,
+            "exposure": "low",
+            "score": 21,
             "contributing_findings": [
               "c1a75acbd1a57b33"
             ],
@@ -1768,7 +2000,8 @@
             "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "unauthorized-action",
+            "id": "unreviewed-high-impact-action",
+            "group": "C",
             "assessability": "strong",
             "exposure": "low",
             "score": 1,
@@ -1780,7 +2013,8 @@
             "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "output-integrity",
+            "id": "output-fidelity",
+            "group": "D",
             "assessability": "partial",
             "exposure": "low",
             "score": 1,
@@ -1792,7 +2026,8 @@
             "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "adversarial-manipulation",
+            "id": "injection-tamper-surface",
+            "group": "B",
             "assessability": "partial",
             "exposure": "low",
             "score": 19,
@@ -1806,7 +2041,8 @@
             "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "behavioral-instability",
+            "id": "conduct-variability",
+            "group": "D",
             "assessability": "proxy",
             "exposure": "none-observed",
             "score": 0,
@@ -1816,10 +2052,11 @@
             "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
           },
           {
-            "id": "model-drift",
+            "id": "dependency-drift",
+            "group": "D",
             "assessability": "proxy",
             "exposure": "low",
-            "score": 7,
+            "score": 3,
             "contributing_findings": [
               "c1a75acbd1a57b33"
             ],
@@ -1828,20 +2065,27 @@
             "statement": "Proxy signals only: 1 finding(s) and 0 capability signal(s) contribute. Runtime evaluation required for direct assessment."
           },
           {
-            "id": "operational-control",
+            "id": "control-coverage-gap",
+            "group": "B",
             "assessability": "partial",
             "exposure": "low",
             "score": 2,
             "contributing_findings": [
               "ad3929aa4caea5e0",
+              "cc76f40f4fe9db82",
               "d6aaa766cfa73385",
               "f1bd314f6b3e6292"
             ],
             "contributing_capabilities": [],
             "controls_observed": [],
-            "statement": "3 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+            "statement": "4 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           }
         ]
+      },
+      "autonomy_level": {
+        "level": "recommend_only",
+        "signals": [],
+        "reason": null
       }
     },
     {
@@ -1865,6 +2109,7 @@
       ],
       "integrations": [],
       "capabilities": [],
+      "permission_tags": [],
       "call_sites": {},
       "last_touched_by": null,
       "last_commit": null,
@@ -1886,9 +2131,10 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "operational-control",
-            "unauthorized-action"
-          ]
+            "control-coverage-gap",
+            "unreviewed-high-impact-action"
+          ],
+          "message": "Authentication control not observed (agents/triage_agent.py:3). Confirm authentication is enforced before this agent acts; it was not observed in this file."
         },
         {
           "fingerprint": "f6aaabe03d2fc365",
@@ -1906,10 +2152,11 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "adversarial-manipulation",
-            "operational-control",
-            "output-integrity"
-          ]
+            "control-coverage-gap",
+            "injection-tamper-surface",
+            "output-fidelity"
+          ],
+          "message": "Input validation control not observed (agents/triage_agent.py:3). Confirm inputs are validated before this agent acts; validation was not observed in this file."
         },
         {
           "fingerprint": "917bac3405b1adcb",
@@ -1927,19 +2174,41 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "operational-control"
-          ]
+            "control-coverage-gap"
+          ],
+          "message": "Rate limiting control not observed (agents/triage_agent.py:3). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
+        },
+        {
+          "fingerprint": "4078c993338f04a5",
+          "rule_id": "CTRL007",
+          "title": "No kill-switch signal observed on the agent's entry path",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "agents/triage_agent.py",
+          "line": 3,
+          "column": 1,
+          "snippet": "No kill-switch signal observed on the agent's entry path for candidate triage_agent",
+          "remediation": "Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "control-coverage-gap"
+          ],
+          "message": "No kill-switch signal observed on the agent's entry path (agents/triage_agent.py:3). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
         }
       ],
       "highest_severity": "info",
       "dimension_assessment": {
         "taxonomy": {
-          "id": "stoa-default-8",
-          "version": "1.0"
+          "id": "stoa-aiuc-8",
+          "version": "2.0"
         },
         "dimensions": [
           {
-            "id": "scope-violation",
+            "id": "mandate-overreach",
+            "group": "B",
             "assessability": "strong",
             "exposure": "none-observed",
             "score": 0,
@@ -1949,7 +2218,8 @@
             "statement": "No exposure observed in scanned files."
           },
           {
-            "id": "data-exfiltration",
+            "id": "boundary-leakage",
+            "group": "A",
             "assessability": "strong",
             "exposure": "none-observed",
             "score": 0,
@@ -1959,7 +2229,8 @@
             "statement": "No exposure observed in scanned files."
           },
           {
-            "id": "unauthorized-action",
+            "id": "unreviewed-high-impact-action",
+            "group": "C",
             "assessability": "strong",
             "exposure": "low",
             "score": 1,
@@ -1971,7 +2242,8 @@
             "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "output-integrity",
+            "id": "output-fidelity",
+            "group": "D",
             "assessability": "partial",
             "exposure": "low",
             "score": 1,
@@ -1983,7 +2255,8 @@
             "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "adversarial-manipulation",
+            "id": "injection-tamper-surface",
+            "group": "B",
             "assessability": "partial",
             "exposure": "low",
             "score": 1,
@@ -1995,7 +2268,8 @@
             "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "behavioral-instability",
+            "id": "conduct-variability",
+            "group": "D",
             "assessability": "proxy",
             "exposure": "none-observed",
             "score": 0,
@@ -2005,7 +2279,8 @@
             "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
           },
           {
-            "id": "model-drift",
+            "id": "dependency-drift",
+            "group": "D",
             "assessability": "proxy",
             "exposure": "none-observed",
             "score": 0,
@@ -2015,20 +2290,27 @@
             "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
           },
           {
-            "id": "operational-control",
+            "id": "control-coverage-gap",
+            "group": "B",
             "assessability": "partial",
             "exposure": "low",
             "score": 2,
             "contributing_findings": [
+              "4078c993338f04a5",
               "917bac3405b1adcb",
               "e8e0cf3881a716fa",
               "f6aaabe03d2fc365"
             ],
             "contributing_capabilities": [],
             "controls_observed": [],
-            "statement": "3 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+            "statement": "4 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           }
         ]
+      },
+      "autonomy_level": {
+        "level": "recommend_only",
+        "signals": [],
+        "reason": null
       }
     },
     {
@@ -2059,6 +2341,7 @@
       ],
       "integrations": [],
       "capabilities": [],
+      "permission_tags": [],
       "call_sites": {},
       "last_touched_by": null,
       "last_commit": null,
@@ -2087,8 +2370,8 @@
           },
           "variant": "floating-alias",
           "dimensions": [
-            "behavioral-instability",
-            "model-drift"
+            "conduct-variability",
+            "dependency-drift"
           ],
           "message": "Model string `gpt-4o` (line 14) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
         },
@@ -2108,9 +2391,10 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "operational-control",
-            "unauthorized-action"
-          ]
+            "control-coverage-gap",
+            "unreviewed-high-impact-action"
+          ],
+          "message": "Authentication control not observed (orchestrator.py:37). Confirm authentication is enforced before this agent acts; it was not observed in this file."
         },
         {
           "fingerprint": "098e0027b85109bd",
@@ -2128,10 +2412,11 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "adversarial-manipulation",
-            "operational-control",
-            "output-integrity"
-          ]
+            "control-coverage-gap",
+            "injection-tamper-surface",
+            "output-fidelity"
+          ],
+          "message": "Input validation control not observed (orchestrator.py:37). Confirm inputs are validated before this agent acts; validation was not observed in this file."
         },
         {
           "fingerprint": "a29ffefb12faff17",
@@ -2149,19 +2434,41 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "operational-control"
-          ]
+            "control-coverage-gap"
+          ],
+          "message": "Rate limiting control not observed (orchestrator.py:37). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
+        },
+        {
+          "fingerprint": "2974ac520218f30c",
+          "rule_id": "CTRL007",
+          "title": "No kill-switch signal observed on the agent's entry path",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "orchestrator.py",
+          "line": 37,
+          "column": 1,
+          "snippet": "No kill-switch signal observed on the agent's entry path for candidate workflow",
+          "remediation": "Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "control-coverage-gap"
+          ],
+          "message": "No kill-switch signal observed on the agent's entry path (orchestrator.py:37). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
         }
       ],
       "highest_severity": "low",
       "dimension_assessment": {
         "taxonomy": {
-          "id": "stoa-default-8",
-          "version": "1.0"
+          "id": "stoa-aiuc-8",
+          "version": "2.0"
         },
         "dimensions": [
           {
-            "id": "scope-violation",
+            "id": "mandate-overreach",
+            "group": "B",
             "assessability": "strong",
             "exposure": "none-observed",
             "score": 0,
@@ -2171,7 +2478,8 @@
             "statement": "No exposure observed in scanned files."
           },
           {
-            "id": "data-exfiltration",
+            "id": "boundary-leakage",
+            "group": "A",
             "assessability": "strong",
             "exposure": "none-observed",
             "score": 0,
@@ -2181,7 +2489,8 @@
             "statement": "No exposure observed in scanned files."
           },
           {
-            "id": "unauthorized-action",
+            "id": "unreviewed-high-impact-action",
+            "group": "C",
             "assessability": "strong",
             "exposure": "low",
             "score": 1,
@@ -2193,7 +2502,8 @@
             "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "output-integrity",
+            "id": "output-fidelity",
+            "group": "D",
             "assessability": "partial",
             "exposure": "low",
             "score": 1,
@@ -2205,7 +2515,8 @@
             "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "adversarial-manipulation",
+            "id": "injection-tamper-surface",
+            "group": "B",
             "assessability": "partial",
             "exposure": "low",
             "score": 1,
@@ -2217,7 +2528,8 @@
             "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "behavioral-instability",
+            "id": "conduct-variability",
+            "group": "D",
             "assessability": "proxy",
             "exposure": "low",
             "score": 2,
@@ -2229,7 +2541,8 @@
             "statement": "Proxy signals only: 1 finding(s) and 0 capability signal(s) contribute. Runtime evaluation required for direct assessment."
           },
           {
-            "id": "model-drift",
+            "id": "dependency-drift",
+            "group": "D",
             "assessability": "proxy",
             "exposure": "low",
             "score": 10,
@@ -2243,20 +2556,27 @@
             "statement": "Proxy signals only: 1 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
           },
           {
-            "id": "operational-control",
+            "id": "control-coverage-gap",
+            "group": "B",
             "assessability": "partial",
             "exposure": "low",
             "score": 2,
             "contributing_findings": [
               "098e0027b85109bd",
+              "2974ac520218f30c",
               "9bf36e675df365e8",
               "a29ffefb12faff17"
             ],
             "contributing_capabilities": [],
             "controls_observed": [],
-            "statement": "3 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+            "statement": "4 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           }
         ]
+      },
+      "autonomy_level": {
+        "level": "recommend_only",
+        "signals": [],
+        "reason": null
       }
     },
     {
@@ -2296,6 +2616,7 @@
         "external_http",
         "tool_calling"
       ],
+      "permission_tags": [],
       "call_sites": {
         "zendesk": 1
       },
@@ -2338,7 +2659,7 @@
             }
           ],
           "dimensions": [
-            "data-exfiltration"
+            "boundary-leakage"
           ],
           "message": "An identifier suggesting a credential (`const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });`, line 5) is interpolated into a prompt passed to a model call at line 13. Identifier names suggest — but do not prove — sensitive data (OWASP LLM06). Values are never read or transmitted by Stoa; this finding is based on identifier names and flow shape only. Analysis is intra-file; flows through other files are not visible."
         },
@@ -2358,9 +2679,10 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "operational-control",
-            "unauthorized-action"
-          ]
+            "control-coverage-gap",
+            "unreviewed-high-impact-action"
+          ],
+          "message": "Authentication control not observed (web/support_widget.ts:13). Confirm authentication is enforced before this agent acts; it was not observed in this file."
         },
         {
           "fingerprint": "ce301ed875286e6e",
@@ -2378,10 +2700,11 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "adversarial-manipulation",
-            "operational-control",
-            "output-integrity"
-          ]
+            "control-coverage-gap",
+            "injection-tamper-surface",
+            "output-fidelity"
+          ],
+          "message": "Input validation control not observed (web/support_widget.ts:13). Confirm inputs are validated before this agent acts; validation was not observed in this file."
         },
         {
           "fingerprint": "7dace16d9b8eddc6",
@@ -2399,8 +2722,9 @@
           "suppression_reason": null,
           "is_new": false,
           "dimensions": [
-            "operational-control"
-          ]
+            "control-coverage-gap"
+          ],
+          "message": "Rate limiting control not observed (web/support_widget.ts:13). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
         },
         {
           "fingerprint": "5175a6a00fa26ec0",
@@ -2424,9 +2748,29 @@
             "llm_top10_2025": "LLM10"
           },
           "dimensions": [
-            "operational-control"
+            "control-coverage-gap"
           ],
           "message": "Agent candidate `support_widget` binds tools executing capability call sites; no logging or tracing construct was observed in this file. Observability may exist at middleware or platform level and would not be visible to this scan. One review prompt per candidate."
+        },
+        {
+          "fingerprint": "725629bf43679f7d",
+          "rule_id": "CTRL007",
+          "title": "No kill-switch signal observed on the agent's entry path",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "web/support_widget.ts",
+          "line": 13,
+          "column": 1,
+          "snippet": "No kill-switch signal observed on the agent's entry path for candidate support_widget",
+          "remediation": "Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "control-coverage-gap"
+          ],
+          "message": "No kill-switch signal observed on the agent's entry path (web/support_widget.ts:13). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
         },
         {
           "fingerprint": "adb8d7fbc83e7723",
@@ -2451,8 +2795,8 @@
           },
           "variant": "floating-alias",
           "dimensions": [
-            "behavioral-instability",
-            "model-drift"
+            "conduct-variability",
+            "dependency-drift"
           ],
           "message": "Model string `gpt-4o-mini` (line 14) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
         }
@@ -2460,12 +2804,13 @@
       "highest_severity": "high",
       "dimension_assessment": {
         "taxonomy": {
-          "id": "stoa-default-8",
-          "version": "1.0"
+          "id": "stoa-aiuc-8",
+          "version": "2.0"
         },
         "dimensions": [
           {
-            "id": "scope-violation",
+            "id": "mandate-overreach",
+            "group": "B",
             "assessability": "strong",
             "exposure": "none-observed",
             "score": 0,
@@ -2475,7 +2820,8 @@
             "statement": "No exposure observed in scanned files."
           },
           {
-            "id": "data-exfiltration",
+            "id": "boundary-leakage",
+            "group": "A",
             "assessability": "strong",
             "exposure": "moderate",
             "score": 43,
@@ -2489,7 +2835,8 @@
             "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "unauthorized-action",
+            "id": "unreviewed-high-impact-action",
+            "group": "C",
             "assessability": "strong",
             "exposure": "low",
             "score": 1,
@@ -2501,7 +2848,8 @@
             "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "output-integrity",
+            "id": "output-fidelity",
+            "group": "D",
             "assessability": "partial",
             "exposure": "low",
             "score": 1,
@@ -2513,7 +2861,8 @@
             "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "adversarial-manipulation",
+            "id": "injection-tamper-surface",
+            "group": "B",
             "assessability": "partial",
             "exposure": "low",
             "score": 1,
@@ -2525,7 +2874,8 @@
             "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
-            "id": "behavioral-instability",
+            "id": "conduct-variability",
+            "group": "D",
             "assessability": "proxy",
             "exposure": "low",
             "score": 2,
@@ -2537,7 +2887,8 @@
             "statement": "Proxy signals only: 1 finding(s) and 0 capability signal(s) contribute. Runtime evaluation required for direct assessment."
           },
           {
-            "id": "model-drift",
+            "id": "dependency-drift",
+            "group": "D",
             "assessability": "proxy",
             "exposure": "low",
             "score": 10,
@@ -2551,11 +2902,13 @@
             "statement": "Proxy signals only: 1 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
           },
           {
-            "id": "operational-control",
+            "id": "control-coverage-gap",
+            "group": "B",
             "assessability": "partial",
             "exposure": "low",
-            "score": 2,
+            "score": 3,
             "contributing_findings": [
+              "725629bf43679f7d",
               "7dace16d9b8eddc6",
               "8e24872fa3936dc4",
               "CTRL004-5175a6a00fa2",
@@ -2563,9 +2916,14 @@
             ],
             "contributing_capabilities": [],
             "controls_observed": [],
-            "statement": "4 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+            "statement": "5 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           }
         ]
+      },
+      "autonomy_level": {
+        "level": "recommend_only",
+        "signals": [],
+        "reason": null
       }
     }
   ],
@@ -2586,9 +2944,10 @@
       "suppression_reason": null,
       "is_new": false,
       "dimensions": [
-        "data-exfiltration",
-        "operational-control"
-      ]
+        "boundary-leakage",
+        "control-coverage-gap"
+      ],
+      "message": "Possible hardcoded API credential (tests/test_billing.py:3). Load the credential from a secret manager or environment variable."
     },
     {
       "fingerprint": "09e32fd78a73e06f",
@@ -2606,77 +2965,86 @@
       "suppression_reason": "table name comes from the REPORT_TABLES enum above",
       "is_new": false,
       "dimensions": [
-        "output-integrity"
-      ]
+        "output-fidelity"
+      ],
+      "message": "Interpolated SQL statement (tools/database.py:40). Use parameterized queries instead of string interpolation."
     }
   ],
   "skipped_files": [],
   "warnings": [],
   "dimension_summary": {
     "taxonomy": {
-      "id": "stoa-default-8",
-      "version": "1.0"
+      "id": "stoa-aiuc-8",
+      "version": "2.0"
     },
     "dimensions": [
       {
-        "id": "scope-violation",
-        "name": "Scope violation",
+        "id": "mandate-overreach",
+        "name": "Mandate overreach",
+        "group": "B",
         "assessability": "strong",
         "max_exposure": "moderate",
         "agents_elevated": 0,
         "agents_moderate": 2
       },
       {
-        "id": "data-exfiltration",
-        "name": "Data exfiltration",
+        "id": "boundary-leakage",
+        "name": "Boundary leakage",
+        "group": "A",
         "assessability": "strong",
         "max_exposure": "elevated",
         "agents_elevated": 2,
-        "agents_moderate": 5
+        "agents_moderate": 4
       },
       {
-        "id": "unauthorized-action",
-        "name": "Unauthorized action",
+        "id": "unreviewed-high-impact-action",
+        "name": "Unreviewed high-impact action",
+        "group": "C",
         "assessability": "strong",
         "max_exposure": "moderate",
         "agents_elevated": 0,
         "agents_moderate": 2
       },
       {
-        "id": "output-integrity",
-        "name": "Output integrity",
+        "id": "output-fidelity",
+        "name": "Output fidelity",
+        "group": "D",
         "assessability": "partial",
         "max_exposure": "low",
         "agents_elevated": 0,
         "agents_moderate": 0
       },
       {
-        "id": "adversarial-manipulation",
-        "name": "Adversarial manipulation",
+        "id": "injection-tamper-surface",
+        "name": "Injection & tamper surface",
+        "group": "B",
         "assessability": "partial",
         "max_exposure": "low",
         "agents_elevated": 0,
         "agents_moderate": 0
       },
       {
-        "id": "behavioral-instability",
-        "name": "Behavioral instability",
+        "id": "conduct-variability",
+        "name": "Conduct variability",
+        "group": "D",
         "assessability": "proxy",
         "max_exposure": "low",
         "agents_elevated": 0,
         "agents_moderate": 0
       },
       {
-        "id": "model-drift",
-        "name": "Model drift",
+        "id": "dependency-drift",
+        "name": "Dependency drift",
+        "group": "D",
         "assessability": "proxy",
         "max_exposure": "low",
         "agents_elevated": 0,
         "agents_moderate": 0
       },
       {
-        "id": "operational-control",
-        "name": "Operational control failure",
+        "id": "control-coverage-gap",
+        "name": "Control coverage gap",
+        "group": "B",
         "assessability": "partial",
         "max_exposure": "moderate",
         "agents_elevated": 0,
