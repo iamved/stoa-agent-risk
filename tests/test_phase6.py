@@ -29,13 +29,14 @@ def _result(tmp_path):
     return run_scan(ScanOptions(root=tmp_path, no_git=True))
 
 
-def test_matrix_renders_with_no_script(tmp_path):
-    # no_graph=True: the dimension-matrix section itself introduces no script;
-    # the architecture graph (a separate, deliberately scoped exception) is
-    # covered by its own tests in test_html_escape.py / test_report_graph.py.
+def test_matrix_renders_with_no_extra_script(tmp_path):
+    # no_graph=True: the dimension-matrix section itself introduces no script
+    # of its own — only the one always-present download-report script (a
+    # separate, fixed-content exception covered by its own tests in
+    # test_html_escape.py / test_report_graph.py) is present.
     html = render_html(_result(tmp_path), StoaConfig(no_graph=True))
     assert "Dimension exposure" in html
-    assert "<script" not in html.lower()
+    assert len(re.findall(r"<script>", html)) == 1
     assert "Content-Security-Policy" in html
 
 

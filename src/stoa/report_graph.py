@@ -1,9 +1,12 @@
 """Interactive architecture-graph section embedded in stoa-report.html.
 
-The report is otherwise script-free with a CSP that blocks all script
-execution (``default-src 'none'``, no ``script-src``). This section is the
-one exception: it inlines a vendored copy of Cytoscape.js (MIT, see
-``NOTICE``) plus a small fixed render script.
+The report's CSP otherwise blocks all script execution (``default-src
+'none'``); only two conditional exceptions exist, both governed by CSP
+hash-pinning rather than ``'unsafe-inline'`` (a third, always-present
+exception — the small "download report" script — is defined directly in
+``report_html.py``, since it isn't graph-specific). This section's two
+scripts: a vendored copy of Cytoscape.js (MIT, see ``NOTICE``) plus a small
+fixed render script.
 
 Both inlined ``<script>`` tags have content that is **identical on every
 render** — no repo-derived data is ever interpolated into them. Per-repo
@@ -212,7 +215,14 @@ GLUE_SCRIPT_HASH = _sha256_b64(_GLUE_JS)
 
 
 def csp_script_src() -> str:
-    return f"script-src 'sha256-{VENDOR_SCRIPT_HASH}' 'sha256-{GLUE_SCRIPT_HASH}';"
+    """The graph's two hash-source tokens for a ``script-src`` CSP directive.
+
+    Returns the ``'sha256-...' 'sha256-...'`` fragment only (no ``script-src``
+    keyword, no trailing ``;``) — ``report_html.py`` composes the full
+    directive, since the report's always-present download-button script
+    contributes its own hash to the same single directive.
+    """
+    return f"'sha256-{VENDOR_SCRIPT_HASH}' 'sha256-{GLUE_SCRIPT_HASH}'"
 
 
 _NODE_TYPE_LABELS = (

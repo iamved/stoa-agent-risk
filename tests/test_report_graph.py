@@ -10,7 +10,11 @@ import re
 from stoa.config import StoaConfig
 from stoa.models import AgentCandidate, Evidence, Finding, RepositoryInfo, ScanResult
 from stoa.report_graph import GLUE_SCRIPT_HASH, VENDOR_SCRIPT_HASH, csp_script_src
-from stoa.report_html import render_html
+from stoa.report_html import DOWNLOAD_SCRIPT_HASH, render_html
+
+
+def _sha256(text: str) -> str:
+    return base64.b64encode(hashlib.sha256(text.encode("utf-8")).digest()).decode("ascii")
 
 
 def _result():
@@ -38,11 +42,21 @@ def test_graph_section_present_by_default():
     assert 'id="stoa-graph-data"' in html
 
 
-def test_no_graph_config_omits_section_and_scripts():
+def test_no_graph_config_omits_graph_section_but_keeps_download_button():
+    """--no-graph removes the graph and its two scripts, but the always-present
+    download-report script (independent of the graph feature) still ships,
+    hash-pinned on its own."""
     html = render_html(_result(), StoaConfig(no_graph=True))
     assert "Architecture graph" not in html
-    assert "<script" not in html.lower()
-    assert "script-src" not in html
+    assert 'id="stoa-download-report"' in html
+    scripts = re.findall(r"<script>(.*?)</script>", html, re.DOTALL)
+    assert len(scripts) == 1
+    assert _sha256(scripts[0]) == DOWNLOAD_SCRIPT_HASH
+    script_src = html.split("script-src", 1)[1].split(";")[0]
+    assert f"sha256-{DOWNLOAD_SCRIPT_HASH}" in script_src
+    assert f"sha256-{VENDOR_SCRIPT_HASH}" not in script_src
+    assert f"sha256-{GLUE_SCRIPT_HASH}" not in script_src
+    assert "unsafe-inline" not in script_src
 
 
 def test_json_data_blob_is_parseable_with_expected_counts():
@@ -73,12 +87,9 @@ def test_emitted_script_hashes_match_declared_constants():
     <script> content, or the browser would refuse to run the real scripts."""
     html = render_html(_result(), StoaConfig())
     scripts = re.findall(r"<script>(.*?)</script>", html, re.DOTALL)
-    assert len(scripts) == 2  # vendor, then glue
-    hashes = [
-        base64.b64encode(hashlib.sha256(s.encode("utf-8")).digest()).decode("ascii")
-        for s in scripts
-    ]
-    assert hashes == [VENDOR_SCRIPT_HASH, GLUE_SCRIPT_HASH]
+    assert len(scripts) == 3  # vendor, glue, then the download-report script
+    hashes = [_sha256(s) for s in scripts]
+    assert hashes == [VENDOR_SCRIPT_HASH, GLUE_SCRIPT_HASH, DOWNLOAD_SCRIPT_HASH]
 
 
 def test_no_external_resources_anywhere():

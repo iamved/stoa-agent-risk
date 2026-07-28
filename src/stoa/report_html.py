@@ -1,13 +1,18 @@
 """Self-contained, XSS-safe HTML report.
 
 The report is summary-first: an agent risk map a non-engineer can read at a
-glance, with every detail one click away inside ``<details>`` elements — no
-JavaScript, a restrictive CSP, no external resources. Every repository-derived
-value passes through :func:`html_text` before interpolation.
+glance, with every detail one click away inside ``<details>`` elements — a
+restrictive CSP, no external resources, and (per the module-level docstring
+in ``report_graph``) at most a couple of small, byte-fixed scripts, each
+allowed to execute only via an exact SHA-256 hash match in the CSP —
+never ``'unsafe-inline'``. Every repository-derived value passes through
+:func:`html_text` before interpolation.
 """
 
 from __future__ import annotations
 
+import base64
+import hashlib
 from itertools import groupby
 from html import escape
 from pathlib import Path
@@ -17,6 +22,39 @@ from .config import StoaConfig
 from .models import SEVERITY_ORDER, AgentCandidate, Finding, ScanResult
 from .report_json import _atomic_write
 from .rules import HIGH_IMPACT_CAPABILITIES, SENSITIVE_INTEGRATIONS
+
+# --- "Download report" button ------------------------------------------
+# The report's CSP has no script-src by default (``default-src 'none'``).
+# This script is the one always-present exception (the architecture graph
+# in report_graph.py is the other, conditional one) — its content is
+# identical on every render, with no repo-derived data ever interpolated
+# into it, so its SHA-256 hash is computed once at import time and used to
+# allow exactly this script and nothing else via CSP hash-pinning.
+_DOWNLOAD_JS = r"""
+(function () {
+  var btn = document.getElementById("stoa-download-report");
+  if (!btn) return;
+  btn.addEventListener("click", function () {
+    var html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+    var blob = new Blob([html], {type: "text/html"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "stoa-report.html";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+})();
+"""
+
+
+def _sha256_b64(text: str) -> str:
+    return base64.b64encode(hashlib.sha256(text.encode("utf-8")).digest()).decode("ascii")
+
+
+DOWNLOAD_SCRIPT_HASH = _sha256_b64(_DOWNLOAD_JS)
 
 SEVERITY_RANK_FOR_EXPOSURE = {"critical": 4, "high": 3, "medium": 1, "low": 0, "info": 0}
 
@@ -95,10 +133,16 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
   line-height: 1.5; }
 main { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; }
 header.page { background: #171c26; color: #f2f4f8; padding: 28px 20px; }
-header.page .inner { max-width: 1100px; margin: 0 auto; }
+header.page .inner { max-width: 1100px; margin: 0 auto; position: relative; }
 header.page h1 { margin: 0 0 6px; font-size: 22px; font-weight: 650; }
 header.page p { margin: 2px 0; color: #b8c0cf; font-size: 14px; }
 header.page .headline { color: #f2f4f8; font-size: 15px; margin-top: 8px; }
+.dl-btn { position: absolute; top: 0; right: 0; background: transparent;
+  color: #f2f4f8; border: 1px solid #465063; border-radius: 6px;
+  padding: 6px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer;
+  font-family: inherit; }
+.dl-btn:hover { background: #232936; }
+@media print { .dl-btn { display: none; } }
 h2 { font-size: 17px; margin: 34px 0 10px; }
 section > p.note { color: #5a6272; font-size: 13px; margin: 4px 0 12px; }
 .cards { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
@@ -311,13 +355,14 @@ def render_html(result: ScanResult, config: StoaConfig) -> str:
         else f"{critical} critical finding{'s' if critical != 1 else ''}"
     )
 
-    script_src = ""
+    script_hashes = [f"'sha256-{DOWNLOAD_SCRIPT_HASH}'"]
     cytoscape_version = None
     if not config.no_graph:
         from .report_graph import CYTOSCAPE_VERSION, csp_script_src
 
-        script_src = " " + csp_script_src()
+        script_hashes.append(csp_script_src())
         cytoscape_version = CYTOSCAPE_VERSION
+    script_src = " script-src " + " ".join(script_hashes) + ";"
     parts.append(
         "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n"
         "<meta charset=\"utf-8\">\n"
@@ -330,6 +375,8 @@ def render_html(result: ScanResult, config: StoaConfig) -> str:
     )
     parts.append(
         '<header class="page"><div class="inner">'
+        '<button type="button" id="stoa-download-report" class="dl-btn">'
+        "Download report</button>"
         "<h1>Stoa Agent Risk Report</h1>"
         f"<p>Repository: <strong>{html_text(result.repository.name)}</strong>"
         + (
@@ -474,7 +521,7 @@ def render_html(result: ScanResult, config: StoaConfig) -> str:
             f"<a href=\"https://js.cytoscape.org/\">Cytoscape.js</a> {cytoscape_version} "
             "(MIT License, vendored — no network request is made)."
         )
-        + "</footer>\n</main>\n</body>\n</html>\n"
+        + f"</footer>\n</main>\n<script>{_DOWNLOAD_JS}</script>\n</body>\n</html>\n"
     )
     return "".join(parts)
 
