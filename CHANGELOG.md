@@ -36,6 +36,14 @@ Registry schema → 1.3 (additive); assurance packet schema → `assurance-packe
 This grouping is a display header and interoperability aid, not an AIUC-1
 certification claim — certification requires their accredited-auditor process.
 
+### Added — "Download report" button
+- `stoa-report.html` now has a "Download report" button that saves the
+  currently-rendered page as a standalone `.html` file — client-side only
+  (no server, no new dependencies), useful whether the report was opened
+  locally or from a shared/hosted link. Its script is fixed, repo-data-free
+  content, CSP hash-pinned like the existing architecture-graph scripts —
+  never `'unsafe-inline'`.
+
 ## 0.3.0 — "Real-world detection quality"
 
 Driven by running Stoa against a production codebase. Three problems it exposed —
