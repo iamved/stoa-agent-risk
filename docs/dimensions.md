@@ -2,20 +2,16 @@
 
 Every agent candidate is assessed across a taxonomy of risk **dimensions** and
 rendered as a Dimension Exposure Matrix at the top of the HTML report. The
-default taxonomy (`stoa-aiuc-8`, v2.0) has eight dimensions, grouped under the
-six standard categories of [AIUC-1](https://www.aiuc-1.com/) — the AI agent
-trust standard (Data & Privacy, Security, Safety, Reliability, Accountability,
-Society). **Five dimensions are assessable statically, three are proxy signals
-flagged for runtime follow-up** — all with line-level evidence.
+default taxonomy has eight dimensions grouped under six categories — Data &
+Privacy, Security, Safety, Reliability, Accountability, Society. **Five
+dimensions are assessable statically, three are proxy signals flagged for
+runtime follow-up** — all with line-level evidence.
 
-Grouping under AIUC-1's categories is a display header, not a certification
-claim — AIUC-1 certification requires their accredited-auditor process. It's
-also not the complete AIUC-1 picture: the technical dimensions below only
-cover what static analysis can score. The parts of AIUC-1 that require
+The table below covers what static analysis can score. The parts that need
 governance documentation or third-party testing evidence (most of Safety,
 Accountability, and Society) live in `stoa-declared.toml` and surface in
 [`stoa export --assurance`](assurance-export.md) instead, under the same six
-group letters plus a seventh, Stoa-only group for insurance-specific exposure.
+categories plus a seventh, Stoa-only category for insurance-specific exposure.
 
 ## The eight default dimensions
 
