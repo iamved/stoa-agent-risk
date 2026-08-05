@@ -25,7 +25,13 @@ identical inputs produce a byte-identical packet body.
 
 from __future__ import annotations
 
-PACKET_SCHEMA = "assurance-packet/1.1"
+# 1.2: the reserved "observed" status/provenance is live — Areas 12
+# (Monitoring) and 18 (Claims evidence) populate from a runtime-enriched
+# registry, and RT-family findings join the contradictions table. A packet
+# built from a registry with no runtime data is byte-identical to 1.1 apart
+# from this schema string (the same precedent SCHEMA.md sets for registry
+# minor bumps).
+PACKET_SCHEMA = "assurance-packet/1.2"
 
 # The six standard categories from the AIUC-1 agent-trust standard
 # (https://www.aiuc-1.com/), used here as a shared organizing header across
@@ -320,6 +326,19 @@ def _societal_impact(registry: dict) -> dict:
 def _monitoring(registry: dict) -> dict:
     evidence_block = registry.get("evidence") or {}
     rows = _ingested_rows(evidence_block, "monitoring")
+    runtime_block = registry.get("runtime")
+    if runtime_block:
+        # Runtime analysis itself is monitoring evidence — observed, not a
+        # pointer: the window, span count, and coverage are stated so a
+        # reviewer sees exactly how much observation backs the claim.
+        window = runtime_block.get("window") or {}
+        rows.append(_row("runtime_traces", "observed", {
+            "window_start": window.get("start"),
+            "window_end": window.get("end"),
+            "span_count": runtime_block.get("span_count"),
+            "agents_covered": runtime_block.get("agents_covered"),
+            "agents_total": runtime_block.get("agents_total"),
+        }))
     agents_out = []
     for agent in registry.get("agents", []):
         findings = agent.get("findings") or []
@@ -328,7 +347,20 @@ def _monitoring(registry: dict) -> dict:
             _row("observability", "not_provided", {"gap_rule_id": "CTRL004", "path": ctrl004["path"], "line": ctrl004["line"]})
             if ctrl004 else _row("observability", "scanned")
         )
-        agents_out.append({"agent_id": agent["id"], "name": agent["name"], "fields": {"observability": row}})
+        fields = {"observability": row}
+        evidence = agent.get("runtime_evidence")
+        if evidence:
+            fields["runtime_traces"] = _row("runtime_traces", "observed", {
+                "window_start": (evidence.get("window") or {}).get("start"),
+                "window_end": (evidence.get("window") or {}).get("end"),
+                "span_count": evidence.get("span_count"),
+            })
+        elif runtime_block:
+            # Analysis ran, this agent had zero spans — an explicit gap.
+            fields["runtime_traces"] = _row("runtime_traces", "not_provided", {
+                "note": "no spans for this agent in the analyzed window",
+            })
+        agents_out.append({"agent_id": agent["id"], "name": agent["name"], "fields": fields})
     return {"rows": rows, "agents": agents_out}
 
 
@@ -351,10 +383,45 @@ def _historical_evidence(registry: dict) -> dict:
 
 
 def _claims_evidence(registry: dict) -> dict:
-    # "observed" provenance is reserved (see graph_model / SCHEMA.md) for a
-    # future runtime-trace overlay -- never emitted by the current scanner.
-    return {"rows": [_row("traces_and_runtime_evidence", "not_provided",
-                           {"note": "reserved for a future runtime-trace overlay ('observed' provenance)"})]}
+    """Area 18 — incident-relevant runtime records, the reserved 'observed'
+    provenance now live. Populated only from a runtime-enriched registry
+    (`stoa runtime merge` / `stoa scan --with-runtime`); a registry without
+    runtime data keeps the explicit not_provided row, exactly as before."""
+    runtime_block = registry.get("runtime")
+    if not runtime_block:
+        return {"rows": [_row("traces_and_runtime_evidence", "not_provided",
+                               {"note": "no runtime trace evidence merged into this registry "
+                                        "('observed' provenance requires the runtime overlay)"})]}
+    window = runtime_block.get("window") or {}
+    rows = [_row("traces_and_runtime_evidence", "observed", {
+        "window_start": window.get("start"),
+        "window_end": window.get("end"),
+        "span_count": runtime_block.get("span_count"),
+        "agents_covered": runtime_block.get("agents_covered"),
+        "evidence_quality": runtime_block.get("evidence_quality"),
+    })]
+    # Every RT finding is an incident-relevant record with a trace ref.
+    for agent in registry.get("agents", []):
+        for finding in agent.get("findings") or []:
+            if not str(finding.get("rule_id", "")).startswith("RT"):
+                continue
+            evidence = {"agent_id": agent["id"], "title": finding.get("title")}
+            if finding.get("trace_ref"):
+                evidence["trace_ref"] = finding["trace_ref"]
+            if finding.get("suppressed"):
+                evidence["suppressed"] = True
+            rows.append(_row(finding["rule_id"], "observed", evidence))
+    # Approval-gate observations per covered agent.
+    for agent in registry.get("agents", []):
+        evidence = agent.get("runtime_evidence")
+        if evidence and evidence.get("high_impact_actions"):
+            rows.append(_row("approval_gate_log", "observed", {
+                "agent_id": agent["id"],
+                "high_impact_actions": evidence.get("high_impact_actions"),
+                "approved": evidence.get("high_impact_approved"),
+                "approval_rate": evidence.get("approval_rate_high_impact"),
+            }))
+    return {"rows": rows}
 
 
 _AREA_BUILDERS = {
@@ -380,17 +447,24 @@ _AREA_BUILDERS = {
 
 
 def _contradictions(registry: dict) -> list[dict]:
+    """DECL (declared vs scanned) and RT (declared/scanned vs observed)
+    contradictions. RT findings exist only in runtime-enriched registries,
+    so pre-runtime packets are unchanged."""
     all_findings = (
         [f for a in registry.get("agents", []) for f in a.get("findings") or []]
         + (registry.get("repository_findings") or [])
     )
-    decl = [f for f in all_findings if f["rule_id"].startswith("DECL") and not f.get("suppressed")]
+    decl = [
+        f for f in all_findings
+        if f["rule_id"].startswith(("DECL", "RT")) and not f.get("suppressed")
+    ]
     return sorted(
         [
             {
                 "rule_id": f["rule_id"], "severity": f["severity"], "title": f["title"],
                 "path": f["path"], "line": f["line"], "declared_ref": f.get("declared_ref"),
                 "message": f.get("message"),
+                **({"trace_ref": f["trace_ref"]} if f.get("trace_ref") else {}),
             }
             for f in decl
         ],
@@ -426,12 +500,28 @@ def build_assurance_packet(registry: dict, *, git_sha: str | None = None, scan_t
     }
 
 
-_STATUS_GLYPH = {"scanned": "🔍", "declared": "📝", "ingested": "📎", "not_provided": "⬜"}
+_STATUS_GLYPH = {
+    "scanned": "🔍", "declared": "📝", "ingested": "📎",
+    "observed": "📡", "not_provided": "⬜",
+}
 
 
 def _evidence_cell(evidence: dict | None) -> str:
     if not evidence:
         return "—"
+    if "window_start" in evidence:
+        cell = (f"{evidence.get('window_start') or '?'} → "
+                f"{evidence.get('window_end') or '?'}"
+                f" · {evidence.get('span_count', 0)} span(s)")
+        if evidence.get("agents_covered") is not None:
+            cell += f" · {evidence['agents_covered']} agent(s) covered"
+        return cell
+    if "trace_ref" in evidence:
+        ref = evidence["trace_ref"]
+        return f"trace `{ref.get('file')}:{ref.get('line')}` (span {ref.get('span_id')})"
+    if "approval_rate" in evidence:
+        return (f"{evidence.get('approved')}/{evidence.get('high_impact_actions')} "
+                f"high-impact action(s) approved (rate {evidence.get('approval_rate')})")
     if "path" in evidence and "line" in evidence:
         cell = f"`{evidence['path']}:{evidence['line']}`"
         if evidence.get("rule_id"):

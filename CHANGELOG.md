@@ -3,6 +3,66 @@
 All notable changes to Stoa are documented here. The registry JSON schema is
 versioned separately (see [SCHEMA.md](SCHEMA.md)).
 
+## 0.5.0 — "Runtime trace overlay"
+
+Registry schema → 1.4 (additive); assurance packet → `assurance-packet/1.2`.
+Everything below is additive and dormant without runtime config/traces: a
+repo that never touches the overlay behaves byte-for-byte as 0.4.0 across
+`scan`/`diff`/`graph`/`export` apart from the two schema strings. Zero new
+required dependencies; zero telemetry — traces are local JSONL files and
+never leave the customer's infrastructure. v1 is shadow mode: observe only,
+never enforce. See [docs/runtime.md](docs/runtime.md) and
+[docs/design/runtime-overlay.md](docs/design/runtime-overlay.md).
+
+### Added — `stoa.runtime` instrumentation SDK
+- `configure()` / `@stoa_trace` / `with stoa_span(...)` writing
+  `stoa-trace/1.0` JSONL (stdlib-only; the `[runtime]` pip extra is reserved
+  for the deferred OTLP exporter). Redact-by-default: string attrs become
+  SHA-256 + length; `capture_content=True` + `redaction_hook` to opt in.
+  Buffered hot path (~µs), size rotation, warn-once no-op on unwritable
+  dirs — instrumentation never crashes or blocks the customer's agent.
+  Reuses the scanner's capability/integration/provider vocabulary verbatim.
+
+### Added — `stoa runtime` command group + `stoa scan --with-runtime`
+- `analyze` (`runtime-analysis/1.0`; deterministic body, unmatched agents
+  and zero-evidence agents always explicit), `map` (agent-id suggestions),
+  `baseline` (`runtime-baseline/1.0`, committed like approvals), `drift`
+  (`runtime-drift/1.0`; high/medium/info classes, hand-recomputable
+  frequency-ratio statistic, `[runtime.drift]` thresholds, report-only
+  unless `--fail-on-drift`), `merge` (registry enrichment), and
+  `stoa init runtime` scaffolding. `stoa diff` exit-code conventions.
+
+### Added — RT001–RT005, the runtime contradiction detector
+- Declared/scanned vs **observed**, each finding citing `trace_ref` +
+  `declared_ref`. All `gateable=false` (shadow mode). Config suppression
+  for trace-anchored findings (`[runtime].suppress`), counted, never
+  hidden. One docs page per rule.
+
+### Added — registry/graph/report/packet integration
+- Per-agent `runtime_evidence`; `liveness_state` (reserved since 1.0) now
+  live; RT findings on agents; top-level `runtime` block. Graph: reserved
+  `"observed"` provenance + `"delegates"` kind now emitted by the overlay —
+  corroborated static edges gain `observed: true` (thick in the report,
+  "(observed)" in Mermaid), runtime-only reach and delegation render
+  dashed/dotted; CSP hash-pinning untouched. Assurance: Area 12 gains
+  `observed` monitoring rows, Area 18 populates its reserved `observed`
+  provenance; RT findings join the contradictions table (📡 glyph).
+- `stoa diff` unconditionally ignores runtime fields and RT findings — no
+  phantom drift in code diffs.
+
+### Added — `runtime` dimension assessability tier
+- With trace coverage, Conduct variability and Dependency drift re-bucket
+  from observed signals per agent per window — no longer capped at
+  `moderate` in either direction — carrying `evidence_window` +
+  `runtime_basis` and a window-stating statement. Proxy entries without
+  runtime evidence stay capped; the original property test is untouched and
+  a new one enforces the evidence-window invariant.
+
+### Fixture
+- `examples/meridian-ops/traces/` — a hand-auditable 12-span trace fixture
+  engineered against Meridian's real declarations (RT001 ×2, RT002, RT003,
+  a delegates edge, corroborated edges, a runtime-tier dimension upgrade).
+
 ## 0.4.0 — "AIUC-1 alignment"
 
 Registry schema → 1.3 (additive); assurance packet schema → `assurance-packet/1.1`.

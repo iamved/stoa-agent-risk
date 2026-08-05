@@ -121,6 +121,57 @@ carrying a `group` key (one of `index`, `A`–`F`, `G`) that groups them under
 Stoa-only group for insurance-specific exposure. See
 [docs/assurance-export.md](docs/assurance-export.md).
 
+## Schema 1.4 additions (Runtime trace overlay)
+
+All optional, emitted **only** by `stoa runtime merge` / `stoa scan
+--with-runtime` — a plain scan serializes byte-identically to `1.3` apart
+from `schema_version`. See [docs/runtime.md](docs/runtime.md).
+
+**On an agent candidate** (merge only):
+
+| Field | Type | Meaning |
+|---|---|---|
+| `runtime_evidence` | object | Observed-behavior summary for the analyzed window: `{window: {start, end}, span_count, spans_by_kind, error_rate, observed_capabilities, observed_integrations, observed_providers, observed_models, capability_counts, integration_counts, high_impact_actions, high_impact_approved, approval_rate_high_impact, max_observed_amount, window_total_amounts, evidence_quality, delegations_to, trace_files}` |
+| `liveness_state` | string | The field reserved since 1.0, now live: `"active"` (spans observed in window) or `"idle"` (registry agent, zero spans). `"deprecated"` stays reserved — inferring it needs more than one window. |
+
+**On a finding** (RT-family only): `trace_ref` — `{file, line, span_id}`,
+the trace-side evidence pointer, sibling to the DECL family's
+`declared_ref`. RT findings (`RT001`–`RT005`) are appended by merge to the
+agent's `findings` list; the scan-time `summary.findings` counts are
+deliberately not rewritten (they describe the static scan) — merged RT
+findings are counted in the top-level `runtime` block instead.
+
+**On a `dimension_assessment` entry** (merge only, the two proxy dimensions
+only, and only when spans cover the agent): `assessability` may become
+`"runtime"`, accompanied by `evidence_window` (`{start, end, span_count}`,
+always non-empty — enforced by a property test) and `runtime_basis` (the
+observed signals the exposure re-bucketing used, so the bucket is auditable
+from the registry alone). Entries still labeled `proxy` remain capped at
+`moderate` exactly as before.
+
+**Top-level** (merge only): `runtime` — `{analysis_schema, window, span_count,
+agents_covered, agents_total, unmatched_agents, rt_findings,
+evidence_quality}`.
+
+**`stoa diff`** ignores `runtime_evidence`, `liveness_state`, and RT-family
+findings unconditionally: a diff describes call sites added or removed in
+code, and runtime data varies run to run.
+
+### Companion schemas (separate documents, not part of the registry)
+
+| Schema | Producer | Notes |
+|---|---|---|
+| `stoa-trace/1.0` | the `stoa.runtime` SDK | JSONL, one span per line; line 1 is a header record (`{kind: "header", schema, sdk_version, redaction, dropped_spans}`). Span fields: `kind` (`agent_run \| llm_call \| tool_call \| action \| approval \| retrieval \| delegation`), `trace_id`, `span_id`, `parent_span_id`, `agent_id` (12-hex or null + `agent_hint`), `start_ts`/`end_ts` (ISO-8601 UTC — trace files are the one place timestamps live in content), `status`, `redaction`, and optional `capability`/`integration`/`provider` (scanner vocabulary ids; off-vocabulary values are flagged `vocabulary: "custom"`), `model`, `tool`, `amount {amount, currency}`, `approval {approved_by, method}`, `approval_span_id`, `from_agent_id`/`to_agent_id` (delegation), `attrs` (hashes/lengths by default — see redaction). Reserved fields: `enforcement`, `session_id`, `cost`. |
+| `runtime-analysis/1.0` | `stoa runtime analyze` | Deterministic body given identical traces; wall-clock in `header.generated_at` only. `agents` (per-id summaries), `unmatched_agents` (never silently dropped), `no_runtime_evidence` (explicit). |
+| `runtime-baseline/1.0` | `stoa runtime baseline` | Committed like `.stoa/approvals.toml`, reviewed like code. |
+| `runtime-drift/1.0` | `stoa runtime drift` | Drift events (`high \| medium \| info`) + the exact thresholds used. |
+
+`assurance-packet/1.2` (produced by `stoa export --assurance`): the reserved
+`observed` status/provenance is live — Areas 12 (Monitoring) and 18 (Claims
+evidence) populate from a runtime-enriched registry, and RT findings join
+the contradictions table. A packet from a registry without runtime data is
+byte-identical to `1.1` apart from the schema string.
+
 ## Top-level document
 
 ```json
@@ -257,9 +308,9 @@ schema. They are not emitted in version 1.0 and carry no behavior today:
 
 | Reserved field | Future purpose |
 |---|---|
-| `autonomy_level` | Static inference of human-in-loop vs. autonomous action |
+| `autonomy_level` | ~~Reserved~~ — live since 1.2 (static autonomy inference) |
 | `loss_scenarios` | Mapping of findings and capabilities to loss-scenario descriptors |
-| `liveness_state` | Runtime-derived Active / Idle / Deprecated status |
+| `liveness_state` | ~~Reserved~~ — live since 1.4 (`active`/`idle` from the runtime overlay; `deprecated` still reserved) |
 | `policy_lines` | Mapping to insurance policy-line identifiers |
 | `exposure_class` | Normalized exposure categorization |
 

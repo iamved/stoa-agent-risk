@@ -335,7 +335,13 @@ BAR_CLASS = {
 }
 
 
-def render_html(result: ScanResult, config: StoaConfig) -> str:
+def render_html(
+    result: ScanResult, config: StoaConfig, document: dict | None = None
+) -> str:
+    """Render the report. ``document``, when given, is a pre-built (possibly
+    runtime-enriched) registry dict used for the architecture-graph section —
+    `stoa scan --with-runtime` passes the enriched document so observed and
+    delegates edges render; plain scans pass nothing and behave as before."""
     parts: list[str] = []
     severity_counts = result.severity_counts()
     new_counts = result.new_severity_counts()
@@ -468,12 +474,30 @@ def render_html(result: ScanResult, config: StoaConfig) -> str:
 
     # Architecture graph -------------------------------------------------------
     if not config.no_graph:
-        from .graph_model import build_graph
+        from .graph_model import build_graph, overlay_runtime
         from .report_graph import render_graph_section
         from .report_json import build_document
 
-        graph = build_graph(build_document(result, config))
+        graph_document = document if document is not None else build_document(result, config)
+        graph = build_graph(graph_document)
+        runtime_block = graph_document.get("runtime")
+        if runtime_block:
+            graph = overlay_runtime(graph, graph_document)
         parts.append(render_graph_section(graph))
+        if runtime_block:
+            window = runtime_block.get("window") or {}
+            parts.append(
+                '<p class="note">Runtime overlay: thick edges were observed in '
+                "traces (corroborating static detection); dashed edges exist only "
+                "in runtime evidence. Window "
+                f"{html_text(window.get('start') or '?')} → "
+                f"{html_text(window.get('end') or '?')}, "
+                f"{html_text(runtime_block.get('span_count', 0))} span(s), "
+                f"{html_text(runtime_block.get('agents_covered', 0))} of "
+                f"{html_text(runtime_block.get('agents_total', 0))} agent(s) covered. "
+                "Observed means observed in this window — never a claim about "
+                "future behavior.</p>"
+            )
 
     # Finding sections, collapsed by default ---------------------------------
     active = result.unsuppressed_findings()
@@ -1020,6 +1044,9 @@ def _suppressed_details(suppressed: list[Finding]) -> str:
     return "".join(parts)
 
 
-def write_html(result: ScanResult, config: StoaConfig, output_path: Path) -> None:
+def write_html(
+    result: ScanResult, config: StoaConfig, output_path: Path,
+    document: dict | None = None,
+) -> None:
     """Render and atomically write the HTML report."""
-    _atomic_write(output_path, render_html(result, config))
+    _atomic_write(output_path, render_html(result, config, document))

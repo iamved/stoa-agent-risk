@@ -15,24 +15,30 @@ by a small, documented rule-id correlation table (see
 agent — so a user can trace an edge back to the specific evidence that
 explains it.
 
-Edge ``provenance`` is always ``"declared"`` today (statically detected from
-source). ``"observed"`` is reserved for a future runtime-trace overlay and
-must never be emitted by this module.
+Edge ``provenance`` is the edge's *origin*: ``"declared"`` (statically
+detected from source — everything ``build_graph`` emits) or ``"observed"``
+(discovered only from runtime traces — emitted exclusively by
+:func:`overlay_runtime`, never by ``build_graph``). A statically-declared
+edge that traces *corroborate* keeps ``provenance="declared"`` and gains the
+additive ``observed: true`` flag instead, preserving the single-valued
+origin enum while still distinguishing corroboration (see
+docs/design/runtime-overlay.md §6).
 
-Inter-agent delegation is **not modeled**: the registry schema has no
-call-graph or handoff data between agents, so this module emits no
-agent-to-agent edges. The edge ``kind`` enum reserves ``"delegates"`` for if
-and when that data exists.
+Inter-agent delegation is modeled only from runtime evidence: the registry's
+*static* schema has no call-graph or handoff data between agents, so
+``build_graph`` emits no agent-to-agent edges; ``overlay_runtime`` emits
+``"delegates"`` edges from delegation spans recorded in
+``runtime_evidence.delegations_to``.
 """
 
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 NODE_TYPES = ("agent", "mcp_server", "tool", "resource")
 EDGE_KINDS = ("delegates", "tool_call", "mcp", "reads", "writes", "network")
-PROVENANCES = ("declared", "observed")  # "observed" is reserved; never emitted
+PROVENANCES = ("declared", "observed")  # "observed": runtime-trace-sourced edges only
 
 _ID_SAFE = re.compile(r"[^a-z0-9_]+")
 
@@ -140,6 +146,10 @@ class GraphEdge:
     max_severity: str | None = None
     provenance: str = "declared"
     weight: int = 1  # call_sites count when known, else 1
+    # True when runtime traces corroborate a statically-declared edge.
+    # Serialized only when true, so registries without runtime evidence
+    # produce byte-identical graph JSON to previous releases.
+    observed: bool = False
 
 
 @dataclass
@@ -282,6 +292,7 @@ def to_json_dict(graph: Graph) -> dict:
                 "max_severity": e.max_severity,
                 "weight": e.weight,
                 "findings": [_finding_ref_dict(f) for f in e.findings],
+                **({"observed": True} if e.observed else {}),
             }
             for e in graph.edges
         ],
@@ -316,6 +327,85 @@ def _dedupe_finding_refs(refs: list[FindingRef]) -> tuple[FindingRef, ...]:
         seen[(ref.rule_id, ref.path, ref.line)] = ref
     return tuple(
         sorted(seen.values(), key=lambda r: (r.rule_id, r.path, r.line))
+    )
+
+
+def overlay_runtime(graph: Graph, registry: dict) -> Graph:
+    """Overlay runtime evidence from an *enriched* registry onto a graph.
+
+    Reads the per-agent ``runtime_evidence`` blocks written by
+    ``stoa runtime merge`` — never trace files directly — and returns a new
+    ``Graph`` (inputs are not mutated):
+
+    - a statically-declared edge whose capability/integration was observed
+      in traces gains ``observed=True`` (dual evidence, ``declared`` origin);
+    - an observed capability/integration with **no** static edge becomes a
+      new edge with ``provenance="observed"`` (runtime-only reach — the
+      graph-level view of what RT003 reports as a finding);
+    - ``delegations_to`` entries become ``"delegates"`` edges with
+      ``provenance="observed"``, but only between nodes the graph already
+      has — a delegation to an id the registry doesn't know is reported in
+      the analysis document's ``unmatched_agents``, not drawn as an edge to
+      a node that can't be labeled.
+
+    A registry with no ``runtime_evidence`` blocks returns an identical
+    graph.
+    """
+    nodes: dict[str, GraphNode] = {n.id: n for n in graph.nodes}
+    edges: dict[tuple[str, str, str], GraphEdge] = {
+        (e.source, e.target, e.kind): e for e in graph.edges
+    }
+
+    for agent in registry.get("agents") or []:
+        evidence = agent.get("runtime_evidence")
+        if not evidence or agent["id"] not in nodes:
+            continue
+        agent_id = agent["id"]
+
+        for capability in evidence.get("observed_capabilities") or []:
+            kind = CAPABILITY_EDGE_KIND.get(capability)
+            if kind is None:
+                continue  # meta-capabilities / custom ids: no external sink
+            resource_id = f"resource_{capability}"
+            key = (agent_id, resource_id, kind)
+            if key in edges:
+                edges[key] = replace(edges[key], observed=True)
+            else:
+                if resource_id not in nodes:
+                    nodes[resource_id] = GraphNode(
+                        id=resource_id, type="resource",
+                        label=_capability_label(capability),
+                    )
+                edges[key] = GraphEdge(
+                    source=agent_id, target=resource_id, kind=kind,
+                    provenance="observed",
+                )
+
+        for integration in evidence.get("observed_integrations") or []:
+            tool_id = f"tool_{_slug(integration)}"
+            key = (agent_id, tool_id, "tool_call")
+            if key in edges:
+                edges[key] = replace(edges[key], observed=True)
+            else:
+                if tool_id not in nodes:
+                    nodes[tool_id] = GraphNode(id=tool_id, type="tool", label=integration)
+                edges[key] = GraphEdge(
+                    source=agent_id, target=tool_id, kind="tool_call",
+                    provenance="observed",
+                )
+
+        for target_id in evidence.get("delegations_to") or []:
+            if target_id in nodes:
+                key = (agent_id, target_id, "delegates")
+                if key not in edges:
+                    edges[key] = GraphEdge(
+                        source=agent_id, target=target_id, kind="delegates",
+                        provenance="observed",
+                    )
+
+    return Graph(
+        nodes=tuple(sorted(nodes.values(), key=lambda n: (n.type, n.id))),
+        edges=tuple(sorted(edges.values(), key=lambda e: (e.source, e.target, e.kind))),
     )
 
 

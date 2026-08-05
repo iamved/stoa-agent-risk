@@ -280,6 +280,71 @@ RULES: dict[str, RuleSpec] = {
                      "the code may have moved or been removed. Update or delete the "
                      "stale declaration.",
     ),
+    # ------------------------------------------------------------------
+    # RT family: the runtime contradiction detector (declared/scanned vs
+    # OBSERVED — trace evidence). Emitted only by `stoa runtime merge`,
+    # never by `stoa scan`. All gateable=False: v1 is shadow mode — the
+    # only runtime gate is the opt-in `stoa runtime drift --fail-on-drift`.
+    # Trace-anchored findings suppress via [runtime].suppress in stoa.toml;
+    # `# stoa: ignore[RT###]` works where a finding is code-anchored.
+    # ------------------------------------------------------------------
+    "RT001": RuleSpec(
+        rule_id="RT001",
+        title="Declared human oversight not observed at runtime",
+        category="runtime",
+        default_severity="critical",
+        gateable=False,
+        remediation="This agent is declared recommend-only or human-approved, but "
+                     "traces show high-impact actions executing with no approval "
+                     "span. Either the approval control is not wired into the live "
+                     "path, or the declaration is wrong. Fix the gate or correct "
+                     "the declaration.",
+    ),
+    "RT002": RuleSpec(
+        rule_id="RT002",
+        title="Observed monetary action exceeds declared economic authority",
+        category="runtime",
+        default_severity="high",
+        gateable=False,
+        remediation="A traced action moved more money than stoa-declared.toml "
+                     "allows (max_per_action, or the window total vs "
+                     "daily_aggregate). Enforce the declared limit in code, or "
+                     "raise the declared authority through review.",
+    ),
+    "RT003": RuleSpec(
+        rule_id="RT003",
+        title="Observed capability absent from both registry and declarations",
+        category="runtime",
+        default_severity="high",
+        gateable=False,
+        remediation="Traces show this agent exercising a capability the static "
+                     "scan never found and no declaration covers — its real reach "
+                     "exceeds everything on paper. Locate the code path (it may "
+                     "be in an unscanned dependency or service) and bring it "
+                     "under scan or declaration.",
+    ),
+    "RT004": RuleSpec(
+        rule_id="RT004",
+        title="Monitoring declared for a production agent, but no traces observed",
+        category="runtime",
+        default_severity="medium",
+        gateable=False,
+        remediation="This agent is declared production with monitoring evidence, "
+                     "yet the analyzed trace window contains no spans for it. "
+                     "Observability is claimed but not evidenced — instrument the "
+                     "agent or correct the declaration.",
+    ),
+    "RT005": RuleSpec(
+        rule_id="RT005",
+        title="Approval gate observed firing on all high-impact actions",
+        category="runtime",
+        default_severity="info",
+        gateable=False,
+        remediation="No action needed — static inference says human_approved and "
+                     "traces confirm approval spans on 100% of high-impact "
+                     "actions in the window. Reported as observed good news, "
+                     "consistent with control-credit language.",
+    ),
 }
 
 # AI rules use a 2-letter prefix; CTRL/SEC/NET/REL use 3+.

@@ -63,7 +63,9 @@ _GLUE_JS = r"""
     return {
       data: {
         id: "e" + i, source: e.source, target: e.target,
-        kind: e.kind, severity: e.max_severity || "none"
+        kind: e.kind, severity: e.max_severity || "none",
+        provenance: e.provenance || "declared",
+        observed: e.observed ? 1 : 0
       },
       ref: e
     };
@@ -96,6 +98,19 @@ _GLUE_JS = r"""
           "target-arrow-shape": "triangle",
           "curve-style": "bezier",
           "opacity": 0.85
+      }},
+      // Runtime overlay styling. Absent runtime data neither selector
+      // matches, so plain reports render exactly as before.
+      // Trace-corroborated declared edge: heavier line, full opacity.
+      { selector: "edge[observed = 1]", style: {
+          "width": 3,
+          "opacity": 1
+      }},
+      // Runtime-only edge (delegates / runtime-discovered reach): dashed.
+      { selector: 'edge[provenance = "observed"]', style: {
+          "line-style": "dashed",
+          "width": 2.5,
+          "opacity": 1
       }},
       { selector: ".stoa-hidden", style: { "display": "none" } }
     ],

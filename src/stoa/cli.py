@@ -99,6 +99,9 @@ def build_parser() -> argparse.ArgumentParser:
                       help="Skip the architecture graph section in the HTML report")
     scan.add_argument("--taxonomy", metavar="PATH", default=None,
                       help="Custom dimension taxonomy TOML (replaces the default)")
+    scan.add_argument("--with-runtime", metavar="TRACES_DIR", default=None,
+                      help="Enrich the registry/report with local runtime traces "
+                           "(stoa-trace/1.0) after the scan — additive, shadow mode")
 
     scan.add_argument("--diff-against", metavar="GIT_REF", default=None,
                       help="Scan the worktree, then diff agent reach against GIT_REF")
@@ -112,9 +115,10 @@ def build_parser() -> argparse.ArgumentParser:
     scan.add_argument("--approvals", metavar="PATH", default=".stoa/approvals.toml")
 
     init = subparsers.add_parser("init", help="Generate integration files")
-    init.add_argument("target", choices=["github", "declarations"],
+    init.add_argument("target", choices=["github", "declarations", "runtime"],
                       help="Integration to initialize. 'declarations' requires a prior "
-                           "`stoa scan` — it stubs out stoa-declared.toml with real agent ids.")
+                           "`stoa scan` — it stubs out stoa-declared.toml with real agent ids. "
+                           "'runtime' scaffolds [runtime] config + an instrumentation example.")
     init.add_argument("--force", action="store_true",
                       help="Overwrite existing files")
     init.add_argument("--registry", metavar="PATH", default="stoa-registry.json",
@@ -171,6 +175,60 @@ def build_parser() -> argparse.ArgumentParser:
     approve.add_argument("--list", action="store_true", help="List active/stale/expired approvals")
     approve.add_argument("--approvals", metavar="PATH", default=".stoa/approvals.toml")
 
+    # --- stoa runtime: the trace overlay (shadow mode — observe, never enforce)
+    runtime = subparsers.add_parser(
+        "runtime",
+        help="Analyze local runtime traces (stoa-trace/1.0) against the registry",
+    )
+    rt_sub = runtime.add_subparsers(dest="runtime_command")
+
+    rt_analyze = rt_sub.add_parser(
+        "analyze", help="Summarize observed agent behavior from local trace files"
+    )
+    rt_analyze.add_argument("traces_dir", metavar="TRACES_DIR")
+    rt_analyze.add_argument("--registry", metavar="PATH", default=None,
+                            help="stoa-registry.json to correlate against")
+    rt_analyze.add_argument("--out", metavar="PATH", default="stoa-runtime.json")
+    rt_analyze.add_argument("--quiet", action="store_true")
+
+    rt_map = rt_sub.add_parser(
+        "map", help="Suggest registry agent ids for unmatched trace spans"
+    )
+    rt_map.add_argument("traces_dir", metavar="TRACES_DIR")
+    rt_map.add_argument("--registry", metavar="PATH", required=True)
+
+    rt_merge = rt_sub.add_parser(
+        "merge", help="Enrich a registry with runtime_evidence blocks (additive)"
+    )
+    rt_merge.add_argument("traces_dir", metavar="TRACES_DIR")
+    rt_merge.add_argument("--registry", metavar="PATH", required=True)
+    rt_merge.add_argument("--out", metavar="PATH", default="stoa-registry-enriched.json")
+    rt_merge.add_argument("--in-place", action="store_true",
+                          help="Overwrite --registry instead of writing --out")
+    rt_merge.add_argument("--config", metavar="PATH", default=None,
+                          help="stoa.toml with [runtime] suppression/severity settings")
+
+    rt_baseline = rt_sub.add_parser(
+        "baseline", help="Compute a behavioral baseline (commit it like approvals)"
+    )
+    rt_baseline.add_argument("traces_dir", metavar="TRACES_DIR")
+    rt_baseline.add_argument("--registry", metavar="PATH", default=None)
+    rt_baseline.add_argument("--out", metavar="PATH", default=".stoa/baseline.json")
+
+    rt_drift = rt_sub.add_parser(
+        "drift", help="Compare live behavior to a committed baseline (shadow mode)"
+    )
+    rt_drift.add_argument("traces_dir", metavar="TRACES_DIR")
+    rt_drift.add_argument("--baseline", metavar="PATH", default=".stoa/baseline.json")
+    rt_drift.add_argument("--registry", metavar="PATH", default=None)
+    rt_drift.add_argument("--out", metavar="PATH", default=None,
+                          help="Write the runtime-drift/1.0 JSON here")
+    rt_drift.add_argument("--fail-on-drift", choices=["info", "medium", "high"],
+                          default=None,
+                          help="Exit 1 at/above this drift class (default: report-only)")
+    rt_drift.add_argument("--config", metavar="PATH", default=None,
+                          help="stoa.toml with [runtime.drift] thresholds")
+
     return parser
 
 
@@ -195,6 +253,8 @@ def main(argv: list[str] | None = None) -> int:
             return _run_export_command(args)
         if args.command == "approve":
             return _run_approve_command(args)
+        if args.command == "runtime":
+            return _run_runtime_command(args)
     except ConfigError as exc:
         print(f"stoa: configuration error: {exc}", file=sys.stderr)
         return EXIT_USAGE
@@ -249,8 +309,31 @@ def _run_scan_command(args: argparse.Namespace) -> int:
 
     json_path = Path(args.json)
     html_path = Path(args.html)
-    write_json(result, config, json_path)
-    write_html(result, config, html_path)
+    if args.with_runtime:
+        # Runtime overlay ride-along: scan as normal, then enrich the just-
+        # built document with local trace evidence before writing. Fail-open:
+        # missing/empty traces warn and still produce a valid (merely
+        # runtime-thin) registry — never a failed scan.
+        from datetime import datetime, timezone
+
+        from .report_json import build_document
+        from .runtime.analysis import analyze_traces
+        from .runtime.merge import merge_runtime_into_registry
+
+        document = build_document(result, config)
+        analysis = analyze_traces(
+            args.with_runtime, document,
+            generated_at=datetime.now(timezone.utc).isoformat(),
+        )
+        for warning in analysis["header"]["warnings"]:
+            print(f"stoa: warning: {warning}", file=sys.stderr)
+        enriched = merge_runtime_into_registry(document, analysis, config)
+        text = json.dumps(enriched, indent=2, ensure_ascii=False, sort_keys=False) + "\n"
+        _atomic_write(json_path, text)
+        write_html(result, config, html_path, document=enriched)
+    else:
+        write_json(result, config, json_path)
+        write_html(result, config, html_path)
     if args.summary_file:
         write_summary(result, Path(args.summary_file))
     if args.sarif:
@@ -393,7 +476,7 @@ def _load_or_scan_head(args, config) -> dict:
 
 def _run_graph_command(args: argparse.Namespace) -> int:
     from .graph_mermaid import render_mermaid
-    from .graph_model import build_graph
+    from .graph_model import build_graph, overlay_runtime
     from .report_json import build_document
 
     config = load_config(Path(".").resolve(), Path(args.config) if args.config else None)
@@ -408,6 +491,8 @@ def _run_graph_command(args: argparse.Namespace) -> int:
         document = build_document(result, config)
 
     graph = build_graph(document)
+    if document.get("runtime"):  # enriched registry: overlay observed evidence
+        graph = overlay_runtime(graph, document)
     if graph.is_empty:
         print("stoa: no agent candidates detected — nothing to graph", file=sys.stderr)
 
@@ -571,6 +656,8 @@ def _print_scan_summary(
 def _run_init_command(args: argparse.Namespace) -> int:
     if args.target == "declarations":
         return _run_init_declarations(args)
+    if args.target == "runtime":
+        return _run_init_runtime(args)
     created: list[str] = []
     skipped: list[str] = []
     overwritten: list[str] = []
@@ -606,6 +693,245 @@ def _run_init_command(args: argparse.Namespace) -> int:
             "protection so pull requests cannot weaken the gate."
         )
     return EXIT_OK
+
+
+_RUNTIME_TOML_STUB = """\
+# Runtime trace overlay (shadow mode: observe only, never enforce).
+# All optional; delete this section and the overlay is fully dormant.
+[runtime]
+trace_dir = "stoa-traces"    # where the SDK writes stoa-trace/1.0 JSONL
+redaction = "redacted"       # "content" opts into recording payloads (redaction_hook applies)
+exporter = "jsonl"           # "otlp" is reserved for a future release
+suppress = []                # e.g. ["RT002:<agent_id>"] — counted, never hidden
+
+[runtime.drift]              # `stoa runtime drift` thresholds (hand-recomputable)
+ratio_threshold = 3.0        # flag a category when its frequency shifts 3x either way…
+min_count = 20               # …and it has at least this many observations now
+approval_drop = 0.10         # flag when high-impact approval rate drops by this much
+
+[runtime.dimensions]         # runtime-tier re-bucketing (docs/runtime.md)
+error_rate_elevated = 0.10
+error_rate_moderate = 0.02
+"""
+
+_RUNTIME_EXAMPLE = '''\
+"""Minimal stoa.runtime instrumentation example (see docs/runtime.md).
+
+Traces are JSONL files on your own filesystem — nothing leaves your
+infrastructure, and prompt/response content is never recorded unless you
+opt in with capture_content=True.
+"""
+from stoa import runtime as stoa_rt
+
+# agent_id: the 12-hex id from stoa-registry.json ("stoa runtime map" can
+# suggest one if you skip it). No configure() call = tracing stays dormant.
+stoa_rt.configure(trace_dir="stoa-traces", agent_id="<agent-id-from-registry>")
+
+
+@stoa_rt.stoa_trace(kind="agent_run")
+def handle_request(ticket):
+    with stoa_rt.stoa_span("llm_call", provider="openai", model="gpt-4o",
+                           attrs={"prompt": "recorded as hash+length only"}):
+        ...  # your model call
+    with stoa_rt.stoa_span("action", capability="payment_access",
+                           integration="stripe", amount=42.0, currency="USD",
+                           approval_span_id=None):  # link an approval span id here
+        ...  # your side-effecting action
+'''
+
+
+def _run_init_runtime(args: argparse.Namespace) -> int:
+    """Scaffold [runtime] config + a minimal instrumentation example."""
+    created: list[str] = []
+    skipped: list[str] = []
+
+    toml_path = Path("stoa.toml")
+    if toml_path.exists():
+        text = toml_path.read_text(encoding="utf-8")
+        if "[runtime]" in text and not args.force:
+            skipped.append("stoa.toml ([runtime] section already present)")
+        else:
+            toml_path.write_text(text.rstrip() + "\n\n" + _RUNTIME_TOML_STUB,
+                                 encoding="utf-8")
+            created.append("stoa.toml ([runtime] section appended)")
+    else:
+        toml_path.write_text(_RUNTIME_TOML_STUB, encoding="utf-8")
+        created.append("stoa.toml")
+
+    example_path = Path("stoa_runtime_example.py")
+    if example_path.exists() and not args.force:
+        skipped.append(str(example_path))
+    else:
+        example_path.write_text(_RUNTIME_EXAMPLE, encoding="utf-8")
+        created.append(str(example_path))
+
+    for name in created:
+        print(f"created:     {name}")
+    for name in skipped:
+        print(f"skipped:     {name} (already exists; use --force to overwrite)")
+    print(
+        "\nShadow mode: the SDK only observes — it never blocks or alters agent "
+        "behavior, and traces never leave your filesystem. Next: instrument an "
+        "agent, run it, then `stoa runtime analyze stoa-traces --registry "
+        "stoa-registry.json`."
+    )
+    return EXIT_OK
+
+
+def _load_registry(path_str: str) -> dict:
+    path = Path(path_str)
+    if not path.is_file():
+        raise ConfigError(f"registry not found: {path}")
+    try:
+        with open(path, encoding="utf-8") as handle:
+            document = json.load(handle)
+    except (json.JSONDecodeError, OSError) as exc:
+        raise ConfigError(f"cannot read registry {path}: {exc}") from exc
+    if not isinstance(document, dict):
+        raise ConfigError(f"registry {path} is not a JSON object")
+    return document
+
+
+def _run_runtime_command(args: argparse.Namespace) -> int:
+    """`stoa runtime …` — lazy-imports stoa.runtime so the static toolchain
+    can never be affected by the overlay (see docs/design/runtime-overlay.md).
+    Shadow mode: analyze/map/merge only observe; nothing here gates."""
+    from datetime import datetime, timezone
+
+    from .runtime.analysis import analyze_traces
+
+    if args.runtime_command is None:
+        print("stoa runtime: choose a subcommand (analyze, map, merge)", file=sys.stderr)
+        return EXIT_USAGE
+
+    registry = None
+    registry_path = getattr(args, "registry", None)
+    if registry_path:
+        registry = _load_registry(registry_path)
+
+    generated_at = datetime.now(timezone.utc).isoformat()
+    analysis = analyze_traces(
+        args.traces_dir, registry,
+        generated_at=generated_at, registry_path=registry_path,
+    )
+    for warning in analysis["header"]["warnings"]:
+        print(f"stoa: warning: {warning}", file=sys.stderr)
+    window = analysis["window"]
+
+    if args.runtime_command == "analyze":
+        text = json.dumps(analysis, indent=2, ensure_ascii=False, sort_keys=False) + "\n"
+        _atomic_write(Path(args.out), text)
+        if not args.quiet:
+            print(
+                f"stoa runtime: {window['span_count']} span(s) · "
+                f"{len(analysis['agents'])} matched agent(s) · "
+                f"{len(analysis['unmatched_agents'])} unmatched · "
+                f"{len(analysis['no_runtime_evidence'])} with no runtime evidence"
+            )
+            print(f"Analysis: {args.out}")
+        return EXIT_OK
+
+    if args.runtime_command == "map":
+        unmatched = analysis["unmatched_agents"]
+        if not unmatched:
+            print("stoa runtime map: every span carries a known registry agent id")
+            return EXIT_OK
+        for entry in unmatched:
+            print(f"{entry['key']}  ({entry['span_count']} span(s); {entry['reason']})")
+            if entry["suggested_matches"]:
+                for match in entry["suggested_matches"]:
+                    print(f"  → suggest agent_id={match['agent_id']}  "
+                          f"{match['name']} ({match['path']})")
+            else:
+                print("  → no suggestion; pass agent_id explicitly in the SDK")
+        return EXIT_OK
+
+    if args.runtime_command == "merge":
+        from .runtime.merge import merge_runtime_into_registry
+
+        config = load_config(Path.cwd(), Path(args.config) if args.config else None)
+        enriched = merge_runtime_into_registry(registry, analysis, config)
+        out_path = Path(registry_path) if args.in_place else Path(args.out)
+        text = json.dumps(enriched, indent=2, ensure_ascii=False, sort_keys=False) + "\n"
+        _atomic_write(out_path, text)
+        runtime_block = enriched["runtime"]
+        print(
+            f"stoa runtime: merged {runtime_block['span_count']} span(s) into "
+            f"{runtime_block['agents_covered']}/{runtime_block['agents_total']} agent(s) "
+            f"· {runtime_block['rt_findings']} RT finding(s)"
+        )
+        print(f"Enriched registry: {out_path}")
+        return EXIT_OK
+
+    if args.runtime_command == "baseline":
+        from .runtime.drift import build_baseline
+
+        baseline = build_baseline(analysis, generated_at=generated_at)
+        text = json.dumps(baseline, indent=2, ensure_ascii=False, sort_keys=False) + "\n"
+        out_path = Path(args.out)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        _atomic_write(out_path, text)
+        print(
+            f"stoa runtime: baseline over {window['span_count']} span(s), "
+            f"{len(baseline['agents'])} agent(s)"
+        )
+        print(f"Baseline: {out_path} — commit it; it is reviewed like code.")
+        return EXIT_OK
+
+    if args.runtime_command == "drift":
+        from .runtime.drift import (
+            DRIFT_ORDER,
+            BaselineVersionMismatch,
+            compute_drift,
+        )
+
+        baseline_path = Path(args.baseline)
+        if not baseline_path.is_file():
+            raise ConfigError(
+                f"baseline not found: {baseline_path} "
+                "(run `stoa runtime baseline` first)"
+            )
+        try:
+            baseline = json.loads(baseline_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError) as exc:
+            raise ConfigError(f"cannot read baseline {baseline_path}: {exc}") from exc
+
+        config = load_config(
+            Path.cwd(), Path(args.config) if args.config else None
+        )
+        try:
+            drift = compute_drift(
+                analysis, baseline, registry,
+                ratio_threshold=config.runtime_drift_ratio_threshold,
+                min_count=config.runtime_drift_min_count,
+                approval_drop=config.runtime_drift_approval_drop,
+                generated_at=generated_at,
+            )
+        except BaselineVersionMismatch as exc:
+            print(f"stoa: {exc}", file=sys.stderr)
+            return EXIT_USAGE
+        if args.out:
+            text = json.dumps(drift, indent=2, ensure_ascii=False, sort_keys=False) + "\n"
+            _atomic_write(Path(args.out), text)
+        summary = drift["summary"]
+        print(
+            f"stoa runtime drift: {summary['events']} event(s) · "
+            + " · ".join(f"{n} {cls}" for cls, n in summary["by_class"].items())
+            + f" · max {summary['max_drift_class']}"
+        )
+        for event in drift["events"]:
+            print(f"  [{event['class']}] {event['kind']} — agent {event['agent_id']}")
+        if args.fail_on_drift and summary["max_drift_class"] != "none":
+            if DRIFT_ORDER.index(summary["max_drift_class"]) >= DRIFT_ORDER.index(args.fail_on_drift):
+                print(
+                    f"stoa: drift gate failed: {summary['max_drift_class']} >= "
+                    f"{args.fail_on_drift}",
+                    file=sys.stderr,
+                )
+                return EXIT_GATE_FAILED
+        return EXIT_OK
+
+    return EXIT_USAGE
 
 
 if __name__ == "__main__":

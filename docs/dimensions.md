@@ -35,6 +35,12 @@ live entirely in the declared/ingested layers of the assurance packet.
 render `elevated` — it is capped at `moderate`, enforced by a property test.
 Stoa must never imply it measured behavior it only saw a config signal for.
 
+The [runtime trace overlay](runtime.md) adds a fourth tier, `runtime`: when
+trace evidence covers an agent's window, the two proxy dimensions re-bucket
+from *observed* signals for that agent, for that window — no longer capped,
+in either direction — always carrying an `evidence_window` and the observed
+basis. Entries without runtime evidence stay `proxy` and stay capped.
+
 ## Scoring (deterministic)
 
 Per agent, per dimension:

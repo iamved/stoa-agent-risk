@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stoa-agent-risk"
-version = "0.4.0"
+version = "0.5.0"
 description = "Local-first AI agent inventory and risk scanner: finds agent candidates with evidence, maps capabilities and integrations, and gates newly introduced high-confidence critical risks."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -34,6 +34,11 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=7.4"]
+# The stoa.runtime SDK's default JSONL path is stdlib-only and needs no
+# extra. This extra is reserved for the deferred OTLP exporter (see
+# docs/design/runtime-overlay.md §10) so `pip install stoa-agent-risk[runtime]`
+# is already a stable install target.
+runtime = []
 
 [project.scripts]
 stoa = "stoa.cli:main"

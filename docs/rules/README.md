@@ -57,3 +57,21 @@ observed — the one thing a self-attested questionnaire can't do. Every
 | [DECL005](DECL005.md) | Production agent has no observability observed | medium | yes |
 | [DECL006](DECL006.md) | Scanned agent has no declaration entry | medium | no |
 | [DECL007](DECL007.md) | Declaration references an agent id no longer scanned | low | no |
+
+## Runtime contradiction detector (Runtime trace overlay)
+
+Cross-checks declared facts and scanned reach against what **traces
+observed** ([docs/runtime.md](../runtime.md)). Emitted only by
+`stoa runtime merge`, never by `stoa scan`. Every finding carries both a
+`trace_ref` (file + line + span id) and, where a declaration is involved,
+a `declared_ref`. All report-only in v1 (shadow mode) — the only runtime
+gate is the opt-in `stoa runtime drift --fail-on-drift`. Trace-anchored
+findings suppress via `stoa.toml` `[runtime].suppress`.
+
+| ID | Title | Severity | Gates? |
+|---|---|---|---|
+| [RT001](RT001.md) | Declared human oversight not observed at runtime | critical | no |
+| [RT002](RT002.md) | Observed monetary action exceeds declared economic authority | high | no |
+| [RT003](RT003.md) | Observed capability absent from both registry and declarations | high | no |
+| [RT004](RT004.md) | Monitoring declared for a production agent, but no traces observed | medium | no |
+| [RT005](RT005.md) | Approval gate observed firing on all high-impact actions | info | never |

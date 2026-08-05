@@ -209,6 +209,29 @@ stoa approve --agent-id <id> --capability shell-exec --reason "reviewed" --by @y
 Intentional changes are approved in-repo (`.stoa/approvals.toml`), reviewed like
 code — no bot, no server. See [docs/diff.md](docs/diff.md).
 
+## Runtime trace overlay (shadow mode)
+
+The `stoa.runtime` SDK adds the third evidence layer — **observed** — on top
+of scanned and declared. Instrument an agent with `@stoa_trace` /
+`stoa_span`; traces are redact-by-default JSONL on your own filesystem
+(stdlib-only, no new dependencies, no network code). Then:
+
+```bash
+stoa runtime analyze stoa-traces --registry stoa-registry.json
+stoa runtime baseline stoa-traces --out .stoa/baseline.json   # commit it
+stoa runtime drift stoa-traces --baseline .stoa/baseline.json [--fail-on-drift high]
+stoa scan . --with-runtime stoa-traces    # enriched registry + report
+```
+
+The overlay fills the slots the schema reserved for it: `observed` graph
+edges and inter-agent `delegates` edges, `liveness_state`, RT001–RT005 (the
+runtime contradiction detector — declared/scanned vs observed, e.g.
+"declared human-approved, traces show unapproved money movement"), a
+`runtime` dimension tier that lifts the proxy cap only where trace evidence
+covers the window, and assurance packet Areas 12/18. v1 observes and never
+enforces; absent runtime config, nothing changes anywhere. See
+[docs/runtime.md](docs/runtime.md).
+
 ## Security model
 
 - **Local-first.** No source code is uploaded anywhere; Stoa makes no network

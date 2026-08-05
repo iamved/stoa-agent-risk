@@ -70,6 +70,18 @@ class StoaConfig:
     gate_additional_rules: list[str] = field(default_factory=list)
     dimensions_taxonomy: "Path | None" = None
     no_graph: bool = False
+    # [runtime] — the trace overlay. All optional; absence = feature dormant.
+    runtime_trace_dir: str | None = None
+    runtime_redaction: str = "redacted"
+    runtime_exporter: str = "jsonl"
+    runtime_suppress: list[str] = field(default_factory=list)  # "RT002:<agent_id>" / "RT004:*"
+    # [runtime.drift] — documented, hand-recomputable thresholds.
+    runtime_drift_ratio_threshold: float = 3.0
+    runtime_drift_min_count: int = 20
+    runtime_drift_approval_drop: float = 0.10
+    # [runtime.dimensions] — runtime-tier re-bucketing thresholds.
+    runtime_error_rate_elevated: float = 0.10
+    runtime_error_rate_moderate: float = 0.02
 
     def rule_enabled(self, rule_id: str) -> bool:
         return self.enabled_rules.get(rule_id, True)
@@ -152,6 +164,10 @@ def load_config(root: Path, config_path: Path | None = None) -> StoaConfig:
     if dimensions.get("taxonomy"):
         config.dimensions_taxonomy = (root / dimensions["taxonomy"]).resolve()
 
+    runtime = data.get("runtime", {})
+    if runtime:
+        _load_runtime_section(config, runtime)
+
     gate = data.get("gate", {})
     if gate:
         extra = gate.get("additional_rules", [])
@@ -184,3 +200,60 @@ def _validated_level(value: object, key: str) -> str:
     if value not in FAIL_LEVELS:
         raise ConfigError(f"{key} must be one of {FAIL_LEVELS}, got {value!r}")
     return str(value)
+
+
+def _load_runtime_section(config: StoaConfig, runtime: dict) -> None:
+    """[runtime], [runtime.drift], [runtime.dimensions] — validated strictly
+    like every other section; unknown keys are ignored (house behavior,
+    forward-compatible)."""
+    if "trace_dir" in runtime:
+        if not isinstance(runtime["trace_dir"], str):
+            raise ConfigError("[runtime].trace_dir must be a string")
+        config.runtime_trace_dir = runtime["trace_dir"]
+    if "redaction" in runtime:
+        if runtime["redaction"] not in ("redacted", "content"):
+            raise ConfigError(
+                "[runtime].redaction must be 'redacted' or 'content', "
+                f"got {runtime['redaction']!r}"
+            )
+        config.runtime_redaction = runtime["redaction"]
+    if "exporter" in runtime:
+        if runtime["exporter"] != "jsonl":
+            raise ConfigError(
+                "[runtime].exporter: only 'jsonl' is implemented today "
+                "('otlp' is reserved for a future release)"
+            )
+        config.runtime_exporter = runtime["exporter"]
+    if "suppress" in runtime:
+        entries = runtime["suppress"]
+        if not isinstance(entries, list) or not all(
+            isinstance(e, str) and e.count(":") == 1 for e in entries
+        ):
+            raise ConfigError(
+                '[runtime].suppress must be a list of "RT###:<agent_id>" strings '
+                '("*" as agent_id suppresses everywhere)'
+            )
+        config.runtime_suppress = list(entries)
+
+    drift = runtime.get("drift", {})
+    for key, attr, kind in (
+        ("ratio_threshold", "runtime_drift_ratio_threshold", float),
+        ("min_count", "runtime_drift_min_count", int),
+        ("approval_drop", "runtime_drift_approval_drop", float),
+    ):
+        if key in drift:
+            value = drift[key]
+            if not isinstance(value, (int, float)) or isinstance(value, bool) or value <= 0:
+                raise ConfigError(f"[runtime.drift].{key} must be a positive number")
+            setattr(config, attr, kind(value))
+
+    dims = runtime.get("dimensions", {})
+    for key, attr in (
+        ("error_rate_elevated", "runtime_error_rate_elevated"),
+        ("error_rate_moderate", "runtime_error_rate_moderate"),
+    ):
+        if key in dims:
+            value = dims[key]
+            if not isinstance(value, (int, float)) or isinstance(value, bool) or not 0 <= value <= 1:
+                raise ConfigError(f"[runtime.dimensions].{key} must be between 0 and 1")
+            setattr(config, attr, float(value))

@@ -35,7 +35,7 @@ stoa export --assurance [REGISTRY] [--format json|md] [--out PATH]
 - `REGISTRY` optional: read an existing `stoa-registry.json`; omitted → scans
   the current directory fresh.
 - `--format md` (default): human/reviewer-readable, one table per area.
-- `--format json`: the raw packet, `assurance-packet/1.1`.
+- `--format json`: the raw packet, `assurance-packet/1.2`.
 - `--out PATH`: write to a file; omitted → stdout.
 
 ```bash

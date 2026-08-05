@@ -54,7 +54,7 @@ def test_empty_registry_has_zero_contradictions_and_valid_header():
     assert packet["contradictions"] == []
     assert packet["header"]["agent_count"] == 0
     assert packet["header"]["contradiction_count"] == 0
-    assert packet["schema"] == "assurance-packet/1.1"
+    assert packet["schema"] == "assurance-packet/1.2"
 
 
 def test_business_exposure_rows_are_all_not_provided_when_undeclared():

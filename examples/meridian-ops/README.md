@@ -42,6 +42,27 @@ example, and which findings it produces.
 Non-agents (`lib/embeddings.py`, `lib/user_agent.py`) and a parameterized-SQL
 module (`lib/db.py`) are false-positive controls that must **not** fire.
 
+## The runtime overlay scenario
+
+[`traces/`](traces/) is a hand-auditable 12-span `stoa-trace/1.0` fixture —
+what Meridian's agents would emit if instrumented with `stoa.runtime` —
+engineered against this fixture's real `stoa-declared.toml`:
+
+```bash
+stoa scan . --no-git --with-runtime traces      # enriched registry + report
+stoa export --assurance stoa-registry.json      # Areas 12/18 now populated
+```
+
+It produces: **RT001 ×2** (payments *and* support_bot execute unapproved
+high-impact actions despite declared oversight), **RT002** (a 2,500 USD
+refund vs the declared 2,000 USD `max_per_action`, trace span cited),
+**RT003** (triage observed writing to the filesystem — a capability nothing
+on paper gave it), a **`delegates`** edge (support_bot → payments, the
+first inter-agent edge Stoa draws), corroborated `observed` edges on the
+payments→Stripe path, and a runtime-tier upgrade of triage's proxy
+dimensions (error rate 0.5 in-window → conduct-variability `elevated`,
+stated with its evidence window). See [docs/runtime.md](../../docs/runtime.md).
+
 ## What the diff scenario covers
 
 Between the base and head commits: a **new agent** (`marketing`), an

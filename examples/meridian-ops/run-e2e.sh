@@ -180,7 +180,33 @@ check "assurance packet has all 18 areas" \
 check "assurance packet Contradictions section lists DECL001" "grep -q DECL001 packet.md"
 "$STOA" export --assurance reg.json --format json --out packet.json >/dev/null 2>&1
 check "assurance packet JSON is valid with 18 areas" \
-  "J packet.json \"d['schema']=='assurance-packet/1.1' and len(d['areas'])==18\""
+  "J packet.json \"d['schema']=='assurance-packet/1.2' and len(d['areas'])==18\""
+
+echo "== runtime overlay (traces fixture) =="
+"$STOA" runtime analyze "$FIX/traces" --registry reg.json --out rta.json >/dev/null 2>&1
+check "analyze correlates the 3 traced agents" \
+  "J rta.json \"len(d['agents'])==3 and d['window']['span_count']==12\""
+check "zero-evidence agents explicit, never dropped" \
+  "J rta.json \"len(d['no_runtime_evidence'])>=8 and d['unmatched_agents']==[]\""
+"$STOA" runtime merge "$FIX/traces" --registry reg.json --out rtm.json >/dev/null 2>&1
+check "merge attaches RT001+RT002 (payments) and RT003 (triage)" \
+  "J rtm.json \"{'RT001','RT002','RT003'} <= {f['rule_id'] for a in d['agents'] for f in a['findings']}\""
+check "RT002 carries both trace_ref and declared_ref" \
+  "J rtm.json \"all(f.get('trace_ref') and f.get('declared_ref') for a in d['agents'] for f in a['findings'] if f['rule_id']=='RT002')\""
+check "liveness_state fills the reserved field (active+idle)" \
+  "J rtm.json \"{a.get('liveness_state') for a in d['agents']} == {'active','idle'}\""
+check "runtime-tier dimension carries its evidence window" \
+  "J rtm.json \"all(e.get('evidence_window',{}).get('span_count',0)>0 for a in d['agents'] for e in (a.get('dimension_assessment') or {}).get('dimensions',[]) if e['assessability']=='runtime')\""
+check "proxy cap still holds on the merged document" \
+  "J rtm.json \"all(e['exposure']!='elevated' for a in d['agents'] for e in (a.get('dimension_assessment') or {}).get('dimensions',[]) if e['assessability']=='proxy')\""
+"$STOA" export --assurance rtm.json --format json --out rtp.json >/dev/null 2>&1
+check "assurance Area 18 populated with observed rows" \
+  "J rtp.json \"any(r['status']=='observed' for r in d['areas']['claims_evidence']['rows'])\""
+check "RT findings join the packet contradictions" \
+  "J rtp.json \"'RT002' in {c['rule_id'] for c in d['contradictions']}\""
+"$STOA" diff reg.json rtm.json --json rtd.json >/dev/null 2>&1
+check "diff plain-vs-enriched reports zero drift (runtime ignored)" \
+  "J rtd.json \"d['summary']['agents_changed']==0 and d['summary']['agents_added']==0 and d['summary']['findings_delta']['new_critical']==0\""
 
 echo
 printf 'RESULT: \033[32m%d passed\033[0m, ' "$pass"

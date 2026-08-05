@@ -83,16 +83,40 @@ def _match_agents(base: dict, head: dict) -> tuple[dict, dict, list[tuple[str, s
 
 
 def _finding_ids(agent: dict) -> dict[str, dict]:
-    return {f.get("fingerprint"): f for f in agent.get("findings", [])}
+    """Findings keyed by fingerprint, excluding the RT (runtime-observed)
+    family: a diff describes call sites added or removed in *code*, and
+    runtime evidence varies run to run — an enriched registry diffed against
+    its plain twin must never report phantom finding drift. (The same reason
+    `runtime_evidence`/`liveness_state` blocks are not compared at all.)"""
+    return {
+        f.get("fingerprint"): f
+        for f in agent.get("findings", [])
+        if not str(f.get("rule_id", "")).startswith("RT")
+    }
 
 
 def _dimension_delta(base_agent: dict, head_agent: dict) -> list[dict]:
-    base_dims = {d["id"]: d["exposure"]
-                 for d in (base_agent.get("dimension_assessment") or {}).get("dimensions", [])}
-    head_dims = {d["id"]: d["exposure"]
-                 for d in (head_agent.get("dimension_assessment") or {}).get("dimensions", [])}
+    """Exposure deltas per dimension — excluding runtime-tier entries on
+    either side, for the same reason RT findings and runtime_evidence are
+    excluded: a runtime-assessed exposure describes an observation *window*,
+    not the code, and must never surface as drift in a code diff. (Plain
+    scans never emit runtime-tier entries, so scan-to-scan dimension drift
+    is unaffected.) Behavioral change between windows is `stoa runtime
+    drift`'s job."""
+
+    def entries(agent: dict) -> list[dict]:
+        return (agent.get("dimension_assessment") or {}).get("dimensions", [])
+
+    runtime_ids = {
+        d["id"]
+        for agent in (base_agent, head_agent)
+        for d in entries(agent)
+        if d.get("assessability") == "runtime"
+    }
+    base_dims = {d["id"]: d["exposure"] for d in entries(base_agent)}
+    head_dims = {d["id"]: d["exposure"] for d in entries(head_agent)}
     out = []
-    for dim in sorted(set(base_dims) | set(head_dims)):
+    for dim in sorted((set(base_dims) | set(head_dims)) - runtime_ids):
         b = base_dims.get(dim, "none-observed")
         h = head_dims.get(dim, "none-observed")
         if b != h:

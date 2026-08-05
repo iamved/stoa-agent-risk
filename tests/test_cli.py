@@ -34,7 +34,7 @@ def test_scan_json_structure(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     main(["scan", str(EXAMPLE_REPO), "--no-git", "--json", "out.json", "--html", "out.html"])
     document = json.loads((tmp_path / "out.json").read_text(encoding="utf-8"))
-    assert document["schema_version"] == "1.3"
+    assert document["schema_version"] == "1.4"
     assert document["summary"]["agent_candidates"] >= 1
     assert document["agents"][0]["evidence"]
     assert (tmp_path / "out.html").is_file()
@@ -292,7 +292,7 @@ def test_export_assurance_json_format(tmp_path, monkeypatch, capsys):
     code = main(["export", "reg.json", "--assurance", "--format", "json", "--out", "packet.json"])
     assert code == 0
     packet = json.loads((tmp_path / "packet.json").read_text(encoding="utf-8"))
-    assert packet["schema"] == "assurance-packet/1.1"
+    assert packet["schema"] == "assurance-packet/1.2"
     assert len(packet["areas"]) == 18
 
 

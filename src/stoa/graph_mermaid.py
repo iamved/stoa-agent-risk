@@ -103,7 +103,13 @@ def render_mermaid(graph: Graph, focus: str | None = None) -> str:
                 label += f" +{len(rule_ids) - 1}"
         else:
             label = edge.kind
-        lines.append(f"  {src} -->|{_mermaid_label(label)}| {dst}")
+        if edge.observed:
+            label += " (observed)"
+        # Runtime-only edges (provenance "observed": delegates, runtime-
+        # discovered reach) render dotted; statically-declared edges keep
+        # today's solid arrow, so graphs without runtime data are unchanged.
+        arrow = "-.->" if edge.provenance == "observed" else "-->"
+        lines.append(f"  {src} {arrow}|{_mermaid_label(label)}| {dst}")
 
     for severity, (bg, fg) in _SEVERITY_COLOR.items():
         lines.append(
