@@ -22,6 +22,7 @@ NAV = [
         ("Declarations", "declarations"),
         ("Autonomy inference", "autonomy"),
         ("Assurance export", "assurance-export"),
+        ("Runtime overlay", "runtime"),
     ]),
     ("Pilot use cases", [
         ("Meridian — a multi-agent app", "example"),
@@ -48,6 +49,11 @@ NAV = [
         ("DECL005 · Production, no observability", "rules/DECL005"),
         ("DECL006 · No declaration entry", "rules/DECL006"),
         ("DECL007 · Stale declaration", "rules/DECL007"),
+        ("RT001 · Oversight not observed live", "rules/RT001"),
+        ("RT002 · Amount over declared authority", "rules/RT002"),
+        ("RT003 · Reach beyond paper", "rules/RT003"),
+        ("RT004 · Monitoring claimed, unevidenced", "rules/RT004"),
+        ("RT005 · Approval gate observed", "rules/RT005"),
     ]),
     ("Reference", [
         ("CLI", "cli"),
@@ -75,10 +81,13 @@ def rewrite_link(href: str) -> str:
         return "/docs/dimensions"
     if h.startswith("docs/diff"):
         return "/docs/diff"
-    m = re.match(r"(AI\d{3}|CTRL\d{3}|DECL\d{3})\.md$", h)
+    m = re.match(r"(AI\d{3}|CTRL\d{3}|DECL\d{3}|RT\d{3})\.md$", h)
     if m:
         return f"/docs/rules/{m.group(1)}"
     if h.endswith(".md"):
+        # ../foo.md from a rules/ page targets the docs root, same as foo.md.
+        while h.startswith("../"):
+            h = h[3:]
         return "/docs/" + h[:-3]
     return href
 
@@ -347,10 +356,15 @@ CLI = """# CLI
 stoa scan [PATH]            # scan a repository (report-only by default)
 stoa diff BASE HEAD         # diff agent reach between two registries
 stoa graph [REGISTRY]       # render the architecture graph (Mermaid)
-stoa export --assurance     # export the 14-area assurance packet
+stoa export --assurance     # export the 18-area assurance packet
 stoa approve ...            # record an intentional drift approval
+stoa runtime analyze DIR    # summarize observed behavior from local traces
+stoa runtime baseline DIR   # behavioral baseline (commit it, like approvals)
+stoa runtime drift DIR      # compare live behavior to the baseline
+stoa runtime merge DIR      # enrich a registry with runtime evidence
 stoa init github            # scaffold the CI workflow
 stoa init declarations      # stub stoa-declared.toml from the last scan
+stoa init runtime           # scaffold [runtime] config + SDK example
 ```
 
 ## `stoa scan`
@@ -386,6 +400,23 @@ stoa init declarations      # stub stoa-declared.toml from the last scan
 ## `stoa diff` and `stoa approve`
 
 See [Capability drift](/docs/diff).
+
+## `stoa runtime` and `stoa scan --with-runtime`
+
+```
+stoa runtime analyze TRACES_DIR [--registry PATH] [--out stoa-runtime.json]
+stoa runtime map     TRACES_DIR --registry PATH
+stoa runtime baseline TRACES_DIR [--out .stoa/baseline.json]
+stoa runtime drift   TRACES_DIR [--baseline PATH] [--registry PATH]
+                     [--fail-on-drift {info,medium,high}] [--out PATH] [--config PATH]
+stoa runtime merge   TRACES_DIR --registry PATH [--out PATH | --in-place] [--config PATH]
+stoa scan . --with-runtime TRACES_DIR    # scan + enrich in one pass
+```
+
+Shadow mode: everything is report-only unless `--fail-on-drift` is passed
+(then `stoa diff` exit-code conventions apply). Traces are local
+`stoa-trace/1.0` JSONL written by the `stoa.runtime` SDK — see the
+[Runtime overlay](/docs/runtime) workflow.
 
 ## `stoa graph`
 
@@ -811,6 +842,7 @@ PAGES = [
     ("declarations", "Declarations", read(REPO / "docs/declarations.md"), None, "stoa-declared.toml: declared facts, cross-checked by the scanner."),
     ("autonomy", "Autonomy inference", read(REPO / "docs/autonomy.md"), None, "How Stoa classifies agents on the autonomy ladder from static signals."),
     ("assurance-export", "Assurance export", read(REPO / "docs/assurance-export.md"), None, "stoa export --assurance: the 14-area assurance packet."),
+    ("runtime", "Runtime overlay", read(REPO / "docs/runtime.md"), None, "The observed evidence layer: instrument agents, analyze local traces, detect behavioral drift, and cross-check declared facts against live behavior (RT rules)."),
     ("rules", "Rules overview", read(REPO / "docs/rules/README.md"), None, "Stoa's core and AI security rules."),
     ("cli", "CLI", CLI, None, "Stoa CLI reference."),
     ("configuration", "Configuration", CONFIGURATION, None, "stoa.toml, suppression, and .stoaignore."),
@@ -821,7 +853,8 @@ PAGES = [
 ]
 for rule in ("AI001", "AI002", "AI003", "AI004", "AI005", "AI006", "AI007",
              "CTRL004", "CTRL005", "CTRL006", "CTRL007",
-             "DECL001", "DECL002", "DECL003", "DECL004", "DECL005", "DECL006", "DECL007"):
+             "DECL001", "DECL002", "DECL003", "DECL004", "DECL005", "DECL006", "DECL007",
+             "RT001", "RT002", "RT003", "RT004", "RT005"):
     PAGES.append((f"rules/{rule}", rule, read(REPO / f"docs/rules/{rule}.md"), None, f"Stoa rule {rule}."))
 
 
