@@ -21,7 +21,10 @@ NAV = [
         ("Architecture graph", "graph"),
         ("Declarations", "declarations"),
         ("Autonomy inference", "autonomy"),
+        ("The report", "report"),
+        ("Regulatory crosswalk", "crosswalk"),
         ("Assurance export", "assurance-export"),
+        ("Underwriting evidence", "underwriting"),
         ("Runtime overlay", "runtime"),
     ]),
     ("Pilot use cases", [
@@ -816,12 +819,15 @@ CARDS = [
     ("🚀", "Install & first scan", "From pipx install to your first HTML report in three commands.", "/docs/getting-started"),
     ("🧭", "Dimension exposure", "Eight risk dimensions — five direct, three proxy — with deterministic scoring.", "/docs/dimensions"),
     ("📈", "Capability drift", "stoa diff: did any agent's reach change? Approve intentional changes in-repo.", "/docs/diff"),
+    ("📰", "The report", "A verdict-first HTML report: what to fix, in order, and where your declarations don't match the code — offline, print-ready in five pages.", "/docs/report"),
+    ("⚖️", "Regulatory crosswalk", "Every rule anchored to one OWASP LLM Top 10 (2025) class and one EU AI Act article — a labeling layer that never touches scoring.", "/docs/crosswalk"),
+    ("📑", "Underwriting evidence", "A pre-filled AI Model Risk Assessment, sourced from scan evidence and the applicant's own performance figures — ready to forward to an insurer.", "/docs/underwriting"),
     ("🕸️", "Architecture graph", "Agents, tools, and capability-sinks as a Mermaid or interactive graph — click any edge for its evidence.", "/docs/graph"),
-    ("📋", "Assurance export", "The 14-area assurance packet — declared facts cross-checked against what the scan observed, gaps included.", "/docs/assurance-export"),
+    ("📋", "Assurance export", "The 18-area assurance packet — declared facts cross-checked against what the scan observed, gaps included.", "/docs/assurance-export"),
     ("🛡️", "Rules", "Sixteen core/control rules, eight AI rules, and seven contradiction rules.", "/docs/rules"),
     ("🏦", "Meridian example", "A full multi-agent app, scanned end to end — the reference to follow.", "/docs/example"),
     ("🎙️", "Threshold example", "A generic voice agent stress test — MCP client/server gaps, the autonomy ladder, one finding per risk dimension.", "/docs/threshold"),
-    ("🧬", "JSON schema", "The registry schema (1.2), additive-first, with reserved fields.", "/docs/schema"),
+    ("🧬", "JSON schema", "The registry schema (1.5), additive-first, with reserved fields.", "/docs/schema"),
 ]
 
 
@@ -832,7 +838,9 @@ def landing_body() -> str:
         '<p class="hero-lede">A <strong>local-first static scanner</strong> that finds likely '
         'AI agents in Python, JavaScript, and TypeScript, maps what they can reach, scores them '
         'across eight risk dimensions, and blocks newly introduced high-confidence critical '
-        'risks — <strong>without uploading a line of code</strong>.</p>'
+        'risks — <strong>without uploading a line of code</strong>. Every finding is anchored to '
+        'the <strong>OWASP LLM Top 10</strong> and the <strong>EU AI Act</strong>, and a scan '
+        'can pre-fill an <strong>insurer&rsquo;s risk questionnaire</strong> from evidence.</p>'
         '<pre class="code hero-term"><code>'
         '<span class="p">$</span> pipx install stoa-agent-risk\n'
         '<span class="p">$</span> stoa scan .  <span class="d">&amp;&amp;</span>  open stoa-report.html</code></pre>'
@@ -881,7 +889,10 @@ PAGES = [
     ("graph", "Architecture graph", read(REPO / "docs/graph.md"), None, "stoa graph: agents, tools, and capability-sinks as a Mermaid or interactive graph."),
     ("declarations", "Declarations", read(REPO / "docs/declarations.md"), None, "stoa-declared.toml: declared facts, cross-checked by the scanner."),
     ("autonomy", "Autonomy inference", read(REPO / "docs/autonomy.md"), None, "How Stoa classifies agents on the autonomy ladder from static signals."),
-    ("assurance-export", "Assurance export", read(REPO / "docs/assurance-export.md"), None, "stoa export --assurance: the 14-area assurance packet."),
+    ("report", "The report", read(REPO / "docs/report.md"), None, "Stoa's verdict-first HTML report: information architecture, the explainability layer, and print/offline properties."),
+    ("crosswalk", "Regulatory crosswalk", read(REPO / "docs/crosswalk.md"), None, "How Stoa anchors each rule to one OWASP LLM Top 10 (2025) class and one EU AI Act article — a labeling layer that never touches scoring."),
+    ("assurance-export", "Assurance export", read(REPO / "docs/assurance-export.md"), None, "stoa export --assurance: the 18-area assurance packet."),
+    ("underwriting", "Underwriting evidence", read(REPO / "docs/underwriting.md"), None, "stoa export --underwriting: a pre-filled AI Model Risk Assessment sourced from scan evidence and the applicant's own performance figures."),
     ("runtime", "Runtime overlay", read(REPO / "docs/runtime.md"), None, "The observed evidence layer: instrument agents, analyze local traces, detect behavioral drift, and cross-check declared facts against live behavior (RT rules)."),
     ("rules", "Rules overview", read(REPO / "docs/rules/README.md"), None, "Stoa's core and AI security rules."),
     ("cli", "CLI", CLI, None, "Stoa CLI reference."),

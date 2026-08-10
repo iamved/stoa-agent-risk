@@ -172,6 +172,35 @@ evidence) populate from a runtime-enriched registry, and RT findings join
 the contradictions table. A packet from a registry without runtime data is
 byte-identical to `1.1` apart from the schema string.
 
+## Schema 1.5 additions (Regulatory crosswalk)
+
+A presentation/labeling layer that anchors findings to frameworks a reader
+already knows. **It never participates in scoring** — dimension scores,
+exposure buckets, and the proxy cap are byte-for-byte identical to `1.4`
+(guarded by a pre-change golden snapshot). Versioned as `stoa-crosswalk-1`
+and overridable via `stoa.toml` `[crosswalk] path`.
+
+**On every finding:** `crosswalk` — `{owasp_llm_2025, eu_ai_act, relation,
+so_what}`. `owasp_llm_2025` is one OWASP LLM Top 10 (2025) class (`LLM01`–
+`LLM10`) or `null` where no honest class fits; `eu_ai_act` is one article
+(e.g. `"Art. 15"`); `relation` is `exposure` or `control-observed`; `so_what`
+is a plain-English gloss (says/never-says vocabulary — never
+"compliant"/"protected"/"secure").
+
+**On each `dimension_summary` dimension:** `crosswalk` — `{owasp_llm_2025:
+[...], eu_ai_act: [...]}`, the union of the framework tags of the rules that
+contributed to that dimension (OWASP codes sorted `LLM01`→`LLM10`).
+
+**Top-level:** `crosswalk` — `{id, version, owasp_llm_version,
+eu_ai_act_reference}`, attributing the mapping to a reviewed version.
+
+The pre-existing per-finding `owasp` object (schema 1.1) is unchanged and
+independent — the crosswalk lives under `crosswalk`, never overwriting it.
+
+**SARIF:** results and rules gain `owasp:<LLMxx>` and `euaiact:<article>`
+tags alongside the existing `stoa-dim:<dimension>` tags. A blank OWASP
+mapping emits no `owasp:` tag rather than a fake one.
+
 ## Top-level document
 
 ```json
