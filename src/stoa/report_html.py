@@ -20,7 +20,7 @@ from pathlib import Path
 
 from . import __version__
 from .config import StoaConfig
-from .models import SEVERITY_ORDER, AgentCandidate, Finding, ScanResult
+from .models import SEVERITIES, SEVERITY_ORDER, AgentCandidate, Finding, ScanResult
 from .report_json import _atomic_write
 from .rules import RULES, HIGH_IMPACT_CAPABILITIES, SENSITIVE_INTEGRATIONS
 
@@ -362,6 +362,19 @@ footer { margin-top: 44px; padding-top: 14px; border-top: 1px solid #e3e6ec;
   .graph-layout { flex-direction: column; }
   .graph-panel { flex-basis: auto; max-height: 260px; }
 }
+/* Small-viewport reflow (down to ~380px): no fixed columns, no absolute
+   header actions, tighter gutters. Keeps the page body from scrolling
+   sideways. */
+@media (max-width: 480px) {
+  main { padding: 16px 12px 48px; }
+  .hdr-actions { position: static; margin: 12px 0 0; flex-wrap: wrap; }
+  header.page h1 { margin-top: 6px; }
+  .dim-by-row { grid-template-columns: 1fr auto; }
+  .dim-by-row > div:last-child { grid-column: 1 / -1; }
+  .verdict .lede { font-size: 17px; }
+  .cards { grid-template-columns: 1fr 1fr; }
+  .fix-item .fh { flex-wrap: wrap; }
+}
 .autonomy-badge { display: inline-block; font-size: 11px; font-weight: 600;
   text-transform: uppercase; letter-spacing: 0.02em; padding: 2px 8px;
   border-radius: 8px; margin: 2px 0 6px; }
@@ -377,6 +390,60 @@ footer { margin-top: 44px; padding-top: 14px; border-top: 1px solid #e3e6ec;
 .contradiction-card .rule { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas,
   monospace; font-weight: 700; font-size: 13px; color: #b42318; }
 .contradiction-card p { margin: 4px 0; font-size: 13px; }
+/* grouped contradictions (Task 3) */
+.contra-group summary { cursor: pointer; font-size: 13px; font-weight: 600; }
+.contra-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
+.chip-vs { display: inline-flex; align-items: center; gap: 6px; font-size: 12px;
+  border-radius: 6px; padding: 3px 9px; }
+.chip-declared { background: #eef2f6; color: #465063; }
+.chip-observed { background: #fde8e8; color: #b42318; }
+.chip-arrow { color: #8a94a6; font-size: 12px; }
+
+/* --- verdict-first IA (report rebuild) -------------------------------- */
+.verdict { background: #171c26; color: #f2f4f8; border-radius: 10px;
+  padding: 20px 22px; margin: 0 0 16px; }
+.verdict .lede { font-size: 19px; line-height: 1.4; font-weight: 600; margin: 0 0 8px;
+  text-wrap: balance; }
+.verdict .sub { font-size: 14px; line-height: 1.55; color: #c4ccd8; margin: 0; }
+.verdict .sub .ruleref { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas,
+  monospace; font-size: 12.5px; background: #2a313f; border-radius: 4px; padding: 1px 6px;
+  color: #e6ebf2; }
+.verdict a { color: #8fb8ec; }
+.scoreboard { display: flex; flex-direction: column; gap: 10px; margin: 0 0 6px; }
+.tier-bar { display: flex; height: 34px; border-radius: 8px; overflow: hidden;
+  border: 1px solid #e3e6ec; background: #eef0f4; }
+.tier-seg { display: flex; align-items: center; justify-content: center; color: #fff;
+  font-size: 12.5px; font-weight: 700; min-width: 0; }
+.tier-seg.t-severe { background: #7a1d16; }
+.tier-seg.t-elevated { background: #b42318; }
+.tier-seg.t-moderate { background: #d29a1f; }
+.tier-seg.t-low { background: #9aa4b2; }
+.tier-legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: #5a6272; }
+.tier-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.tier-key { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.ribbon { font-size: 13px; color: #3a4150; background: #fff;
+  border: 1px solid #e3e6ec; border-radius: 8px; padding: 9px 14px;
+  font-variant-numeric: tabular-nums; }
+.ribbon b { color: #1a1d23; }
+.ribbon .dot { color: #c2c8d0; margin: 0 6px; }
+.fix-list { display: flex; flex-direction: column; gap: 10px; }
+.fix-item { background: #fff; border: 1px solid #e3e6ec; border-left: 4px solid #b42318;
+  border-radius: 8px; padding: 12px 15px; }
+.fix-item.sev-high { border-left-color: #d29a1f; }
+.fix-item .fh { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.fix-item .ft { font-size: 14.5px; font-weight: 650; }
+.fix-item .impact { font-size: 13px; color: #3a4150; margin: 6px 0; }
+.fix-item .remedy { font-size: 13px; color: #14714f; margin: 6px 0; }
+.fix-item .remedy b { color: #0f5a3e; }
+.fix-item pre { background: #f6f7f9; border: 1px solid #e9ebef; border-radius: 6px;
+  padding: 8px 10px; overflow-x: auto; font-size: 12px; margin: 6px 0; }
+.fix-item .refline { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11.5px; color: #5a6272; display: flex; flex-wrap: wrap; gap: 6px; }
+.fix-item .refline .r { background: #f1f3f6; border-radius: 4px; padding: 1px 6px; }
+.fix-item .pointer { font-size: 12.5px; color: #5a6272; }
+.fix-item .pointer a { color: #2f6fb0; }
+.appendix { margin-top: 20px; border-top: 1px solid #e3e6ec; padding-top: 8px; }
+.appendix > summary { cursor: pointer; font-size: 15px; font-weight: 650; padding: 8px 0; }
 
 /* --- crosswalk / explainability (Feature 2) --------------------------- */
 .exec-summary { background: #fff; border: 1px solid #e3e6ec; border-left: 4px solid #2f6fb0;
@@ -524,91 +591,125 @@ def render_html(
         items = "".join(f"<li>{html_text(w)}</li>" for w in result.warnings)
         parts.append(f'<div class="warn-box"><strong>Scan warnings</strong><ul>{items}</ul></div>')
 
-    # Crosswalk / explainability sections (Feature 2). `crosswalk` was loaded
-    # up-front (near the CSP); when present the report renders these sections,
-    # otherwise it degrades to exactly the pre-crosswalk output.
-    if crosswalk is not None:
-        parts.append(_exec_summary(result, crosswalk))
-        parts.append(_owasp_strip(result, config, crosswalk))
+    # Report presentation thresholds (Task 4). Additive/optional: degrades to
+    # built-in defaults if a bad override path is given.
+    rcfg = None
+    try:
+        from .report_config import load_report_config
+        rcfg = load_report_config(config.report_config_path)
+    except Exception:  # noqa: BLE001 - presentation config never breaks the report
+        from .report_config import default_report_config
+        rcfg = default_report_config()
 
-    # At-a-glance stat tiles -----------------------------------------------
-    parts.append("<section><h2>At a glance</h2>")
+    # ---- Verdict-first information architecture --------------------------
+    # 1 Verdict · 2 Scoreboard · 3 Fix first · 4 Contradictions · 5 Agents ·
+    # 6 Risk dimensions · 7 Standards · 8 Appendix (NIST + all findings + graph).
+    fix_items = _fix_first_items(result, rcfg) if crosswalk is not None or True else []
+
+    # 1 · Verdict
+    parts.append(_verdict_section(result, crosswalk, fix_items))
+
     if result.diff_available:
         parts.append(
             '<p class="note">Findings below cover the full repository; only newly '
             "introduced findings affect the gate.</p>"
         )
-    cards = [
-        (len(result.agents), "Agent candidates", False),
-        (len(high_exposure_agents), "High-exposure candidates", False),
-        (critical, "Critical findings", critical > 0),
-        (new_critical, "New critical findings", new_critical > 0)
-        if result.diff_available
-        else None,
-        (result.suppressed_count(), "Suppressed findings", False),
-        (result.files_scanned, "Files scanned", False),
-    ]
-    parts.append('<div class="cards">')
-    for card in cards:
-        if card is None:
-            continue
-        number, label, alert = card
-        cls = "card alert" if alert else "card"
-        parts.append(
-            f'<div class="{cls}"><div class="num">{html_text(number)}</div>'
-            f'<div class="lbl">{html_text(label)}</div></div>'
-        )
-    parts.append("</div></section>")
 
-    # New critical findings (diff mode) -------------------------------------
+    # 2 · Scoreboard (single hero: agents-by-tier + one findings ribbon)
+    parts.append(_scoreboard_section(result))
     if result.diff_available:
         parts.append(_new_critical_section(result))
 
-    # Findings-by-severity bar ----------------------------------------------
-    if result.unsuppressed_findings():
-        parts.append(_severity_bar(severity_counts))
+    # 3 · Fix first
+    parts.append(_fix_first_section(result, crosswalk, rcfg, fix_items))
 
-    # Dimension exposure matrix ---------------------------------------------
-    if result.dimension_summary is not None and result.agents:
-        parts.append(_dimension_matrix(result))
-        # Framework-stamped view of the same spine (Feature 2).
-        if crosswalk is not None:
-            parts.append(_dimension_framework_table(result, crosswalk))
+    # 4 · Contradictions — Stoa's differentiator, lifted to the front
+    parts.append(_contradictions_section(result, rcfg))
 
-    # NIST AI RMF roll-up (report level only, never per-rule) ---------------
-    if crosswalk is not None and result.agents:
-        parts.append(_nist_rollup())
-
-    # Agent risk map ---------------------------------------------------------
-    parts.append("<section><h2>Agent risk map</h2>")
+    # 5 · Agents (ranked; each row carries its own inline dimension strip)
+    parts.append("<section><h2>Agents</h2>")
     parts.append(
-        '<p class="note">Each candidate, ranked by static exposure: high-impact '
-        "capabilities, sensitive integrations, and finding severity. Static "
-        "evidence does not prove runtime reachability.</p>"
+        '<p class="note">Every candidate, ranked by static exposure. Names are '
+        "disambiguated by source file when they collide. Static evidence does not "
+        "prove runtime reachability.</p>"
     )
     if result.agents:
         ranked = sorted(
             result.agents, key=lambda a: (-exposure_score(a), a.path, a.symbol)
         )
         parts.append(_exposure_chart(ranked))
-        parts.append(
-            '<p class="note" style="margin-top:18px">Expand any candidate below '
-            "for the evidence, capabilities, integrations, and findings.</p>"
-        )
+        collapse = rcfg.collapse_rank
+        shown = [a for a in ranked if rcfg.tier_rank(exposure_tier(a)[0]) >= collapse]
+        hidden = [a for a in ranked if rcfg.tier_rank(exposure_tier(a)[0]) < collapse]
         parts.append('<div class="risk-map">')
-        for agent in ranked:
+        for agent in shown:
             parts.append(_agent_card(agent, result.diff_available))
         parts.append("</div>")
+        if hidden:
+            parts.append(
+                f'<details class="dim-drill"><summary>{len(hidden)} more agent'
+                f'{"s" if len(hidden) != 1 else ""} — moderate and low exposure'
+                '</summary><div class="risk-map">'
+                + "".join(_agent_card(a, result.diff_available) for a in hidden)
+                + "</div></details>"
+            )
     else:
         parts.append('<p class="empty">No agent candidates were detected.</p>')
     parts.append("</section>")
 
-    # Contradictions -----------------------------------------------------------
-    contradictions_html = _contradictions_section(result)
-    if contradictions_html:
-        parts.append(contradictions_html)
+    # 6 · Risk dimensions (org rollup: By-dimension + framework-stamped table)
+    if result.dimension_summary is not None and result.agents:
+        parts.append(_dimension_matrix(result))
+        if crosswalk is not None:
+            parts.append(_dimension_framework_table(result, crosswalk))
 
-    # Architecture graph -------------------------------------------------------
+    # 7 · Standards (OWASP LLM Top 10 coverage — gaps stay visible)
+    if crosswalk is not None:
+        parts.append(_owasp_strip(result, config, crosswalk))
+
+    # 8 · Appendix (collapsed): NIST roll-up, all findings, architecture graph.
+    active = result.unsuppressed_findings()
+    security = [
+        f for f in active
+        if f.category in ("secret", "injection", "ai-output", "ai-disclosure",
+                          "ai-prompt", "ai-supplychain")
+    ]
+    reliability = [f for f in active if f.category in ("reliability", "network")]
+    prompts = [
+        f for f in active
+        if f.category in ("control", "ai-agency", "ai-stability")
+    ]
+    suppressed = [f for f in result.findings if f.suppressed]
+
+    parts.append('<details class="appendix"><summary>Appendix — standards '
+                 "alignment, all findings, and architecture</summary>")
+
+    if crosswalk is not None and result.agents:
+        parts.append(_nist_rollup())
+
+    parts.append("<section><h2>All findings</h2>")
+    parts.append(
+        '<p class="note">Everything the scan found, grouped. Nothing is omitted — '
+        "the report leads with the verdict and the fixes; the full list lives here.</p>"
+    )
+    has_critical = any(f.severity == "critical" for f in security)
+    parts.append(_collapsed_findings("Security findings", security, result.diff_available, open_=has_critical))
+    parts.append(_collapsed_findings("Reliability findings", reliability, result.diff_available))
+    parts.append(
+        _collapsed_findings(
+            "Review prompts",
+            prompts,
+            result.diff_available,
+            note=(
+                "Review prompts are observations, not confirmed vulnerabilities: a "
+                "control was not observed in the scanned file, but may exist elsewhere."
+            ),
+        )
+    )
+    parts.append(_suppressed_details(suppressed))
+    parts.append("</section>")
+
+    # Architecture graph (demoted into the appendix)
     if not config.no_graph:
         from .graph_model import build_graph, overlay_runtime
         from .report_graph import render_graph_section
@@ -634,42 +735,7 @@ def render_html(
                 "Observed means observed in this window — never a claim about "
                 "future behavior.</p>"
             )
-
-    # Finding sections, collapsed by default ---------------------------------
-    active = result.unsuppressed_findings()
-    security = [
-        f for f in active
-        if f.category in ("secret", "injection", "ai-output", "ai-disclosure",
-                          "ai-prompt", "ai-supplychain")
-    ]
-    reliability = [f for f in active if f.category in ("reliability", "network")]
-    prompts = [
-        f for f in active
-        if f.category in ("control", "ai-agency", "ai-stability")
-    ]
-    suppressed = [f for f in result.findings if f.suppressed]
-
-    parts.append("<section><h2>All findings</h2>")
-    parts.append(
-        '<p class="note">Everything the scan found, grouped. Sections are '
-        "collapsed so the report leads with the map; nothing is omitted.</p>"
-    )
-    has_critical = any(f.severity == "critical" for f in security)
-    parts.append(_collapsed_findings("Security findings", security, result.diff_available, open_=has_critical))
-    parts.append(_collapsed_findings("Reliability findings", reliability, result.diff_available))
-    parts.append(
-        _collapsed_findings(
-            "Review prompts",
-            prompts,
-            result.diff_available,
-            note=(
-                "Review prompts are observations, not confirmed vulnerabilities: a "
-                "control was not observed in the scanned file, but may exist elsewhere."
-            ),
-        )
-    )
-    parts.append(_suppressed_details(suppressed))
-    parts.append("</section>")
+    parts.append("</details>")
 
     parts.append(
         "<footer>Stoa performs static, pattern-based analysis. Findings and agent "
@@ -714,9 +780,9 @@ def _exposure_chart(ranked: list[AgentCandidate]) -> str:
         rows.append(
             '<div class="chart-row">'
             f'<div class="chart-label" title="{html_text(agent.path)}">'
-            f"{html_text(agent.name)}</div>"
+            f"{html_text(agent.label)}</div>"
             f'<div class="chart-track" role="img" '
-            f'aria-label="{html_text(agent.name)}: {html_text(tier_label)}, score {score}">'
+            f'aria-label="{html_text(agent.label)}: {html_text(tier_label)}, score {score}">'
             f'<span class="{BAR_CLASS[tier_slug]}" style="width: {pct}%"></span></div>'
             f'<div class="chart-val">{html_text(score)}</div>'
             "</div>"
@@ -815,7 +881,7 @@ def _dimension_matrix(result: ScanResult) -> str:
         anchor = f"dim-{html_text(agent.id)}"
         head = (
             f'<div class="dim-agent-row{worst}"><div class="dim-agent-head">'
-            f'<span class="dim-agent-name"><a href="#{anchor}">{html_text(agent.name)}</a></span>'
+            f'<span class="dim-agent-name"><a href="#{anchor}">{html_text(agent.label)}</a></span>'
             f'<a class="dim-agent-detail" href="#{anchor}">full breakdown →</a></div>'
         )
         if notable:
@@ -865,7 +931,7 @@ def _dimension_matrix(result: ScanResult) -> str:
             )
         parts.append(
             f'<details class="dim-drill" id="dim-{html_text(agent.id)}">'
-            f"<summary>{html_text(agent.name)} — dimension detail</summary>"
+            f"<summary>{html_text(agent.label)} — dimension detail</summary>"
             '<div class="table-wrap"><table><thead><tr><th>Dimension</th>'
             "<th>Exposure</th><th>Score</th><th>Findings</th><th>Capabilities</th>"
             f"<th>Controls observed</th></tr></thead><tbody>{''.join(rows)}</tbody></table></div>"
@@ -890,67 +956,218 @@ def _fired_rules(result: ScanResult) -> set[str]:
     return {f.rule_id for f in result.findings if not f.suppressed}
 
 
-def _exec_summary(result: ScanResult, crosswalk) -> str:
-    """A generated 2-3 sentence headline + a 'most important' callout.
-    Deterministic: derived only from the (already deterministic) registry."""
+# Capability blast-radius weights (Task 2, Fix-first ranking). Shell/code/money
+# outrank messaging. Used only for ordering — never for scoring.
+_CAP_BLAST = {
+    "shell_execution": 5, "code_execution": 5, "payment_access": 5,
+    "database_write": 4, "filesystem_write": 3, "source_control": 3,
+    "cloud_resource_access": 3, "email_send": 2, "messaging": 2,
+}
+_FIX_SEV_RANK = {"critical": 4, "high": 3, "medium": 2, "low": 1, "info": 0}
+
+
+def _agents_by_tier(result: ScanResult) -> dict[str, int]:
+    counts = {"severe": 0, "elevated": 0, "moderate": 0, "low": 0}
+    for a in result.agents:
+        slug, _ = exposure_tier(a)
+        counts[slug] = counts.get(slug, 0) + 1
+    return counts
+
+
+def _finding_blast(result: ScanResult, finding: Finding) -> int:
+    """Max capability blast-weight among agents sharing this finding's file."""
+    best = 1
+    for a in result.agents:
+        if a.path == finding.path:
+            for cap in a.capabilities:
+                best = max(best, _CAP_BLAST.get(cap, 1))
+    return best
+
+
+def _verdict_section(result: ScanResult, crosswalk, fix_items: list) -> str:
+    """One generated verdict sentence: agent count, worst-tier count, and the
+    theme of the risk; then a subline naming the top concrete risk + fix count.
+    Deterministic — derived only from the (deterministic) registry."""
     agents = result.agents
     n = len(agents)
     if n == 0:
-        return ('<section><h2>Executive summary</h2><div class="exec-summary">'
-                "<p>No agent candidates were detected in this scan.</p></div></section>")
+        return ('<section><div class="verdict"><p class="lede">No agent candidates '
+                "were detected in this repository.</p></div></section>")
+    tiers = _agents_by_tier(result)
+    worst = tiers["severe"] + tiers["elevated"]
 
-    # elevated exposure per dimension, from the summary rollup
-    elevated_dims = []
-    if result.dimension_summary:
-        for d in result.dimension_summary["dimensions"]:
-            if d.get("agents_elevated", 0) > 0:
-                elevated_dims.append((d["name"], d["agents_elevated"]))
-    n_elevated_agents = len({
-        a.id for a in agents
-        if a.dimension_assessment and any(
-            e["exposure"] == "elevated" for e in a.dimension_assessment["dimensions"]
+    # Theme: dominant high-impact capability among top-tier agents, paired with
+    # the elevated dimension it most often drives.
+    top_agents = [a for a in agents if exposure_tier(a)[0] in ("severe", "elevated")]
+    cap_counts: dict[str, int] = {}
+    for a in top_agents:
+        for cap in HIGH_IMPACT_CAPABILITIES.intersection(a.capabilities):
+            cap_counts[cap] = cap_counts.get(cap, 0) + 1
+    theme = ""
+    if cap_counts:
+        top_caps = sorted(cap_counts, key=lambda c: (-cap_counts[c], c))[:2]
+        phrases = {
+            "payment_access": "move money", "shell_execution": "execute shell commands",
+            "code_execution": "execute code", "database_write": "write to databases",
+            "filesystem_write": "write to the filesystem", "source_control": "push to source control",
+            "cloud_resource_access": "control cloud resources", "email_send": "send email",
+            "messaging": "send messages",
+        }
+        verbs = [phrases.get(c, c.replace("_", " ")) for c in top_caps]
+        theme = " and ".join(verbs)
+
+    lede = (f"Stoa found <strong>{n}</strong> agent candidate{'s' if n != 1 else ''}"
+            f" — <strong>{worst}</strong> at elevated exposure or above")
+    if theme:
+        lede += f", with agents that can {theme} running on autonomy their declarations may not grant"
+    lede += "."
+
+    sub = ""
+    if fix_items:
+        top = fix_items[0]
+        entry = crosswalk.entry(top["rule_id"]) if crosswalk else None
+        owasp = f" · {html_text(entry.owasp_llm_2025)}" if entry and entry.owasp_llm_2025 else ""
+        n_fix = len(fix_items)
+        sub = (f'Top risk: <span class="ruleref">{html_text(top["rule_id"])} · '
+               f'{html_text(top["path"])}:{html_text(top["line"])}{owasp}</span> — '
+               f'{html_text(top["title"])}. '
+               f'<a href="#fix-first">{n_fix} fix{"es" if n_fix != 1 else ""}</a> '
+               "clear every critical finding.")
+    else:
+        sub = "No critical findings require a fix in this scan."
+
+    return (f'<section><div class="verdict"><p class="lede">{lede}</p>'
+            f'<p class="sub">{sub}</p></div></section>')
+
+
+def _scoreboard_section(result: ScanResult) -> str:
+    """One hero scoreboard: agents-by-exposure-tier stacked bar + a single
+    findings ribbon. Every number is labeled precisely and reconciles."""
+    tiers = _agents_by_tier(result)
+    n = sum(tiers.values()) or 1
+    order = [("severe", "Severe"), ("elevated", "Elevated"),
+             ("moderate", "Moderate"), ("low", "Low")]
+    segs = []
+    for slug, label in order:
+        c = tiers[slug]
+        if not c:
+            continue
+        pct = c * 100 / n
+        segs.append(f'<div class="tier-seg t-{slug}" style="width:{pct:.4f}%" '
+                    f'title="{label}: {c}">{c if pct >= 6 else ""}</div>')
+    key_color = {"severe": "#7a1d16", "elevated": "#b42318",
+                 "moderate": "#d29a1f", "low": "#9aa4b2"}
+    legend = "".join(
+        f'<span><span class="tier-key" style="background:{key_color[slug]}"></span>'
+        f'{label} <strong>{tiers[slug]}</strong></span>'
+        for slug, label in order
+    )
+
+    sc = result.severity_counts()
+    active_total = sum(sc.get(s, 0) for s in SEVERITIES)
+    parts = [f'{sc.get(s, 0)} {s}' for s in reversed(SEVERITIES) if sc.get(s, 0)]
+    breakdown = " · ".join(parts) if parts else "none"
+    integrations = len({i for a in result.agents for i in a.integrations})
+    ribbon = (
+        f'<div class="ribbon"><b>{active_total}</b> active finding'
+        f'{"s" if active_total != 1 else ""} — {breakdown}'
+        f'<span class="dot">·</span><b>{result.suppressed_count()}</b> suppressed'
+        f'<span class="dot">·</span><b>{integrations}</b> integration'
+        f'{"s" if integrations != 1 else ""}'
+        f'<span class="dot">·</span><b>{result.files_scanned}</b> files scanned</div>'
+    )
+    return (
+        '<section><h2>Scoreboard</h2>'
+        '<p class="note">Agent candidates by static exposure tier. Active findings '
+        "(unsuppressed) are counted once each in the ribbon below; suppressed "
+        "findings are listed separately and do not affect the tiers.</p>"
+        f'<div class="scoreboard"><div class="tier-bar">{"".join(segs)}</div>'
+        f'<div class="tier-legend">{legend}</div>{ribbon}</div></section>'
+    )
+
+
+def _fix_first_items(result: ScanResult, rcfg) -> list:
+    """The remediation work-list: active findings at/above the floor severity,
+    merged when they share a rule class AND remediation, ranked by
+    severity × blast radius, capped. Deterministic ordering throughout."""
+    floor = _FIX_SEV_RANK.get(rcfg.fix_first_min_severity, 3)
+    eligible = [
+        f for f in result.findings
+        if not f.suppressed and _FIX_SEV_RANK.get(f.severity, 0) >= floor
+    ]
+    # merge by (rule_id, remediation) — same class + same fix = one item
+    groups: dict[tuple, list] = {}
+    for f in eligible:
+        groups.setdefault((f.rule_id, f.remediation), []).append(f)
+
+    items = []
+    for (rule_id, remediation), fs in groups.items():
+        fs.sort(key=lambda f: (f.path, f.line))
+        head = fs[0]
+        blast = max(_finding_blast(result, f) for f in fs)
+        sev_rank = max(_FIX_SEV_RANK.get(f.severity, 0) for f in fs)
+        items.append({
+            "rule_id": rule_id,
+            "title": head.title,
+            "severity": "critical" if sev_rank >= 4 else "high" if sev_rank == 3 else head.severity,
+            "remediation": remediation,
+            "snippet": head.snippet,
+            "message": head.message,
+            "path": head.path,
+            "line": head.line,
+            "sites": [(f.path, f.line) for f in fs],
+            "count": len(fs),
+            "is_contradiction": rule_id.startswith("DECL") or rule_id.startswith("RT"),
+            "_rank": (sev_rank, blast, -len(fs)),
+        })
+    items.sort(key=lambda it: (-it["_rank"][0], -it["_rank"][1], it["_rank"][2],
+                               it["rule_id"], it["path"], it["line"]))
+    return items[: rcfg.fix_first_max]
+
+
+def _fix_first_section(result: ScanResult, crosswalk, rcfg, items: list) -> str:
+    if not items:
+        return ""
+    rows = []
+    for it in items:
+        entry = crosswalk.entry(it["rule_id"]) if crosswalk else None
+        owasp = entry.owasp_llm_2025 if entry else ""
+        article = entry.eu_ai_act if entry else ""
+        sev_cls = "sev-high" if it["severity"] == "high" else ""
+        sites = it["sites"]
+        loc = f'{html_text(it["path"])}:{html_text(it["line"])}'
+        if it["count"] > 1:
+            loc += f' <span class="r">+{it["count"] - 1} more</span>'
+        ref = [f'<span class="r">{html_text(it["rule_id"])}</span>',
+               f'<span class="r">{loc}</span>']
+        if owasp:
+            ref.append(f'<span class="r">{html_text(owasp)}</span>')
+        if article:
+            ref.append(f'<span class="r">{html_text(article)}</span>')
+        impact = it["message"] or it["title"]
+        snippet = (f'<pre>{html_text(it["snippet"])}</pre>'
+                   if it["snippet"] and it["snippet"] != "[REDACTED]" else "")
+        pointer = ""
+        body = (f'{snippet}<p class="impact">{html_text(impact)}</p>'
+                f'<p class="remedy"><b>Fix:</b> {html_text(it["remediation"])}</p>')
+        if it["is_contradiction"]:
+            # Task 3 dedup: Contradictions owns the full detail; Fix-first is a
+            # one-line pointer only — no snippet, impact, or fix prose here.
+            body = ('<p class="pointer">A declared-vs-observed contradiction — '
+                    'full detail in <a href="#contradictions">Contradictions</a>.</p>')
+        rows.append(
+            f'<div class="fix-item {sev_cls}"><div class="fh">'
+            f'<span class="ft">{html_text(it["title"])}</span>'
+            f'{_severity_badge(it["severity"])}</div>'
+            f'{body}<div class="refline">{"".join(ref)}</div></div>'
         )
-    })
-
-    # single highest-impact finding: worst severity, then gate-eligible first
-    active = [f for f in result.findings if not f.suppressed]
-    top = None
-    if active:
-        top = max(active, key=lambda f: (
-            SEVERITY_RANK_FOR_EXPOSURE.get(f.severity, 0), f.gate_eligible,
-            -0,  # stable tiebreak below
-        ))
-        # deterministic tiebreak among equal-severity: path, line, rule
-        worst_rank = SEVERITY_RANK_FOR_EXPOSURE.get(top.severity, 0)
-        peers = [f for f in active
-                 if SEVERITY_RANK_FOR_EXPOSURE.get(f.severity, 0) == worst_rank]
-        peers.sort(key=lambda f: (not f.gate_eligible, f.path, f.line, f.rule_id))
-        top = peers[0]
-
-    s1 = (f"Stoa detected <strong>{n} agent candidate{'s' if n != 1 else ''}</strong> "
-          f"in this repository")
-    if n_elevated_agents:
-        dims_phrase = ", ".join(
-            html_text(name) for name, _ in sorted(elevated_dims, key=lambda x: -x[1])[:3]
-        )
-        s1 += (f", of which <strong>{n_elevated_agents}</strong> carr"
-               f"{'y' if n_elevated_agents != 1 else 'ies'} elevated exposure"
-               + (f" in {dims_phrase}" if dims_phrase else ""))
-    s1 += "."
-
-    parts = ['<section><h2>Executive summary</h2><div class="exec-summary">']
-    parts.append(f"<p>{s1}</p>")
-    if top is not None:
-        entry = crosswalk.entry(top.rule_id)
-        owasp = f" ({html_text(entry.owasp_llm_2025)})" if entry.owasp_llm_2025 else ""
-        parts.append(
-            '<p class="callout">Most important: '
-            f'<span class="ruleref">{html_text(top.rule_id)} · '
-            f'{html_text(top.path)}:{html_text(top.line)}</span>{owasp} — '
-            f"{html_text(entry.so_what)}</p>"
-        )
-    parts.append("</div></section>")
-    return "".join(parts)
+    return (
+        '<section id="fix-first"><h2>Fix first</h2>'
+        '<p class="note">The shortest path to clearing every critical finding, '
+        "ranked by severity and blast radius (agents that move money or run code "
+        "outrank messaging). Findings sharing a rule and a fix are merged.</p>"
+        f'<div class="fix-list">{"".join(rows)}</div></section>'
+    )
 
 
 def _owasp_strip(result: ScanResult, config, crosswalk) -> str:
@@ -1152,7 +1369,7 @@ def _severity_bar(severity_counts: dict[str, int]) -> str:
     )
 
 
-def _contradictions_section(result: ScanResult) -> str:
+def _contradictions_section(result: ScanResult, rcfg=None) -> str:
     """Declared-vs-scanned mismatches (DECL001-007) — the headline for an
     assurance reviewer. Omitted entirely when no stoa-declared.toml was used
     at all; shown with a positive "none found" message when it was used but
@@ -1176,14 +1393,42 @@ def _contradictions_section(result: ScanResult) -> str:
         parts.append('<p class="empty">No contradictions found.</p>')
     else:
         parts.append('<div class="contradiction-list">')
-        ranked = sorted(
-            decl_findings, key=lambda f: (-SEVERITY_ORDER[f.severity], f.path, f.line)
-        )
-        for finding in ranked:
-            parts.append(_contradiction_card(finding))
+        # Group by rule class; classes with more members than the threshold
+        # render as one expandable row instead of N repeated blocks (Task 2).
+        threshold = rcfg.contradiction_group_threshold if rcfg else 3
+        by_rule: dict[str, list] = {}
+        for f in decl_findings:
+            by_rule.setdefault(f.rule_id, []).append(f)
+        # Order groups by worst severity then size, then rule id.
+        def _grank(items):
+            return (-max(SEVERITY_ORDER[f.severity] for f in items), -len(items))
+        for rule_id in sorted(by_rule, key=lambda r: (_grank(by_rule[r]), r)):
+            group = sorted(by_rule[rule_id],
+                           key=lambda f: (-SEVERITY_ORDER[f.severity], f.path, f.line))
+            if len(group) > threshold:
+                parts.append(_contradiction_group(rule_id, group))
+            else:
+                for finding in group:
+                    parts.append(_contradiction_card(finding))
         parts.append("</div>")
     parts.append("</section>")
     return "".join(parts)
+
+
+def _contradiction_group(rule_id: str, group: list) -> str:
+    """One collapsed row standing in for N identical-rule contradictions."""
+    head = group[0]
+    n = len(group)
+    lines = "".join(
+        f'<div class="chip-vs chip-observed"><code>{html_text(f.path)}:{f.line}</code></div>'
+        for f in group
+    )
+    return (
+        '<div class="contradiction-card contra-group"><details>'
+        f'<summary><span class="rule">{html_text(rule_id)}</span> '
+        f'{_severity_badge(head.severity)} — {n} agents: {html_text(head.title)}</summary>'
+        f'<div class="contra-chips">{lines}</div></details></div>'
+    )
 
 
 def _contradiction_card(finding: Finding) -> str:
@@ -1240,7 +1485,7 @@ def _agent_card(agent: AgentCandidate, diff_available: bool) -> str:
     return (
         f'<div class="agent-card tier-{tier_slug}">'
         '<div class="top">'
-        f'<span class="name">{html_text(agent.name)}</span>'
+        f'<span class="name">{html_text(agent.label)}</span>'
         f'<span class="tier">{html_text(tier_label)}</span>'
         "</div>"
         f'<p class="meta"><code>{html_text(agent.path)}</code> · '

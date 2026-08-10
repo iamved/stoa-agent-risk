@@ -73,6 +73,39 @@ class ScanOptions:
     declarations_path: Path | None = None
 
 
+# Names too generic to disambiguate agents on their own (Task 1). A bare
+# framework token like these tells a reader nothing when three agents share it.
+_GENERIC_AGENT_NAMES = frozenset({
+    "agent", "bot", "assistant", "crew", "executor", "chain", "runnable",
+    "app", "graph", "workflow", "pipeline", "handler", "main",
+})
+
+
+def _disambiguate_agent_names(agents: list[AgentCandidate]) -> None:
+    """Assign each candidate a human-facing display_name (Task 1).
+
+    Qualify with the source-file stem when the raw name is generic or collides
+    with another candidate in the same scan: `payments·agent`, `devops·agent`.
+    Unique, specific names are left as-is. Deterministic: depends only on the
+    (name, path) set, not on scan order. `name`/`symbol` are untouched so
+    `stoa diff` (which keys on `id`) never churns on a label change.
+    """
+    from pathlib import PurePosixPath
+
+    counts: dict[str, int] = {}
+    for agent in agents:
+        counts[agent.name] = counts.get(agent.name, 0) + 1
+
+    for agent in agents:
+        generic = agent.name.lower() in _GENERIC_AGENT_NAMES
+        collides = counts.get(agent.name, 0) > 1
+        if generic or collides:
+            stem = PurePosixPath(agent.path).stem
+            agent.display_name = f"{stem}·{agent.name}" if stem else agent.name
+        else:
+            agent.display_name = agent.name
+
+
 def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResult:
     """Execute a full scan and return the in-memory result."""
     root = options.root.resolve()
@@ -224,6 +257,8 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
         if file_agents:
             agent_content[source.relative_path] = content
             agent_providers[source.relative_path] = providers
+
+    _disambiguate_agent_names(agents)
 
     repo_name = root.name
     git_ref: str | None = None

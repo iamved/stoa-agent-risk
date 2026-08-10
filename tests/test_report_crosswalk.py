@@ -38,18 +38,21 @@ def _section(html: str, heading: str) -> str:
 
 def test_report_has_all_four_new_sections():
     html = _render("examples/meridian-ops")
-    assert "<h2>Executive summary</h2>" in html
+    assert 'class="verdict"' in html                        # verdict-first hero
     assert "<h2>OWASP LLM Top 10 (2025) coverage</h2>" in html
     assert "<h2>Dimensions × frameworks</h2>" in html
-    assert "<h2>NIST AI RMF alignment</h2>" in html
+    assert "<h2>NIST AI RMF alignment</h2>" in html          # in the appendix
 
 
-def test_exec_summary_names_top_finding_with_ruleref():
-    section = _section(_render("examples/meridian-ops"), "Executive summary")
-    assert "agent candidate" in section
-    assert "Most important:" in section
+def test_verdict_names_top_finding_with_ruleref():
+    html = _render("examples/meridian-ops")
+    m = re.search(r'<div class="verdict">.*?</div></section>', html, re.DOTALL)
+    assert m, "verdict section not found"
+    verdict = m.group(0)
+    assert "agent candidate" in verdict
+    assert "Top risk:" in verdict
     # rule · file:line reference present
-    assert re.search(r'[A-Z]{2,5}\d{3} · [^<]+:\d+', section)
+    assert re.search(r'[A-Z]{2,5}\d{3} · [^<]+:\d+', verdict)
 
 
 def test_owasp_strip_shows_all_ten_and_keeps_gaps_visible():
@@ -96,21 +99,24 @@ def test_nist_rollup_is_report_level_map_measure_manage():
 
 
 def test_new_sections_obey_says_never_says():
-    """Vocabulary lint scoped to the crosswalk-generated sections (the rest of
-    the report contains vendored library text + pre-existing rule messages)."""
+    """Vocabulary lint scoped to Stoa's generated framing (the crosswalk
+    sections plus the verdict card). Echoed rule messages/remediations and
+    vendored library text are pre-existing content, out of scope here."""
     html = _render("examples/meridian-ops")
-    for heading in ("Executive summary", "OWASP LLM Top 10 (2025) coverage",
+    spans = [re.search(r'<div class="verdict">.*?</div></section>', html, re.DOTALL).group(0)]
+    for heading in ("OWASP LLM Top 10 (2025) coverage",
                     "Dimensions × frameworks", "NIST AI RMF alignment"):
-        section = _section(html, heading)
-        text = re.sub(r"<[^>]+>", " ", section).lower()
+        spans.append(_section(html, heading))
+    for span in spans:
+        text = re.sub(r"<[^>]+>", " ", span).lower()
         words = set(re.findall(r"[a-z]+", text))
         for banned in BANNED:
-            assert banned not in words, f"{heading!r} uses banned word {banned!r}"
+            assert banned not in words, f"span uses banned word {banned!r}"
 
 
 def test_report_renders_offline_no_external_refs_in_new_sections():
     html = _render("examples/meridian-ops")
-    for heading in ("Executive summary", "OWASP LLM Top 10 (2025) coverage",
+    for heading in ("OWASP LLM Top 10 (2025) coverage",
                     "Dimensions × frameworks", "NIST AI RMF alignment"):
         section = _section(html, heading)
         assert "http://" not in section and "https://" not in section
@@ -126,8 +132,12 @@ def test_report_degrades_when_crosswalk_missing(tmp_path, monkeypatch):
     config = StoaConfig(crosswalk_path=tmp_path / "nonexistent.toml")
     result = run_scan(ScanOptions(root=tmp_path, no_git=True), config)
     html = render_html(result, config)
-    assert "<h2>Executive summary</h2>" not in html   # gracefully skipped
-    assert "<h2>Agent risk map</h2>" in html          # rest of report intact
+    # crosswalk-gated sections gracefully skipped
+    assert "<h2>OWASP LLM Top 10 (2025) coverage</h2>" not in html
+    assert "<h2>Dimensions × frameworks</h2>" not in html
+    # verdict-first spine still renders
+    assert 'class="verdict"' in html
+    assert "<h2>Agents</h2>" in html
 
 
 def test_report_deterministic_with_crosswalk_sections():

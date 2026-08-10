@@ -114,6 +114,11 @@ class AgentCandidate:
     language: str
     confidence: str
     detection_score: int
+    # Human-facing label, disambiguated across the scan (Task 1). None until the
+    # scanner's disambiguation pass runs, then falls back to `name`. `name`/
+    # `symbol` stay the raw inferred values so `stoa diff` (keyed on `id`) never
+    # churns when only the display label changes.
+    display_name: Optional[str] = None
     evidence: list[Evidence] = field(default_factory=list)
     providers: list[str] = field(default_factory=list)
     frameworks: list[str] = field(default_factory=list)
@@ -133,6 +138,11 @@ class AgentCandidate:
     declared: Optional[dict] = None
     # Schema 1.2 (Assurance layer, reserved since 1.0). {level, signals, reason}.
     autonomy_level: Optional[dict] = None
+
+    @property
+    def label(self) -> str:
+        """Human-facing name: the disambiguated display_name if set, else raw."""
+        return self.display_name or self.name
 
     @property
     def highest_severity(self) -> Optional[str]:
