@@ -3,6 +3,45 @@
 All notable changes to Stoa are documented here. The registry JSON schema is
 versioned separately (see [SCHEMA.md](SCHEMA.md)).
 
+## 0.6.0 — "Regulatory crosswalk & the explainable report"
+
+Registry schema → 1.5 (additive); crosswalk `stoa-crosswalk-1`. Everything is
+additive and presentation-only: dimension scores, weights, and the proxy cap
+are byte-for-byte unchanged (guarded by a pre-change golden snapshot). Zero new
+required dependencies; zero telemetry; renders fully offline.
+
+### Added — regulatory crosswalk
+- `data/crosswalk.toml` maps every rule to one primary OWASP LLM Top 10 (2025)
+  class and one EU AI Act article, plus a plain-English gloss. Versioned and
+  overridable via `[crosswalk] path`; honest blanks where no genuine OWASP
+  class fits; unmapped rules render explicitly, never dropped.
+- Registry gains a per-finding `crosswalk` object, a per-dimension roll-up on
+  `dimension_summary`, and a top-level `crosswalk` version block. SARIF results
+  and rules gain `owasp:` / `euaiact:` tags alongside the existing `stoa-dim:`.
+
+### Changed — the report is now verdict-first and ≤5 printed pages
+- New information architecture: Verdict → Scoreboard → Fix first →
+  Contradictions → Agents → Risk dimensions → Standards → Appendix. The old
+  12×8 dimension matrix and its duplicated renders are gone; one dimension
+  section survives, each row leading with a single canonical gloss.
+- An inline explainability layer (a one-line "how to read this", per-section
+  captions, `<abbr>` term definitions, an inline severity legend) and an
+  executive summary that names the single highest-impact finding.
+- Agent names are disambiguated by source file when they collide
+  (`payments·agent`), consistently across report, registry, and SARIF.
+
+### Added — underwriting-evidence export (`stoa export --underwriting`)
+- Renders a pre-filled AI Model Risk Assessment (modeled on the aiSure™
+  template) as an offline HTML view with print-to-PDF. Technical fields are
+  sourced from scan evidence; identity and real model-performance figures come
+  from an applicant TOML (`--underwriting-config`), falling back to a clearly
+  labeled sample. Also reachable from a "Generate underwriting evidence" button
+  in the report. See `examples/underwriting-config.example.toml`.
+
+### Added — report presentation config
+- `data/report.toml` (overridable at `.stoa/report.toml`): fix-first cap,
+  agent-collapse tier, contradiction grouping threshold, proxy-merge.
+
 ## 0.5.0 — "Runtime trace overlay"
 
 Registry schema → 1.4 (additive); assurance packet → `assurance-packet/1.2`.
