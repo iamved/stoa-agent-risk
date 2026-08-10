@@ -39,8 +39,8 @@ def _section(html: str, heading: str) -> str:
 def test_report_has_all_four_new_sections():
     html = _render("examples/meridian-ops")
     assert 'class="verdict"' in html                        # verdict-first hero
-    assert "<h2>OWASP LLM Top 10 (2025) coverage</h2>" in html
-    assert "<h2>Dimensions × frameworks</h2>" in html
+    assert "<h2>Standards</h2>" in html                      # OWASP chip line
+    assert "<h2>Risk dimensions</h2>" in html                # merged dim section
     assert "<h2>NIST AI RMF alignment</h2>" in html          # in the appendix
 
 
@@ -56,8 +56,7 @@ def test_verdict_names_top_finding_with_ruleref():
 
 
 def test_owasp_strip_shows_all_ten_and_keeps_gaps_visible():
-    section = _section(_render("examples/sparkwing"),
-                       "OWASP LLM Top 10 (2025) coverage")
+    section = _section(_render("examples/sparkwing"), "Standards")
     for n in range(1, 11):
         assert f"LLM{n:02d}" in section
     # classes with no Stoa detector must remain visible as not-assessed
@@ -67,27 +66,30 @@ def test_owasp_strip_shows_all_ten_and_keeps_gaps_visible():
 
 def test_owasp_strip_states_are_honest_for_a_known_scan():
     # Sparkwing fires AI001 (LLM01) -> assessed; LLM04/07/08 have no detector.
-    section = _section(_render("examples/sparkwing"),
-                       "OWASP LLM Top 10 (2025) coverage")
-    # LLM01 cell should be assessed
-    llm01 = re.search(r'LLM01.*?</div>\s*</div>', section, re.DOTALL)
-    assert llm01 and "assessed" in llm01.group(0)
+    section = _section(_render("examples/sparkwing"), "Standards")
+    # LLM01 chip should be assessed
+    llm01 = re.search(r'LLM01 <span class="st">([a-z-]+)', section)
+    assert llm01 and llm01.group(1) == "assessed"
     # LLM04 (Data and Model Poisoning) has no rule -> not-assessed
-    llm04 = re.search(r'LLM04.*?class="state">([a-z-]+)', section, re.DOTALL)
+    llm04 = re.search(r'LLM04 <span class="st">([a-z-]+)', section)
     assert llm04 and llm04.group(1) == "not-assessed"
 
 
-def test_dimension_table_carries_tags_gloss_and_evidence_chips():
-    section = _section(_render("examples/meridian-ops"), "Dimensions × frameworks")
-    assert "xwalk-owasp" in section     # OWASP tags
+def test_dimension_section_carries_gloss_first_then_tags_and_evidence():
+    section = _section(_render("examples/meridian-ops"), "Risk dimensions")
+    assert "dim-gloss" in section       # canonical plain-English gloss
+    assert "xwalk-owasp" in section     # OWASP tags (after the gloss)
     assert "xwalk-eu" in section        # EU AI Act tags
     assert "evchip" in section          # RULE · file:line evidence chips
     assert re.search(r'evchip">[A-Z]{2,5}\d{3} · [^<]+:\d+', section)
+    # gloss appears before the framework tags in each card (meaning, then provenance)
+    card = re.search(r'<div class="dim-card [^>]*>.*?</div>\s*</div>', section, re.DOTALL)
+    assert card and card.group(0).index("dim-gloss") < card.group(0).index("xwalk-owasp")
 
 
 def test_control_credit_chips_render_for_well_controlled_agent():
     # Meridian's compliance agent has observed controls -> credit chips exist.
-    section = _section(_render("examples/meridian-ops"), "Dimensions × frameworks")
+    section = _section(_render("examples/meridian-ops"), "Risk dimensions")
     assert "evchip credit" in section
     assert "observed</span>" in section
 
@@ -104,8 +106,7 @@ def test_new_sections_obey_says_never_says():
     vendored library text are pre-existing content, out of scope here."""
     html = _render("examples/meridian-ops")
     spans = [re.search(r'<div class="verdict">.*?</div></section>', html, re.DOTALL).group(0)]
-    for heading in ("OWASP LLM Top 10 (2025) coverage",
-                    "Dimensions × frameworks", "NIST AI RMF alignment"):
+    for heading in ("Standards", "Risk dimensions", "NIST AI RMF alignment"):
         spans.append(_section(html, heading))
     for span in spans:
         text = re.sub(r"<[^>]+>", " ", span).lower()
@@ -116,8 +117,7 @@ def test_new_sections_obey_says_never_says():
 
 def test_report_renders_offline_no_external_refs_in_new_sections():
     html = _render("examples/meridian-ops")
-    for heading in ("OWASP LLM Top 10 (2025) coverage",
-                    "Dimensions × frameworks", "NIST AI RMF alignment"):
+    for heading in ("Standards", "Risk dimensions", "NIST AI RMF alignment"):
         section = _section(html, heading)
         assert "http://" not in section and "https://" not in section
         assert "<script" not in section.lower()

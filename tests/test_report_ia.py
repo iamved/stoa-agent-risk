@@ -85,7 +85,8 @@ def test_section_order_is_verdict_first():
         html.index('id="fix-first"'),
         html.index("<h2>Contradictions</h2>"),
         html.index("<h2>Agents</h2>"),
-        html.index("<h2>OWASP LLM Top 10 (2025) coverage</h2>"),
+        html.index("<h2>Risk dimensions</h2>"),
+        html.index("<h2>Standards</h2>"),
         html.index('class="appendix"'),
     ]
     assert order == sorted(order), "sections are out of verdict-first order"
@@ -142,13 +143,15 @@ def test_fix_first_present_and_capped():
 def test_fix_first_contradiction_points_to_contradictions_no_double_detail():
     html = _render()
     section = re.search(r'<section id="fix-first">.*?</section>', html, re.DOTALL).group(0)
-    # a DECL/RT item renders only a pointer — no Fix prose, no snippet
-    items = re.findall(r'<div class="fix-item.*?</div>\s*</div>', section, re.DOTALL)
+    # split into individual items (each starts at a fix-item div)
+    chunks = section.split('<div class="fix-item')[1:]
+    items = ["<div class=\"fix-item" + c.split('<div class="fix-item')[0] for c in chunks]
     for item in items:
-        if "DECL" in item or "RT0" in item:
+        # a contradiction item is the one whose rule is DECL/RT
+        if re.search(r'refline">.*?(DECL|RT0)\d', item, re.DOTALL):
             assert "full detail in" in item
             assert "<b>Fix:</b>" not in item
-            assert "<pre>" not in item
+            assert "<pre>" not in item and "fix-snip" not in item
 
 
 def test_contradictions_grouped_not_repeated():

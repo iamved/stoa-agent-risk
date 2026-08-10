@@ -445,6 +445,61 @@ footer { margin-top: 44px; padding-top: 14px; border-top: 1px solid #e3e6ec;
 .appendix { margin-top: 20px; border-top: 1px solid #e3e6ec; padding-top: 8px; }
 .appendix > summary { cursor: pointer; font-size: 15px; font-weight: 650; padding: 8px 0; }
 
+/* --- ≤5-page compression + explainability --------------------------- */
+.how-to-read { font-size: 12.5px; color: #5a6272; margin: 0 0 14px; line-height: 1.5; }
+.how-to-read b { color: #1a1d23; }
+section > .cap, p.cap { font-size: 12px; color: #7c8aa0; margin: -2px 0 10px;
+  letter-spacing: 0.01em; }
+p.cap a { color: #2f6fb0; text-decoration: none; }
+abbr[title] { text-decoration: underline dotted; text-underline-offset: 2px;
+  cursor: help; }
+/* agents compact strip */
+.agent-strip { display: flex; flex-direction: column; gap: 2px; }
+.agent-line { display: grid; grid-template-columns: 1fr 1.4fr auto auto; gap: 12px;
+  align-items: center; padding: 7px 12px; background: #fff; border: 1px solid #e3e6ec;
+  border-radius: 8px; border-left: 4px solid #7a1d16; font-size: 13px; }
+.al-name { font-weight: 650; }
+.al-file { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11.5px; color: #5a6272; }
+.al-tier { font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.03em; color: #7a1d16; }
+.al-score { font-variant-numeric: tabular-nums; font-weight: 700; color: #1a1d23; }
+/* dimension cards (single surviving dimension section) */
+.dim-cards { display: flex; flex-direction: column; gap: 7px; }
+.dim-card { background: #fff; border: 1px solid #e3e6ec; border-left: 4px solid #d9dde3;
+  border-radius: 8px; padding: 10px 14px; }
+.dim-card.lv-elevated { border-left-color: #b42318; }
+.dim-card.lv-moderate { border-left-color: #d29a1f; }
+.dim-card-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dim-card-head strong { font-size: 14px; }
+.dim-counts { font-size: 12px; color: #7c8aa0; margin-left: auto;
+  font-variant-numeric: tabular-nums; }
+.dim-gloss { font-size: 13px; color: #2b2f36; margin: 6px 0 4px; line-height: 1.5; }
+.dim-tags { display: flex; flex-wrap: wrap; gap: 4px; margin: 2px 0; }
+.dim-ev { margin-top: 4px; }
+.dim-ev summary { font-size: 12px; color: #5a6272; cursor: pointer; }
+.ev-wrap { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.proxy-strip { font-size: 12.5px; color: #5a6272; background: #f4f6f8;
+  border: 1px solid #e9ebef; border-radius: 8px; padding: 8px 12px; margin-top: 7px; }
+.proxy-key { font-weight: 700; color: #465063; margin-right: 4px; }
+/* standards: one line of chips */
+.owasp-line { display: flex; flex-wrap: wrap; gap: 6px; }
+.owasp-chip { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11.5px; font-weight: 700; border-radius: 6px; padding: 2px 8px;
+  text-decoration: none; border: 1px solid transparent; }
+.owasp-chip .st { font-weight: 600; text-transform: uppercase; font-size: 9.5px;
+  letter-spacing: 0.03em; opacity: 0.85; }
+.owasp-chip.owasp-assessed { background: #fef7dc; color: #93700b; border-color: #ead98c; }
+.owasp-chip.owasp-partial { background: #e8f0fe; color: #1d4ed8; }
+.owasp-chip.owasp-proxy { background: #eef2f6; color: #465063; }
+.owasp-chip.owasp-notassessed { background: #f1f3f6; color: #7c8aa0; }
+/* fix-first compaction */
+.fix-snip { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11.5px; background: #f1f3f6; border-radius: 4px; padding: 1px 5px; }
+.fix-item .why { margin-top: 6px; }
+.fix-item .why summary { font-size: 12px; color: #5a6272; cursor: pointer; }
+.fix-item .why p { font-size: 12.5px; color: #3a4150; margin: 6px 0 0; }
+
 /* --- crosswalk / explainability (Feature 2) --------------------------- */
 .exec-summary { background: #fff; border: 1px solid #e3e6ec; border-left: 4px solid #2f6fb0;
   border-radius: 8px; padding: 14px 18px; margin: 6px 0 4px; }
@@ -606,16 +661,20 @@ def render_html(
     # 6 Risk dimensions · 7 Standards · 8 Appendix (NIST + all findings + graph).
     fix_items = _fix_first_items(result, rcfg) if crosswalk is not None or True else []
 
-    # 1 · Verdict
+    # 1 · Verdict + one-line "how to read this"
     parts.append(_verdict_section(result, crosswalk, fix_items))
-
+    parts.append(
+        '<p class="how-to-read"><abbr title="what the code makes possible, not '
+        'what has been proven to happen">Exposure</abbr> = what the code makes '
+        "possible, not what has happened. <b>Fix first</b> clears the criticals; "
+        "<b>Contradictions</b> shows where your declarations don't match the code.</p>"
+    )
     if result.diff_available:
         parts.append(
-            '<p class="note">Findings below cover the full repository; only newly '
-            "introduced findings affect the gate.</p>"
+            '<p class="cap">only newly introduced findings affect the gate</p>'
         )
 
-    # 2 · Scoreboard (single hero: agents-by-tier + one findings ribbon)
+    # 2 · Scoreboard
     parts.append(_scoreboard_section(result))
     if result.diff_available:
         parts.append(_new_critical_section(result))
@@ -626,48 +685,42 @@ def render_html(
     # 4 · Contradictions — Stoa's differentiator, lifted to the front
     parts.append(_contradictions_section(result, rcfg))
 
-    # 5 · Agents (ranked; each row carries its own inline dimension strip)
-    parts.append("<section><h2>Agents</h2>")
-    parts.append(
-        '<p class="note">Every candidate, ranked by static exposure. Names are '
-        "disambiguated by source file when they collide. Static evidence does not "
-        "prove runtime reachability.</p>"
-    )
-    if result.agents:
-        ranked = sorted(
-            result.agents, key=lambda a: (-exposure_score(a), a.path, a.symbol)
-        )
-        parts.append(_exposure_chart(ranked))
-        collapse = rcfg.collapse_rank
-        shown = [a for a in ranked if rcfg.tier_rank(exposure_tier(a)[0]) >= collapse]
-        hidden = [a for a in ranked if rcfg.tier_rank(exposure_tier(a)[0]) < collapse]
-        parts.append('<div class="risk-map">')
-        for agent in shown:
-            parts.append(_agent_card(agent, result.diff_available))
-        parts.append("</div>")
-        if hidden:
+    # 5 · Agents — compact strip in the body (severe tier only, ≤4 lines); the
+    #     full 12-agent detail moves to the appendix, collapsed.
+    ranked = sorted(result.agents, key=lambda a: (-exposure_score(a), a.path, a.symbol))
+    severe = [a for a in ranked if exposure_tier(a)[0] == "severe"][:4]
+    parts.append("<section><h2>Agents</h2>"
+                 '<p class="cap">which agents carry the risk</p>')
+    if ranked:
+        parts.append('<div class="agent-strip">')
+        for a in severe:
+            slug, label = exposure_tier(a)
             parts.append(
-                f'<details class="dim-drill"><summary>{len(hidden)} more agent'
-                f'{"s" if len(hidden) != 1 else ""} — moderate and low exposure'
-                '</summary><div class="risk-map">'
-                + "".join(_agent_card(a, result.diff_available) for a in hidden)
-                + "</div></details>"
+                f'<div class="agent-line"><span class="al-name">{html_text(a.label)}</span>'
+                f'<span class="al-file">{html_text(a.path)}</span>'
+                f'<span class="al-tier tier-{slug}">{html_text(label)}</span>'
+                f'<span class="al-score">{exposure_score(a)}</span></div>'
+            )
+        parts.append("</div>")
+        rest = len(ranked) - len(severe)
+        if rest > 0:
+            parts.append(
+                f'<p class="cap"><a href="#appendix-agents">{rest} more agents — '
+                "elevated and below ▸</a></p>"
             )
     else:
         parts.append('<p class="empty">No agent candidates were detected.</p>')
     parts.append("</section>")
 
-    # 6 · Risk dimensions (org rollup: By-dimension + framework-stamped table)
+    # 6 · Risk dimensions (the single surviving dimension section)
     if result.dimension_summary is not None and result.agents:
-        parts.append(_dimension_matrix(result))
-        if crosswalk is not None:
-            parts.append(_dimension_framework_table(result, crosswalk))
+        parts.append(_dimension_matrix(result, crosswalk, config))
 
-    # 7 · Standards (OWASP LLM Top 10 coverage — gaps stay visible)
+    # 7 · Standards (OWASP LLM Top 10 coverage — one line of chips, gaps visible)
     if crosswalk is not None:
         parts.append(_owasp_strip(result, config, crosswalk))
 
-    # 8 · Appendix (collapsed): NIST roll-up, all findings, architecture graph.
+    # 8 · Appendix (collapsed): NIST roll-up, full agents, all findings, graph.
     active = result.unsuppressed_findings()
     security = [
         f for f in active
@@ -681,17 +734,21 @@ def render_html(
     ]
     suppressed = [f for f in result.findings if f.suppressed]
 
-    parts.append('<details class="appendix"><summary>Appendix — standards '
-                 "alignment, all findings, and architecture</summary>")
+    parts.append('<details class="appendix"><summary>Appendix — full agent detail, '
+                 "all findings, standards alignment, and architecture</summary>")
+
+    # Full 12-agent list with all detail (moved out of the body).
+    parts.append('<section id="appendix-agents"><h2>All agents</h2>')
+    parts.append('<div class="risk-map">')
+    for agent in ranked:
+        parts.append(_agent_card(agent, result.diff_available))
+    parts.append("</div></section>")
 
     if crosswalk is not None and result.agents:
         parts.append(_nist_rollup())
 
-    parts.append("<section><h2>All findings</h2>")
-    parts.append(
-        '<p class="note">Everything the scan found, grouped. Nothing is omitted — '
-        "the report leads with the verdict and the fixes; the full list lives here.</p>"
-    )
+    parts.append("<section><h2>All findings</h2>"
+                 '<p class="cap">every finding, grouped — nothing omitted</p>')
     has_critical = any(f.severity == "critical" for f in security)
     parts.append(_collapsed_findings("Security findings", security, result.diff_available, open_=has_critical))
     parts.append(_collapsed_findings("Reliability findings", reliability, result.diff_available))
@@ -738,9 +795,11 @@ def render_html(
     parts.append("</details>")
 
     parts.append(
-        "<footer>Stoa performs static, pattern-based analysis. Findings and agent "
-        "classifications should be reviewed by an engineer. Runtime behavior and "
-        "organization-wide controls may not be visible in the scanned repository."
+        "<footer>Stoa performs static, pattern-based analysis: findings are "
+        "intra-file (data flows through other files are not traced), runtime "
+        "behavior is not observed, and organization-wide controls may not be "
+        "visible in the scanned repository. Findings and agent classifications "
+        "should be reviewed by an engineer."
         + (
             "" if cytoscape_version is None else
             " The architecture graph is rendered with "
@@ -765,179 +824,133 @@ def render_html(
     return "".join(parts)
 
 
-def _exposure_chart(ranked: list[AgentCandidate]) -> str:
-    """A ranked horizontal bar chart of static exposure, colored by tier.
-
-    Bars are labeled by name and score and ordered high→low, so tier color is
-    reinforced by position and number (never color alone).
-    """
-    max_score = max((exposure_score(a) for a in ranked), default=1) or 1
-    rows = []
-    for agent in ranked:
-        score = exposure_score(agent)
-        tier_slug, tier_label = exposure_tier(agent)
-        pct = max(round(score * 100 / max_score), 3)
-        rows.append(
-            '<div class="chart-row">'
-            f'<div class="chart-label" title="{html_text(agent.path)}">'
-            f"{html_text(agent.label)}</div>"
-            f'<div class="chart-track" role="img" '
-            f'aria-label="{html_text(agent.label)}: {html_text(tier_label)}, score {score}">'
-            f'<span class="{BAR_CLASS[tier_slug]}" style="width: {pct}%"></span></div>'
-            f'<div class="chart-val">{html_text(score)}</div>'
-            "</div>"
-        )
-    legend = (
-        '<div class="legend">'
-        '<span><i class="bar-severe"></i>Severe</span>'
-        '<span><i class="bar-elevated"></i>Elevated</span>'
-        '<span><i class="bar-moderate"></i>Moderate</span>'
-        '<span><i class="bar-low"></i>Low</span>'
-        "</div>"
-    )
-    return (
-        f'<div class="chart">{"".join(rows)}{legend}'
-        '<p class="chart-caption">Static exposure combines high-impact '
-        "capabilities, sensitive integrations, and finding severity per "
-        "candidate. Higher means more to review first, not a proven exploit.</p>"
-        "</div>"
-    )
-
 
 _EXP_RANK = {"elevated": 3, "moderate": 2, "low": 1, "none-observed": 0,
              "not-assessable": 0}
 
 
-def _dimension_matrix(result: ScanResult) -> str:
-    """Concise, horizontal-reading exposure view (redesigned for scannability):
-    a per-dimension rollup worst-first, then a per-agent list showing only each
-    agent's elevated/moderate dimensions as labeled chips. The full per-agent
-    breakdown stays one click away in the drill-downs below. Scores are
-    untouched — this is presentation only."""
+def _dimension_matrix(result: ScanResult, crosswalk=None, config=None) -> str:
+    """The single surviving dimension section (the by-agent chips, the 12 agent
+    drill-downs, and the standalone framework table were all deleted — the same
+    data lived four times). One card per dimension, worst-first: plain-English
+    gloss FIRST (the canonical taxonomy definition, ≤140 chars — never a
+    concatenation of finding sentences), then max exposure + framework tags,
+    then evidence behind an expander. Proxy-tier dimensions merge into one
+    compact strip. Presentation only; scores untouched."""
     summary = result.dimension_summary
     dim_meta = {d["id"]: d for d in summary["dimensions"]}
-    tax = summary["taxonomy"]
 
-    parts = ["<section><h2>Dimension exposure</h2>"]
-    parts.append(
-        f'<p class="note">Each agent is scored across '
-        f'{len(dim_meta)} risk dimensions (<code>{html_text(tax["id"])}</code> '
-        f'v{html_text(tax["version"])}). Only elevated and moderate exposures are '
-        "shown below — the levels worth a look. Proxy-tier dimensions (ᴾ) rest on "
-        "indirect signals only and are capped at moderate; runtime evaluation is "
-        "required for direct assessment. Open an agent for its full breakdown and "
-        "evidence.</p>"
-    )
+    # Canonical per-dimension glosses from the taxonomy definition field.
+    definitions: dict[str, str] = {}
+    try:
+        from .dimensions import load_taxonomy
+        tax = load_taxonomy(config.dimensions_taxonomy if config else None)
+        definitions = {d.id: d.definition for d in tax.dimensions}
+    except Exception:  # noqa: BLE001 - fall back to the summary rows without glosses
+        definitions = {}
 
-    # --- By dimension: worst-first rollup, readable left-to-right ----------
-    n_agents = sum(1 for a in result.agents if a.dimension_assessment is not None)
-    dim_rows = sorted(
+    # Per-dimension framework tags + evidence, from firing findings (deduped).
+    owasp_by_dim: dict[str, set[str]] = {}
+    eu_by_dim: dict[str, set[str]] = {}
+    evidence_by_dim: dict[str, list] = {}
+    for f in result.findings:
+        if f.suppressed:
+            continue
+        entry = crosswalk.entry(f.rule_id) if crosswalk else None
+        for did in f.dimensions:
+            if entry and entry.owasp_llm_2025:
+                owasp_by_dim.setdefault(did, set()).add(entry.owasp_llm_2025)
+            if entry and entry.eu_ai_act:
+                eu_by_dim.setdefault(did, set()).add(entry.eu_ai_act)
+            evidence_by_dim.setdefault(did, []).append(f)
+    controls_by_dim: dict[str, set[str]] = {}
+    for agent in result.agents:
+        if not agent.dimension_assessment:
+            continue
+        for e in agent.dimension_assessment["dimensions"]:
+            if e["controls_observed"]:
+                controls_by_dim.setdefault(e["id"], set()).update(e["controls_observed"])
+
+    def _owasp_key(c):
+        return (0, int(c[3:])) if c.startswith("LLM") and c[3:].isdigit() else (1, c)
+
+    def _gloss(did):
+        g = definitions.get(did) or dim_meta.get(did, {}).get("statement", "")
+        return (g[:137] + "…") if len(g) > 140 else g
+
+    def _tags(did):
+        owasp = "".join(
+            f'<span class="xwalk-tag xwalk-owasp">{html_text(c)}</span>'
+            for c in sorted(owasp_by_dim.get(did, set()), key=_owasp_key))
+        eu = "".join(
+            f'<span class="xwalk-tag xwalk-eu">{html_text(a)}</span>'
+            for a in sorted(eu_by_dim.get(did, set())))
+        return owasp + eu
+
+    def _evidence(did):
+        seen, chips = set(), []
+        for f in sorted(evidence_by_dim.get(did, []), key=lambda f: (f.path, f.line, f.rule_id)):
+            key = (f.rule_id, f.path, f.line)
+            if key in seen:
+                continue
+            seen.add(key)
+            chips.append(f'<span class="evchip">{html_text(f.rule_id)} · '
+                         f'{html_text(f.path)}:{html_text(f.line)}</span>')
+        for c in sorted(controls_by_dim.get(did, set())):
+            chips.append(f'<span class="evchip credit">{html_text(c)} observed</span>')
+        return chips
+
+    proxy_merge = True  # rcfg.dimension_proxy_merge, threaded via caller default
+    dims = sorted(
         summary["dimensions"],
         key=lambda d: (-_EXP_RANK.get(d["max_exposure"], 0),
-                       -d.get("agents_elevated", 0), -d.get("agents_moderate", 0)),
+                       -d.get("agents_elevated", 0), d["id"]),
     )
-    parts.append('<div class="dim-sub">By dimension</div><div class="dim-by">')
-    for d in dim_rows:
+    primary = [d for d in dims if d["assessability"] != "proxy"]
+    proxy = [d for d in dims if d["assessability"] == "proxy"]
+
+    parts = ['<section><h2>Risk dimensions</h2>'
+             '<p class="cap">what kinds of risk, and which rules they map to</p>'
+             '<div class="dim-cards">']
+    for d in primary:
+        did = d["id"]
+        lv = d["max_exposure"]
         elev = d.get("agents_elevated", 0)
         mod = d.get("agents_moderate", 0)
-        lower = max(0, n_agents - elev - mod)
-        proxy = "ᴾ" if d["assessability"] == "proxy" else ""
-        group_label = DIMENSION_GROUP_NAMES.get(d.get("group", ""), "")
-        lv = d["max_exposure"]
-        badge = _exposure_badge(lv)
-        # a slim stacked bar: elevated / moderate / lower
-        def _seg(count, cls):
-            if not count:
-                return ""
-            pct = round(count * 100 / n_agents) if n_agents else 0
-            return f'<span class="{cls}" style="width:{pct}%"></span>'
-        bar = (f'<span class="dim-by-bar">{_seg(elev, "b-elev")}'
-               f'{_seg(mod, "b-mod")}{_seg(lower, "b-low")}</span>')
-        counts = (f'{elev} elevated · {mod} moderate'
-                  if (elev or mod) else "none at moderate or above")
+        chips = _evidence(did)
+        ev = ""
+        if chips:
+            ev = (f'<details class="dim-ev"><summary>{len(chips)} evidence item'
+                  f'{"s" if len(chips) != 1 else ""}</summary>'
+                  f'<div class="ev-wrap">{"".join(chips)}</div></details>')
+        gloss = _gloss(did)
         parts.append(
-            f'<div class="dim-by-row lv-{lv}">'
-            f'<div class="dim-by-name">{html_text(d["name"])}{proxy}'
-            + (f'<span class="eyebrow">{html_text(group_label)}</span>' if group_label else "")
-            + f"</div><div>{badge}</div>"
-            f'<div style="display:flex;align-items:center">{bar}'
-            f'<span class="dim-by-counts">{counts}</span></div></div>'
+            f'<div class="dim-card lv-{lv}"><div class="dim-card-head">'
+            f'<strong>{html_text(d["name"])}</strong> {_exposure_badge(lv)}'
+            f'<span class="dim-counts">{elev} elevated · {mod} moderate</span></div>'
+            + (f'<p class="dim-gloss">{html_text(gloss)}</p>' if gloss else "")
+            + (f'<div class="dim-tags">{_tags(did)}</div>' if _tags(did) else "")
+            + ev + "</div>"
         )
     parts.append("</div>")
 
-    # --- By agent: only the moderate+ exposures, as labeled chips ----------
-    ranked = sorted(result.agents, key=lambda a: (-exposure_score(a), a.path, a.symbol))
-    parts.append('<div class="dim-sub">By agent</div><div class="dim-agents">')
-    for agent in ranked:
-        if agent.dimension_assessment is None:
-            continue
-        entries = agent.dimension_assessment["dimensions"]
-        notable = sorted(
-            (e for e in entries if _EXP_RANK.get(e["exposure"], 0) >= 2),
-            key=lambda e: (-_EXP_RANK.get(e["exposure"], 0), e["id"]),
-        )
-        lower_n = sum(1 for e in entries if _EXP_RANK.get(e["exposure"], 0) == 1)
-        worst = " worst" if notable and notable[0]["exposure"] == "elevated" else ""
-        anchor = f"dim-{html_text(agent.id)}"
-        head = (
-            f'<div class="dim-agent-row{worst}"><div class="dim-agent-head">'
-            f'<span class="dim-agent-name"><a href="#{anchor}">{html_text(agent.label)}</a></span>'
-            f'<a class="dim-agent-detail" href="#{anchor}">full breakdown →</a></div>'
-        )
-        if notable:
-            chips = []
-            for e in notable:
-                glyph = _EXP_GLYPH.get(e["exposure"], "·")
-                cls = "chip-elev" if e["exposure"] == "elevated" else "chip-mod"
-                proxy = "ᴾ" if e["assessability"] == "proxy" else ""
-                nm = dim_meta.get(e["id"], {}).get("name", e["id"])
-                chips.append(
-                    f'<span class="dim-chip {cls}" title="{html_text(e["statement"])}">'
-                    f'{glyph} {html_text(nm)}{proxy}</span>'
-                )
-            if lower_n:
-                chips.append(f'<span class="dim-more">+{lower_n} lower</span>')
-            head += f'<div class="dim-chips">{"".join(chips)}</div>'
-        else:
-            head += ('<div class="dim-clean">○ Low exposure across all dimensions '
-                     "in scanned files.</div>")
-        parts.append(head + "</div>")
-    parts.append("</div>")
+    # Proxy-tier dimensions: one compact strip, not full cards.
+    if proxy:
+        names = " · ".join(
+            f'<abbr title="indirect signal only; capped at moderate — runtime '
+            f'evaluation required">{html_text(d["name"])}</abbr> '
+            f'({html_text(d["max_exposure"])})' for d in proxy)
+        parts.append(
+            f'<div class="proxy-strip"><span class="proxy-key">Proxy-tier</span> '
+            f'{names} — indirect signals only, capped at moderate.</div>')
 
     parts.append(
         '<div class="dim-legend">'
         '<span><span class="exp-elevated">●</span> elevated</span>'
         '<span><span class="exp-moderate">◐</span> moderate</span>'
         '<span><span class="exp-low">○</span> low</span>'
-        '<span>ᴾ proxy signals only — runtime evaluation required</span></div>'
+        '<span>proxy signals only — runtime evaluation required</span></div>'
     )
-
-    # per-agent drill-downs (unchanged: the full breakdown + evidence) -------
-    for agent in ranked:
-        if agent.dimension_assessment is None:
-            continue
-        rows = []
-        for e in agent.dimension_assessment["dimensions"]:
-            finds = ", ".join(html_text(f) for f in e["contributing_findings"]) or "—"
-            caps = ", ".join(html_text(c) for c in e["contributing_capabilities"]) or "—"
-            controls = ", ".join(html_text(c) for c in e["controls_observed"]) or "—"
-            rows.append(
-                "<tr>"
-                f"<td>{html_text(e['id'])}</td>"
-                f"<td>{_exposure_badge(e['exposure'])}</td>"
-                f"<td>{html_text(e['score'])}</td>"
-                f"<td>{finds}</td><td>{caps}</td><td>{controls}</td>"
-                "</tr>"
-            )
-        parts.append(
-            f'<details class="dim-drill" id="dim-{html_text(agent.id)}">'
-            f"<summary>{html_text(agent.label)} — dimension detail</summary>"
-            '<div class="table-wrap"><table><thead><tr><th>Dimension</th>'
-            "<th>Exposure</th><th>Score</th><th>Findings</th><th>Capabilities</th>"
-            f"<th>Controls observed</th></tr></thead><tbody>{''.join(rows)}</tbody></table></div>"
-            "</details>"
-        )
-
     parts.append("</section>")
     return "".join(parts)
 
@@ -1076,11 +1089,20 @@ def _scoreboard_section(result: ScanResult) -> str:
         f'{"s" if integrations != 1 else ""}'
         f'<span class="dot">·</span><b>{result.files_scanned}</b> files scanned</div>'
     )
+    # Severity legend as one hoverable line (defined once, in Stoa's terms).
+    sev_defs = {
+        "critical": "exploitable now, or a gate-eligible contradiction",
+        "high": "a serious exposure that should be repaired",
+        "medium": "worth review; not an immediate exposure",
+        "low": "minor or informational",
+    }
+    sev_legend = " ".join(
+        f'<abbr title="{sev_defs[s]}">{s}</abbr>' for s in ("critical", "high", "medium", "low")
+    )
     return (
         '<section><h2>Scoreboard</h2>'
-        '<p class="note">Agent candidates by static exposure tier. Active findings '
-        "(unsuppressed) are counted once each in the ribbon below; suppressed "
-        "findings are listed separately and do not affect the tiers.</p>"
+        '<p class="cap">how much risk, and where it sits · severity: '
+        f'{sev_legend}</p>'
         f'<div class="scoreboard"><div class="tier-bar">{"".join(segs)}</div>'
         f'<div class="tier-legend">{legend}</div>{ribbon}</div></section>'
     )
@@ -1134,7 +1156,6 @@ def _fix_first_section(result: ScanResult, crosswalk, rcfg, items: list) -> str:
         owasp = entry.owasp_llm_2025 if entry else ""
         article = entry.eu_ai_act if entry else ""
         sev_cls = "sev-high" if it["severity"] == "high" else ""
-        sites = it["sites"]
         loc = f'{html_text(it["path"])}:{html_text(it["line"])}'
         if it["count"] > 1:
             loc += f' <span class="r">+{it["count"] - 1} more</span>'
@@ -1144,28 +1165,47 @@ def _fix_first_section(result: ScanResult, crosswalk, rcfg, items: list) -> str:
             ref.append(f'<span class="r">{html_text(owasp)}</span>')
         if article:
             ref.append(f'<span class="r">{html_text(article)}</span>')
-        impact = it["message"] or it["title"]
-        snippet = (f'<pre>{html_text(it["snippet"])}</pre>'
-                   if it["snippet"] and it["snippet"] != "[REDACTED]" else "")
-        pointer = ""
-        body = (f'{snippet}<p class="impact">{html_text(impact)}</p>'
-                f'<p class="remedy"><b>Fix:</b> {html_text(it["remediation"])}</p>')
+        refline = f'<div class="refline">{"".join(ref)}</div>'
+
         if it["is_contradiction"]:
-            # Task 3 dedup: Contradictions owns the full detail; Fix-first is a
-            # one-line pointer only — no snippet, impact, or fix prose here.
+            # Task 3 dedup: Contradictions owns the full detail; here, a pointer.
             body = ('<p class="pointer">A declared-vs-observed contradiction — '
                     'full detail in <a href="#contradictions">Contradictions</a>.</p>')
+            rows.append(
+                f'<div class="fix-item {sev_cls}"><div class="fh">'
+                f'<span class="ft">{html_text(it["title"])}</span>'
+                f'{_severity_badge(it["severity"])}</div>{body}{refline}</div>'
+            )
+            continue
+
+        # 4 lines: title+chip · one-line impact (≤140, never the title) · Fix ·
+        # meta. The impact is the crosswalk gloss (the plain-English "so what").
+        gloss = (entry.so_what if entry and entry.so_what else "")
+        impact = gloss or it["title"]
+        if impact.strip().lower() == it["title"].strip().lower():
+            impact = it["message"] or impact
+        if len(impact) > 140:
+            impact = impact[:137] + "…"
+        snippet = ""
+        if it["snippet"] and it["snippet"] != "[REDACTED]" and len(it["snippet"]) <= 60:
+            snippet = f'<code class="fix-snip">{html_text(it["snippet"])}</code>'
+        # methodology + flow detail live behind an expander, not inline
+        why = it["message"]
+        why_block = ""
+        if why and why.strip().lower() != impact.strip().lower():
+            why_block = (f'<details class="why"><summary>Why this fired</summary>'
+                         f'<p>{html_text(why)}</p></details>')
         rows.append(
             f'<div class="fix-item {sev_cls}"><div class="fh">'
             f'<span class="ft">{html_text(it["title"])}</span>'
             f'{_severity_badge(it["severity"])}</div>'
-            f'{body}<div class="refline">{"".join(ref)}</div></div>'
+            f'<p class="impact">{html_text(impact)}{(" " + snippet) if snippet else ""}</p>'
+            f'<p class="remedy"><b>Fix:</b> {html_text(it["remediation"])}</p>'
+            f'{refline}{why_block}</div>'
         )
     return (
         '<section id="fix-first"><h2>Fix first</h2>'
-        '<p class="note">The shortest path to clearing every critical finding, '
-        "ranked by severity and blast radius (agents that move money or run code "
-        "outrank messaging). Findings sharing a rule and a fix are merged.</p>"
+        '<p class="cap">what to repair, in order</p>'
         f'<div class="fix-list">{"".join(rows)}</div></section>'
     )
 
@@ -1211,115 +1251,26 @@ def _owasp_strip(result: ScanResult, config, crosswalk) -> str:
             return "proxy", "owasp-proxy"
         return "assessed", "owasp-assessed"
 
+    # One compact line of chips (not ten cards). Gaps stay visible as chips.
+    titles = {
+        "assessed": "a mapping rule fired in this scan",
+        "partial": "Stoa can assess it, but nothing fired here",
+        "proxy": "only a proxy-tier signal — runtime evaluation required",
+        "not-assessed": "no Stoa detector — an honest coverage gap",
+    }
     cells = []
     for code, name in OWASP_LLM_2025:
         label, cls = state(code)
         cells.append(
-            f'<div class="owasp-cell {cls}"><span class="code">{code}</span>'
-            f'<span class="name">{html_text(name)}</span>'
-            f'<span class="state">{label}</span></div>'
+            f'<abbr class="owasp-chip {cls}" title="{code} {html_text(name)} — '
+            f'{titles[label]}">{code} <span class="st">{label}</span></abbr>'
         )
     return (
-        '<section><h2>OWASP LLM Top 10 (2025) coverage</h2>'
-        '<p class="note">Which risk classes this scan assessed. '
-        '<strong>not-assessed</strong> classes have no Stoa detector and stay '
-        'visible as honest gaps — never hidden. "assessed" means a mapping rule '
-        'fired; "partial" means Stoa can assess it but found nothing here; '
-        '"proxy" means the only signal is a proxy-tier one (runtime evaluation '
-        f'required).</p><div class="owasp-strip">{"".join(cells)}</div></section>'
+        '<section><h2>Standards</h2>'
+        '<p class="cap">which risk classes were assessed — gaps kept visible</p>'
+        f'<div class="owasp-line">{"".join(cells)}</div></section>'
     )
 
-
-def _dimension_framework_table(result: ScanResult, crosswalk) -> str:
-    """Stamps the 8-dimension spine with OWASP + EU AI Act tags, a plain-English
-    'so what', and evidence chips (RULE · file:line) per dimension. Observed
-    controls render as credit chips."""
-    if not result.dimension_summary:
-        return ""
-    summary = result.dimension_summary
-
-    # per-dimension: firing findings, controls, and the union of their
-    # crosswalk tags — computed here from findings + crosswalk directly, so the
-    # report does not depend on the document-level rollup.
-    findings_by_dim: dict[str, list] = {}
-    controls_by_dim: dict[str, set[str]] = {}
-    owasp_by_dim: dict[str, set[str]] = {}
-    eu_by_dim: dict[str, set[str]] = {}
-    for f in result.findings:
-        if f.suppressed:
-            continue
-        entry = crosswalk.entry(f.rule_id)
-        for dim_id in f.dimensions:
-            findings_by_dim.setdefault(dim_id, []).append(f)
-            if entry.owasp_llm_2025:
-                owasp_by_dim.setdefault(dim_id, set()).add(entry.owasp_llm_2025)
-            if entry.eu_ai_act:
-                eu_by_dim.setdefault(dim_id, set()).add(entry.eu_ai_act)
-    for agent in result.agents:
-        if not agent.dimension_assessment:
-            continue
-        for e in agent.dimension_assessment["dimensions"]:
-            if e["controls_observed"]:
-                controls_by_dim.setdefault(e["id"], set()).update(e["controls_observed"])
-
-    def _owasp_key(code: str) -> tuple:
-        return (0, int(code[3:])) if code.startswith("LLM") and code[3:].isdigit() else (1, code)
-
-    rows = []
-    for dim in summary["dimensions"]:
-        did = dim["id"]
-        owasp_tags = "".join(
-            f'<span class="xwalk-tag xwalk-owasp">{html_text(c)}</span>'
-            for c in sorted(owasp_by_dim.get(did, set()), key=_owasp_key)
-        ) or '<span class="note">—</span>'
-        eu_tags = "".join(
-            f'<span class="xwalk-tag xwalk-eu">{html_text(a)}</span>'
-            for a in sorted(eu_by_dim.get(did, set()))
-        ) or '<span class="note">—</span>'
-
-        # plain-English "so what": glosses of the firing rules on this dimension
-        gloss_rules = sorted({f.rule_id for f in findings_by_dim.get(did, [])})
-        glosses = [crosswalk.entry(r).so_what for r in gloss_rules
-                   if crosswalk.entry(r).relation == "exposure"]
-        sowhat = " ".join(dict.fromkeys(glosses)) or "No exposure observed for this dimension."
-
-        # evidence chips: RULE · file:line, plus control-credit chips
-        seen = set()
-        chips = []
-        for f in sorted(findings_by_dim.get(did, []),
-                        key=lambda f: (f.path, f.line, f.rule_id)):
-            key = (f.rule_id, f.path, f.line)
-            if key in seen:
-                continue
-            seen.add(key)
-            chips.append(
-                f'<span class="evchip">{html_text(f.rule_id)} · '
-                f'{html_text(f.path)}:{html_text(f.line)}</span>'
-            )
-        for control in sorted(controls_by_dim.get(did, set())):
-            chips.append(f'<span class="evchip credit">{html_text(control)} observed</span>')
-        evidence = "".join(chips) or '<span class="note">—</span>'
-
-        rows.append(
-            "<tr>"
-            f'<td><strong>{html_text(dim["name"])}</strong><br>'
-            f'<span class="note">{_exposure_badge(dim["max_exposure"])}</span></td>'
-            f"<td>{owasp_tags}</td><td>{eu_tags}</td>"
-            f'<td class="sowhat">{html_text(sowhat)}</td>'
-            f"<td>{evidence}</td>"
-            "</tr>"
-        )
-
-    return (
-        '<section><h2>Dimensions × frameworks</h2>'
-        '<p class="note">The eight-dimension spine, each row stamped with its '
-        'OWASP LLM class and EU AI Act article, a plain-English reading, and the '
-        'exact evidence (rule · file:line). Controls observed render as credit.</p>'
-        '<div class="table-wrap"><table class="xwalk-table"><thead><tr>'
-        "<th>Dimension</th><th>OWASP LLM</th><th>EU AI Act</th>"
-        "<th>What it means</th><th>Evidence</th>"
-        f"</tr></thead><tbody>{''.join(rows)}</tbody></table></div></section>"
-    )
 
 
 def _nist_rollup() -> str:
@@ -1385,9 +1336,8 @@ def _contradictions_section(result: ScanResult, rcfg=None) -> str:
 
     parts = [
         '<section id="contradictions"><h2>Contradictions</h2>',
-        '<p class="note">Declared facts (<code>stoa-declared.toml</code>) cross-checked '
-        "against what this scan actually observed. A contradiction here is the one "
-        "thing a self-attested questionnaire can't catch.</p>",
+        '<p class="cap">where declarations don\'t match the code — what a '
+        "self-attested questionnaire can't catch</p>",
     ]
     if not decl_findings:
         parts.append('<p class="empty">No contradictions found.</p>')

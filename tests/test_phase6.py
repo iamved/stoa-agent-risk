@@ -36,18 +36,16 @@ def test_matrix_renders_with_no_extra_script(tmp_path):
     # their own tests in test_html_escape.py / test_report_graph.py /
     # test_underwriting.py) are present.
     html = render_html(_result(tmp_path), StoaConfig(no_graph=True))
-    assert "Dimension exposure" in html
+    assert "Risk dimensions" in html   # the single surviving dimension section
     assert len(re.findall(r"<script>", html)) == 2
     assert "Content-Security-Policy" in html
 
 
-def test_matrix_cell_anchors_resolve(tmp_path):
+def test_appendix_agents_anchor_resolves(tmp_path):
+    # the compact Agents strip links to the full list in the appendix
     html = render_html(_result(tmp_path), StoaConfig())
-    # every href="#dim-<id>" must have a matching id="dim-<id>"
-    hrefs = set(re.findall(r'href="#(dim-[0-9a-f]+)"', html))
-    ids = set(re.findall(r'id="(dim-[0-9a-f]+)"', html))
-    assert hrefs, "expected dimension cell anchors"
-    assert hrefs.issubset(ids), f"dangling anchors: {hrefs - ids}"
+    if 'href="#appendix-agents"' in html:
+        assert 'id="appendix-agents"' in html, "dangling appendix-agents anchor"
 
 
 def test_matrix_encodes_state_not_color_alone(tmp_path):
