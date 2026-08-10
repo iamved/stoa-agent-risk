@@ -1,0 +1,221 @@
+# Posture-style questionnaire template — declarative mapping only, no logic.
+# Each entry: field_id, section, label, source (JSONPath into the submission),
+# required, render (checkbox|text|currency|list|tristate).
+#
+# Sources under $.systems[*] are expanded once per system by the loader.
+# Tristate rendering: confirmed -> "Confirmed"; not_confirmed/contradicted ->
+# "Not confirmed"; unknown -> "Unknown"; attested -> "Confirmed (attested)".
+# A contradicted confidence additionally raises a WARNING banner in the PDF.
+
+template: posture
+title: "Posture Questionnaire — AI System Evidence"
+fields:
+  # ---- Section 1 · Applicant details -------------------------------------
+  - field_id: applicant.name
+    section: "1 · Applicant details"
+    label: "Company name"
+    source: "$.business_context.company.name"
+    required: true
+    render: text
+  - field_id: applicant.website
+    section: "1 · Applicant details"
+    label: "Website"
+    source: "$.business_context.company.website"
+    required: false
+    render: text
+  - field_id: applicant.employees
+    section: "1 · Applicant details"
+    label: "Number of employees"
+    source: "$.business_context.company.employees"
+    required: true
+    render: text
+  - field_id: applicant.industry
+    section: "1 · Applicant details"
+    label: "Industry"
+    source: "$.business_context.company.industry"
+    required: true
+    render: text
+  - field_id: applicant.naics
+    section: "1 · Applicant details"
+    label: "NAICS code"
+    source: "$.business_context.company.naics"
+    required: false
+    render: text
+  - field_id: applicant.revenue
+    section: "1 · Applicant details"
+    label: "Annual revenue (USD)"
+    source: "$.business_context.company.annual_revenue_usd"
+    required: true
+    render: currency
+  - field_id: applicant.gross_profit
+    section: "1 · Applicant details"
+    label: "Gross profit (USD)"
+    source: "$.business_context.company.gross_profit_usd"
+    required: false
+    render: currency
+  - field_id: applicant.description
+    section: "1 · Applicant details"
+    label: "Business description"
+    source: "$.business_context.company.description"
+    required: true
+    render: text
+  - field_id: applicant.governance_owners
+    section: "1 · Applicant details"
+    label: "AI governance owners"
+    source: "$.business_context.governance_owners[*].name"
+    required: false
+    render: list
+
+  # ---- Section 2 · Coverage requested ------------------------------------
+  - field_id: coverage.heads
+    section: "2 · Coverage requested"
+    label: "Heads of cover requested"
+    source: "$.coverage_request.heads"
+    required: true
+    render: list
+  - field_id: coverage.limit
+    section: "2 · Coverage requested"
+    label: "Limit requested (USD)"
+    source: "$.coverage_request.limit_usd"
+    required: true
+    render: currency
+  - field_id: coverage.rationale
+    section: "2 · Coverage requested"
+    label: "Rationale"
+    source: "$.coverage_request.rationale"
+    required: false
+    render: text
+
+  # ---- Section 3 · Loss information --------------------------------------
+  - field_id: loss.history
+    section: "3 · Loss information"
+    label: "AI-related loss events (last 5 years)"
+    source: "$.business_context.loss_history[*].description"
+    required: true
+    render: list
+
+  # ---- Section 4 · Per-system posture (A–L) ------------------------------
+  - field_id: system.model
+    section: "4 · AI system posture"
+    label: "A. Foundation / underlying model"
+    source: "$.systems[*].posture.model"
+    required: true
+    render: text
+  - field_id: system.business_activities
+    section: "4 · AI system posture"
+    label: "B. Business activities performed by the system"
+    source: "$.systems[*].posture.business_activities"
+    required: true
+    render: text
+  - field_id: system.fine_tuned
+    section: "4 · AI system posture"
+    label: "C. Fine-tuned or customized beyond base model"
+    source: "$.systems[*].posture.fine_tuned"
+    required: true
+    render: tristate
+  - field_id: system.data_types
+    section: "4 · AI system posture"
+    label: "D. Training / grounding data types"
+    source: "$.systems[*].posture.data_types"
+    required: true
+    render: list
+  - field_id: system.sensitive_data
+    section: "4 · AI system posture"
+    label: "E. Sensitive data categories accessed"
+    source: "$.systems[*].posture.sensitive_data"
+    required: true
+    render: list
+  - field_id: system.output_types
+    section: "4 · AI system posture"
+    label: "F. Output modalities"
+    source: "$.systems[*].posture.output_types"
+    required: true
+    render: list
+  - field_id: system.audience
+    section: "4 · AI system posture"
+    label: "G. Output audience"
+    source: "$.systems[*].posture.audience"
+    required: true
+    render: text
+  - field_id: system.io_logging
+    section: "4 · AI system posture"
+    label: "H. Inputs and outputs are logged and retained"
+    source: "$.systems[*].posture.io_logging"
+    required: true
+    render: tristate
+  - field_id: system.hitl
+    section: "4 · AI system posture"
+    label: "I. Human-in-the-loop review before actions/outputs take effect"
+    source: "$.systems[*].posture.hitl"
+    required: true
+    render: tristate
+  - field_id: system.agentic_actions
+    section: "4 · AI system posture"
+    label: "J. System can take autonomous (agentic) actions"
+    source: "$.systems[*].posture.agentic_actions"
+    required: true
+    render: tristate
+  - field_id: system.frameworks
+    section: "4 · AI system posture"
+    label: "K. Governance framework alignment"
+    source: "$.systems[*].posture.frameworks"
+    required: true
+    render: list
+  - field_id: system.guardrails_intact
+    section: "4 · AI system posture"
+    label: "L. Vendor guardrails intact (not disabled or bypassed)"
+    source: "$.systems[*].posture.guardrails_intact"
+    required: true
+    render: tristate
+
+  # ---- Section 5 · Contractual controls ----------------------------------
+  - field_id: contracts.avg_value
+    section: "5 · Contractual controls"
+    label: "Average contract value (USD)"
+    source: "$.business_context.contracts.avg_value_usd"
+    required: false
+    render: currency
+  - field_id: contracts.largest_value
+    section: "5 · Contractual controls"
+    label: "Largest contract value (USD)"
+    source: "$.business_context.contracts.largest_value_usd"
+    required: true
+    render: currency
+  - field_id: contracts.pct_standard
+    section: "5 · Contractual controls"
+    label: "% of contracts on standard terms"
+    source: "$.business_context.contracts.pct_standard_terms"
+    required: false
+    render: text
+  - field_id: contracts.liability_cap
+    section: "5 · Contractual controls"
+    label: "Liability cap structure"
+    source: "$.business_context.contracts.liability_cap.type"
+    required: true
+    render: text
+  - field_id: contracts.provisions
+    section: "5 · Contractual controls"
+    label: "Standard contract provisions"
+    source: "$.business_context.contracts.provisions"
+    required: true
+    render: list
+  - field_id: contracts.legal_review
+    section: "5 · Contractual controls"
+    label: "Contracts reviewed by legal counsel"
+    source: "$.business_context.contracts.legal_counsel_reviews"
+    required: false
+    render: checkbox
+
+  # ---- Section 7 · Checklist ---------------------------------------------
+  - field_id: checklist.other_policies
+    section: "7 · Checklist"
+    label: "Other insurance policies in force"
+    source: "$.business_context.other_policies"
+    required: true
+    render: list
+  - field_id: checklist.projections
+    section: "7 · Checklist"
+    label: "Two-year projections (users / outputs / revenue)"
+    source: "$.business_context.projections.next_2y"
+    required: true
+    render: text

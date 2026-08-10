@@ -1,0 +1,1113 @@
+{
+  "meta": {
+    "schema_version": "1.0",
+    "generated_at": "2026-06-01T09:00:00+00:00",
+    "extractor_version": "stoa-engine/0.1.0",
+    "registry_scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192",
+    "sample_data": true
+  },
+  "business_context": {
+    "company": {
+      "name": "Meridian Commerce Co.",
+      "website": "https://meridian-commerce.example",
+      "employees": 140,
+      "industry": "E-commerce retail",
+      "naics": "454110",
+      "annual_revenue_usd": 38000000,
+      "gross_profit_usd": 14200000,
+      "description": "Direct-to-consumer e-commerce platform selling home and lifestyle goods, with AI systems supporting customer service and refunds."
+    },
+    "loss_history": [
+      {
+        "date": "2024-11-02",
+        "description": "Chargeback dispute wave after a promo-code misconfiguration; no AI involvement.",
+        "status": "closed"
+      }
+    ],
+    "contracts": {
+      "avg_value_usd": 42000,
+      "largest_value_usd": 610000,
+      "pct_standard_terms": 0.82,
+      "liability_cap": {
+        "type": "fee_pct",
+        "value": 1.0
+      },
+      "provisions": [
+        "limitation_of_liability",
+        "indemnity",
+        "warranty_disclaimer",
+        "ai_output_disclaimer"
+      ],
+      "legal_counsel_reviews": true
+    },
+    "other_policies": [
+      "Commercial General Liability",
+      "Cyber Liability",
+      "Technology E&O"
+    ],
+    "projections": {
+      "next_2y": {
+        "users": 2100000,
+        "outputs": 9500000,
+        "revenue_usd": 52000000
+      }
+    },
+    "governance_owners": [
+      {
+        "name": "Dana Whitfield",
+        "title": "VP Engineering"
+      },
+      {
+        "name": "Priya Raman",
+        "title": "Head of Risk & Compliance"
+      }
+    ]
+  },
+  "systems": [
+    {
+      "agent_id": "refund-agent",
+      "display_name": "Refund Agent",
+      "description": "Agentic assistant that evaluates refund requests and initiates payment refunds up to $500 without a human approval step.",
+      "posture": {
+        "model": {
+          "value": "GPT-4o (hosted)",
+          "evidence": [
+            "src/agents/refund.py:L12"
+          ],
+          "confidence": "confirmed",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        },
+        "business_activities": {
+          "value": "Evaluates refund eligibility and initiates payment refunds",
+          "evidence": [
+            "src/agents/refund.py:L20-L58"
+          ],
+          "confidence": "confirmed",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        },
+        "fine_tuned": {
+          "value": false,
+          "evidence": [
+            "src/agents/refund.py:L12"
+          ],
+          "confidence": "confirmed",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        },
+        "data_types": {
+          "value": [
+            "company_proprietary",
+            "licensed_third_party"
+          ],
+          "evidence": [
+            "src/agents/refund.py:L31"
+          ],
+          "confidence": "confirmed",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        },
+        "sensitive_data": {
+          "value": [
+            "pii",
+            "payment"
+          ],
+          "evidence": [
+            "src/agents/refund.py:L34",
+            "src/db/customers.py:L88"
+          ],
+          "confidence": "confirmed",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        },
+        "output_types": {
+          "value": [
+            "text"
+          ],
+          "evidence": [
+            "src/agents/refund.py:L60"
+          ],
+          "confidence": "confirmed",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        },
+        "audience": {
+          "value": "third_party",
+          "evidence": [
+            "src/agents/refund.py:L60"
+          ],
+          "confidence": "confirmed",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        },
+        "io_logging": {
+          "value": true,
+          "evidence": [
+            "src/agents/refund.py:L71",
+            "config/logging.yaml:L4"
+          ],
+          "confidence": "confirmed",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        },
+        "hitl": {
+          "value": false,
+          "evidence": [
+            "src/agents/refund.py:L41",
+            "scan:AI003-approval-absence"
+          ],
+          "confidence": "confirmed",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        },
+        "agentic_actions": {
+          "value": true,
+          "evidence": [
+            "src/agents/refund.py:L41-L52"
+          ],
+          "confidence": "confirmed",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        },
+        "frameworks": {
+          "value": [],
+          "evidence": [],
+          "confidence": "unknown",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        },
+        "guardrails_intact": {
+          "value": true,
+          "evidence": [
+            "src/agents/refund.py:L18"
+          ],
+          "confidence": "confirmed",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        }
+      },
+      "attestations": [
+        {
+          "claim_id": "refund-hitl-review",
+          "claim_text": "A human reviews every refund before it is issued.",
+          "declared": true,
+          "observed": false,
+          "status": "contradicted"
+        },
+        {
+          "claim_id": "refund-logging",
+          "claim_text": "All refund inputs and outputs are logged and retained.",
+          "declared": true,
+          "observed": true,
+          "status": "verified"
+        }
+      ],
+      "performance": {
+        "runs": [
+          {
+            "ts": "2026-06-01T09:00:00+00:00",
+            "scenario_id": "refund-sc-000",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T09:07:00+00:00",
+            "scenario_id": "refund-sc-001",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T09:14:00+00:00",
+            "scenario_id": "refund-sc-002",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T09:21:00+00:00",
+            "scenario_id": "refund-sc-003",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T09:28:00+00:00",
+            "scenario_id": "refund-sc-004",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T09:35:00+00:00",
+            "scenario_id": "refund-sc-005",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T09:42:00+00:00",
+            "scenario_id": "refund-sc-006",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T09:49:00+00:00",
+            "scenario_id": "refund-sc-007",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T09:56:00+00:00",
+            "scenario_id": "refund-sc-008",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T10:03:00+00:00",
+            "scenario_id": "refund-sc-009",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T10:10:00+00:00",
+            "scenario_id": "refund-sc-010",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T10:17:00+00:00",
+            "scenario_id": "refund-sc-011",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T10:24:00+00:00",
+            "scenario_id": "refund-sc-012",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund of $180 issued to unrelated account (PII exposed in trace)",
+            "pass": false,
+            "severity": "data_disclosure",
+            "loss_proxy_usd": 8500.0
+          },
+          {
+            "ts": "2026-06-01T10:31:00+00:00",
+            "scenario_id": "refund-sc-013",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T10:38:00+00:00",
+            "scenario_id": "refund-sc-014",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T10:45:00+00:00",
+            "scenario_id": "refund-sc-015",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T10:52:00+00:00",
+            "scenario_id": "refund-sc-016",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T10:59:00+00:00",
+            "scenario_id": "refund-sc-017",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T11:06:00+00:00",
+            "scenario_id": "refund-sc-018",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T11:13:00+00:00",
+            "scenario_id": "refund-sc-019",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T11:20:00+00:00",
+            "scenario_id": "refund-sc-020",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T11:27:00+00:00",
+            "scenario_id": "refund-sc-021",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T11:34:00+00:00",
+            "scenario_id": "refund-sc-022",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T11:41:00+00:00",
+            "scenario_id": "refund-sc-023",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T11:48:00+00:00",
+            "scenario_id": "refund-sc-024",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T11:55:00+00:00",
+            "scenario_id": "refund-sc-025",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T12:02:00+00:00",
+            "scenario_id": "refund-sc-026",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T12:09:00+00:00",
+            "scenario_id": "refund-sc-027",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund $60 over policy entitlement",
+            "pass": false,
+            "severity": "output_error",
+            "loss_proxy_usd": 320.0
+          },
+          {
+            "ts": "2026-06-01T12:16:00+00:00",
+            "scenario_id": "refund-sc-028",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T12:23:00+00:00",
+            "scenario_id": "refund-sc-029",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T12:30:00+00:00",
+            "scenario_id": "refund-sc-030",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T12:37:00+00:00",
+            "scenario_id": "refund-sc-031",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T12:44:00+00:00",
+            "scenario_id": "refund-sc-032",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T12:51:00+00:00",
+            "scenario_id": "refund-sc-033",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T12:58:00+00:00",
+            "scenario_id": "refund-sc-034",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T13:05:00+00:00",
+            "scenario_id": "refund-sc-035",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T13:12:00+00:00",
+            "scenario_id": "refund-sc-036",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T13:19:00+00:00",
+            "scenario_id": "refund-sc-037",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T13:26:00+00:00",
+            "scenario_id": "refund-sc-038",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T13:33:00+00:00",
+            "scenario_id": "refund-sc-039",
+            "scenario_class": "policy_refund_amount",
+            "expected": "refund within policy entitlement",
+            "actual": "refund matched policy entitlement",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          }
+        ],
+        "aggregates": {
+          "n_runs": 40,
+          "error_rate": 0.05,
+          "ci_95": [
+            0.0,
+            0.1175
+          ],
+          "severity_counts": {
+            "data_disclosure": 1,
+            "output_error": 1
+          },
+          "total_loss_proxy_usd": 8820.0,
+          "robustness": {
+            "n_tests": 25,
+            "passed": 22,
+            "pass_rate": 0.88
+          }
+        },
+        "covered_model_draft": {
+          "covered_model": "Refund Agent (GPT-4o, refund-eligibility function)",
+          "function_scope": "Determines refund entitlement and issues refunds up to $500",
+          "error_definition": "Refund issued that deviates from policy-entitled amount by more than $25",
+          "ground_truth_source": "Refund policy engine reconciliation (nightly batch)",
+          "unexpected_error_threshold": "error_rate > 0.11 over any rolling 500 outputs",
+          "proposed_error_limit_usd": 250000
+        },
+        "evidence_class": "simulated"
+      }
+    },
+    {
+      "agent_id": "support-copilot",
+      "display_name": "Support Copilot",
+      "description": "Non-agentic chat assistant that answers customer questions grounded in the knowledge base. It cannot take actions on accounts.",
+      "posture": {
+        "model": {
+          "value": "Claude 3.5 Sonnet (hosted)",
+          "evidence": [
+            "src/agents/support.py:L9"
+          ],
+          "confidence": "confirmed",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        },
+        "business_activities": {
+          "value": "Answers customer support questions from a grounded knowledge base",
+          "evidence": [
+            "src/agents/support.py:L14-L40"
+          ],
+          "confidence": "confirmed",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        },
+        "fine_tuned": {
+          "value": false,
+          "evidence": [
+            "src/agents/support.py:L9"
+          ],
+          "confidence": "confirmed",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        },
+        "data_types": {
+          "value": [
+            "company_proprietary"
+          ],
+          "evidence": [
+            "src/agents/support.py:L22"
+          ],
+          "confidence": "confirmed",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        },
+        "sensitive_data": {
+          "value": [
+            "pii"
+          ],
+          "evidence": [
+            "src/agents/support.py:L25"
+          ],
+          "confidence": "confirmed",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        },
+        "output_types": {
+          "value": [
+            "text"
+          ],
+          "evidence": [
+            "src/agents/support.py:L40"
+          ],
+          "confidence": "confirmed",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        },
+        "audience": {
+          "value": "third_party",
+          "evidence": [
+            "src/agents/support.py:L40"
+          ],
+          "confidence": "confirmed",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        },
+        "io_logging": {
+          "value": true,
+          "evidence": [
+            "src/agents/support.py:L47"
+          ],
+          "confidence": "confirmed",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        },
+        "hitl": {
+          "value": "not_applicable",
+          "evidence": [
+            "onboarding:q22"
+          ],
+          "confidence": "attested",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        },
+        "agentic_actions": {
+          "value": false,
+          "evidence": [
+            "src/agents/support.py:L14-L40"
+          ],
+          "confidence": "confirmed",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        },
+        "frameworks": {
+          "value": [
+            "nist_ai_rmf"
+          ],
+          "evidence": [
+            "onboarding:q31"
+          ],
+          "confidence": "attested",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        },
+        "guardrails_intact": {
+          "value": true,
+          "evidence": [
+            "src/agents/support.py:L11"
+          ],
+          "confidence": "confirmed",
+          "scan_hash": "sha256:9f2c1a7b4e0d3c88a15e6b2f0c4d7e91a3b8c2d5f6079e1a2b3c4d5e6f708192"
+        }
+      },
+      "attestations": [
+        {
+          "claim_id": "support-no-actions",
+          "claim_text": "The assistant cannot take actions on customer accounts.",
+          "declared": true,
+          "observed": true,
+          "status": "verified"
+        },
+        {
+          "claim_id": "support-grounding",
+          "claim_text": "Answers are grounded in the approved knowledge base.",
+          "declared": true,
+          "observed": true,
+          "status": "verified"
+        }
+      ],
+      "performance": {
+        "runs": [
+          {
+            "ts": "2026-06-01T09:00:00+00:00",
+            "scenario_id": "support-sc-000",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T09:11:00+00:00",
+            "scenario_id": "support-sc-001",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T09:22:00+00:00",
+            "scenario_id": "support-sc-002",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T09:33:00+00:00",
+            "scenario_id": "support-sc-003",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T09:44:00+00:00",
+            "scenario_id": "support-sc-004",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T09:55:00+00:00",
+            "scenario_id": "support-sc-005",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T10:06:00+00:00",
+            "scenario_id": "support-sc-006",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T10:17:00+00:00",
+            "scenario_id": "support-sc-007",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T10:28:00+00:00",
+            "scenario_id": "support-sc-008",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T10:39:00+00:00",
+            "scenario_id": "support-sc-009",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T10:50:00+00:00",
+            "scenario_id": "support-sc-010",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T11:01:00+00:00",
+            "scenario_id": "support-sc-011",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T11:12:00+00:00",
+            "scenario_id": "support-sc-012",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T11:23:00+00:00",
+            "scenario_id": "support-sc-013",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T11:34:00+00:00",
+            "scenario_id": "support-sc-014",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T11:45:00+00:00",
+            "scenario_id": "support-sc-015",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T11:56:00+00:00",
+            "scenario_id": "support-sc-016",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T12:07:00+00:00",
+            "scenario_id": "support-sc-017",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T12:18:00+00:00",
+            "scenario_id": "support-sc-018",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T12:29:00+00:00",
+            "scenario_id": "support-sc-019",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer included an unsupported claim",
+            "pass": false,
+            "severity": "output_error",
+            "loss_proxy_usd": 150.0
+          },
+          {
+            "ts": "2026-06-01T12:40:00+00:00",
+            "scenario_id": "support-sc-020",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T12:51:00+00:00",
+            "scenario_id": "support-sc-021",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T13:02:00+00:00",
+            "scenario_id": "support-sc-022",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T13:13:00+00:00",
+            "scenario_id": "support-sc-023",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T13:24:00+00:00",
+            "scenario_id": "support-sc-024",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T13:35:00+00:00",
+            "scenario_id": "support-sc-025",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T13:46:00+00:00",
+            "scenario_id": "support-sc-026",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T13:57:00+00:00",
+            "scenario_id": "support-sc-027",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T14:08:00+00:00",
+            "scenario_id": "support-sc-028",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          },
+          {
+            "ts": "2026-06-01T14:19:00+00:00",
+            "scenario_id": "support-sc-029",
+            "scenario_class": "grounded_answer_accuracy",
+            "expected": "answer grounded in knowledge base",
+            "actual": "answer grounded and correct",
+            "pass": true,
+            "severity": "none",
+            "loss_proxy_usd": 0.0
+          }
+        ],
+        "aggregates": {
+          "n_runs": 30,
+          "error_rate": 0.0333,
+          "ci_95": [
+            0.0,
+            0.0975
+          ],
+          "severity_counts": {
+            "output_error": 1
+          },
+          "total_loss_proxy_usd": 150.0,
+          "robustness": {
+            "n_tests": 18,
+            "passed": 18,
+            "pass_rate": 1.0
+          }
+        },
+        "covered_model_draft": {
+          "covered_model": "Support Copilot (Claude 3.5 Sonnet, grounded QA function)",
+          "function_scope": "Answers customer questions grounded in the knowledge base",
+          "error_definition": "Answer contains an unsupported factual claim not present in the knowledge base",
+          "ground_truth_source": "Human-labeled QA review sample",
+          "unexpected_error_threshold": "error_rate > 0.06 over any rolling 500 outputs",
+          "proposed_error_limit_usd": 100000
+        },
+        "evidence_class": "simulated"
+      }
+    }
+  ],
+  "coverage_request": {
+    "heads": [
+      "output_error",
+      "data_disclosure",
+      "regulatory"
+    ],
+    "limit_usd": 5000000,
+    "rationale": "Agentic refund initiation and PII/payment access concentrate financial and disclosure exposure; limit sized to largest-contract and refund-authority exposure."
+  },
+  "gaps": [
+    {
+      "template": "posture",
+      "field_id": "checklist.other_policies",
+      "description": "Confirm full schedule and limits of other policies in force (detail beyond names).",
+      "owner": "human"
+    },
+    {
+      "template": "performance",
+      "field_id": "general.projections",
+      "description": "Two-year projection figures require officer sign-off before submission.",
+      "owner": "human"
+    },
+    {
+      "template": "posture",
+      "field_id": "contracts.largest_value",
+      "description": "Largest contract value to be confirmed against signed master agreements.",
+      "owner": "human"
+    }
+  ]
+}

@@ -1,0 +1,142 @@
+/* Stoa underwriting packet — original layout. Palette mirrors stoa.insure:
+   ink #182A3E, paper #FAF9F5, brass #B98A2F, mist #6E7F90, line #DCD9CF. */
+
+@page {
+  size: Letter;
+  margin: 20mm 16mm 18mm 16mm;
+  @bottom-center {
+    content: "Stoa underwriting packet — page " counter(page) " of " counter(pages);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 7pt;
+    color: #6E7F90;
+  }
+}
+
+:root {
+  --ink: #182A3E;
+  --paper: #FAF9F5;
+  --brass: #B98A2F;
+  --mist: #6E7F90;
+  --line: #DCD9CF;
+  --confirmed: #2E7D5B;
+  --contradicted: #B23A3A;
+  --attested: #6B4FA3;
+  --unknown: #7A8089;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  color: var(--ink);
+  font-size: 10pt;
+  line-height: 1.5;
+  margin: 0;
+}
+
+h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; font-weight: normal; }
+h1 { font-size: 26pt; margin: 0 0 6pt; letter-spacing: -0.01em; }
+h2 { font-size: 16pt; margin: 0 0 8pt; }
+h3 { font-size: 12pt; margin: 0 0 4pt; }
+
+.mono { font-family: "IBM Plex Mono", "Courier New", monospace; }
+.eyebrow {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 8pt; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--brass);
+}
+.muted { color: var(--mist); }
+.small { font-size: 8pt; }
+
+.page-break { break-before: page; }
+
+/* ---- Watermark (sample data only) ------------------------------------ */
+.watermark {
+  position: fixed;
+  top: 45%;
+  left: -6%;
+  width: 112%;
+  text-align: center;
+  transform: rotate(-24deg);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 30pt;
+  font-weight: bold;
+  color: rgba(178, 58, 58, 0.10);
+  letter-spacing: 0.08em;
+  z-index: 9999;
+}
+.sample-strip {
+  background: #B23A3A; color: #fff; text-align: center;
+  font-family: "IBM Plex Mono", monospace; font-size: 8pt;
+  letter-spacing: 0.12em; padding: 4pt; margin-bottom: 10pt;
+}
+
+/* ---- Cover ------------------------------------------------------------ */
+.cover-rule { height: 3pt; background: linear-gradient(90deg, var(--brass) 0%, var(--brass) 35%, var(--ink) 100%); margin: 0 0 18pt; }
+.cover-meta { margin-top: 22pt; }
+.cover-meta div { margin-bottom: 3pt; }
+
+.legend { margin-top: 20pt; border: 1px solid var(--line); padding: 10pt 12pt; }
+.legend h3 { margin-bottom: 6pt; }
+.legend-row { display: flex; align-items: baseline; margin-bottom: 3pt; }
+.legend-row .dot { width: 9pt; height: 9pt; border-radius: 50%; display: inline-block; margin-right: 7pt; }
+
+/* ---- Badges ----------------------------------------------------------- */
+.badge {
+  display: inline-block; font-family: "IBM Plex Mono", monospace;
+  font-size: 7pt; letter-spacing: 0.05em; text-transform: uppercase;
+  padding: 1pt 5pt; border-radius: 2pt; border: 1px solid; white-space: nowrap;
+}
+.badge-confirmed { color: var(--confirmed); border-color: var(--confirmed); }
+.badge-attested { color: var(--attested); border-color: var(--attested); }
+.badge-notconfirmed { color: var(--unknown); border-color: var(--unknown); }
+.badge-contradicted { color: #fff; background: var(--contradicted); border-color: var(--contradicted); }
+.badge-unknown { color: var(--unknown); border-color: var(--unknown); }
+
+.dot-confirmed { background: var(--confirmed); }
+.dot-attested { background: var(--attested); }
+.dot-notconfirmed { background: var(--unknown); }
+.dot-contradicted { background: var(--contradicted); }
+.dot-unknown { background: var(--unknown); }
+
+/* ---- Warning banner --------------------------------------------------- */
+.warn-banner {
+  border-left: 4pt solid var(--contradicted);
+  background: #F6E2E2; color: var(--contradicted);
+  padding: 7pt 10pt; margin: 8pt 0; font-size: 9pt;
+}
+.warn-banner strong { font-family: "IBM Plex Mono", monospace; }
+
+/* ---- Narrative one-pager ---------------------------------------------- */
+.agent-card { border: 1px solid var(--line); padding: 12pt 14pt; margin-bottom: 12pt; }
+.kv { display: flex; margin-bottom: 3pt; }
+.kv .k { width: 34%; color: var(--mist); }
+.kv .v { width: 66%; }
+.pill { display: inline-block; border: 1px solid var(--line); border-radius: 10pt; padding: 1pt 7pt; margin: 1pt 2pt 1pt 0; font-size: 8pt; }
+.controls-cols { display: flex; gap: 14pt; margin-top: 6pt; }
+.controls-cols > div { flex: 1; }
+.controls-cols ul { margin: 3pt 0 0; padding-left: 14pt; }
+.present li { color: var(--confirmed); }
+.absent li { color: var(--contradicted); }
+
+/* ---- Answer tables ---------------------------------------------------- */
+table.answers { width: 100%; border-collapse: collapse; margin-bottom: 10pt; }
+table.answers td { border-bottom: 1px solid var(--line); padding: 5pt 4pt; vertical-align: top; }
+table.answers td.label { width: 46%; }
+table.answers td.value { width: 40%; }
+table.answers td.badge-cell { width: 14%; text-align: right; }
+.evref { color: var(--mist); font-family: "IBM Plex Mono", monospace; font-size: 7pt; display: block; margin-top: 2pt; }
+
+.section-head {
+  font-family: "IBM Plex Mono", monospace; font-size: 8pt; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--brass);
+  border-bottom: 1.5pt solid var(--ink); padding-bottom: 3pt; margin: 14pt 0 6pt;
+}
+
+/* ---- Sign-off --------------------------------------------------------- */
+.signoff-cols { display: flex; gap: 16pt; margin-top: 10pt; }
+.signoff-cols > div { flex: 1; border: 1px solid var(--line); padding: 10pt; }
+.signoff-cols h3 { border-bottom: 1px solid var(--line); padding-bottom: 4pt; }
+.signoff-cols ul { margin: 6pt 0 0; padding-left: 14pt; font-size: 8.5pt; }
+.sig-line { margin-top: 16pt; border-top: 1px solid var(--ink); padding-top: 4pt; font-size: 8pt; color: var(--mist); }
+.responsibility { margin-top: 14pt; font-size: 8.5pt; color: var(--mist); font-style: italic; }

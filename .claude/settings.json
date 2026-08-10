@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/bin/stoa --version)",
+      "Bash(\"/Users/ved/Desktop/claude apps/Stoa/.venv/bin/stoa\" scan . --json /tmp/sparkwing-registry.json --no-git --verbose)",
+      "Bash(.venv/bin/python3 -c ' *)",
+      "Bash(\"/Users/ved/Desktop/claude apps/Stoa/.venv/bin/stoa\" scan . --json /tmp/sparkwing-registry.json --no-git)",
+      "Bash(.venv/bin/stoa init *)",
+      "Bash(\"/Users/ved/Desktop/claude apps/Stoa/.venv/bin/stoa\" init declarations --registry /tmp/sparkwing-registry.json)"
+    ]
+  }
+}
