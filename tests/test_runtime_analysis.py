@@ -42,7 +42,7 @@ def _write_traces(tmp_path, spans, name="trace-1-0000.jsonl"):
 
 def _registry(agent_ids=("aaaaaaaaaaaa",)) -> dict:
     return {
-        "schema_version": "1.4",
+        "schema_version": "1.5",
         "tool": {"name": "stoa", "version": "0.0"},
         "repository": {"name": "fixture"},
         "summary": {},

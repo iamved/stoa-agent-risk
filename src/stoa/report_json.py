@@ -165,8 +165,72 @@ def build_document(result: ScanResult, config: StoaConfig) -> dict:
         document["governance"] = result.governance
     if result.evidence is not None:
         document["evidence"] = result.evidence
+    _annotate_crosswalk(document, config)
     validate_document(document)
     return document
+
+
+def _annotate_crosswalk(document: dict, config: StoaConfig) -> None:
+    """Apply the regulatory-crosswalk annotation layer (schema 1.5, additive).
+
+    A pure post-pass so scoring and every earlier builder stay untouched: it
+    stamps a ``crosswalk`` object on each finding, adds the top-level
+    ``crosswalk`` version block, and unions each dimension's finding tags into
+    a per-dimension roll-up on ``dimension_summary``. Presentation-only; never
+    reads or writes any score.
+
+    Degrades gracefully: the crosswalk is an additive annotation layer (unlike
+    the load-bearing dimension taxonomy), so if it cannot load — a corrupt
+    built-in or a bad override path — the document is emitted without crosswalk
+    fields rather than failing the whole scan. Absence of the top-level
+    ``crosswalk`` block is the signal that annotation was skipped.
+    """
+    from .crosswalk import CrosswalkError, load_crosswalk
+
+    try:
+        crosswalk = load_crosswalk(config.crosswalk_path)
+    except CrosswalkError:
+        return
+    document["crosswalk"] = crosswalk.version_block()
+
+    all_findings = (
+        [f for a in document.get("agents", []) for f in a.get("findings", [])]
+        + document.get("repository_findings", [])
+    )
+    # rule_id -> its (owasp, eu_ai_act) tags, for the dimension roll-up.
+    rule_tags: dict[str, tuple[str, str]] = {}
+    for finding in all_findings:
+        entry = crosswalk.entry(finding["rule_id"])
+        finding["crosswalk"] = entry.to_dict()
+        rule_tags[finding["rule_id"]] = (entry.owasp_llm_2025, entry.eu_ai_act)
+
+    summary = document.get("dimension_summary")
+    if not summary:
+        return
+    # For each dimension, union the OWASP/EU tags of every rule that mapped to
+    # it (via each finding's `dimensions` array). Roll-up lives on the summary
+    # only — per-agent assessment blocks are left unchanged (minimal churn).
+    dim_owasp: dict[str, set[str]] = {}
+    dim_eu: dict[str, set[str]] = {}
+    for finding in all_findings:
+        owasp, eu = rule_tags.get(finding["rule_id"], ("", ""))
+        for dim_id in finding.get("dimensions", []):
+            if owasp:
+                dim_owasp.setdefault(dim_id, set()).add(owasp)
+            if eu:
+                dim_eu.setdefault(dim_id, set()).add(eu)
+    for dim in summary.get("dimensions", []):
+        dim["crosswalk"] = {
+            "owasp_llm_2025": sorted(dim_owasp.get(dim["id"], set()), key=_owasp_sort_key),
+            "eu_ai_act": sorted(dim_eu.get(dim["id"], set())),
+        }
+
+
+def _owasp_sort_key(code: str) -> tuple:
+    """Sort LLM01..LLM10 numerically, anything else last-alphabetical."""
+    if code.startswith("LLM") and code[3:].isdigit():
+        return (0, int(code[3:]))
+    return (1, code)
 
 
 def validate_document(document: dict) -> None:
