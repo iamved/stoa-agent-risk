@@ -35,6 +35,7 @@
     {
       "id": "f5336ad99023",
       "name": "agent",
+      "display_name": "mentor_matcher·agent",
       "symbol": "agent",
       "path": "agents/mentor_matcher.py",
       "language": "python",
@@ -272,6 +273,7 @@
     {
       "id": "2bbb1a53b942",
       "name": "agent",
+      "display_name": "portfolio_certifier·agent",
       "symbol": "agent",
       "path": "agents/portfolio_certifier.py",
       "language": "python",
@@ -702,6 +704,7 @@
     {
       "id": "48d190c5af6c",
       "name": "executor",
+      "display_name": "portfolio_certifier·executor",
       "symbol": "executor",
       "path": "agents/portfolio_certifier.py",
       "language": "python",
@@ -1132,6 +1135,7 @@
     {
       "id": "a332ef61e9ee",
       "name": "agent",
+      "display_name": "progress_notifier·agent",
       "symbol": "agent",
       "path": "agents/progress_notifier.py",
       "language": "python",
@@ -1575,6 +1579,7 @@
     {
       "id": "b7699551ca07",
       "name": "executor",
+      "display_name": "progress_notifier·executor",
       "symbol": "executor",
       "path": "agents/progress_notifier.py",
       "language": "python",
@@ -2018,6 +2023,7 @@
     {
       "id": "e1598a668297",
       "name": "agent",
+      "display_name": "project_sandbox·agent",
       "symbol": "agent",
       "path": "agents/project_sandbox.py",
       "language": "python",
@@ -2456,6 +2462,7 @@
     {
       "id": "3566a52c29f8",
       "name": "executor",
+      "display_name": "project_sandbox·executor",
       "symbol": "executor",
       "path": "agents/project_sandbox.py",
       "language": "python",
@@ -2894,6 +2901,7 @@
     {
       "id": "c237adc7c1e7",
       "name": "sector_advisor",
+      "display_name": "sector_advisor",
       "symbol": "sector_advisor",
       "path": "agents/sector_advisor.py",
       "language": "python",

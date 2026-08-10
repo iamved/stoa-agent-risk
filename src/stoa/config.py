@@ -84,6 +84,8 @@ class StoaConfig:
     runtime_error_rate_moderate: float = 0.02
     # [crosswalk] path — override the built-in regulatory crosswalk.
     crosswalk_path: "Path | None" = None
+    # [report] path — override the built-in report presentation thresholds.
+    report_config_path: "Path | None" = None
 
     def rule_enabled(self, rule_id: str) -> bool:
         return self.enabled_rules.get(rule_id, True)
@@ -104,6 +106,14 @@ def _validate_rule_table(table: dict, section: str) -> None:
 def load_config(root: Path, config_path: Path | None = None) -> StoaConfig:
     """Load ``stoa.toml`` from *config_path* or *root*, merged over defaults."""
     config = StoaConfig()
+    # Convention paths under .stoa/ are picked up automatically; an explicit
+    # stoa.toml [crosswalk]/[report] path (below) still wins over these.
+    dot_crosswalk = root / ".stoa" / "crosswalk.toml"
+    if dot_crosswalk.is_file():
+        config.crosswalk_path = dot_crosswalk.resolve()
+    dot_report = root / ".stoa" / "report.toml"
+    if dot_report.is_file():
+        config.report_config_path = dot_report.resolve()
     path = config_path if config_path is not None else root / "stoa.toml"
     if not path.is_file():
         if config_path is not None:
@@ -169,6 +179,10 @@ def load_config(root: Path, config_path: Path | None = None) -> StoaConfig:
     crosswalk = data.get("crosswalk", {})
     if crosswalk.get("path"):
         config.crosswalk_path = (root / crosswalk["path"]).resolve()
+
+    report = data.get("report", {})
+    if report.get("path"):
+        config.report_config_path = (root / report["path"]).resolve()
 
     runtime = data.get("runtime", {})
     if runtime:

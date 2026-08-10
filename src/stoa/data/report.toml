@@ -1,0 +1,25 @@
+# Report presentation thresholds (Task 4). Versioned like the taxonomy and the
+# crosswalk. Override per-repo at .stoa/report.toml via stoa.toml [report] path.
+# These control ONLY how the report collapses and groups — never scoring.
+
+[report]
+id = "stoa-report-config-1"
+version = "1.0"
+
+[collapse]
+# Fix-first section: how many remediation items to show, and the floor severity
+# a finding must reach to earn a Fix-first slot.
+fix_first_max = 5
+fix_first_min_severity = "high"
+
+# Agent list: candidates at or below this exposure tier collapse into a single
+# "N more agents" row. Tiers: severe > elevated > moderate > low.
+agent_collapse_below_tier = "moderate"
+
+# Contradictions: identical rule-class groups larger than this render as one
+# grouped row with an expandable list, not N repeated blocks.
+contradiction_group_threshold = 3
+
+# Risk dimensions: merge the proxy-tier dimensions into one compact strip
+# instead of a full card each.
+dimension_proxy_merge = true

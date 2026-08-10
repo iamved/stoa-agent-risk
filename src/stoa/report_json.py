@@ -71,6 +71,9 @@ def agent_to_dict(agent: AgentCandidate, include_suppressed: bool) -> dict:
     return {
         "id": agent.id,
         "name": agent.name,
+        # Disambiguated human-facing label (Task 1). Additive: `name`/`symbol`
+        # keep the raw inferred values so diff consumers are unaffected.
+        "display_name": agent.label,
         "symbol": agent.symbol,
         "path": agent.path,
         "language": agent.language,
