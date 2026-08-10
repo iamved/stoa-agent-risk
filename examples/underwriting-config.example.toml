@@ -1,0 +1,53 @@
+# Applicant-supplied underwriting config for `stoa export --underwriting`.
+#
+#   stoa export stoa-registry.json --underwriting \
+#       --underwriting-config underwriting-config.toml --out submission.html
+#
+# [identity] replaces the placeholder company. [[performance]] supplies the
+# applicant's REAL model-performance figures — when present, the form shows
+# them as "provided by the applicant" instead of the labeled sample values.
+# Any field left out keeps its built-in default; the applicant confirms all
+# fields by signing before submission.
+
+[identity]
+company        = "Acme Payments Inc"
+contact_name   = "Dana Okafor"
+contact_title  = "Head of ML Risk"
+contact_email  = "ml-risk@acme-payments.example"
+address        = "1 Embarcadero Center, San Francisco, CA 94111"
+home_state     = "California"
+model_name     = "Acme Transaction-Risk Agent"
+model_version  = "4.1"
+deployment     = "Production (real-time payment authorization)"
+currency       = "USD"
+
+# The applicant's own measured figures. `cadence` is optional.
+[[performance]]
+metric  = "Ground-truth accuracy"
+value   = "98.1%"
+cadence = "Monthly, held-out labeled set"
+
+[[performance]]
+metric  = "False-positive rate"
+value   = "1.2%"
+cadence = "Weekly"
+
+[[performance]]
+metric  = "False-negative rate"
+value   = "0.7%"
+cadence = "Weekly"
+
+[[performance]]
+metric  = "Population stability index (PSI)"
+value   = "0.04"
+cadence = "Daily drift monitor"
+
+[[performance]]
+metric  = "Decision latency (p95)"
+value   = "180 ms"
+cadence = "Continuous"
+
+[[performance]]
+metric  = "Human-review override rate"
+value   = "2.3%"
+cadence = "Monthly"
