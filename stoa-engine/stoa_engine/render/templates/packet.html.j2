@@ -1,0 +1,168 @@
+{# Stoa underwriting packet. Original layout; no third-party insurer forms,
+   names, logos, or trademarks are reproduced anywhere. #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <style>{% include "packet.css" %}</style>
+</head>
+<body>
+
+{% if sample %}<div class="watermark">{{ watermark }}</div>{% endif %}
+
+{# ============================ 1 · COVER ============================ #}
+<section class="cover">
+  {% if sample %}<div class="sample-strip">{{ watermark }}</div>{% endif %}
+  <div class="cover-rule"></div>
+  <p class="eyebrow">Stoa · AI risk underwriting packet</p>
+  <h1>{{ company.name }}</h1>
+  <p class="muted">{{ template_title }}</p>
+
+  <div class="cover-meta mono small">
+    <div><span class="muted">Generated:</span> {{ meta.generated_at }}</div>
+    <div><span class="muted">Extractor:</span> {{ meta.extractor_version }}</div>
+    <div><span class="muted">Registry scan hash:</span> {{ meta.registry_scan_hash }}</div>
+    <div><span class="muted">Template:</span> {{ template_name }}</div>
+    {% if coverage.limit_usd %}<div><span class="muted">Limit requested:</span> {{ coverage.limit_usd | currency }}</div>{% endif %}
+  </div>
+
+  <div class="legend">
+    <h3>Evidence-class legend</h3>
+    <div class="legend-row"><span class="dot dot-confirmed"></span><span><strong>Confirmed</strong> — verified against scanned code evidence.</span></div>
+    <div class="legend-row"><span class="dot dot-attested"></span><span><strong>Attested</strong> — human-declared; no code verification.</span></div>
+    <div class="legend-row"><span class="dot dot-notconfirmed"></span><span><strong>Not confirmed</strong> — evidence does not affirm the statement.</span></div>
+    <div class="legend-row"><span class="dot dot-contradicted"></span><span><strong>Contradicted</strong> — a declaration conflicts with scanned evidence.</span></div>
+    <div class="legend-row"><span class="dot dot-unknown"></span><span><strong>Unknown</strong> — no evidence observed. Absence of evidence is never treated as a &ldquo;no&rdquo;.</span></div>
+    <p class="small muted" style="margin-top:8pt">
+      {% if meta.evidence_class == 'observed' %}Performance evidence is observed from production.{% else %}Performance evidence in this packet is <strong>simulated</strong> pre-deployment. Loss figures are proxies, not incurred losses.{% endif %}
+    </p>
+  </div>
+</section>
+
+{# ==================== 2 · PER-AGENT ONE-PAGERS ==================== #}
+{% for a in narratives %}
+<section class="page-break">
+  <p class="eyebrow">AI system narrative</p>
+  <h2>{{ a.display_name }}</h2>
+  <p>{{ a.description }}</p>
+
+  <div class="agent-card">
+    <div class="kv"><span class="k">Underlying model</span><span class="v">{{ a.model or 'Unknown' }}</span></div>
+    <div class="kv"><span class="k">What it does</span><span class="v">{{ a.activities or 'Unknown' }}</span></div>
+    <div class="kv"><span class="k">Audience</span><span class="v">{{ a.audience or 'Unknown' }}</span></div>
+    <div class="kv"><span class="k">What it can touch</span><span class="v">
+      {% for c in a.can_touch %}<span class="pill">{{ c }}</span>{% else %}<span class="muted">None observed</span>{% endfor %}
+    </span></div>
+    <div class="kv"><span class="k">Autonomy</span><span class="v">{% if a.agentic %}Takes actions autonomously{% else %}Advisory only — takes no autonomous action{% endif %}</span></div>
+    <div class="kv"><span class="k">Spend authority</span><span class="v">{{ a.spend_authority }}</span></div>
+  </div>
+
+  <h3>Top failure modes</h3>
+  {% if a.top_failures %}
+  <ul>
+    {% for name, n in a.top_failures %}<li>{{ name }} — {{ n }} occurrence{{ 's' if n != 1 else '' }} across {{ a.n_runs }} simulated runs</li>{% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">No adverse outcomes recorded across {{ a.n_runs }} simulated runs.</p>
+  {% endif %}
+  <p class="small muted">Simulated error rate {{ a.error_rate }} · total loss proxy {{ a.total_loss_proxy }} ({{ a.evidence_class }} evidence).</p>
+
+  <div class="controls-cols">
+    <div class="present"><h3>Controls present</h3><ul>
+      {% for c in a.controls_present %}<li>{{ c }}</li>{% else %}<li class="muted">None observed</li>{% endfor %}
+    </ul></div>
+    <div class="absent"><h3>Controls absent</h3><ul>
+      {% for c in a.controls_absent %}<li>{{ c }}</li>{% else %}<li class="muted">None</li>{% endfor %}
+    </ul></div>
+  </div>
+</section>
+{% endfor %}
+
+{# ==================== 3 · EVIDENCE-BACKED ANSWERS ==================== #}
+<section class="page-break">
+  <p class="eyebrow">Pre-filled answers</p>
+  <h2>{{ template_title }}</h2>
+
+  {% if contradictions %}
+  <div class="warn-banner">
+    <strong>⚠ CONTRADICTION</strong> — {{ contradictions | length }} declared claim{{ 's' if contradictions | length != 1 else '' }} conflict{{ '' if contradictions | length != 1 else 's' }} with scanned evidence. See flagged rows and the sign-off page.
+    <ul style="margin:5pt 0 0">
+      {% for c in contradictions %}<li>{{ c.system }}: &ldquo;{{ c.claim }}&rdquo;</li>{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {# Global (non-system) sections #}
+  {% for section, rows in global_sections.items() %}
+  <div class="section-head">{{ section }}</div>
+  <table class="answers">
+    {% for rf in rows %}
+    <tr>
+      <td class="label">{{ rf.label }}</td>
+      <td class="value">{{ rf.display }}
+        {% if rf.evidence %}<span class="evref">{{ rf.evidence | join(' · ') }}</span>{% endif %}
+      </td>
+      <td class="badge-cell">
+        {% if rf.confidence %}{% set b = conf_badge[rf.confidence] %}<span class="badge {{ b[1] }}">{{ b[0] }}</span>{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endfor %}
+
+  {# Per-system sections #}
+  {% for sys_id, bucket in per_system.items() %}
+  <h3 style="margin-top:14pt">System · {{ bucket.name }} <span class="mono small muted">({{ sys_id }})</span></h3>
+  {% for section, rows in bucket.sections.items() %}
+  <div class="section-head">{{ section }}</div>
+  <table class="answers">
+    {% for rf in rows %}
+    <tr>
+      <td class="label">{{ rf.label }}</td>
+      <td class="value">{{ rf.display }}
+        {% if rf.evidence %}<span class="evref">{{ rf.evidence | join(' · ') }}</span>{% endif %}
+        {% if rf.warning %}<div class="warn-banner" style="margin-top:5pt"><strong>⚠</strong> Declared posture contradicted by scan evidence.</div>{% endif %}
+      </td>
+      <td class="badge-cell">
+        {% if rf.confidence %}{% set b = conf_badge[rf.confidence] %}<span class="badge {{ b[1] }}">{{ b[0] }}</span>{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endfor %}
+  {% endfor %}
+</section>
+
+{# ==================== 4 · REVIEW & SIGN-OFF ==================== #}
+<section class="page-break">
+  <p class="eyebrow">Review &amp; sign-off</p>
+  <h2>What Stoa verified vs what requires your attestation</h2>
+
+  <div class="signoff-cols">
+    <div>
+      <h3>Code-verified by Stoa scan <span class="mono small muted">({{ verified | length }})</span></h3>
+      <ul>
+        {% for v in verified %}<li>{{ v.label }}{% if v.confidence == 'contradicted' %} <span class="badge badge-contradicted">Contradicted</span>{% endif %}</li>{% endfor %}
+      </ul>
+    </div>
+    <div>
+      <h3>Requires human attestation <span class="mono small muted">({{ attested | length }})</span></h3>
+      <ul>
+        {% for a in attested %}<li>{{ a.label }}{% if a.confidence == 'unknown' %} <span class="badge badge-unknown">Unknown</span>{% endif %}</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <p class="responsibility">
+    The applicant&rsquo;s officers remain responsible for reviewing every statement in
+    this packet before any use or submission. Stoa reports evidence and its confidence;
+    it does not attest on the applicant&rsquo;s behalf.
+  </p>
+
+  <div class="sig-line">Reviewed by (name): _______________________________________</div>
+  <div class="sig-line">Title: _____________________________     Date: ________________</div>
+  <div class="sig-line">Signature: _________________________________________________</div>
+</section>
+
+</body>
+</html>

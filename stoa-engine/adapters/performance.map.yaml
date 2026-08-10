@@ -1,0 +1,151 @@
+# Performance-style questionnaire template — declarative mapping only, no logic.
+# Quantitative per-model evidence: performance aggregates, error definitions,
+# thresholds, and the covered-models sheet. The row-level performance data
+# table itself is rendered by the XLSX renderer directly from
+# $.systems[*].performance.runs; this map drives the PDF sections and the
+# required-field completeness check.
+
+template: performance
+title: "Performance Questionnaire — Quantitative Model Evidence"
+fields:
+  # ---- Section 1 · General information -----------------------------------
+  - field_id: general.company
+    section: "1 · General information"
+    label: "Company name"
+    source: "$.business_context.company.name"
+    required: true
+    render: text
+  - field_id: general.description
+    section: "1 · General information"
+    label: "Business description"
+    source: "$.business_context.company.description"
+    required: true
+    render: text
+  - field_id: general.revenue
+    section: "1 · General information"
+    label: "Annual revenue (USD)"
+    source: "$.business_context.company.annual_revenue_usd"
+    required: true
+    render: currency
+  - field_id: general.projections
+    section: "1 · General information"
+    label: "Two-year projections (users / outputs / revenue)"
+    source: "$.business_context.projections.next_2y"
+    required: true
+    render: text
+
+  # ---- Section 2 · Model development -------------------------------------
+  - field_id: model.identity
+    section: "2 · Model development"
+    label: "Model identity and provenance"
+    source: "$.systems[*].posture.model"
+    required: true
+    render: text
+  - field_id: model.fine_tuned
+    section: "2 · Model development"
+    label: "Fine-tuning applied"
+    source: "$.systems[*].posture.fine_tuned"
+    required: true
+    render: tristate
+  - field_id: model.data_types
+    section: "2 · Model development"
+    label: "Training / grounding data types"
+    source: "$.systems[*].posture.data_types"
+    required: true
+    render: list
+  - field_id: model.function_scope
+    section: "2 · Model development"
+    label: "Covered function scope"
+    source: "$.systems[*].performance.covered_model_draft.function_scope"
+    required: true
+    render: text
+
+  # ---- Section 3 · Monitoring & rollback ----------------------------------
+  - field_id: monitoring.io_logging
+    section: "3 · Monitoring & rollback"
+    label: "Inputs and outputs are logged and retained"
+    source: "$.systems[*].posture.io_logging"
+    required: true
+    render: tristate
+  - field_id: monitoring.hitl
+    section: "3 · Monitoring & rollback"
+    label: "Human review before actions/outputs take effect"
+    source: "$.systems[*].posture.hitl"
+    required: true
+    render: tristate
+  - field_id: monitoring.guardrails
+    section: "3 · Monitoring & rollback"
+    label: "Vendor guardrails intact (rollback path available)"
+    source: "$.systems[*].posture.guardrails_intact"
+    required: true
+    render: tristate
+
+  # ---- Section 4 · Performance evidence ------------------------------------
+  - field_id: perf.n_runs
+    section: "4 · Performance evidence"
+    label: "Number of evaluated runs"
+    source: "$.systems[*].performance.aggregates.n_runs"
+    required: true
+    render: text
+  - field_id: perf.error_rate
+    section: "4 · Performance evidence"
+    label: "Observed error rate"
+    source: "$.systems[*].performance.aggregates.error_rate"
+    required: true
+    render: text
+  - field_id: perf.ci_95
+    section: "4 · Performance evidence"
+    label: "95% confidence interval"
+    source: "$.systems[*].performance.aggregates.ci_95"
+    required: true
+    render: list
+  - field_id: perf.total_loss_proxy
+    section: "4 · Performance evidence"
+    label: "Total simulated loss proxy (USD)"
+    source: "$.systems[*].performance.aggregates.total_loss_proxy_usd"
+    required: true
+    render: currency
+  - field_id: perf.robustness
+    section: "4 · Performance evidence"
+    label: "Robustness test pass rate"
+    source: "$.systems[*].performance.aggregates.robustness.pass_rate"
+    required: true
+    render: text
+  - field_id: perf.evidence_class
+    section: "4 · Performance evidence"
+    label: "Evidence class (simulated vs observed)"
+    source: "$.systems[*].performance.evidence_class"
+    required: true
+    render: text
+
+  # ---- Section 5 · Covered models ------------------------------------------
+  - field_id: covered.model
+    section: "5 · Covered models"
+    label: "Covered model"
+    source: "$.systems[*].performance.covered_model_draft.covered_model"
+    required: true
+    render: text
+  - field_id: covered.error_definition
+    section: "5 · Covered models"
+    label: "Error definition"
+    source: "$.systems[*].performance.covered_model_draft.error_definition"
+    required: true
+    render: text
+  - field_id: covered.ground_truth
+    section: "5 · Covered models"
+    label: "Ground truth source"
+    source: "$.systems[*].performance.covered_model_draft.ground_truth_source"
+    required: true
+    render: text
+  - field_id: covered.threshold
+    section: "5 · Covered models"
+    label: "Unexpected-error threshold"
+    source: "$.systems[*].performance.covered_model_draft.unexpected_error_threshold"
+    required: true
+    render: text
+  - field_id: covered.error_limit
+    section: "5 · Covered models"
+    label: "Proposed error limit (USD)"
+    source: "$.systems[*].performance.covered_model_draft.proposed_error_limit_usd"
+    required: true
+    render: currency

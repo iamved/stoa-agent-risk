@@ -1,0 +1,489 @@
+<style>
+  /* Concept mock of the /underwriter page on stoa.insure.
+     Honors the live site's system: ink/paper/brass, serif display, mono labels.
+     Live site uses Instrument Serif · Public Sans · IBM Plex Mono; this mock
+     uses CSP-safe stacks (Georgia / system-ui / ui-monospace) as stand-ins.
+     Deliberately single light "paper" world, like the site — every color painted
+     explicitly so it holds on any host ground. */
+
+  :root {
+    --ink: #182A3E;
+    --ink-2: #12202f;
+    --paper: #FAF9F5;
+    --white: #ffffff;
+    --brass: #B98A2F;
+    --mist: #6E7F90;
+    --line: #DCD9CF;
+    /* status — light-ground variants */
+    --confirmed: #2E7D5B;
+    --contradicted: #B23A3A;
+    --attested: #6B4FA3;
+    --unknown: #7A8089;
+    --sim: #C4622D;
+    /* status — dark-ground variants (on ink panels) */
+    --confirmed-d: #8FBF9F;
+    --contradicted-d: #E39385;
+    --attested-d: #BBA8E4;
+    --unknown-d: #A7B0B8;
+    --sim-d: #E0B75A;
+
+    --font-serif: Georgia, "Times New Roman", serif;
+    --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-mono: ui-monospace, Menlo, "SF Mono", "IBM Plex Mono", monospace;
+
+    --wrap: 1080px;
+  }
+
+  * { box-sizing: border-box; }
+
+  .uw { background: var(--paper); color: var(--ink); font-family: var(--font-sans);
+        font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  .uw :focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+
+  .uw-inner { max-width: var(--wrap); margin: 0 auto; padding: 0 24px; }
+
+  .eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em;
+             text-transform: uppercase; color: var(--brass); margin: 0; }
+  .uw h1, .uw h2, .uw h3 { font-family: var(--font-serif); font-weight: 400; margin: 0;
+                           letter-spacing: -0.01em; text-wrap: balance; }
+  .uw p { margin: 0; }
+  .muted { color: var(--mist); }
+  .serif-italic { font-style: italic; color: var(--brass); }
+
+  /* ---- top chrome ---- */
+  .topbar { height: 3px; background: linear-gradient(90deg,#b98a2f 0%,#b98a2f 35%,#182a3e 100%); }
+  .nav { border-bottom: 1px solid var(--line); background: rgba(250,249,245,0.96); }
+  .nav-row { display: flex; align-items: center; justify-content: space-between;
+             gap: 16px; padding: 14px 24px; max-width: var(--wrap); margin: 0 auto; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand .mark { width: 34px; height: 34px; border: 2px solid var(--ink); border-radius: 3px;
+                 display: grid; place-items: center; color: var(--ink); }
+  .brand .mark span { font-family: var(--font-serif); font-size: 20px; line-height: 1; }
+  .brand .name { font-family: var(--font-serif); font-size: 26px; line-height: 1; }
+  .brand .tag { display: block; font-family: var(--font-mono); font-size: 8px;
+                letter-spacing: 0.18em; text-transform: uppercase; color: var(--mist); margin-top: 3px; }
+  .nav-links { display: flex; align-items: center; gap: 6px; }
+  .nav-links a { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em;
+                 text-transform: uppercase; color: var(--ink); text-decoration: none;
+                 padding: 8px 12px; opacity: 0.82; }
+  .nav-links a.active { color: var(--brass); opacity: 1; }
+  .btn { font-family: var(--font-sans); font-size: 14px; font-weight: 500; padding: 10px 18px;
+         border: 1px solid var(--ink); text-decoration: none; display: inline-block; cursor: pointer; }
+  .btn-primary { background: var(--ink); color: var(--paper); }
+  .btn-ghost { background: transparent; color: var(--ink); }
+  @media (max-width: 720px) { .nav-links a:not(.active) { display: none; } }
+
+  /* ---- hero ---- */
+  .hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--line); }
+  .hero::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(90deg, transparent 0 119px, rgba(24,42,62,0.045) 119px 120px); }
+  .hero-inner { position: relative; padding: 56px 24px 44px; max-width: var(--wrap); margin: 0 auto; }
+  .hero h1 { font-size: clamp(38px, 5.4vw, 60px); line-height: 0.98; max-width: 15ch; margin-top: 20px; }
+  .hero-sub { margin-top: 24px; max-width: 60ch; font-size: 17px; color: var(--mist); }
+
+  /* pipeline breadcrumb */
+  .pipe { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 34px; }
+  .pipe .step { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.13em;
+                text-transform: uppercase; color: var(--mist); padding: 6px 4px; }
+  .pipe .step.on { color: var(--brass); border: 1px solid var(--brass);
+                   background: rgba(185,138,47,0.10); padding: 6px 12px; }
+  .pipe .arrow { color: var(--line); font-size: 11px; }
+
+  /* ---- section scaffold ---- */
+  .section { padding: 64px 0; }
+  .section.tint { background: var(--white); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .section-head { max-width: 62ch; }
+  .section-head h2 { font-size: clamp(26px, 3.6vw, 38px); line-height: 1.05; margin-top: 12px; }
+  .section-head p { margin-top: 14px; color: var(--mist); }
+
+  /* ---- how it works (3 steps) ---- */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-top: 40px; }
+  .step-card { border-top: 2px solid var(--ink); padding-top: 16px; }
+  .step-card .k { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.16em; color: var(--brass); }
+  .step-card h3 { font-size: 22px; margin-top: 10px; }
+  .step-card p { margin-top: 8px; font-size: 15px; color: var(--mist); }
+  @media (max-width: 760px) { .steps { grid-template-columns: 1fr; gap: 22px; } }
+
+  /* ---- SIGNATURE: evidence panel (dark ink) ---- */
+  .evidence { background: var(--ink); color: var(--paper); }
+  .evidence .uw-inner { padding-top: 56px; padding-bottom: 56px; }
+  .ev-top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px; }
+  .ev-top .eyebrow { color: var(--brass); }
+  .ev-top h2 { color: var(--paper); font-size: clamp(24px, 3.4vw, 34px); margin-top: 10px; max-width: 20ch; }
+  .ev-top .ev-note { font-family: var(--font-mono); font-size: 11px; color: rgba(250,249,245,0.55);
+                     max-width: 34ch; text-align: right; }
+
+  .seg { display: inline-flex; border: 1px solid rgba(250,249,245,0.30); margin-top: 26px; }
+  .seg button { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.13em;
+                text-transform: uppercase; padding: 10px 18px; background: transparent;
+                color: rgba(250,249,245,0.72); border: 0; cursor: pointer; }
+  .seg button[aria-selected="true"] { background: var(--paper); color: var(--ink); }
+
+  .answers { margin-top: 22px; border: 1px solid rgba(250,249,245,0.16); background: var(--ink-2); }
+  .ans-caption { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em;
+                 text-transform: uppercase; color: rgba(250,249,245,0.45);
+                 padding: 12px 18px; border-bottom: 1px solid rgba(250,249,245,0.12); }
+  .row { display: grid; grid-template-columns: 1.6fr 1.5fr auto; gap: 18px; align-items: start;
+         padding: 14px 18px; border-bottom: 1px solid rgba(250,249,245,0.09); }
+  .row:last-child { border-bottom: 0; }
+  .row .label { font-size: 14px; color: rgba(250,249,245,0.9); }
+  .row .value { font-size: 14px; color: var(--paper); }
+  .row .evref { display: block; margin-top: 4px; font-family: var(--font-mono); font-size: 10.5px;
+                color: rgba(250,249,245,0.42); word-break: break-word; }
+  .badge { justify-self: end; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.06em;
+           text-transform: uppercase; padding: 3px 8px; border: 1px solid; white-space: nowrap; border-radius: 2px; }
+  .b-confirmed { color: var(--confirmed-d); border-color: var(--confirmed-d); }
+  .b-attested { color: var(--attested-d); border-color: var(--attested-d); }
+  .b-contradicted { color: var(--ink); background: var(--contradicted-d); border-color: var(--contradicted-d); }
+  .b-unknown { color: var(--unknown-d); border-color: var(--unknown-d); }
+  .b-sim { color: var(--sim-d); border-color: var(--sim-d); }
+
+  .warn { display: flex; gap: 10px; align-items: baseline; margin-top: 18px;
+          border-left: 3px solid var(--contradicted-d); background: rgba(227,147,133,0.12);
+          padding: 12px 16px; font-size: 13px; color: #F3CFC8; }
+  .warn strong { font-family: var(--font-mono); letter-spacing: 0.04em; }
+  @media (max-width: 720px) {
+    .row { grid-template-columns: 1fr; gap: 6px; }
+    .badge { justify-self: start; }
+    .ev-top .ev-note { text-align: left; }
+  }
+
+  /* ---- verified vs attested split ---- */
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 36px; }
+  .split-card { border: 1px solid var(--line); background: var(--paper); padding: 22px 24px; }
+  .split-card h3 { font-size: 20px; display: flex; align-items: baseline; gap: 10px; }
+  .split-card .count { font-family: var(--font-mono); font-size: 13px; color: var(--mist); }
+  .split-card ul { list-style: none; margin: 14px 0 0; padding: 0; }
+  .split-card li { font-size: 14px; padding: 7px 0; border-bottom: 1px solid var(--line);
+                   display: flex; align-items: center; gap: 8px; }
+  .split-card li:last-child { border-bottom: 0; }
+  .tick { width: 7px; height: 7px; transform: rotate(45deg); display: inline-block; flex: none; }
+  .tick.g { background: var(--confirmed); }
+  .tick.p { background: var(--attested); }
+  .tick.u { background: var(--unknown); }
+  @media (max-width: 760px) { .split { grid-template-columns: 1fr; } }
+
+  /* ---- output: what you hand your broker ---- */
+  .files { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 32px; }
+  .file { border: 1px solid var(--line); background: var(--white); padding: 16px 18px; min-width: 210px; flex: 1; }
+  .file .ft { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em;
+              text-transform: uppercase; color: var(--brass); }
+  .file .fn { font-family: var(--font-mono); font-size: 14px; margin-top: 8px; }
+  .file .fd { font-size: 13px; color: var(--mist); margin-top: 6px; }
+  .audit { margin-top: 24px; font-family: var(--font-mono); font-size: 12px; color: var(--mist);
+           border-top: 1px dashed var(--line); padding-top: 16px; }
+
+  /* ---- gap report ---- */
+  .gaps { margin-top: 30px; border: 1px solid var(--line); overflow-x: auto; }
+  .gaps table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 560px; }
+  .gaps th { text-align: left; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em;
+             text-transform: uppercase; color: var(--mist); padding: 12px 16px; background: var(--white);
+             border-bottom: 1px solid var(--line); }
+  .gaps td { padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .gaps tr:last-child td { border-bottom: 0; }
+  .owner { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+           padding: 2px 8px; border: 1px solid var(--line); border-radius: 2px; }
+  .owner.human { color: var(--attested); border-color: var(--attested); }
+  .owner.scan { color: var(--confirmed); border-color: var(--confirmed); }
+
+  /* ---- trust strip ---- */
+  .trust { border: 1px solid var(--brass); background: rgba(185,138,47,0.06); padding: 22px 24px; margin-top: 40px; }
+  .trust .eyebrow { margin-bottom: 10px; }
+  .trust ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .trust li { font-size: 14px; color: var(--ink); display: flex; gap: 10px; }
+  .trust li b { color: var(--brass); font-weight: 600; }
+
+  /* ---- CTA + footer ---- */
+  .cta { background: var(--ink); color: var(--paper); }
+  .cta .uw-inner { padding: 52px 24px; display: flex; flex-wrap: wrap; gap: 24px;
+                   align-items: center; justify-content: space-between; }
+  .cta h2 { color: var(--paper); font-size: clamp(24px, 3.4vw, 34px); max-width: 18ch; }
+  .cta .btn-paper { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+  .foot { border-top: 1px solid var(--line); }
+  .foot .uw-inner { padding: 26px 24px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+                    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; color: var(--mist); }
+
+  .concept-flag { background: var(--ink); color: var(--paper); font-family: var(--font-mono);
+                  font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; text-align: center;
+                  padding: 6px; opacity: 0.92; }
+</style>
+
+<div class="uw">
+  <div class="concept-flag">Design concept · proposed /underwriter page · not the live site</div>
+  <div class="topbar"></div>
+
+  <!-- nav -->
+  <nav class="nav">
+    <div class="nav-row">
+      <div class="brand">
+        <span class="mark"><span>▥</span></span>
+        <span>
+          <span class="name">Stoa</span>
+          <span class="tag">AI risk OS &amp; insurance brokerage</span>
+        </span>
+      </div>
+      <div class="nav-links">
+        <a href="#">Solutions</a>
+        <a href="#" class="active">Underwriter</a>
+        <a href="#">Blog</a>
+        <a href="#">Contact</a>
+        <a href="#" class="btn btn-primary" style="margin-left:8px;padding:10px 18px;">Try Stoa</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- hero -->
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Solutions · Stoa Agentic Risk Underwriter</p>
+      <h1>The evidence becomes a submission your broker can <span class="serif-italic">actually place.</span></h1>
+      <p class="hero-sub">
+        The Underwriting Engine turns your Stoa scan and stress-test evidence into a carrier-ready
+        packet — every answer pre-filled, and every answer carrying the exact source it came from.
+        It is the <em>Assurance</em> step of the scan pipeline: the point where findings become an
+        application an underwriter can price.
+      </p>
+      <nav class="pipe" aria-label="Scan pipeline">
+        <span class="step">Scan</span><span class="arrow">→</span>
+        <span class="step">Registry</span><span class="arrow">→</span>
+        <span class="step">Graph</span><span class="arrow">→</span>
+        <span class="step">Stress test</span><span class="arrow">→</span>
+        <span class="step on" aria-current="step">Assurance</span>
+      </nav>
+    </div>
+  </header>
+
+  <!-- how it works -->
+  <section class="section">
+    <div class="uw-inner">
+      <div class="section-head">
+        <p class="eyebrow">How it works</p>
+        <h2>Read the evidence in. Hand a signed packet out.</h2>
+        <p>No re-keying a 60-question application by hand. The engine maps one canonical submission
+           to each carrier's format, and flags exactly what it cannot verify for you.</p>
+      </div>
+      <div class="steps">
+        <div class="step-card">
+          <div class="k">01</div>
+          <h3>Evidence in</h3>
+          <p>Your scan registry and stress-test results become one canonical submission — capabilities,
+             autonomy, data access, simulated performance.</p>
+        </div>
+        <div class="step-card">
+          <div class="k">02</div>
+          <h3>Mapped to carriers</h3>
+          <p>Declarative templates render posture-style and performance-style questionnaires. Adding a
+             new carrier is one config file, not new code.</p>
+        </div>
+        <div class="step-card">
+          <div class="k">03</div>
+          <h3>Signed packet out</h3>
+          <p>Clean PDFs plus a performance workbook, a gap list of what still needs your attestation,
+             and a hashed audit manifest.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SIGNATURE: evidence-backed answers -->
+  <section class="evidence">
+    <div class="uw-inner">
+      <div class="ev-top">
+        <div>
+          <p class="eyebrow">Every answer, sourced</p>
+          <h2>Pre-filled — with the receipt attached to each line.</h2>
+        </div>
+        <p class="ev-note">Absence of evidence is recorded as <strong>Unknown</strong>, never as a &ldquo;no&rdquo;.</p>
+      </div>
+
+      <div class="seg" role="tablist" aria-label="Questionnaire style">
+        <button role="tab" id="tab-posture" aria-selected="true" aria-controls="answers">Posture questionnaire</button>
+        <button role="tab" id="tab-perf" aria-selected="false" aria-controls="answers">Performance questionnaire</button>
+      </div>
+
+      <div class="answers" id="answers" role="tabpanel" aria-labelledby="tab-posture">
+        <div class="ans-caption" id="ans-caption">Refund Agent · posture · scanned evidence</div>
+        <div id="rows"><!-- rows injected --></div>
+      </div>
+
+      <div class="warn" id="warn">
+        <strong>⚠ CONTRADICTION</strong>
+        <span>A signer declared &ldquo;a human reviews every refund before it is issued&rdquo; — the scan found no approval gate on the refund path. Flagged, not silently filed.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- verified vs attested -->
+  <section class="section tint">
+    <div class="uw-inner">
+      <div class="section-head">
+        <p class="eyebrow">The honest split</p>
+        <h2>What Stoa verified in code, and what only you can attest.</h2>
+        <p>The packet never blurs the two. Your officers sign the human column knowing exactly what
+           they are vouching for; Stoa never attests on your behalf.</p>
+      </div>
+      <div class="split">
+        <div class="split-card">
+          <h3>Code-verified by Stoa scan <span class="count">17</span></h3>
+          <ul>
+            <li><span class="tick g"></span> Refund Agent — underlying model</li>
+            <li><span class="tick g"></span> Refund Agent — sensitive data accessed (PII, payment)</li>
+            <li><span class="tick g"></span> Refund Agent — autonomous actions</li>
+            <li><span class="tick g"></span> Refund Agent — input/output logging</li>
+            <li><span class="tick g"></span> Support Copilot — takes no account actions</li>
+          </ul>
+        </div>
+        <div class="split-card">
+          <h3>Requires your attestation <span class="count">5</span></h3>
+          <ul>
+            <li><span class="tick u"></span> Refund Agent — governance framework alignment <span class="muted">(unknown)</span></li>
+            <li><span class="tick p"></span> Support Copilot — human review (declared N/A)</li>
+            <li><span class="tick p"></span> Support Copilot — NIST AI RMF alignment</li>
+            <li><span class="tick u"></span> Largest contract value</li>
+            <li><span class="tick u"></span> Two-year projections sign-off</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- output -->
+  <section class="section">
+    <div class="uw-inner">
+      <div class="section-head">
+        <p class="eyebrow">What you hand your broker</p>
+        <h2>A packet, not a spreadsheet dump.</h2>
+        <p>Rendered as original Stoa documents — informed by industry formats, never a reproduction
+           of any insurer's form.</p>
+      </div>
+      <div class="files">
+        <div class="file">
+          <div class="ft">PDF</div>
+          <div class="fn">packet_posture.pdf</div>
+          <div class="fd">Cover, per-agent underwriter narrative, sourced answers, sign-off page.</div>
+        </div>
+        <div class="file">
+          <div class="ft">PDF</div>
+          <div class="fn">packet_performance.pdf</div>
+          <div class="fd">Quantitative model evidence, error definitions and thresholds.</div>
+        </div>
+        <div class="file">
+          <div class="ft">XLSX</div>
+          <div class="fn">performance_data.xlsx</div>
+          <div class="fd">Performance data · covered models · aggregates. Simulated, labeled as such.</div>
+        </div>
+        <div class="file">
+          <div class="ft">Manifest</div>
+          <div class="fn">manifest.json</div>
+          <div class="fd">SHA-256 of every output plus the registry scan hash — a tamper-evident trail.</div>
+        </div>
+      </div>
+      <p class="audit">Audit anchor · registry_scan_hash sha256:9f2c1a7b4e0d…08192 · every figure traces back to a specific scan.</p>
+
+      <div class="section-head" style="margin-top:56px;">
+        <p class="eyebrow">Nothing hidden</p>
+        <h2>The gaps come with the packet.</h2>
+        <p>Required fields the engine can't resolve are surfaced, not omitted — each with an owner.</p>
+      </div>
+      <div class="gaps">
+        <table>
+          <thead>
+            <tr><th>Template</th><th>Field</th><th>Owner</th><th>What's needed</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>posture</td><td>system.frameworks [refund-agent]</td><td><span class="owner scan">scan</span></td><td>No governance-framework alignment observed in scan.</td></tr>
+            <tr><td>posture</td><td>contracts.largest_value</td><td><span class="owner human">human</span></td><td>Confirm largest contract value against signed master agreements.</td></tr>
+            <tr><td>performance</td><td>general.projections</td><td><span class="owner human">human</span></td><td>Two-year projection figures require officer sign-off.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="trust">
+        <p class="eyebrow">The underwriting contract</p>
+        <ul>
+          <li><b>Provenance on every line.</b> Each answer keeps its source ref, confidence, and scan hash.</li>
+          <li><b>Unknown is never a &ldquo;no&rdquo;.</b> Missing evidence is labeled, so nobody over-claims a posture that wasn't observed.</li>
+          <li><b>Your officers sign.</b> Stoa reports evidence and its confidence; it does not attest for you or submit anything anywhere.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta">
+    <div class="uw-inner">
+      <h2>Turn your next scan into a submission.</h2>
+      <a href="#" class="btn btn-paper">Talk to the team</a>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="uw-inner">
+      <span>© 2026 Stoa · Not insurance advice</span>
+      <span>Concept mock — stoa.insure design system</span>
+    </div>
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var ROWS = {
+      posture: {
+        caption: "Refund Agent · posture · scanned evidence",
+        warn: true,
+        rows: [
+          ["Underlying model", "GPT-4o (hosted)", "src/agents/refund.py:L12", "confirmed", "Confirmed"],
+          ["Human-in-the-loop review before a refund", "Not confirmed", "src/agents/refund.py:L41 · scan:AI003-approval-absence", "contradicted", "Contradicted"],
+          ["Sensitive data accessed", "PII, payment", "src/agents/refund.py:L34 · src/db/customers.py:L88", "confirmed", "Confirmed"],
+          ["Takes autonomous (agentic) actions", "Yes", "src/agents/refund.py:L41-L52", "confirmed", "Confirmed"],
+          ["Governance framework alignment", "Unknown", "no evidence observed", "unknown", "Unknown"],
+          ["Inputs and outputs are logged", "Confirmed", "config/logging.yaml:L4", "confirmed", "Confirmed"]
+        ]
+      },
+      perf: {
+        caption: "Refund Agent · performance · simulated pre-deployment evidence",
+        warn: false,
+        rows: [
+          ["Evaluated runs", "40", "sim:refund-suite", "sim", "Simulated"],
+          ["Observed error rate", "5.0%  (95% CI 0.0–11.8%)", "sim:refund-suite", "sim", "Simulated"],
+          ["Covered-model error definition", "“refund deviates from policy-entitled amount by > $25”", "onboarding:covered-model", "attested", "Attested"],
+          ["Unexpected-error threshold", "error_rate > 0.11 over any rolling 500 outputs", "policy:refund-recon", "confirmed", "Confirmed"],
+          ["Total loss proxy", "$8,820  (proxy, not incurred)", "sim:refund-suite", "sim", "Simulated"]
+        ]
+      }
+    };
+    var BADGE = { confirmed: "b-confirmed", contradicted: "b-contradicted", attested: "b-attested", unknown: "b-unknown", sim: "b-sim" };
+
+    var rowsEl = document.getElementById("rows");
+    var capEl = document.getElementById("ans-caption");
+    var warnEl = document.getElementById("warn");
+    var tabPosture = document.getElementById("tab-posture");
+    var tabPerf = document.getElementById("tab-perf");
+
+    function esc(s){ return String(s).replace(/[&<>]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; }); }
+
+    function render(key) {
+      var data = ROWS[key];
+      capEl.textContent = data.caption;
+      warnEl.style.display = data.warn ? "flex" : "none";
+      rowsEl.innerHTML = data.rows.map(function (r) {
+        return '<div class="row">' +
+          '<div class="label">' + esc(r[0]) + '</div>' +
+          '<div class="value">' + esc(r[1]) + '<span class="evref">' + esc(r[2]) + '</span></div>' +
+          '<span class="badge ' + BADGE[r[3]] + '">' + esc(r[4]) + '</span>' +
+          '</div>';
+      }).join("");
+    }
+
+    function select(key) {
+      var isP = key === "posture";
+      tabPosture.setAttribute("aria-selected", isP ? "true" : "false");
+      tabPerf.setAttribute("aria-selected", isP ? "false" : "true");
+      render(key);
+    }
+
+    tabPosture.addEventListener("click", function () { select("posture"); });
+    tabPerf.addEventListener("click", function () { select("perf"); });
+    render("posture");
+  })();
+</script>

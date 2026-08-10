@@ -1,4 +1,10 @@
 {
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/agent-risk", "destination": "/" }
+  ],
+  "redirects": [
+    { "source": "/red", "destination": "https://stoa-red.dev", "permanent": false }
+  ]
 }

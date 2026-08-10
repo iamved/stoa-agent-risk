@@ -1,0 +1,286 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stoa.insure/schema/submission.schema.json",
+  "title": "Stoa Underwriting Submission",
+  "description": "Canonical submission document consumed by stoa-engine. Every posture answer carries an evidence quadruple {value, evidence, confidence, scan_hash}; absence of evidence is always 'unknown', never a 'no'.",
+  "type": "object",
+  "required": ["meta", "business_context", "systems"],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "extractor_version", "registry_scan_hash"],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": { "type": "string" },
+        "generated_at": { "type": "string" },
+        "extractor_version": { "type": "string" },
+        "registry_scan_hash": { "type": "string" },
+        "sample_data": { "type": "boolean", "default": false }
+      }
+    },
+    "business_context": {
+      "type": "object",
+      "required": ["company"],
+      "additionalProperties": false,
+      "properties": {
+        "company": {
+          "type": "object",
+          "required": ["name"],
+          "additionalProperties": false,
+          "properties": {
+            "name": { "type": "string" },
+            "website": { "type": "string" },
+            "employees": { "type": "integer" },
+            "industry": { "type": "string" },
+            "naics": { "type": "string" },
+            "annual_revenue_usd": { "type": "number" },
+            "gross_profit_usd": { "type": "number" },
+            "description": { "type": "string" }
+          }
+        },
+        "loss_history": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["date", "description", "status"],
+            "additionalProperties": false,
+            "properties": {
+              "date": { "type": "string" },
+              "description": { "type": "string" },
+              "status": { "type": "string" }
+            }
+          }
+        },
+        "contracts": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "avg_value_usd": { "type": "number" },
+            "largest_value_usd": { "type": "number" },
+            "pct_standard_terms": { "type": "number" },
+            "liability_cap": {
+              "type": "object",
+              "required": ["type"],
+              "additionalProperties": false,
+              "properties": {
+                "type": { "enum": ["fee_pct", "contract_pct", "fixed", "none"] },
+                "value": { "type": ["number", "null"] }
+              }
+            },
+            "provisions": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "limitation_of_liability",
+                  "indemnity",
+                  "arbitration",
+                  "warranty_disclaimer",
+                  "consequential_damages_exclusion",
+                  "ai_output_disclaimer"
+                ]
+              }
+            },
+            "legal_counsel_reviews": { "type": "boolean" }
+          }
+        },
+        "other_policies": { "type": "array", "items": { "type": "string" } },
+        "projections": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "users": { "type": "integer" },
+              "outputs": { "type": "integer" },
+              "revenue_usd": { "type": "number" }
+            }
+          }
+        },
+        "governance_owners": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "title"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string" },
+              "title": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "systems": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/system" }
+    },
+    "coverage_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "heads": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "output_error",
+              "ip_or_personal_injury",
+              "data_disclosure",
+              "bodily_injury",
+              "property_damage",
+              "regulatory"
+            ]
+          }
+        },
+        "limit_usd": { "type": "number" },
+        "rationale": { "type": "string" }
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["template", "field_id", "description", "owner"],
+        "additionalProperties": false,
+        "properties": {
+          "template": { "type": "string" },
+          "field_id": { "type": "string" },
+          "description": { "type": "string" },
+          "owner": { "enum": ["human", "scan", "simulator"] }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "evidencedValue": {
+      "type": "object",
+      "description": "The evidence quadruple. 'attested' = human-declared, no code verification.",
+      "required": ["confidence"],
+      "additionalProperties": false,
+      "properties": {
+        "value": {},
+        "evidence": { "type": "array", "items": { "type": "string" } },
+        "confidence": {
+          "enum": ["confirmed", "not_confirmed", "unknown", "contradicted", "attested"]
+        },
+        "scan_hash": { "type": ["string", "null"] }
+      }
+    },
+    "system": {
+      "type": "object",
+      "required": ["agent_id", "display_name", "description", "posture"],
+      "additionalProperties": false,
+      "properties": {
+        "agent_id": { "type": "string" },
+        "display_name": { "type": "string" },
+        "description": { "type": "string" },
+        "posture": {
+          "type": "object",
+          "required": [
+            "model", "business_activities", "fine_tuned", "data_types",
+            "sensitive_data", "output_types", "audience", "io_logging",
+            "hitl", "agentic_actions", "frameworks", "guardrails_intact"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "model": { "$ref": "#/$defs/evidencedValue" },
+            "business_activities": { "$ref": "#/$defs/evidencedValue" },
+            "fine_tuned": { "$ref": "#/$defs/evidencedValue" },
+            "data_types": { "$ref": "#/$defs/evidencedValue" },
+            "sensitive_data": { "$ref": "#/$defs/evidencedValue" },
+            "output_types": { "$ref": "#/$defs/evidencedValue" },
+            "audience": { "$ref": "#/$defs/evidencedValue" },
+            "io_logging": { "$ref": "#/$defs/evidencedValue" },
+            "hitl": { "$ref": "#/$defs/evidencedValue" },
+            "agentic_actions": { "$ref": "#/$defs/evidencedValue" },
+            "frameworks": { "$ref": "#/$defs/evidencedValue" },
+            "guardrails_intact": { "$ref": "#/$defs/evidencedValue" }
+          }
+        },
+        "attestations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["claim_id", "claim_text", "declared", "status"],
+            "additionalProperties": false,
+            "properties": {
+              "claim_id": { "type": "string" },
+              "claim_text": { "type": "string" },
+              "declared": { "type": "boolean" },
+              "observed": { "type": ["boolean", "null"] },
+              "status": { "enum": ["verified", "contradicted", "unverifiable"] }
+            }
+          }
+        },
+        "performance": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "runs": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["ts", "scenario_id", "scenario_class", "expected", "actual", "pass", "severity"],
+                "additionalProperties": false,
+                "properties": {
+                  "ts": { "type": "string" },
+                  "scenario_id": { "type": "string" },
+                  "scenario_class": { "type": "string" },
+                  "expected": { "type": "string" },
+                  "actual": { "type": "string" },
+                  "pass": { "type": "boolean" },
+                  "severity": {
+                    "enum": [
+                      "output_error", "ip_infringement", "data_disclosure",
+                      "bodily_injury", "property_damage", "regulatory", "none"
+                    ]
+                  },
+                  "loss_proxy_usd": { "type": "number", "default": 0 }
+                }
+              }
+            },
+            "aggregates": {
+              "type": "object",
+              "required": ["n_runs", "error_rate", "ci_95"],
+              "additionalProperties": false,
+              "properties": {
+                "n_runs": { "type": "integer" },
+                "error_rate": { "type": "number" },
+                "ci_95": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+                "severity_counts": { "type": "object", "additionalProperties": { "type": "integer" } },
+                "total_loss_proxy_usd": { "type": "number" },
+                "robustness": {
+                  "type": "object",
+                  "required": ["n_tests", "passed", "pass_rate"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "n_tests": { "type": "integer" },
+                    "passed": { "type": "integer" },
+                    "pass_rate": { "type": "number" }
+                  }
+                }
+              }
+            },
+            "covered_model_draft": {
+              "type": "object",
+              "required": [
+                "covered_model", "function_scope", "error_definition",
+                "ground_truth_source", "unexpected_error_threshold", "proposed_error_limit_usd"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "covered_model": { "type": "string" },
+                "function_scope": { "type": "string" },
+                "error_definition": { "type": "string" },
+                "ground_truth_source": { "type": "string" },
+                "unexpected_error_threshold": { "type": "string" },
+                "proposed_error_limit_usd": { "type": "number" }
+              }
+            },
+            "evidence_class": { "enum": ["simulated", "observed"], "default": "simulated" }
+          }
+        }
+      }
+    }
+  }
+}

@@ -189,7 +189,11 @@ def sidebar(active: str) -> str:
             if slug.startswith("/"):  # absolute link (case study, report)
                 parts.append(f'<a class="nav-link" href="{slug}">{html.escape(label)}</a>')
                 continue
-            href = "/" if slug == "" else f"/docs/{slug}"
+            # The overview lives at this site's root, but "/" means the
+            # stoa.insure home page when these docs are served there, which
+            # ejects the reader out of the docs. /agent-risk reaches the
+            # overview in both places (a rewrite maps it here off-domain).
+            href = "/agent-risk" if slug == "" else f"/docs/{slug}"
             cls = "nav-link active" if slug == active else "nav-link"
             parts.append(f'<a class="{cls}" href="{href}">{html.escape(label)}</a>')
     parts.append("</nav>")
@@ -206,11 +210,30 @@ def toc_html(toc: list) -> str:
     return f'<aside class="toc"><div class="toc-title">On this page</div>{items}</aside>'
 
 
+# The stoa.insure portico, inlined so the bar costs no extra request. The
+# pediment and stylobate take the brass accent and the columns take the
+# surrounding text colour, so the mark survives the dark theme — the flat navy
+# of the original asset would vanish into a dark ground.
+MARK = (
+    '<svg class="mark" viewBox="0 0 64 64" fill="none" aria-hidden="true" focusable="false">'
+    '<path d="M32 5L60 20.5H4L32 5Z" fill="var(--accent)"/>'
+    '<rect x="8" y="23.5" width="48" height="5" rx="1.5" fill="currentColor"/>'
+    '<rect x="10" y="32" width="6" height="19" rx="1.5" fill="currentColor"/>'
+    '<rect x="22.7" y="32" width="6" height="19" rx="1.5" fill="currentColor"/>'
+    '<rect x="35.3" y="32" width="6" height="19" rx="1.5" fill="currentColor"/>'
+    '<rect x="48" y="32" width="6" height="19" rx="1.5" fill="currentColor"/>'
+    '<rect x="10" y="54" width="44" height="4" rx="1.5" fill="currentColor"/>'
+    '<rect x="6" y="60" width="52" height="4" rx="1.5" fill="var(--accent)"/>'
+    "</svg>"
+)
+
+
 def page(title: str, active: str, body_html: str, toc: list, description: str) -> str:
     return SHELL.format(
         title=html.escape(title), description=html.escape(description),
-        marcellus=FONTS["Marcellus-400"], mono400=FONTS["IBM Plex Mono-400"],
-        mono500=FONTS["IBM Plex Mono-500"], sidebar=sidebar(active),
+        serif=FONTS["Instrument Serif-400"], sans400=FONTS["Public Sans-400"],
+        sans600=FONTS["Public Sans-600"], mono400=FONTS["IBM Plex Mono-400"],
+        mono500=FONTS["IBM Plex Mono-500"], sidebar=sidebar(active), mark=MARK,
         content=body_html, toc=toc_html(toc),
     )
 
@@ -224,41 +247,54 @@ SHELL = """<!DOCTYPE html>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#127963;</text></svg>">
 <title>{title} — Stoa docs</title>
 <style>
-@font-face{{font-family:Marcellus;font-weight:400;font-display:swap;src:url(data:font/woff2;base64,{marcellus}) format("woff2")}}
+@font-face{{font-family:"Instrument Serif";font-weight:400;font-display:swap;src:url(data:font/woff2;base64,{serif}) format("woff2")}}
+@font-face{{font-family:"Public Sans";font-weight:400;font-display:swap;src:url(data:font/woff2;base64,{sans400}) format("woff2")}}
+@font-face{{font-family:"Public Sans";font-weight:600;font-display:swap;src:url(data:font/woff2;base64,{sans600}) format("woff2")}}
 @font-face{{font-family:"Plex Mono";font-weight:400;font-display:swap;src:url(data:font/woff2;base64,{mono400}) format("woff2")}}
 @font-face{{font-family:"Plex Mono";font-weight:500;font-display:swap;src:url(data:font/woff2;base64,{mono500}) format("woff2")}}
-:root{{--bg:#F2F3EF;--raise:#FAFBF8;--ink:#22282A;--mute:#5B6662;--line:#DBE0DA;--accent:#2F7A6C;--accent-soft:#2F7A6C1a;--code-bg:#14191B;--code-ink:#D6DDD8;color-scheme:light}}
-@media(prefers-color-scheme:dark){{:root{{--bg:#131719;--raise:#1A2023;--ink:#E0E6E1;--mute:#91A099;--line:#29322F;--accent:#64B3A1;--accent-soft:#64B3A126;--code-bg:#0E1214;--code-ink:#D6DDD8;color-scheme:dark}}}}
-:root[data-theme=light]{{--bg:#F2F3EF;--raise:#FAFBF8;--ink:#22282A;--mute:#5B6662;--line:#DBE0DA;--accent:#2F7A6C;--accent-soft:#2F7A6C1a;--code-bg:#14191B;--code-ink:#D6DDD8;color-scheme:light}}
-:root[data-theme=dark]{{--bg:#131719;--raise:#1A2023;--ink:#E0E6E1;--mute:#91A099;--line:#29322F;--accent:#64B3A1;--accent-soft:#64B3A126;--code-bg:#0E1214;--code-ink:#D6DDD8;color-scheme:dark}}
+/* Palette and faces are stoa.insure's — warm paper, navy ink, brass accent.
+   These docs are served inside that site at stoa.insure/agent-risk, so a
+   visitor crossing over should not feel handed to another company. */
+:root{{--bg:#FAF9F5;--raise:#FFFFFF;--ink:#182A3E;--mute:#6E7F90;--line:#DCD9CF;--accent:#B98A2F;--accent-soft:#B98A2F1a;--code-bg:#16273A;--code-ink:#DFE4EA;color-scheme:light}}
+@media(prefers-color-scheme:dark){{:root{{--bg:#131B24;--raise:#1B2531;--ink:#ECE9E1;--mute:#93A3B3;--line:#27333F;--accent:#D7AC57;--accent-soft:#D7AC5726;--code-bg:#0E151D;--code-ink:#DFE4EA;color-scheme:dark}}}}
+:root[data-theme=light]{{--bg:#FAF9F5;--raise:#FFFFFF;--ink:#182A3E;--mute:#6E7F90;--line:#DCD9CF;--accent:#B98A2F;--accent-soft:#B98A2F1a;--code-bg:#16273A;--code-ink:#DFE4EA;color-scheme:light}}
+:root[data-theme=dark]{{--bg:#131B24;--raise:#1B2531;--ink:#ECE9E1;--mute:#93A3B3;--line:#27333F;--accent:#D7AC57;--accent-soft:#D7AC5726;--code-bg:#0E151D;--code-ink:#DFE4EA;color-scheme:dark}}
 *{{box-sizing:border-box}}
-body{{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}}
+body{{margin:0;background:var(--bg);color:var(--ink);font-family:"Public Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}}
 a{{color:var(--accent);text-decoration:none}}
 a:hover{{text-decoration:underline}}
-.topbar{{position:sticky;top:0;z-index:20;height:56px;display:flex;align-items:center;gap:16px;padding:0 20px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}}
-.brand{{font-family:Marcellus,Georgia,serif;font-size:20px;font-weight:400;display:flex;align-items:center;gap:8px}}
+/* The stoa.insure signature rule, so the first 3px of the page match. */
+.chrome{{position:sticky;top:0;z-index:20}}
+.stoa-rule{{height:3px;background:linear-gradient(90deg,#B98A2F 0%,#B98A2F 35%,#182A3E 100%)}}
+.topbar{{height:60px;display:flex;align-items:center;gap:14px;padding:0 20px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}}
+.brand{{color:var(--ink);display:flex;align-items:center;gap:10px;white-space:nowrap}}
+.brand:hover{{text-decoration:none}}
+.brand .mark{{width:30px;height:30px;flex:none;display:block}}
+.brand .word{{font-family:"Instrument Serif",Georgia,serif;font-size:26px;font-weight:400;line-height:1;letter-spacing:.01em}}
 .brand .tag{{font-family:"Plex Mono",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);border:1px solid var(--line);border-radius:6px;padding:2px 6px}}
 .topbar .spacer{{flex:1}}
-.topbar .tlink{{font-size:13.5px;color:var(--mute)}}
-.topbar .tlink:hover{{color:var(--ink);text-decoration:none}}
-.theme-btn{{background:none;border:1px solid var(--line);border-radius:8px;color:var(--mute);cursor:pointer;font-size:14px;padding:5px 9px;line-height:1}}
+.topbar .tlink{{font-family:"Plex Mono",monospace;font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:color-mix(in srgb,var(--ink) 80%,transparent)}}
+.topbar .tlink:hover{{color:var(--accent);text-decoration:none}}
+.topbar .tcta{{font-size:13px;font-weight:500;padding:8px 18px;border:1px solid var(--ink);background:var(--ink);color:var(--bg);white-space:nowrap}}
+.topbar .tcta:hover{{text-decoration:none;color:var(--bg)}}
+.theme-btn{{background:none;border:1px solid var(--line);border-radius:999px;color:var(--mute);cursor:pointer;font-size:14px;width:30px;height:30px;flex:none;padding:0;line-height:1}}
 .menu-btn{{display:none;background:none;border:1px solid var(--line);border-radius:8px;color:var(--ink);cursor:pointer;padding:5px 9px}}
 .layout{{display:grid;grid-template-columns:250px minmax(0,1fr) 200px;gap:0;max-width:1320px;margin:0 auto}}
-.sidebar{{position:sticky;top:56px;align-self:start;height:calc(100vh - 56px);overflow-y:auto;padding:22px 14px 40px;border-right:1px solid var(--line)}}
+.sidebar{{position:sticky;top:63px;align-self:start;height:calc(100vh - 63px);overflow-y:auto;padding:22px 14px 40px;border-right:1px solid var(--line)}}
 .nav-section{{font-family:"Plex Mono",monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin:18px 10px 6px}}
 .nav-section:first-child{{margin-top:0}}
 .nav-link{{display:block;padding:5px 10px;border-radius:7px;color:var(--mute);font-size:13.5px}}
 .nav-link:hover{{background:var(--accent-soft);color:var(--ink);text-decoration:none}}
 .nav-link.active{{background:var(--accent-soft);color:var(--accent);font-weight:600}}
 main{{padding:34px 44px 80px;min-width:0;max-width:800px}}
-.toc{{position:sticky;top:56px;align-self:start;height:calc(100vh - 56px);overflow-y:auto;padding:34px 16px;font-size:12.5px}}
+.toc{{position:sticky;top:63px;align-self:start;height:calc(100vh - 63px);overflow-y:auto;padding:34px 16px;font-size:12.5px}}
 .toc-title{{font-family:"Plex Mono",monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-bottom:8px}}
 .toc a{{display:block;color:var(--mute);padding:3px 0}}
 .toc a:hover{{color:var(--ink);text-decoration:none}}
 .toc a.toc-l3{{padding-left:12px;font-size:12px}}
-main h1{{font-family:Marcellus,Georgia,serif;font-weight:400;font-size:34px;line-height:1.15;margin:0 0 8px}}
-main h2{{font-size:22px;margin:38px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}}
-main h3{{font-size:17px;margin:26px 0 8px}}
+main h1{{font-family:"Instrument Serif",Georgia,serif;font-weight:400;font-size:36px;line-height:1.15;margin:0 0 8px}}
+main h2{{font-family:"Instrument Serif",Georgia,serif;font-weight:400;font-size:25px;margin:38px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}}
+main h3{{font-family:"Instrument Serif",Georgia,serif;font-weight:400;font-size:19px;margin:26px 0 8px}}
 main p{{margin:0 0 14px}}
 main ul{{margin:0 0 14px;padding-left:22px}}
 main li{{margin:4px 0}}
@@ -275,18 +311,23 @@ hr{{border:none;border-top:1px solid var(--line);margin:26px 0}}
 .pagenav{{display:flex;justify-content:space-between;gap:12px;margin-top:44px;padding-top:20px;border-top:1px solid var(--line)}}
 .pagenav a{{font-size:13.5px}}
 @media(max-width:1080px){{.layout{{grid-template-columns:250px minmax(0,1fr)}}.toc{{display:none}}}}
-@media(max-width:800px){{.layout{{grid-template-columns:1fr}}.menu-btn{{display:block}}.sidebar{{display:none;position:fixed;top:56px;left:0;right:0;bottom:0;height:auto;width:100%;background:var(--bg);z-index:15}}.sidebar.open{{display:block}}main{{padding:24px 20px 60px}}}}
+@media(max-width:800px){{.layout{{grid-template-columns:1fr}}.menu-btn{{display:block}}.sidebar{{display:none;position:fixed;top:63px;left:0;right:0;bottom:0;height:auto;width:100%;background:var(--bg);z-index:15}}.sidebar.open{{display:block}}main{{padding:24px 20px 60px}}}}
 </style>
 </head>
 <body>
+<div class="chrome">
+<div class="stoa-rule" aria-hidden="true"></div>
 <header class="topbar">
   <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')" aria-label="Menu">☰</button>
-  <a class="brand" href="/">🏛️ Stoa <span class="tag">docs</span></a>
+  <a class="brand" href="/agent-risk">{mark}<span class="word">Stoa</span> <span class="tag">Risk OS</span></a>
   <span class="spacer"></span>
-  <a class="tlink" href="/">Home</a>
+  <a class="tlink" href="/agent-risk">Overview</a>
+  <a class="tlink" href="/red">Red</a>
   <a class="tlink" href="https://pypi.org/project/stoa-agent-risk/">PyPI</a>
+  <a class="tcta" href="https://stoa.insure/assess">Try Stoa</a>
   <button class="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">◐</button>
 </header>
+</div>
 <div class="layout">
 {sidebar}
 <main>
