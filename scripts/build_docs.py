@@ -59,6 +59,7 @@ NAV = [
         ("CLI", "cli"),
         ("Configuration", "configuration"),
         ("JSON schema", "schema"),
+        ("PyPI package", "https://pypi.org/project/stoa-agent-risk/"),
     ]),
     ("More", [
         ("Case study", "/case-study"),
@@ -186,7 +187,7 @@ def sidebar(active: str) -> str:
     for section, items in NAV:
         parts.append(f'<div class="nav-section">{html.escape(section)}</div>')
         for label, slug in items:
-            if slug.startswith("/"):  # absolute link (case study, report)
+            if slug.startswith(("/", "http")):  # absolute link (case study, report, PyPI)
                 parts.append(f'<a class="nav-link" href="{slug}">{html.escape(label)}</a>')
                 continue
             # The overview lives at this site's root, but "/" means the
@@ -319,11 +320,9 @@ hr{{border:none;border-top:1px solid var(--line);margin:26px 0}}
 <div class="stoa-rule" aria-hidden="true"></div>
 <header class="topbar">
   <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')" aria-label="Menu">☰</button>
-  <a class="brand" href="/agent-risk">{mark}<span class="word">Stoa</span> <span class="tag">Risk OS</span></a>
+  <a class="brand" href="https://stoa.insure">{mark}<span class="word">Stoa</span> <span class="tag">Risk OS</span></a>
   <span class="spacer"></span>
-  <a class="tlink" href="/agent-risk">Overview</a>
   <a class="tlink" href="/red">Red</a>
-  <a class="tlink" href="https://pypi.org/project/stoa-agent-risk/">PyPI</a>
   <a class="tcta" href="https://stoa.insure/assess">Try Stoa</a>
   <button class="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">◐</button>
 </header>
@@ -906,7 +905,7 @@ def _href(slug: str) -> str:
 def main():
     # flat nav for prev/next, excluding absolute-link items (case study, report)
     flat = [(slug, label) for _, items in NAV for label, slug in items
-            if not slug.startswith("/")]
+            if not slug.startswith(("/", "http"))]
     site_root = REPO / "site"
     for slug, title, content, _toc, desc in PAGES:
         if callable(content):
