@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import json as _json
 from itertools import groupby
 from html import escape
 from pathlib import Path
@@ -21,7 +22,7 @@ from . import __version__
 from .config import StoaConfig
 from .models import SEVERITY_ORDER, AgentCandidate, Finding, ScanResult
 from .report_json import _atomic_write
-from .rules import HIGH_IMPACT_CAPABILITIES, SENSITIVE_INTEGRATIONS
+from .rules import RULES, HIGH_IMPACT_CAPABILITIES, SENSITIVE_INTEGRATIONS
 
 # --- "Download report" button ------------------------------------------
 # The report's CSP has no script-src by default (``default-src 'none'``).
@@ -55,6 +56,25 @@ def _sha256_b64(text: str) -> str:
 
 
 DOWNLOAD_SCRIPT_HASH = _sha256_b64(_DOWNLOAD_JS)
+
+# "Generate underwriting evidence" (Feature 3, DEMO): opens the pre-filled
+# questionnaire embedded as a non-executing JSON blob in a new tab. Fixed
+# content (no repo data), so it is CSP hash-pinned exactly like the download
+# button — the report stays zero-network and script-safe.
+_UNDERWRITING_JS = r"""
+(function () {
+  var btn = document.getElementById("stoa-underwriting-btn");
+  var data = document.getElementById("stoa-uw-data");
+  if (!btn || !data) return;
+  btn.addEventListener("click", function () {
+    var html = JSON.parse(data.textContent);
+    var blob = new Blob([html], {type: "text/html"});
+    window.open(URL.createObjectURL(blob), "_blank");
+  });
+})();
+"""
+
+UNDERWRITING_SCRIPT_HASH = _sha256_b64(_UNDERWRITING_JS)
 
 SEVERITY_RANK_FOR_EXPOSURE = {"critical": 4, "high": 3, "medium": 1, "low": 0, "info": 0}
 
@@ -137,12 +157,13 @@ header.page .inner { max-width: 1100px; margin: 0 auto; position: relative; }
 header.page h1 { margin: 0 0 6px; font-size: 22px; font-weight: 650; }
 header.page p { margin: 2px 0; color: #b8c0cf; font-size: 14px; }
 header.page .headline { color: #f2f4f8; font-size: 15px; margin-top: 8px; }
-.dl-btn { position: absolute; top: 0; right: 0; background: transparent;
+.dl-btn { background: transparent;
   color: #f2f4f8; border: 1px solid #465063; border-radius: 6px;
   padding: 6px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer;
   font-family: inherit; }
 .dl-btn:hover { background: #232936; }
-@media print { .dl-btn { display: none; } }
+.hdr-actions { position: absolute; top: 0; right: 0; display: flex; gap: 8px; }
+@media print { .dl-btn, .hdr-actions { display: none; } }
 h2 { font-size: 17px; margin: 34px 0 10px; }
 section > p.note { color: #5a6272; font-size: 13px; margin: 4px 0 12px; }
 .cards { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
@@ -318,6 +339,43 @@ footer { margin-top: 44px; padding-top: 14px; border-top: 1px solid #e3e6ec;
 .contradiction-card .rule { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas,
   monospace; font-weight: 700; font-size: 13px; color: #b42318; }
 .contradiction-card p { margin: 4px 0; font-size: 13px; }
+
+/* --- crosswalk / explainability (Feature 2) --------------------------- */
+.exec-summary { background: #fff; border: 1px solid #e3e6ec; border-left: 4px solid #2f6fb0;
+  border-radius: 8px; padding: 14px 18px; margin: 6px 0 4px; }
+.exec-summary p { margin: 0 0 8px; font-size: 14px; line-height: 1.55; }
+.exec-summary p:last-child { margin-bottom: 0; }
+.exec-summary .callout { font-weight: 600; color: #1a1d23; }
+.exec-summary .callout .ruleref { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas,
+  monospace; font-size: 12.5px; background: #f1f3f6; border-radius: 4px; padding: 1px 5px; }
+.owasp-strip { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; }
+.owasp-cell { flex: 1 1 150px; min-width: 150px; border: 1px solid #e3e6ec; border-radius: 8px;
+  padding: 8px 10px; background: #fff; }
+.owasp-cell .code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 700; font-size: 12px; }
+.owasp-cell .name { font-size: 11.5px; color: #5a6272; display: block; margin: 1px 0 5px; }
+.owasp-cell .state { font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.03em; border-radius: 10px; padding: 1px 7px; display: inline-block; }
+.owasp-assessed { border-left: 3px solid #b8901a; }
+.owasp-assessed .state { background: #fef7dc; color: #93700b; }
+.owasp-proxy .state { background: #eef2f6; color: #465063; }
+.owasp-partial .state { background: #e8f0fe; color: #1d4ed8; }
+.owasp-notassessed { opacity: 0.72; }
+.owasp-notassessed .state { background: #f1f3f6; color: #7c8aa0; }
+.xwalk-tag { display: inline-block; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas,
+  monospace; font-size: 11px; font-weight: 600; border-radius: 6px; padding: 1px 6px;
+  margin: 1px 2px 1px 0; }
+.xwalk-owasp { background: #eaf1fb; color: #1d4ed8; }
+.xwalk-eu { background: #f0ecfa; color: #5b3a9e; }
+.evchip { display: inline-block; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas,
+  monospace; font-size: 11px; background: #f1f3f6; color: #465063; border-radius: 6px;
+  padding: 1px 6px; margin: 1px 2px 1px 0; }
+.evchip.credit { background: #e8f5ef; color: #14714f; }
+.xwalk-table td { vertical-align: top; }
+.xwalk-table .sowhat { font-size: 12.5px; color: #1a1d23; }
+.nist-rollup { background: #fafbfc; border: 1px solid #e3e6ec; border-radius: 8px;
+  padding: 12px 16px; margin: 12px 0 4px; font-size: 13px; line-height: 1.6; }
+.nist-rollup strong { color: #1a1d23; }
 """
 
 _EXP_GLYPH = {"elevated": "●", "moderate": "◐", "low": "○",
@@ -361,6 +419,26 @@ def render_html(
         else f"{critical} critical finding{'s' if critical != 1 else ''}"
     )
 
+    # Crosswalk / explainability (Feature 2) + underwriting demo (Feature 3).
+    # Loaded up-front so the CSP can declare the underwriting script hash, and
+    # the report document is built once here and reused for graph + demo.
+    crosswalk = None
+    try:
+        from .crosswalk import load_crosswalk
+        crosswalk = load_crosswalk(config.crosswalk_path)
+    except Exception:  # noqa: BLE001 - explainability is additive, never fatal
+        crosswalk = None
+
+    underwriting_html = None
+    if crosswalk is not None:
+        try:
+            from .report_json import build_document
+            from .underwriting import render_underwriting_html
+            report_document = document if document is not None else build_document(result, config)
+            underwriting_html = render_underwriting_html(report_document)
+        except Exception:  # noqa: BLE001 - demo export never breaks the report
+            underwriting_html = None
+
     script_hashes = [f"'sha256-{DOWNLOAD_SCRIPT_HASH}'"]
     cytoscape_version = None
     if not config.no_graph:
@@ -368,6 +446,8 @@ def render_html(
 
         script_hashes.append(csp_script_src())
         cytoscape_version = CYTOSCAPE_VERSION
+    if underwriting_html is not None:
+        script_hashes.append(f"'sha256-{UNDERWRITING_SCRIPT_HASH}'")
     script_src = " script-src " + " ".join(script_hashes) + ";"
     parts.append(
         "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n"
@@ -381,8 +461,12 @@ def render_html(
     )
     parts.append(
         '<header class="page"><div class="inner">'
+        '<div class="hdr-actions">'
         '<button type="button" id="stoa-download-report" class="dl-btn">'
         "Download report</button>"
+        + ('<button type="button" id="stoa-underwriting-btn" class="dl-btn">'
+           "Generate underwriting evidence</button>" if underwriting_html is not None else "")
+        + "</div>"
         "<h1>Stoa Agent Risk Report</h1>"
         f"<p>Repository: <strong>{html_text(result.repository.name)}</strong>"
         + (
@@ -402,7 +486,14 @@ def render_html(
         items = "".join(f"<li>{html_text(w)}</li>" for w in result.warnings)
         parts.append(f'<div class="warn-box"><strong>Scan warnings</strong><ul>{items}</ul></div>')
 
-    # Executive summary stat tiles -----------------------------------------
+    # Crosswalk / explainability sections (Feature 2). `crosswalk` was loaded
+    # up-front (near the CSP); when present the report renders these sections,
+    # otherwise it degrades to exactly the pre-crosswalk output.
+    if crosswalk is not None:
+        parts.append(_exec_summary(result, crosswalk))
+        parts.append(_owasp_strip(result, config, crosswalk))
+
+    # At-a-glance stat tiles -----------------------------------------------
     parts.append("<section><h2>At a glance</h2>")
     if result.diff_available:
         parts.append(
@@ -442,6 +533,13 @@ def render_html(
     # Dimension exposure matrix ---------------------------------------------
     if result.dimension_summary is not None and result.agents:
         parts.append(_dimension_matrix(result))
+        # Framework-stamped view of the same spine (Feature 2).
+        if crosswalk is not None:
+            parts.append(_dimension_framework_table(result, crosswalk))
+
+    # NIST AI RMF roll-up (report level only, never per-rule) ---------------
+    if crosswalk is not None and result.agents:
+        parts.append(_nist_rollup())
 
     # Agent risk map ---------------------------------------------------------
     parts.append("<section><h2>Agent risk map</h2>")
@@ -545,8 +643,21 @@ def render_html(
             f"<a href=\"https://js.cytoscape.org/\">Cytoscape.js</a> {cytoscape_version} "
             "(MIT License, vendored — no network request is made)."
         )
-        + f"</footer>\n</main>\n<script>{_DOWNLOAD_JS}</script>\n</body>\n</html>\n"
+        + "</footer>\n</main>\n"
     )
+    # Underwriting demo (Feature 3): the pre-filled form embedded as a
+    # non-executing JSON blob, opened in a new tab by the hash-pinned script.
+    # Every '<' is escaped to < so the embedded form's own <script>/
+    # </script> (and any repo-derived value) is fully inert inside the data
+    # tag — it cannot close the tag early or be miscounted as executable.
+    # JSON.parse restores the original characters client-side.
+    if underwriting_html is not None:
+        uw_json = _json.dumps(underwriting_html).replace("<", "\\u003c")
+        parts.append(
+            f'<script type="application/json" id="stoa-uw-data">{uw_json}</script>\n'
+            f"<script>{_UNDERWRITING_JS}</script>\n"
+        )
+    parts.append(f"<script>{_DOWNLOAD_JS}</script>\n</body>\n</html>\n")
     return "".join(parts)
 
 
@@ -703,6 +814,248 @@ def _dimension_matrix(result: ScanResult) -> str:
 def _exposure_badge(exp: str) -> str:
     return (f'<span class="{_EXP_CLASS.get(exp, "exp-none")}">'
             f'{_EXP_GLYPH.get(exp, "·")} {html_text(exp)}</span>')
+
+
+# --- crosswalk / explainability layer (Feature 2) ---------------------------
+# All static HTML; no new scripts, so the report's zero-network hash-pinned CSP
+# is untouched. Every function degrades to "" if the crosswalk can't load, so
+# the report renders exactly as before when the annotation layer is absent.
+
+def _fired_rules(result: ScanResult) -> set[str]:
+    return {f.rule_id for f in result.findings if not f.suppressed}
+
+
+def _exec_summary(result: ScanResult, crosswalk) -> str:
+    """A generated 2-3 sentence headline + a 'most important' callout.
+    Deterministic: derived only from the (already deterministic) registry."""
+    agents = result.agents
+    n = len(agents)
+    if n == 0:
+        return ('<section><h2>Executive summary</h2><div class="exec-summary">'
+                "<p>No agent candidates were detected in this scan.</p></div></section>")
+
+    # elevated exposure per dimension, from the summary rollup
+    elevated_dims = []
+    if result.dimension_summary:
+        for d in result.dimension_summary["dimensions"]:
+            if d.get("agents_elevated", 0) > 0:
+                elevated_dims.append((d["name"], d["agents_elevated"]))
+    n_elevated_agents = len({
+        a.id for a in agents
+        if a.dimension_assessment and any(
+            e["exposure"] == "elevated" for e in a.dimension_assessment["dimensions"]
+        )
+    })
+
+    # single highest-impact finding: worst severity, then gate-eligible first
+    active = [f for f in result.findings if not f.suppressed]
+    top = None
+    if active:
+        top = max(active, key=lambda f: (
+            SEVERITY_RANK_FOR_EXPOSURE.get(f.severity, 0), f.gate_eligible,
+            -0,  # stable tiebreak below
+        ))
+        # deterministic tiebreak among equal-severity: path, line, rule
+        worst_rank = SEVERITY_RANK_FOR_EXPOSURE.get(top.severity, 0)
+        peers = [f for f in active
+                 if SEVERITY_RANK_FOR_EXPOSURE.get(f.severity, 0) == worst_rank]
+        peers.sort(key=lambda f: (not f.gate_eligible, f.path, f.line, f.rule_id))
+        top = peers[0]
+
+    s1 = (f"Stoa detected <strong>{n} agent candidate{'s' if n != 1 else ''}</strong> "
+          f"in this repository")
+    if n_elevated_agents:
+        dims_phrase = ", ".join(
+            html_text(name) for name, _ in sorted(elevated_dims, key=lambda x: -x[1])[:3]
+        )
+        s1 += (f", of which <strong>{n_elevated_agents}</strong> carr"
+               f"{'y' if n_elevated_agents != 1 else 'ies'} elevated exposure"
+               + (f" in {dims_phrase}" if dims_phrase else ""))
+    s1 += "."
+
+    parts = ['<section><h2>Executive summary</h2><div class="exec-summary">']
+    parts.append(f"<p>{s1}</p>")
+    if top is not None:
+        entry = crosswalk.entry(top.rule_id)
+        owasp = f" ({html_text(entry.owasp_llm_2025)})" if entry.owasp_llm_2025 else ""
+        parts.append(
+            '<p class="callout">Most important: '
+            f'<span class="ruleref">{html_text(top.rule_id)} · '
+            f'{html_text(top.path)}:{html_text(top.line)}</span>{owasp} — '
+            f"{html_text(entry.so_what)}</p>"
+        )
+    parts.append("</div></section>")
+    return "".join(parts)
+
+
+def _owasp_strip(result: ScanResult, config, crosswalk) -> str:
+    """All 10 OWASP LLM Top 10 (2025) classes, each stamped assessed / proxy /
+    partial / not-assessed. Gaps (classes with no Stoa detector) stay visible —
+    that honesty is required, not optional."""
+    from .crosswalk import OWASP_LLM_2025
+    from .dimensions import load_taxonomy
+
+    # which rules map to each OWASP class, and which of them can Stoa detect
+    class_to_rules: dict[str, list[str]] = {}
+    for rule_id in RULES:
+        code = crosswalk.entry(rule_id).owasp_llm_2025
+        if code:
+            class_to_rules.setdefault(code, []).append(rule_id)
+
+    fired = _fired_rules(result)
+    # proxy dimensions from the taxonomy — a class is "proxy-only" when the
+    # only firing evidence for it lands solely on proxy-tier dimensions.
+    try:
+        tax = load_taxonomy(config.dimensions_taxonomy)
+        proxy_dims = {d.id for d in tax.dimensions if d.assessability == "proxy"}
+    except Exception:  # noqa: BLE001 - strip still renders without tier info
+        proxy_dims = set()
+    fired_dims_by_rule: dict[str, set[str]] = {}
+    for f in result.findings:
+        if not f.suppressed:
+            fired_dims_by_rule.setdefault(f.rule_id, set()).update(f.dimensions)
+
+    def state(code: str) -> tuple[str, str]:
+        rules = class_to_rules.get(code)
+        if not rules:
+            return "not-assessed", "owasp-notassessed"
+        fired_here = [r for r in rules if r in fired]
+        if not fired_here:
+            return "partial", "owasp-partial"
+        dims = set()
+        for r in fired_here:
+            dims |= fired_dims_by_rule.get(r, set())
+        if dims and dims <= proxy_dims:
+            return "proxy", "owasp-proxy"
+        return "assessed", "owasp-assessed"
+
+    cells = []
+    for code, name in OWASP_LLM_2025:
+        label, cls = state(code)
+        cells.append(
+            f'<div class="owasp-cell {cls}"><span class="code">{code}</span>'
+            f'<span class="name">{html_text(name)}</span>'
+            f'<span class="state">{label}</span></div>'
+        )
+    return (
+        '<section><h2>OWASP LLM Top 10 (2025) coverage</h2>'
+        '<p class="note">Which risk classes this scan assessed. '
+        '<strong>not-assessed</strong> classes have no Stoa detector and stay '
+        'visible as honest gaps — never hidden. "assessed" means a mapping rule '
+        'fired; "partial" means Stoa can assess it but found nothing here; '
+        '"proxy" means the only signal is a proxy-tier one (runtime evaluation '
+        f'required).</p><div class="owasp-strip">{"".join(cells)}</div></section>'
+    )
+
+
+def _dimension_framework_table(result: ScanResult, crosswalk) -> str:
+    """Stamps the 8-dimension spine with OWASP + EU AI Act tags, a plain-English
+    'so what', and evidence chips (RULE · file:line) per dimension. Observed
+    controls render as credit chips."""
+    if not result.dimension_summary:
+        return ""
+    summary = result.dimension_summary
+
+    # per-dimension: firing findings, controls, and the union of their
+    # crosswalk tags — computed here from findings + crosswalk directly, so the
+    # report does not depend on the document-level rollup.
+    findings_by_dim: dict[str, list] = {}
+    controls_by_dim: dict[str, set[str]] = {}
+    owasp_by_dim: dict[str, set[str]] = {}
+    eu_by_dim: dict[str, set[str]] = {}
+    for f in result.findings:
+        if f.suppressed:
+            continue
+        entry = crosswalk.entry(f.rule_id)
+        for dim_id in f.dimensions:
+            findings_by_dim.setdefault(dim_id, []).append(f)
+            if entry.owasp_llm_2025:
+                owasp_by_dim.setdefault(dim_id, set()).add(entry.owasp_llm_2025)
+            if entry.eu_ai_act:
+                eu_by_dim.setdefault(dim_id, set()).add(entry.eu_ai_act)
+    for agent in result.agents:
+        if not agent.dimension_assessment:
+            continue
+        for e in agent.dimension_assessment["dimensions"]:
+            if e["controls_observed"]:
+                controls_by_dim.setdefault(e["id"], set()).update(e["controls_observed"])
+
+    def _owasp_key(code: str) -> tuple:
+        return (0, int(code[3:])) if code.startswith("LLM") and code[3:].isdigit() else (1, code)
+
+    rows = []
+    for dim in summary["dimensions"]:
+        did = dim["id"]
+        owasp_tags = "".join(
+            f'<span class="xwalk-tag xwalk-owasp">{html_text(c)}</span>'
+            for c in sorted(owasp_by_dim.get(did, set()), key=_owasp_key)
+        ) or '<span class="note">—</span>'
+        eu_tags = "".join(
+            f'<span class="xwalk-tag xwalk-eu">{html_text(a)}</span>'
+            for a in sorted(eu_by_dim.get(did, set()))
+        ) or '<span class="note">—</span>'
+
+        # plain-English "so what": glosses of the firing rules on this dimension
+        gloss_rules = sorted({f.rule_id for f in findings_by_dim.get(did, [])})
+        glosses = [crosswalk.entry(r).so_what for r in gloss_rules
+                   if crosswalk.entry(r).relation == "exposure"]
+        sowhat = " ".join(dict.fromkeys(glosses)) or "No exposure observed for this dimension."
+
+        # evidence chips: RULE · file:line, plus control-credit chips
+        seen = set()
+        chips = []
+        for f in sorted(findings_by_dim.get(did, []),
+                        key=lambda f: (f.path, f.line, f.rule_id)):
+            key = (f.rule_id, f.path, f.line)
+            if key in seen:
+                continue
+            seen.add(key)
+            chips.append(
+                f'<span class="evchip">{html_text(f.rule_id)} · '
+                f'{html_text(f.path)}:{html_text(f.line)}</span>'
+            )
+        for control in sorted(controls_by_dim.get(did, set())):
+            chips.append(f'<span class="evchip credit">{html_text(control)} observed</span>')
+        evidence = "".join(chips) or '<span class="note">—</span>'
+
+        rows.append(
+            "<tr>"
+            f'<td><strong>{html_text(dim["name"])}</strong><br>'
+            f'<span class="note">{_exposure_badge(dim["max_exposure"])}</span></td>'
+            f"<td>{owasp_tags}</td><td>{eu_tags}</td>"
+            f'<td class="sowhat">{html_text(sowhat)}</td>'
+            f"<td>{evidence}</td>"
+            "</tr>"
+        )
+
+    return (
+        '<section><h2>Dimensions × frameworks</h2>'
+        '<p class="note">The eight-dimension spine, each row stamped with its '
+        'OWASP LLM class and EU AI Act article, a plain-English reading, and the '
+        'exact evidence (rule · file:line). Controls observed render as credit.</p>'
+        '<div class="table-wrap"><table class="xwalk-table"><thead><tr>'
+        "<th>Dimension</th><th>OWASP LLM</th><th>EU AI Act</th>"
+        "<th>What it means</th><th>Evidence</th>"
+        f"</tr></thead><tbody>{''.join(rows)}</tbody></table></div></section>"
+    )
+
+
+def _nist_rollup() -> str:
+    """One report-level NIST AI RMF paragraph — never per-rule tags."""
+    return (
+        '<section><h2>NIST AI RMF alignment</h2>'
+        '<div class="nist-rollup">'
+        "The evidence in this report maps to three NIST AI RMF functions. "
+        "<strong>MAP</strong> — the agent inventory and the dimension matrix "
+        "establish context: what agents exist and where their exposure sits. "
+        "<strong>MEASURE</strong> — the findings and their file:line evidence, "
+        "with OWASP and EU AI Act anchors, quantify and characterize that "
+        "exposure. <strong>MANAGE</strong> — <code>stoa diff</code> gating and "
+        "the assurance export carry that evidence into change control and "
+        "external review. This is an alignment aid, not a certification claim; "
+        "GOVERN is an organizational function outside a static scan's view."
+        "</div></section>"
+    )
 
 
 def _severity_bar(severity_counts: dict[str, int]) -> str:

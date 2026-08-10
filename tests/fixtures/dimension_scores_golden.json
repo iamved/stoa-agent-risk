@@ -1,0 +1,580 @@
+{
+  "examples/sparkwing::agents/mentor_matcher.py::agent": {
+    "boundary-leakage": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "conduct-variability": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "control-coverage-gap": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "dependency-drift": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "injection-tamper-surface": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "mandate-overreach": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "output-fidelity": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "unreviewed-high-impact-action": {
+      "exposure": "none-observed",
+      "score": 0
+    }
+  },
+  "examples/sparkwing::agents/portfolio_certifier.py::agent": {
+    "boundary-leakage": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "conduct-variability": {
+      "exposure": "low",
+      "score": 2
+    },
+    "control-coverage-gap": {
+      "exposure": "low",
+      "score": 1
+    },
+    "dependency-drift": {
+      "exposure": "low",
+      "score": 10
+    },
+    "injection-tamper-surface": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "mandate-overreach": {
+      "exposure": "elevated",
+      "score": 59
+    },
+    "output-fidelity": {
+      "exposure": "moderate",
+      "score": 40
+    },
+    "unreviewed-high-impact-action": {
+      "exposure": "elevated",
+      "score": 59
+    }
+  },
+  "examples/sparkwing::agents/portfolio_certifier.py::executor": {
+    "boundary-leakage": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "conduct-variability": {
+      "exposure": "low",
+      "score": 2
+    },
+    "control-coverage-gap": {
+      "exposure": "low",
+      "score": 1
+    },
+    "dependency-drift": {
+      "exposure": "low",
+      "score": 10
+    },
+    "injection-tamper-surface": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "mandate-overreach": {
+      "exposure": "elevated",
+      "score": 59
+    },
+    "output-fidelity": {
+      "exposure": "moderate",
+      "score": 40
+    },
+    "unreviewed-high-impact-action": {
+      "exposure": "elevated",
+      "score": 59
+    }
+  },
+  "examples/sparkwing::agents/progress_notifier.py::agent": {
+    "boundary-leakage": {
+      "exposure": "moderate",
+      "score": 25
+    },
+    "conduct-variability": {
+      "exposure": "low",
+      "score": 2
+    },
+    "control-coverage-gap": {
+      "exposure": "low",
+      "score": 10
+    },
+    "dependency-drift": {
+      "exposure": "low",
+      "score": 10
+    },
+    "injection-tamper-surface": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "mandate-overreach": {
+      "exposure": "low",
+      "score": 19
+    },
+    "output-fidelity": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "unreviewed-high-impact-action": {
+      "exposure": "low",
+      "score": 19
+    }
+  },
+  "examples/sparkwing::agents/progress_notifier.py::executor": {
+    "boundary-leakage": {
+      "exposure": "moderate",
+      "score": 25
+    },
+    "conduct-variability": {
+      "exposure": "low",
+      "score": 2
+    },
+    "control-coverage-gap": {
+      "exposure": "low",
+      "score": 10
+    },
+    "dependency-drift": {
+      "exposure": "low",
+      "score": 10
+    },
+    "injection-tamper-surface": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "mandate-overreach": {
+      "exposure": "low",
+      "score": 19
+    },
+    "output-fidelity": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "unreviewed-high-impact-action": {
+      "exposure": "low",
+      "score": 19
+    }
+  },
+  "examples/sparkwing::agents/project_sandbox.py::agent": {
+    "boundary-leakage": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "conduct-variability": {
+      "exposure": "low",
+      "score": 2
+    },
+    "control-coverage-gap": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "dependency-drift": {
+      "exposure": "low",
+      "score": 10
+    },
+    "injection-tamper-surface": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "mandate-overreach": {
+      "exposure": "low",
+      "score": 20
+    },
+    "output-fidelity": {
+      "exposure": "low",
+      "score": 20
+    },
+    "unreviewed-high-impact-action": {
+      "exposure": "low",
+      "score": 19
+    }
+  },
+  "examples/sparkwing::agents/project_sandbox.py::executor": {
+    "boundary-leakage": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "conduct-variability": {
+      "exposure": "low",
+      "score": 2
+    },
+    "control-coverage-gap": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "dependency-drift": {
+      "exposure": "low",
+      "score": 10
+    },
+    "injection-tamper-surface": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "mandate-overreach": {
+      "exposure": "low",
+      "score": 20
+    },
+    "output-fidelity": {
+      "exposure": "low",
+      "score": 20
+    },
+    "unreviewed-high-impact-action": {
+      "exposure": "low",
+      "score": 19
+    }
+  },
+  "examples/sparkwing::agents/sector_advisor.py::sector_advisor": {
+    "boundary-leakage": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "conduct-variability": {
+      "exposure": "low",
+      "score": 2
+    },
+    "control-coverage-gap": {
+      "exposure": "low",
+      "score": 1
+    },
+    "dependency-drift": {
+      "exposure": "low",
+      "score": 10
+    },
+    "injection-tamper-surface": {
+      "exposure": "moderate",
+      "score": 25
+    },
+    "mandate-overreach": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "output-fidelity": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "unreviewed-high-impact-action": {
+      "exposure": "none-observed",
+      "score": 0
+    }
+  },
+  "examples/support-desk::agents/account_agent.py::account_agent": {
+    "boundary-leakage": {
+      "exposure": "moderate",
+      "score": 40
+    },
+    "conduct-variability": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "control-coverage-gap": {
+      "exposure": "moderate",
+      "score": 42
+    },
+    "dependency-drift": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "injection-tamper-surface": {
+      "exposure": "low",
+      "score": 1
+    },
+    "mandate-overreach": {
+      "exposure": "moderate",
+      "score": 36
+    },
+    "output-fidelity": {
+      "exposure": "low",
+      "score": 1
+    },
+    "unreviewed-high-impact-action": {
+      "exposure": "moderate",
+      "score": 37
+    }
+  },
+  "examples/support-desk::agents/account_agent.py::crew": {
+    "boundary-leakage": {
+      "exposure": "moderate",
+      "score": 40
+    },
+    "conduct-variability": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "control-coverage-gap": {
+      "exposure": "moderate",
+      "score": 42
+    },
+    "dependency-drift": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "injection-tamper-surface": {
+      "exposure": "low",
+      "score": 1
+    },
+    "mandate-overreach": {
+      "exposure": "moderate",
+      "score": 36
+    },
+    "output-fidelity": {
+      "exposure": "low",
+      "score": 1
+    },
+    "unreviewed-high-impact-action": {
+      "exposure": "moderate",
+      "score": 37
+    }
+  },
+  "examples/support-desk::agents/billing_agent.py::billing_agent": {
+    "boundary-leakage": {
+      "exposure": "elevated",
+      "score": 58
+    },
+    "conduct-variability": {
+      "exposure": "low",
+      "score": 2
+    },
+    "control-coverage-gap": {
+      "exposure": "moderate",
+      "score": 47
+    },
+    "dependency-drift": {
+      "exposure": "low",
+      "score": 10
+    },
+    "injection-tamper-surface": {
+      "exposure": "low",
+      "score": 1
+    },
+    "mandate-overreach": {
+      "exposure": "low",
+      "score": 19
+    },
+    "output-fidelity": {
+      "exposure": "low",
+      "score": 16
+    },
+    "unreviewed-high-impact-action": {
+      "exposure": "low",
+      "score": 19
+    }
+  },
+  "examples/support-desk::agents/billing_agent.py::billing_executor": {
+    "boundary-leakage": {
+      "exposure": "elevated",
+      "score": 58
+    },
+    "conduct-variability": {
+      "exposure": "low",
+      "score": 2
+    },
+    "control-coverage-gap": {
+      "exposure": "moderate",
+      "score": 47
+    },
+    "dependency-drift": {
+      "exposure": "low",
+      "score": 10
+    },
+    "injection-tamper-surface": {
+      "exposure": "low",
+      "score": 1
+    },
+    "mandate-overreach": {
+      "exposure": "low",
+      "score": 19
+    },
+    "output-fidelity": {
+      "exposure": "low",
+      "score": 16
+    },
+    "unreviewed-high-impact-action": {
+      "exposure": "low",
+      "score": 19
+    }
+  },
+  "examples/support-desk::agents/escalation_agent.py::escalation_agent": {
+    "boundary-leakage": {
+      "exposure": "moderate",
+      "score": 43
+    },
+    "conduct-variability": {
+      "exposure": "low",
+      "score": 2
+    },
+    "control-coverage-gap": {
+      "exposure": "low",
+      "score": 8
+    },
+    "dependency-drift": {
+      "exposure": "low",
+      "score": 10
+    },
+    "injection-tamper-surface": {
+      "exposure": "low",
+      "score": 1
+    },
+    "mandate-overreach": {
+      "exposure": "low",
+      "score": 19
+    },
+    "output-fidelity": {
+      "exposure": "low",
+      "score": 1
+    },
+    "unreviewed-high-impact-action": {
+      "exposure": "low",
+      "score": 19
+    }
+  },
+  "examples/support-desk::agents/research_agent.py::research_agent": {
+    "boundary-leakage": {
+      "exposure": "low",
+      "score": 21
+    },
+    "conduct-variability": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "control-coverage-gap": {
+      "exposure": "low",
+      "score": 2
+    },
+    "dependency-drift": {
+      "exposure": "low",
+      "score": 3
+    },
+    "injection-tamper-surface": {
+      "exposure": "low",
+      "score": 19
+    },
+    "mandate-overreach": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "output-fidelity": {
+      "exposure": "low",
+      "score": 1
+    },
+    "unreviewed-high-impact-action": {
+      "exposure": "low",
+      "score": 1
+    }
+  },
+  "examples/support-desk::agents/triage_agent.py::triage_agent": {
+    "boundary-leakage": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "conduct-variability": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "control-coverage-gap": {
+      "exposure": "low",
+      "score": 2
+    },
+    "dependency-drift": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "injection-tamper-surface": {
+      "exposure": "low",
+      "score": 1
+    },
+    "mandate-overreach": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "output-fidelity": {
+      "exposure": "low",
+      "score": 1
+    },
+    "unreviewed-high-impact-action": {
+      "exposure": "low",
+      "score": 1
+    }
+  },
+  "examples/support-desk::orchestrator.py::workflow": {
+    "boundary-leakage": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "conduct-variability": {
+      "exposure": "low",
+      "score": 2
+    },
+    "control-coverage-gap": {
+      "exposure": "low",
+      "score": 2
+    },
+    "dependency-drift": {
+      "exposure": "low",
+      "score": 10
+    },
+    "injection-tamper-surface": {
+      "exposure": "low",
+      "score": 1
+    },
+    "mandate-overreach": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "output-fidelity": {
+      "exposure": "low",
+      "score": 1
+    },
+    "unreviewed-high-impact-action": {
+      "exposure": "low",
+      "score": 1
+    }
+  },
+  "examples/support-desk::web/support_widget.ts::support_widget": {
+    "boundary-leakage": {
+      "exposure": "moderate",
+      "score": 43
+    },
+    "conduct-variability": {
+      "exposure": "low",
+      "score": 2
+    },
+    "control-coverage-gap": {
+      "exposure": "low",
+      "score": 3
+    },
+    "dependency-drift": {
+      "exposure": "low",
+      "score": 10
+    },
+    "injection-tamper-surface": {
+      "exposure": "low",
+      "score": 1
+    },
+    "mandate-overreach": {
+      "exposure": "none-observed",
+      "score": 0
+    },
+    "output-fidelity": {
+      "exposure": "low",
+      "score": 1
+    },
+    "unreviewed-high-impact-action": {
+      "exposure": "low",
+      "score": 1
+    }
+  }
+}

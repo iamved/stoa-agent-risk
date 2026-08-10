@@ -1,0 +1,243 @@
+# Stoa regulatory crosswalk — an ANNOTATION layer, never a scoring input.
+#
+# Maps each rule to ONE primary OWASP LLM Top 10 (2025) risk class and ONE
+# primary EU AI Act article. One job per framework: OWASP = "what kind of
+# risk", EU AI Act = "what obligation". NIST AI RMF is deliberately NOT
+# mapped per-rule — it rolls up once at report level (MAP / MEASURE / MANAGE).
+#
+# Versioned like data/dimensions.toml: any change here bumps `version`, so a
+# mapping change is attributable to a reviewed edit, never a silent shift.
+# Override per-repo via stoa.toml [crosswalk] path = ".stoa/crosswalk.toml".
+#
+# Vocabulary discipline (says/never-says, see docs/dimensions.md): every
+# `so_what` string is plain-English exposure language — no "compliant",
+# "protected", "covered", "mitigated", "safe". A banned-words test enforces it.
+#
+# HONEST BLANKS: a rule with no genuine OWASP LLM risk class carries
+# owasp_llm_2025 = "" — we do not force a weak tag. Classic (non-LLM-specific)
+# weaknesses (hardcoded secrets, interpolated SQL, missing timeouts) are real
+# but are not what the OWASP *LLM* Top 10 enumerates, so they map EU-Act-only.
+
+[crosswalk]
+id = "stoa-crosswalk-1"
+version = "1.0"
+# OWASP Top 10 for LLM Applications, 2025 edition (v2.0, published 2024-11-18
+# by the OWASP GenAI Security Project). Verified against owasp.org.
+owasp_llm_version = "2025"
+eu_ai_act_reference = "Regulation (EU) 2024/1689 (EU AI Act)"
+
+# relation values:
+#   "exposure"         — finding indicates risk exposure (default)
+#   "control-observed" — finding is positive evidence (a control was seen);
+#                        rendered as credit, never as "mitigated"/"satisfied"
+
+# --- SEC / REL / NET: classic weaknesses, not LLM-specific risk classes ------
+# Honest OWASP blanks. Still real exposure; anchored to EU AI Act Art. 15
+# (accuracy, robustness, cybersecurity) which is the obligation they bear on.
+[rules.SEC001]
+owasp_llm_2025 = ""
+eu_ai_act = "Art. 15"
+relation = "exposure"
+so_what = "A credential is embedded in source where anyone with repo access can read it."
+
+[rules.SEC002]
+owasp_llm_2025 = ""
+eu_ai_act = "Art. 15"
+relation = "exposure"
+so_what = "A password is embedded in source rather than held in a secret store."
+
+[rules.SEC003]
+owasp_llm_2025 = ""
+eu_ai_act = "Art. 15"
+relation = "exposure"
+so_what = "Untrusted values are interpolated into a SQL statement instead of parameterized."
+
+[rules.REL001]
+owasp_llm_2025 = ""
+eu_ai_act = "Art. 15"
+relation = "exposure"
+so_what = "An exception is swallowed, so a failure can pass unnoticed."
+
+[rules.NET001]
+owasp_llm_2025 = ""
+eu_ai_act = "Art. 15"
+relation = "exposure"
+so_what = "A non-local endpoint is reached over plaintext HTTP."
+
+[rules.NET002]
+owasp_llm_2025 = ""
+eu_ai_act = "Art. 15"
+relation = "exposure"
+so_what = "A network call has no timeout, so a hung dependency can stall the agent."
+
+# --- CTRL001-003: control-not-observed prompts -------------------------------
+[rules.CTRL001]
+owasp_llm_2025 = ""
+eu_ai_act = "Art. 15"
+relation = "exposure"
+so_what = "No authentication control was observed on the agent's actions."
+
+[rules.CTRL002]
+owasp_llm_2025 = ""
+eu_ai_act = "Art. 15"
+relation = "exposure"
+so_what = "No input-validation control was observed before the agent acts on input."
+
+[rules.CTRL003]
+owasp_llm_2025 = "LLM10"
+eu_ai_act = "Art. 15"
+relation = "exposure"
+so_what = "No rate limit was observed, so repeated calls can run up cost or load."
+
+# --- AI001-007: the LLM-specific risk rules ----------------------------------
+[rules.AI001]
+owasp_llm_2025 = "LLM01"
+eu_ai_act = "Art. 15"
+relation = "exposure"
+so_what = "Untrusted input can reach the model's instruction text."
+
+[rules.AI002]
+owasp_llm_2025 = "LLM05"
+eu_ai_act = "Art. 15"
+relation = "exposure"
+so_what = "Model output is executed or rendered without an interposed validation step."
+
+[rules.AI003]
+owasp_llm_2025 = "LLM06"
+eu_ai_act = "Art. 14"
+relation = "exposure"
+so_what = "A high-impact action can fire with no human-approval step observed."
+
+[rules.AI004]
+owasp_llm_2025 = "LLM02"
+eu_ai_act = "Art. 10"
+relation = "exposure"
+so_what = "Sensitive identifiers are placed into prompts that leave the trust boundary."
+
+[rules.AI005]
+owasp_llm_2025 = "LLM03"
+eu_ai_act = "Art. 15"
+relation = "exposure"
+so_what = "The model reference is unpinned, so behavior can change under you silently."
+
+[rules.AI006]
+owasp_llm_2025 = "LLM02"
+eu_ai_act = "Art. 10"
+relation = "exposure"
+so_what = "A path exists for data to leave over the network to an unapproved destination."
+
+# AI007 detects ABSENCE of a sampling bound -> unstable/inconsistent output.
+# That is LLM09 Misinformation, not LLM03 Supply Chain. (The legacy
+# RuleSpec.owasp dict, frozen for back-compat, still reads LLM03; the
+# discrepancy is intentional and lives only in that legacy field.)
+[rules.AI007]
+owasp_llm_2025 = "LLM09"
+eu_ai_act = "Art. 15"
+relation = "exposure"
+so_what = "No sampling bound was observed — output stability is a proxy signal only."
+
+# --- CTRL004-007: agentic control gaps ---------------------------------------
+# CTRL004 is observability absence. Missing logging is an accountability/
+# traceability gap (EU AI Act Art. 12), not an OWASP LLM risk class -> blank.
+[rules.CTRL004]
+owasp_llm_2025 = ""
+eu_ai_act = "Art. 12"
+relation = "exposure"
+so_what = "Without logging you cannot reconstruct what the agent did."
+
+[rules.CTRL005]
+owasp_llm_2025 = "LLM10"
+eu_ai_act = "Art. 15"
+relation = "exposure"
+so_what = "No cap on loop iterations was observed — runaway cost or denial-of-service exposure."
+
+[rules.CTRL006]
+owasp_llm_2025 = "LLM05"
+eu_ai_act = "Art. 15"
+relation = "exposure"
+so_what = "An execution path was not observed to be sandboxed — a large blast radius."
+
+[rules.CTRL007]
+owasp_llm_2025 = "LLM06"
+eu_ai_act = "Art. 14"
+relation = "exposure"
+so_what = "No kill-switch signal was observed to halt the agent mid-run."
+
+# --- DECL001-007: declared-vs-scanned contradictions -------------------------
+[rules.DECL001]
+owasp_llm_2025 = "LLM06"
+eu_ai_act = "Art. 14"
+relation = "exposure"
+so_what = "Declared autonomy does not match what the code does."
+
+[rules.DECL002]
+owasp_llm_2025 = "LLM06"
+eu_ai_act = "Art. 9"
+relation = "exposure"
+so_what = "A claimed enforcement control is not present in the code."
+
+[rules.DECL003]
+owasp_llm_2025 = "LLM06"
+eu_ai_act = "Art. 14"
+relation = "exposure"
+so_what = "The agent can move value but no economic authority was declared."
+
+[rules.DECL004]
+owasp_llm_2025 = "LLM02"
+eu_ai_act = "Art. 10"
+relation = "exposure"
+so_what = "The agent handles a data category that was not declared."
+
+[rules.DECL005]
+owasp_llm_2025 = "LLM10"
+eu_ai_act = "Art. 12"
+relation = "exposure"
+so_what = "The agent runs in production with no observability observed."
+
+# DECL006/007 are "declared incorrectly / not at all" — a documentation
+# obligation (Art. 11), not an OWASP LLM risk class -> honest blank.
+[rules.DECL006]
+owasp_llm_2025 = ""
+eu_ai_act = "Art. 11"
+relation = "exposure"
+so_what = "The agent is not declared at all."
+
+[rules.DECL007]
+owasp_llm_2025 = ""
+eu_ai_act = "Art. 11"
+relation = "exposure"
+so_what = "A declaration no longer matches the code it describes."
+
+# --- RT001-005: declared/scanned-vs-observed (runtime) contradictions --------
+[rules.RT001]
+owasp_llm_2025 = "LLM06"
+eu_ai_act = "Art. 14"
+relation = "exposure"
+so_what = "At runtime the declared oversight step was not observed to fire."
+
+[rules.RT002]
+owasp_llm_2025 = "LLM06"
+eu_ai_act = "Art. 14"
+relation = "exposure"
+so_what = "The agent acted beyond the declared money or authority limit."
+
+[rules.RT003]
+owasp_llm_2025 = "LLM06"
+eu_ai_act = "Art. 14"
+relation = "exposure"
+so_what = "Observed runtime reach exceeded the declared scope."
+
+[rules.RT004]
+owasp_llm_2025 = "LLM10"
+eu_ai_act = "Art. 12"
+relation = "exposure"
+so_what = "Monitoring was declared, but runtime shows no evidence of it."
+
+# RT005 is the one positive-evidence rule: an approval gate observed firing.
+# relation = "control-observed" so the report renders it as credit — phrased
+# "observed", never "mitigated"/"satisfied".
+[rules.RT005]
+owasp_llm_2025 = "LLM06"
+eu_ai_act = "Art. 14"
+relation = "control-observed"
+so_what = "An approval gate was observed firing on high-impact actions in the window."

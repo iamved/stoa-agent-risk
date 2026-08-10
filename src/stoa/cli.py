@@ -153,12 +153,17 @@ def build_parser() -> argparse.ArgumentParser:
     export = subparsers.add_parser("export", help="Export a downstream artifact (assurance packet)")
     export.add_argument("registry", nargs="?", default=None,
                         help="stoa-registry.json to export from (default: scan the worktree)")
-    export.add_argument("--assurance", action="store_true", required=True,
-                        help="Export the 14-area assurance packet (the only export kind today)")
+    export_kind = export.add_mutually_exclusive_group(required=True)
+    export_kind.add_argument("--assurance", action="store_true",
+                             help="Export the 18-area assurance packet")
+    export_kind.add_argument("--underwriting-demo", action="store_true",
+                             help="Export a pre-filled Munich RE aiSure questionnaire "
+                                  "(DEMO artifact; prefilled/illustrative content)")
     export.add_argument("--format", choices=["json", "md"], default="md",
-                        help="Output format (default: md)")
+                        help="Output format for --assurance (default: md)")
     export.add_argument("--out", metavar="PATH", default=None,
-                        help="Write output to PATH (default: stdout)")
+                        help="Write output to PATH (default: stdout, or "
+                             "stoa-underwriting.html for --underwriting-demo)")
     export.add_argument("--config", metavar="PATH", default=None)
     export.add_argument("--no-git", action="store_true")
 
@@ -527,6 +532,14 @@ def _run_export_command(args: argparse.Namespace) -> int:
     else:
         result = run_scan(ScanOptions(root=Path("."), no_git=args.no_git), config)
         document = build_document(result, config)
+
+    if args.underwriting_demo:
+        from .underwriting import render_underwriting_html
+
+        out_path = Path(args.out) if args.out else Path("stoa-underwriting.html")
+        _atomic_write(out_path, render_underwriting_html(document))
+        print(f"stoa: wrote {out_path} (DEMO underwriting-evidence artifact)")
+        return EXIT_OK
 
     git_sha = (document.get("repository") or {}).get("git_ref")
     scan_timestamp = datetime.now(timezone.utc).isoformat()

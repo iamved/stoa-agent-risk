@@ -33,7 +33,7 @@ def _registry() -> dict:
             "findings": [],
         }
     return {
-        "schema_version": "1.4", "tool": {"name": "stoa", "version": "0"},
+        "schema_version": "1.5", "tool": {"name": "stoa", "version": "0"},
         "repository": {"name": "fixture"}, "summary": {"findings": {}},
         "agents": [
             agent(AGENT_A, "payments", ["payment_access"], ["stripe"]),
@@ -239,10 +239,17 @@ def test_scan_with_runtime_enriches_registry_and_report(tmp_path, monkeypatch, c
     html = (tmp_path / "enriched.html").read_text()
     assert "Runtime overlay:" in html
     assert "never a claim about" in html
-    # CSP hash-pinning model intact: every emitted <script> hash is declared
-    scripts = re.findall(r"<script>(.*?)</script>", html, re.DOTALL)
+    # CSP hash-pinning model intact: every emitted EXECUTING <script> hash is
+    # declared. Non-executing <script type="application/json"> data blobs (the
+    # graph data and the embedded underwriting form, which itself contains a
+    # <script>) are stripped first so their inert contents aren't mistaken for
+    # executable scripts.
     import base64
     import hashlib
+    stripped = re.sub(
+        r'<script type="application/json"[^>]*>.*?</script>', "", html, flags=re.DOTALL
+    )
+    scripts = re.findall(r"<script>(.*?)</script>", stripped, re.DOTALL)
     for script in scripts:
         digest = base64.b64encode(
             hashlib.sha256(script.encode("utf-8")).digest()

@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.4",
+  "schema_version": "1.5",
   "tool": {
     "name": "stoa",
     "version": "0.5.0"
@@ -102,7 +102,13 @@
           "dimensions": [
             "control-coverage-gap"
           ],
-          "message": "Rate limiting control not observed (agents/mentor_matcher.py:27). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
+          "message": "Rate limiting control not observed (agents/mentor_matcher.py:27). Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM10",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "No rate limit was observed, so repeated calls can run up cost or load."
+          }
         },
         {
           "fingerprint": "d98614c228d68afc",
@@ -122,7 +128,13 @@
           "dimensions": [
             "control-coverage-gap"
           ],
-          "message": "No kill-switch signal observed on the agent's entry path (agents/mentor_matcher.py:27). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
+          "message": "No kill-switch signal observed on the agent's entry path (agents/mentor_matcher.py:27). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM06",
+            "eu_ai_act": "Art. 14",
+            "relation": "exposure",
+            "so_what": "No kill-switch signal was observed to halt the agent mid-run."
+          }
         }
       ],
       "highest_severity": "info",
@@ -334,7 +346,13 @@
             "conduct-variability",
             "dependency-drift"
           ],
-          "message": "Model string `gpt-4o` (line 19) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+          "message": "Model string `gpt-4o` (line 19) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM03",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "The model reference is unpinned, so behavior can change under you silently."
+          }
         },
         {
           "fingerprint": "0fdd5dd97258cbc6",
@@ -361,7 +379,13 @@
             "mandate-overreach",
             "unreviewed-high-impact-action"
           ],
-          "message": "Agent candidate `agent` binds a tool whose body contains high-impact capability call sites (database-write). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat."
+          "message": "Agent candidate `agent` binds a tool whose body contains high-impact capability call sites (database-write). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM06",
+            "eu_ai_act": "Art. 14",
+            "relation": "exposure",
+            "so_what": "A high-impact action can fire with no human-approval step observed."
+          }
         },
         {
           "fingerprint": "562d367499ad629e",
@@ -387,7 +411,13 @@
           "dimensions": [
             "conduct-variability"
           ],
-          "message": "Agent candidate `agent` binds database-write, and model call sites in this file do not set a sampling bound (lines 26). This is a proxy signal only: sampling configuration influences, but does not determine, behavioral consistency, and runtime evaluation is required for direct assessment. One review prompt per candidate — this notice will not repeat."
+          "message": "Agent candidate `agent` binds database-write, and model call sites in this file do not set a sampling bound (lines 26). This is a proxy signal only: sampling configuration influences, but does not determine, behavioral consistency, and runtime evaluation is required for direct assessment. One review prompt per candidate — this notice will not repeat.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM09",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "No sampling bound was observed — output stability is a proxy signal only."
+          }
         },
         {
           "fingerprint": "9bc35c59c96c356f",
@@ -407,7 +437,13 @@
           "dimensions": [
             "control-coverage-gap"
           ],
-          "message": "Rate limiting control not observed (agents/portfolio_certifier.py:21). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
+          "message": "Rate limiting control not observed (agents/portfolio_certifier.py:21). Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM10",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "No rate limit was observed, so repeated calls can run up cost or load."
+          }
         },
         {
           "fingerprint": "9404a171355dab37",
@@ -427,7 +463,13 @@
           "dimensions": [
             "control-coverage-gap"
           ],
-          "message": "No kill-switch signal observed on the agent's entry path (agents/portfolio_certifier.py:21). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
+          "message": "No kill-switch signal observed on the agent's entry path (agents/portfolio_certifier.py:21). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM06",
+            "eu_ai_act": "Art. 14",
+            "relation": "exposure",
+            "so_what": "No kill-switch signal was observed to halt the agent mid-run."
+          }
         },
         {
           "fingerprint": "774cfcc35b67dbe0",
@@ -469,7 +511,13 @@
           "supersedes": [
             "SEC003"
           ],
-          "message": "The value from `verdict = client.chat.completions.create(` (line 26) reaches a sql-class sink at line 32 with no interposed allowlist observed on the flow. Model output is attacker-influenceable whenever any untrusted content reaches the model (OWASP LLM02). Analysis is intra-file; flows through other files are not visible."
+          "message": "The value from `verdict = client.chat.completions.create(` (line 26) reaches a sql-class sink at line 32 with no interposed allowlist observed on the flow. Model output is attacker-influenceable whenever any untrusted content reaches the model (OWASP LLM02). Analysis is intra-file; flows through other files are not visible.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM05",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "Model output is executed or rendered without an interposed validation step."
+          }
         },
         {
           "fingerprint": "b903b29e14a5633c",
@@ -494,6 +542,12 @@
           "declared_ref": {
             "path": "stoa-declared.toml",
             "key": "agents.\"2bbb1a53b942\".autonomy_intent"
+          },
+          "crosswalk": {
+            "owasp_llm_2025": "LLM06",
+            "eu_ai_act": "Art. 14",
+            "relation": "exposure",
+            "so_what": "Declared autonomy does not match what the code does."
           }
         }
       ],
@@ -722,7 +776,13 @@
             "conduct-variability",
             "dependency-drift"
           ],
-          "message": "Model string `gpt-4o` (line 19) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+          "message": "Model string `gpt-4o` (line 19) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM03",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "The model reference is unpinned, so behavior can change under you silently."
+          }
         },
         {
           "fingerprint": "fe59b6d28c24c699",
@@ -749,7 +809,13 @@
             "mandate-overreach",
             "unreviewed-high-impact-action"
           ],
-          "message": "Agent candidate `executor` binds a tool whose body contains high-impact capability call sites (database-write). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat."
+          "message": "Agent candidate `executor` binds a tool whose body contains high-impact capability call sites (database-write). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM06",
+            "eu_ai_act": "Art. 14",
+            "relation": "exposure",
+            "so_what": "A high-impact action can fire with no human-approval step observed."
+          }
         },
         {
           "fingerprint": "5963853dbbc048e8",
@@ -775,7 +841,13 @@
           "dimensions": [
             "conduct-variability"
           ],
-          "message": "Agent candidate `executor` binds database-write, and model call sites in this file do not set a sampling bound (lines 26). This is a proxy signal only: sampling configuration influences, but does not determine, behavioral consistency, and runtime evaluation is required for direct assessment. One review prompt per candidate — this notice will not repeat."
+          "message": "Agent candidate `executor` binds database-write, and model call sites in this file do not set a sampling bound (lines 26). This is a proxy signal only: sampling configuration influences, but does not determine, behavioral consistency, and runtime evaluation is required for direct assessment. One review prompt per candidate — this notice will not repeat.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM09",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "No sampling bound was observed — output stability is a proxy signal only."
+          }
         },
         {
           "fingerprint": "3fd986cd1ad72677",
@@ -795,7 +867,13 @@
           "dimensions": [
             "control-coverage-gap"
           ],
-          "message": "Rate limiting control not observed (agents/portfolio_certifier.py:21). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
+          "message": "Rate limiting control not observed (agents/portfolio_certifier.py:21). Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM10",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "No rate limit was observed, so repeated calls can run up cost or load."
+          }
         },
         {
           "fingerprint": "f162908ebba7e6a5",
@@ -815,7 +893,13 @@
           "dimensions": [
             "control-coverage-gap"
           ],
-          "message": "No kill-switch signal observed on the agent's entry path (agents/portfolio_certifier.py:21). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
+          "message": "No kill-switch signal observed on the agent's entry path (agents/portfolio_certifier.py:21). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM06",
+            "eu_ai_act": "Art. 14",
+            "relation": "exposure",
+            "so_what": "No kill-switch signal was observed to halt the agent mid-run."
+          }
         },
         {
           "fingerprint": "774cfcc35b67dbe0",
@@ -857,7 +941,13 @@
           "supersedes": [
             "SEC003"
           ],
-          "message": "The value from `verdict = client.chat.completions.create(` (line 26) reaches a sql-class sink at line 32 with no interposed allowlist observed on the flow. Model output is attacker-influenceable whenever any untrusted content reaches the model (OWASP LLM02). Analysis is intra-file; flows through other files are not visible."
+          "message": "The value from `verdict = client.chat.completions.create(` (line 26) reaches a sql-class sink at line 32 with no interposed allowlist observed on the flow. Model output is attacker-influenceable whenever any untrusted content reaches the model (OWASP LLM02). Analysis is intra-file; flows through other files are not visible.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM05",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "Model output is executed or rendered without an interposed validation step."
+          }
         },
         {
           "fingerprint": "9a0aa9bf0e6770d2",
@@ -882,6 +972,12 @@
           "declared_ref": {
             "path": "stoa-declared.toml",
             "key": "agents.\"48d190c5af6c\".autonomy_intent"
+          },
+          "crosswalk": {
+            "owasp_llm_2025": "LLM06",
+            "eu_ai_act": "Art. 14",
+            "relation": "exposure",
+            "so_what": "Declared autonomy does not match what the code does."
           }
         }
       ],
@@ -1108,7 +1204,13 @@
             "conduct-variability",
             "dependency-drift"
           ],
-          "message": "Model string `gpt-4o` (line 17) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+          "message": "Model string `gpt-4o` (line 17) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM03",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "The model reference is unpinned, so behavior can change under you silently."
+          }
         },
         {
           "fingerprint": "3f86a672ef440bbe",
@@ -1135,7 +1237,13 @@
             "mandate-overreach",
             "unreviewed-high-impact-action"
           ],
-          "message": "Agent candidate `agent` binds a tool whose body contains high-impact capability call sites (email-send). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat."
+          "message": "Agent candidate `agent` binds a tool whose body contains high-impact capability call sites (email-send). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM06",
+            "eu_ai_act": "Art. 14",
+            "relation": "exposure",
+            "so_what": "A high-impact action can fire with no human-approval step observed."
+          }
         },
         {
           "fingerprint": "794242e17df24cfc",
@@ -1161,7 +1269,13 @@
           "dimensions": [
             "conduct-variability"
           ],
-          "message": "Agent candidate `agent` binds email-send, and model call sites in this file do not set a sampling bound (lines 24). This is a proxy signal only: sampling configuration influences, but does not determine, behavioral consistency, and runtime evaluation is required for direct assessment. One review prompt per candidate — this notice will not repeat."
+          "message": "Agent candidate `agent` binds email-send, and model call sites in this file do not set a sampling bound (lines 24). This is a proxy signal only: sampling configuration influences, but does not determine, behavioral consistency, and runtime evaluation is required for direct assessment. One review prompt per candidate — this notice will not repeat.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM09",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "No sampling bound was observed — output stability is a proxy signal only."
+          }
         },
         {
           "fingerprint": "95011d06cf4d8009",
@@ -1181,7 +1295,13 @@
           "dimensions": [
             "control-coverage-gap"
           ],
-          "message": "Rate limiting control not observed (agents/progress_notifier.py:19). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
+          "message": "Rate limiting control not observed (agents/progress_notifier.py:19). Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM10",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "No rate limit was observed, so repeated calls can run up cost or load."
+          }
         },
         {
           "fingerprint": "f45a5306390fa4c2",
@@ -1201,7 +1321,13 @@
           "dimensions": [
             "control-coverage-gap"
           ],
-          "message": "No kill-switch signal observed on the agent's entry path (agents/progress_notifier.py:19). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
+          "message": "No kill-switch signal observed on the agent's entry path (agents/progress_notifier.py:19). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM06",
+            "eu_ai_act": "Art. 14",
+            "relation": "exposure",
+            "so_what": "No kill-switch signal was observed to halt the agent mid-run."
+          }
         },
         {
           "fingerprint": "9a5fac3930fe553d",
@@ -1221,7 +1347,13 @@
           "dimensions": [
             "control-coverage-gap"
           ],
-          "message": "Swallowed exception (agents/progress_notifier.py:33). Handle or log the exception instead of silently discarding it."
+          "message": "Swallowed exception (agents/progress_notifier.py:33). Handle or log the exception instead of silently discarding it.",
+          "crosswalk": {
+            "owasp_llm_2025": null,
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "An exception is swallowed, so a failure can pass unnoticed."
+          }
         },
         {
           "fingerprint": "c01985cc22ce5176",
@@ -1266,7 +1398,13 @@
           "evidence_tags": [
             "dynamic_destination"
           ],
-          "message": "A value suggesting personal data (`student_email = student.email`, line 39) flows into a network egress sink at line 40, a destination not in the recognized-provider set or the allowed_hosts list. Identifier names and flow shape suggest — but do not prove — sensitive egress (OWASP LLM06). If org-approved, add the destination to [rules.AI006].allowed_hosts. Analysis is intra-file; flows through other files are not visible."
+          "message": "A value suggesting personal data (`student_email = student.email`, line 39) flows into a network egress sink at line 40, a destination not in the recognized-provider set or the allowed_hosts list. Identifier names and flow shape suggest — but do not prove — sensitive egress (OWASP LLM06). If org-approved, add the destination to [rules.AI006].allowed_hosts. Analysis is intra-file; flows through other files are not visible.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM02",
+            "eu_ai_act": "Art. 10",
+            "relation": "exposure",
+            "so_what": "A path exists for data to leave over the network to an unapproved destination."
+          }
         },
         {
           "fingerprint": "eb4b598a7f8f6517",
@@ -1286,7 +1424,13 @@
           "dimensions": [
             "control-coverage-gap"
           ],
-          "message": "Request timeout not observed (agents/progress_notifier.py:40). Pass an explicit timeout so a hung upstream cannot stall the agent."
+          "message": "Request timeout not observed (agents/progress_notifier.py:40). Pass an explicit timeout so a hung upstream cannot stall the agent.",
+          "crosswalk": {
+            "owasp_llm_2025": null,
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "A network call has no timeout, so a hung dependency can stall the agent."
+          }
         }
       ],
       "highest_severity": "medium",
@@ -1503,7 +1647,13 @@
             "conduct-variability",
             "dependency-drift"
           ],
-          "message": "Model string `gpt-4o` (line 17) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+          "message": "Model string `gpt-4o` (line 17) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM03",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "The model reference is unpinned, so behavior can change under you silently."
+          }
         },
         {
           "fingerprint": "933e397ac1867844",
@@ -1530,7 +1680,13 @@
             "mandate-overreach",
             "unreviewed-high-impact-action"
           ],
-          "message": "Agent candidate `executor` binds a tool whose body contains high-impact capability call sites (email-send). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat."
+          "message": "Agent candidate `executor` binds a tool whose body contains high-impact capability call sites (email-send). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM06",
+            "eu_ai_act": "Art. 14",
+            "relation": "exposure",
+            "so_what": "A high-impact action can fire with no human-approval step observed."
+          }
         },
         {
           "fingerprint": "fa499c5d69e3657e",
@@ -1556,7 +1712,13 @@
           "dimensions": [
             "conduct-variability"
           ],
-          "message": "Agent candidate `executor` binds email-send, and model call sites in this file do not set a sampling bound (lines 24). This is a proxy signal only: sampling configuration influences, but does not determine, behavioral consistency, and runtime evaluation is required for direct assessment. One review prompt per candidate — this notice will not repeat."
+          "message": "Agent candidate `executor` binds email-send, and model call sites in this file do not set a sampling bound (lines 24). This is a proxy signal only: sampling configuration influences, but does not determine, behavioral consistency, and runtime evaluation is required for direct assessment. One review prompt per candidate — this notice will not repeat.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM09",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "No sampling bound was observed — output stability is a proxy signal only."
+          }
         },
         {
           "fingerprint": "7bdda7035b7ae859",
@@ -1576,7 +1738,13 @@
           "dimensions": [
             "control-coverage-gap"
           ],
-          "message": "Rate limiting control not observed (agents/progress_notifier.py:19). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
+          "message": "Rate limiting control not observed (agents/progress_notifier.py:19). Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM10",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "No rate limit was observed, so repeated calls can run up cost or load."
+          }
         },
         {
           "fingerprint": "feb38b86da911d81",
@@ -1596,7 +1764,13 @@
           "dimensions": [
             "control-coverage-gap"
           ],
-          "message": "No kill-switch signal observed on the agent's entry path (agents/progress_notifier.py:19). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
+          "message": "No kill-switch signal observed on the agent's entry path (agents/progress_notifier.py:19). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM06",
+            "eu_ai_act": "Art. 14",
+            "relation": "exposure",
+            "so_what": "No kill-switch signal was observed to halt the agent mid-run."
+          }
         },
         {
           "fingerprint": "9a5fac3930fe553d",
@@ -1616,7 +1790,13 @@
           "dimensions": [
             "control-coverage-gap"
           ],
-          "message": "Swallowed exception (agents/progress_notifier.py:33). Handle or log the exception instead of silently discarding it."
+          "message": "Swallowed exception (agents/progress_notifier.py:33). Handle or log the exception instead of silently discarding it.",
+          "crosswalk": {
+            "owasp_llm_2025": null,
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "An exception is swallowed, so a failure can pass unnoticed."
+          }
         },
         {
           "fingerprint": "c01985cc22ce5176",
@@ -1661,7 +1841,13 @@
           "evidence_tags": [
             "dynamic_destination"
           ],
-          "message": "A value suggesting personal data (`student_email = student.email`, line 39) flows into a network egress sink at line 40, a destination not in the recognized-provider set or the allowed_hosts list. Identifier names and flow shape suggest — but do not prove — sensitive egress (OWASP LLM06). If org-approved, add the destination to [rules.AI006].allowed_hosts. Analysis is intra-file; flows through other files are not visible."
+          "message": "A value suggesting personal data (`student_email = student.email`, line 39) flows into a network egress sink at line 40, a destination not in the recognized-provider set or the allowed_hosts list. Identifier names and flow shape suggest — but do not prove — sensitive egress (OWASP LLM06). If org-approved, add the destination to [rules.AI006].allowed_hosts. Analysis is intra-file; flows through other files are not visible.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM02",
+            "eu_ai_act": "Art. 10",
+            "relation": "exposure",
+            "so_what": "A path exists for data to leave over the network to an unapproved destination."
+          }
         },
         {
           "fingerprint": "eb4b598a7f8f6517",
@@ -1681,7 +1867,13 @@
           "dimensions": [
             "control-coverage-gap"
           ],
-          "message": "Request timeout not observed (agents/progress_notifier.py:40). Pass an explicit timeout so a hung upstream cannot stall the agent."
+          "message": "Request timeout not observed (agents/progress_notifier.py:40). Pass an explicit timeout so a hung upstream cannot stall the agent.",
+          "crosswalk": {
+            "owasp_llm_2025": null,
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "A network call has no timeout, so a hung dependency can stall the agent."
+          }
         }
       ],
       "highest_severity": "medium",
@@ -1891,7 +2083,13 @@
             "conduct-variability",
             "dependency-drift"
           ],
-          "message": "Model string `gpt-4o` (line 14) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+          "message": "Model string `gpt-4o` (line 14) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM03",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "The model reference is unpinned, so behavior can change under you silently."
+          }
         },
         {
           "fingerprint": "e61f0fc078a26bba",
@@ -1918,7 +2116,13 @@
             "mandate-overreach",
             "unreviewed-high-impact-action"
           ],
-          "message": "Agent candidate `agent` binds a tool whose body contains high-impact capability call sites (shell-execution). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat."
+          "message": "Agent candidate `agent` binds a tool whose body contains high-impact capability call sites (shell-execution). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM06",
+            "eu_ai_act": "Art. 14",
+            "relation": "exposure",
+            "so_what": "A high-impact action can fire with no human-approval step observed."
+          }
         },
         {
           "fingerprint": "0a93101047221f18",
@@ -1944,7 +2148,13 @@
           "dimensions": [
             "conduct-variability"
           ],
-          "message": "Agent candidate `agent` binds shell-execution, and model call sites in this file do not set a sampling bound (lines 21). This is a proxy signal only: sampling configuration influences, but does not determine, behavioral consistency, and runtime evaluation is required for direct assessment. One review prompt per candidate — this notice will not repeat."
+          "message": "Agent candidate `agent` binds shell-execution, and model call sites in this file do not set a sampling bound (lines 21). This is a proxy signal only: sampling configuration influences, but does not determine, behavioral consistency, and runtime evaluation is required for direct assessment. One review prompt per candidate — this notice will not repeat.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM09",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "No sampling bound was observed — output stability is a proxy signal only."
+          }
         },
         {
           "fingerprint": "521d495405b80061",
@@ -1964,7 +2174,13 @@
           "dimensions": [
             "control-coverage-gap"
           ],
-          "message": "Rate limiting control not observed (agents/project_sandbox.py:16). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
+          "message": "Rate limiting control not observed (agents/project_sandbox.py:16). Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM10",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "No rate limit was observed, so repeated calls can run up cost or load."
+          }
         },
         {
           "fingerprint": "115e199347587c2f",
@@ -1985,7 +2201,13 @@
             "control-coverage-gap",
             "mandate-overreach"
           ],
-          "message": "Sandboxing not observed on an exec path (agents/project_sandbox.py:16). Confirm this execution path runs in a restricted environment (restricted env, container, sandboxed interpreter); none was observed near it."
+          "message": "Sandboxing not observed on an exec path (agents/project_sandbox.py:16). Confirm this execution path runs in a restricted environment (restricted env, container, sandboxed interpreter); none was observed near it.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM05",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "An execution path was not observed to be sandboxed — a large blast radius."
+          }
         },
         {
           "fingerprint": "f9f686836329551f",
@@ -2005,7 +2227,13 @@
           "dimensions": [
             "control-coverage-gap"
           ],
-          "message": "No kill-switch signal observed on the agent's entry path (agents/project_sandbox.py:16). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
+          "message": "No kill-switch signal observed on the agent's entry path (agents/project_sandbox.py:16). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM06",
+            "eu_ai_act": "Art. 14",
+            "relation": "exposure",
+            "so_what": "No kill-switch signal was observed to halt the agent mid-run."
+          }
         },
         {
           "fingerprint": "a851dbdc641d6dc3",
@@ -2029,6 +2257,12 @@
           "declared_ref": {
             "path": "stoa-declared.toml",
             "key": "agents.\"e1598a668297\""
+          },
+          "crosswalk": {
+            "owasp_llm_2025": null,
+            "eu_ai_act": "Art. 11",
+            "relation": "exposure",
+            "so_what": "The agent is not declared at all."
           }
         },
         {
@@ -2069,7 +2303,13 @@
           "dimensions": [
             "output-fidelity"
           ],
-          "message": "The value from `resp = llm.invoke(f\"Give one shell command that sanity-checks {submission_path}\")` (line 21) reaches a exec-class sink at line 22 with no interposed allowlist observed on the flow. Model output is attacker-influenceable whenever any untrusted content reaches the model (OWASP LLM02). This finding is gate-eligible. Analysis is intra-file; flows through other files are not visible."
+          "message": "The value from `resp = llm.invoke(f\"Give one shell command that sanity-checks {submission_path}\")` (line 21) reaches a exec-class sink at line 22 with no interposed allowlist observed on the flow. Model output is attacker-influenceable whenever any untrusted content reaches the model (OWASP LLM02). This finding is gate-eligible. Analysis is intra-file; flows through other files are not visible.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM05",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "Model output is executed or rendered without an interposed validation step."
+          }
         }
       ],
       "highest_severity": "critical",
@@ -2281,7 +2521,13 @@
             "conduct-variability",
             "dependency-drift"
           ],
-          "message": "Model string `gpt-4o` (line 14) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+          "message": "Model string `gpt-4o` (line 14) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM03",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "The model reference is unpinned, so behavior can change under you silently."
+          }
         },
         {
           "fingerprint": "2cf74df0fe16a9f5",
@@ -2308,7 +2554,13 @@
             "mandate-overreach",
             "unreviewed-high-impact-action"
           ],
-          "message": "Agent candidate `executor` binds a tool whose body contains high-impact capability call sites (shell-execution). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat."
+          "message": "Agent candidate `executor` binds a tool whose body contains high-impact capability call sites (shell-execution). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM06",
+            "eu_ai_act": "Art. 14",
+            "relation": "exposure",
+            "so_what": "A high-impact action can fire with no human-approval step observed."
+          }
         },
         {
           "fingerprint": "10d9a32b5868627c",
@@ -2334,7 +2586,13 @@
           "dimensions": [
             "conduct-variability"
           ],
-          "message": "Agent candidate `executor` binds shell-execution, and model call sites in this file do not set a sampling bound (lines 21). This is a proxy signal only: sampling configuration influences, but does not determine, behavioral consistency, and runtime evaluation is required for direct assessment. One review prompt per candidate — this notice will not repeat."
+          "message": "Agent candidate `executor` binds shell-execution, and model call sites in this file do not set a sampling bound (lines 21). This is a proxy signal only: sampling configuration influences, but does not determine, behavioral consistency, and runtime evaluation is required for direct assessment. One review prompt per candidate — this notice will not repeat.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM09",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "No sampling bound was observed — output stability is a proxy signal only."
+          }
         },
         {
           "fingerprint": "a6a868d52265d82c",
@@ -2354,7 +2612,13 @@
           "dimensions": [
             "control-coverage-gap"
           ],
-          "message": "Rate limiting control not observed (agents/project_sandbox.py:16). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
+          "message": "Rate limiting control not observed (agents/project_sandbox.py:16). Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM10",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "No rate limit was observed, so repeated calls can run up cost or load."
+          }
         },
         {
           "fingerprint": "b0af3550810c257f",
@@ -2375,7 +2639,13 @@
             "control-coverage-gap",
             "mandate-overreach"
           ],
-          "message": "Sandboxing not observed on an exec path (agents/project_sandbox.py:16). Confirm this execution path runs in a restricted environment (restricted env, container, sandboxed interpreter); none was observed near it."
+          "message": "Sandboxing not observed on an exec path (agents/project_sandbox.py:16). Confirm this execution path runs in a restricted environment (restricted env, container, sandboxed interpreter); none was observed near it.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM05",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "An execution path was not observed to be sandboxed — a large blast radius."
+          }
         },
         {
           "fingerprint": "8fbf631491e06796",
@@ -2395,7 +2665,13 @@
           "dimensions": [
             "control-coverage-gap"
           ],
-          "message": "No kill-switch signal observed on the agent's entry path (agents/project_sandbox.py:16). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
+          "message": "No kill-switch signal observed on the agent's entry path (agents/project_sandbox.py:16). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM06",
+            "eu_ai_act": "Art. 14",
+            "relation": "exposure",
+            "so_what": "No kill-switch signal was observed to halt the agent mid-run."
+          }
         },
         {
           "fingerprint": "7496861010de43c9",
@@ -2419,6 +2695,12 @@
           "declared_ref": {
             "path": "stoa-declared.toml",
             "key": "agents.\"3566a52c29f8\""
+          },
+          "crosswalk": {
+            "owasp_llm_2025": null,
+            "eu_ai_act": "Art. 11",
+            "relation": "exposure",
+            "so_what": "The agent is not declared at all."
           }
         },
         {
@@ -2459,7 +2741,13 @@
           "dimensions": [
             "output-fidelity"
           ],
-          "message": "The value from `resp = llm.invoke(f\"Give one shell command that sanity-checks {submission_path}\")` (line 21) reaches a exec-class sink at line 22 with no interposed allowlist observed on the flow. Model output is attacker-influenceable whenever any untrusted content reaches the model (OWASP LLM02). This finding is gate-eligible. Analysis is intra-file; flows through other files are not visible."
+          "message": "The value from `resp = llm.invoke(f\"Give one shell command that sanity-checks {submission_path}\")` (line 21) reaches a exec-class sink at line 22 with no interposed allowlist observed on the flow. Model output is attacker-influenceable whenever any untrusted content reaches the model (OWASP LLM02). This finding is gate-eligible. Analysis is intra-file; flows through other files are not visible.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM05",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "Model output is executed or rendered without an interposed validation step."
+          }
         }
       ],
       "highest_severity": "critical",
@@ -2697,7 +2985,13 @@
           "dimensions": [
             "injection-tamper-surface"
           ],
-          "message": "A request-derived value (`turn = request.get_json()`, line 24) flows into prompt construction reaching a model call at line 28. No boundary construct was observed on this flow. Content that reaches instruction text can override agent behavior (OWASP LLM01). Consider moving untrusted content into a delimited user-role message and keeping instruction text static. Analysis is intra-file; flows through other files are not visible."
+          "message": "A request-derived value (`turn = request.get_json()`, line 24) flows into prompt construction reaching a model call at line 28. No boundary construct was observed on this flow. Content that reaches instruction text can override agent behavior (OWASP LLM01). Consider moving untrusted content into a delimited user-role message and keeping instruction text static. Analysis is intra-file; flows through other files are not visible.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM01",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "Untrusted input can reach the model's instruction text."
+          }
         },
         {
           "fingerprint": "0152dc54a449a1f7",
@@ -2723,7 +3017,13 @@
           "dimensions": [
             "conduct-variability"
           ],
-          "message": "Agent candidate `sector_advisor` binds database-write, and model call sites in this file do not set a sampling bound (lines 28, 51). This is a proxy signal only: sampling configuration influences, but does not determine, behavioral consistency, and runtime evaluation is required for direct assessment. One review prompt per candidate — this notice will not repeat."
+          "message": "Agent candidate `sector_advisor` binds database-write, and model call sites in this file do not set a sampling bound (lines 28, 51). This is a proxy signal only: sampling configuration influences, but does not determine, behavioral consistency, and runtime evaluation is required for direct assessment. One review prompt per candidate — this notice will not repeat.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM09",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "No sampling bound was observed — output stability is a proxy signal only."
+          }
         },
         {
           "fingerprint": "f2979a8587b8fd70",
@@ -2743,7 +3043,13 @@
           "dimensions": [
             "control-coverage-gap"
           ],
-          "message": "Rate limiting control not observed (agents/sector_advisor.py:28). Confirm rate limiting exists for this agent's actions; it was not observed in this file."
+          "message": "Rate limiting control not observed (agents/sector_advisor.py:28). Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM10",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "No rate limit was observed, so repeated calls can run up cost or load."
+          }
         },
         {
           "fingerprint": "7f97ff08a9d06a6c",
@@ -2763,7 +3069,13 @@
           "dimensions": [
             "control-coverage-gap"
           ],
-          "message": "No kill-switch signal observed on the agent's entry path (agents/sector_advisor.py:28). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
+          "message": "No kill-switch signal observed on the agent's entry path (agents/sector_advisor.py:28). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM06",
+            "eu_ai_act": "Art. 14",
+            "relation": "exposure",
+            "so_what": "No kill-switch signal was observed to halt the agent mid-run."
+          }
         },
         {
           "fingerprint": "2d1febd03e8e8f25",
@@ -2791,7 +3103,13 @@
             "conduct-variability",
             "dependency-drift"
           ],
-          "message": "Model string `gpt-4o` (line 29) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+          "message": "Model string `gpt-4o` (line 29) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM03",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "The model reference is unpinned, so behavior can change under you silently."
+          }
         }
       ],
       "highest_severity": "high",
@@ -2950,7 +3268,13 @@
         "boundary-leakage",
         "control-coverage-gap"
       ],
-      "message": "Possible hardcoded API credential (tests/test_portfolio.py:3). Load the credential from a secret manager or environment variable."
+      "message": "Possible hardcoded API credential (tests/test_portfolio.py:3). Load the credential from a secret manager or environment variable.",
+      "crosswalk": {
+        "owasp_llm_2025": null,
+        "eu_ai_act": "Art. 15",
+        "relation": "exposure",
+        "so_what": "A credential is embedded in source where anyone with repo access can read it."
+      }
     }
   ],
   "skipped_files": [],
@@ -2968,7 +3292,17 @@
         "assessability": "strong",
         "max_exposure": "elevated",
         "agents_elevated": 2,
-        "agents_moderate": 0
+        "agents_moderate": 0,
+        "crosswalk": {
+          "owasp_llm_2025": [
+            "LLM05",
+            "LLM06"
+          ],
+          "eu_ai_act": [
+            "Art. 14",
+            "Art. 15"
+          ]
+        }
       },
       {
         "id": "boundary-leakage",
@@ -2977,7 +3311,16 @@
         "assessability": "strong",
         "max_exposure": "moderate",
         "agents_elevated": 0,
-        "agents_moderate": 2
+        "agents_moderate": 2,
+        "crosswalk": {
+          "owasp_llm_2025": [
+            "LLM02"
+          ],
+          "eu_ai_act": [
+            "Art. 10",
+            "Art. 15"
+          ]
+        }
       },
       {
         "id": "unreviewed-high-impact-action",
@@ -2986,7 +3329,15 @@
         "assessability": "strong",
         "max_exposure": "elevated",
         "agents_elevated": 2,
-        "agents_moderate": 0
+        "agents_moderate": 0,
+        "crosswalk": {
+          "owasp_llm_2025": [
+            "LLM06"
+          ],
+          "eu_ai_act": [
+            "Art. 14"
+          ]
+        }
       },
       {
         "id": "output-fidelity",
@@ -2995,7 +3346,15 @@
         "assessability": "partial",
         "max_exposure": "moderate",
         "agents_elevated": 0,
-        "agents_moderate": 2
+        "agents_moderate": 2,
+        "crosswalk": {
+          "owasp_llm_2025": [
+            "LLM05"
+          ],
+          "eu_ai_act": [
+            "Art. 15"
+          ]
+        }
       },
       {
         "id": "injection-tamper-surface",
@@ -3004,7 +3363,15 @@
         "assessability": "partial",
         "max_exposure": "moderate",
         "agents_elevated": 0,
-        "agents_moderate": 1
+        "agents_moderate": 1,
+        "crosswalk": {
+          "owasp_llm_2025": [
+            "LLM01"
+          ],
+          "eu_ai_act": [
+            "Art. 15"
+          ]
+        }
       },
       {
         "id": "conduct-variability",
@@ -3013,7 +3380,16 @@
         "assessability": "proxy",
         "max_exposure": "low",
         "agents_elevated": 0,
-        "agents_moderate": 0
+        "agents_moderate": 0,
+        "crosswalk": {
+          "owasp_llm_2025": [
+            "LLM03",
+            "LLM09"
+          ],
+          "eu_ai_act": [
+            "Art. 15"
+          ]
+        }
       },
       {
         "id": "dependency-drift",
@@ -3022,7 +3398,15 @@
         "assessability": "proxy",
         "max_exposure": "low",
         "agents_elevated": 0,
-        "agents_moderate": 0
+        "agents_moderate": 0,
+        "crosswalk": {
+          "owasp_llm_2025": [
+            "LLM03"
+          ],
+          "eu_ai_act": [
+            "Art. 15"
+          ]
+        }
       },
       {
         "id": "control-coverage-gap",
@@ -3031,7 +3415,19 @@
         "assessability": "partial",
         "max_exposure": "low",
         "agents_elevated": 0,
-        "agents_moderate": 0
+        "agents_moderate": 0,
+        "crosswalk": {
+          "owasp_llm_2025": [
+            "LLM05",
+            "LLM06",
+            "LLM10"
+          ],
+          "eu_ai_act": [
+            "Art. 11",
+            "Art. 14",
+            "Art. 15"
+          ]
+        }
       }
     ]
   },
@@ -3060,5 +3456,11 @@
         "date": "2026-07-01"
       }
     ]
+  },
+  "crosswalk": {
+    "id": "stoa-crosswalk-1",
+    "version": "1.0",
+    "owasp_llm_version": "2025",
+    "eu_ai_act_reference": "Regulation (EU) 2024/1689 (EU AI Act)"
   }
 }

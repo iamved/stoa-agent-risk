@@ -82,6 +82,8 @@ class StoaConfig:
     # [runtime.dimensions] — runtime-tier re-bucketing thresholds.
     runtime_error_rate_elevated: float = 0.10
     runtime_error_rate_moderate: float = 0.02
+    # [crosswalk] path — override the built-in regulatory crosswalk.
+    crosswalk_path: "Path | None" = None
 
     def rule_enabled(self, rule_id: str) -> bool:
         return self.enabled_rules.get(rule_id, True)
@@ -163,6 +165,10 @@ def load_config(root: Path, config_path: Path | None = None) -> StoaConfig:
     dimensions = data.get("dimensions", {})
     if dimensions.get("taxonomy"):
         config.dimensions_taxonomy = (root / dimensions["taxonomy"]).resolve()
+
+    crosswalk = data.get("crosswalk", {})
+    if crosswalk.get("path"):
+        config.crosswalk_path = (root / crosswalk["path"]).resolve()
 
     runtime = data.get("runtime", {})
     if runtime:

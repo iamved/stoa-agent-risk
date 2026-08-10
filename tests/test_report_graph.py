@@ -42,19 +42,23 @@ def test_graph_section_present_by_default():
     assert 'id="stoa-graph-data"' in html
 
 
-def test_no_graph_config_omits_graph_section_but_keeps_download_button():
+def test_no_graph_config_omits_graph_section_but_keeps_action_scripts():
     """--no-graph removes the graph and its two scripts, but the always-present
-    download-report script (independent of the graph feature) still ships,
-    hash-pinned on its own."""
+    action scripts (download-report and the underwriting-demo opener, both
+    independent of the graph feature) still ship, each hash-pinned."""
+    from stoa.report_html import UNDERWRITING_SCRIPT_HASH
+
     html = render_html(_result(), StoaConfig(no_graph=True))
     assert "Architecture graph" not in html
     assert 'id="stoa-download-report"' in html
     scripts = re.findall(r"<script>(.*?)</script>", html, re.DOTALL)
-    assert len(scripts) == 1
-    assert _sha256(scripts[0]) == DOWNLOAD_SCRIPT_HASH
+    # download + underwriting-open (order: underwriting first, then download)
+    assert len(scripts) == 2
+    assert {_sha256(s) for s in scripts} == {DOWNLOAD_SCRIPT_HASH, UNDERWRITING_SCRIPT_HASH}
     script_src = html.split("script-src", 1)[1].split(";")[0]
     assert f"sha256-{DOWNLOAD_SCRIPT_HASH}" in script_src
-    assert f"sha256-{VENDOR_SCRIPT_HASH}" not in script_src
+    assert f"sha256-{UNDERWRITING_SCRIPT_HASH}" in script_src
+    assert f"sha256-{VENDOR_SCRIPT_HASH}" not in script_src  # graph scripts gone
     assert f"sha256-{GLUE_SCRIPT_HASH}" not in script_src
     assert "unsafe-inline" not in script_src
 
@@ -85,11 +89,15 @@ def test_csp_meta_carries_both_script_hashes():
 def test_emitted_script_hashes_match_declared_constants():
     """The declared CSP hashes must equal SHA-256 of the *exact* emitted
     <script> content, or the browser would refuse to run the real scripts."""
+    from stoa.report_html import UNDERWRITING_SCRIPT_HASH
+
     html = render_html(_result(), StoaConfig())
     scripts = re.findall(r"<script>(.*?)</script>", html, re.DOTALL)
-    assert len(scripts) == 3  # vendor, glue, then the download-report script
+    # vendor, glue, underwriting-open, download (underwriting emitted before download)
+    assert len(scripts) == 4
     hashes = [_sha256(s) for s in scripts]
-    assert hashes == [VENDOR_SCRIPT_HASH, GLUE_SCRIPT_HASH, DOWNLOAD_SCRIPT_HASH]
+    assert hashes == [VENDOR_SCRIPT_HASH, GLUE_SCRIPT_HASH,
+                      UNDERWRITING_SCRIPT_HASH, DOWNLOAD_SCRIPT_HASH]
 
 
 def test_no_external_resources_anywhere():

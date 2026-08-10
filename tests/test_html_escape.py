@@ -76,31 +76,32 @@ def test_malicious_values_escaped_everywhere():
 
 
 def test_malicious_values_cannot_break_out_of_graph_json(tmp_path):
-    # With the graph on, the same value flows into the JSON data blob inside
-    # a <script type="application/json"> tag. It must not be able to close
-    # that tag early and smuggle in a real, executing script: the dangerous
-    # exact substring "</script" must never appear unescaped, and the only
-    # *unescaped* closing tags in the whole report are the report's own
-    # fixed, hash-pinned scripts (vendor, glue, download-report) plus the
-    # JSON data tag.
+    # A malicious repo value flows into two JSON data blobs inside
+    # <script type="application/json"> tags (the graph data and the embedded
+    # underwriting form). Neither may close its tag early and smuggle in a
+    # real, executing script: the dangerous exact substring "</script" must
+    # never appear unescaped. The only *unescaped* closing tags are the
+    # report's own fixed, hash-pinned scripts (vendor, glue, underwriting-open,
+    # download-report) plus the two JSON data tags = 6.
     import re
 
     html = render_html(_malicious_result(), StoaConfig())
     assert "alert('xss')</script>" not in html
-    assert len(re.findall(r"(?i)</script", html)) == 4
+    assert len(re.findall(r"(?i)</script", html)) == 6
 
 
-def test_report_has_csp_with_only_the_download_script_when_graph_off():
-    # --no-graph removes the graph's two scripts; the always-present
-    # download-report script (fixed content, no repo data) still ships,
-    # hash-pinned, and the malicious payload still can't ride along with it.
+def test_report_has_csp_with_only_action_scripts_when_graph_off():
+    # --no-graph removes the graph's two scripts; the always-present action
+    # scripts (download-report + underwriting-demo opener, both fixed content,
+    # no repo data) still ship, hash-pinned, and the malicious payload still
+    # can't ride along with them.
     html = render_html(_malicious_result(), StoaConfig(no_graph=True))
     assert "Content-Security-Policy" in html
     assert "default-src 'none'" in html
     assert "alert('xss')" not in html
     import re
 
-    assert len(re.findall(r"<script>", html)) == 1
+    assert len(re.findall(r"<script>", html)) == 2
 
 
 def test_report_graph_csp_is_hash_pinned_not_unsafe_inline():
