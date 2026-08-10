@@ -299,6 +299,44 @@ footer { margin-top: 44px; padding-top: 14px; border-top: 1px solid #e3e6ec;
 .dim-drill { background: #fff; border: 1px solid #e3e6ec; border-radius: 8px;
   padding: 8px 14px; margin: 8px 0; }
 .dim-drill summary { font-size: 13px; }
+/* --- concise dimension exposure (redesign) --------------------------- */
+.dim-sub { font-size: 12.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.04em; color: #5a6272; margin: 16px 0 8px; }
+.dim-by { display: flex; flex-direction: column; gap: 4px; }
+.dim-by-row { display: grid; grid-template-columns: 200px 96px 1fr; align-items: center;
+  gap: 14px; padding: 9px 14px; background: #fff; border: 1px solid #e3e6ec;
+  border-radius: 8px; border-left: 4px solid #d9dde3; }
+.dim-by-row.lv-elevated { border-left-color: #b42318; }
+.dim-by-row.lv-moderate { border-left-color: #b8901a; }
+.dim-by-name { font-weight: 650; font-size: 13.5px; }
+.dim-by-name .eyebrow { display: block; font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.05em; color: #8a94a6; }
+.dim-by-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden;
+  background: #eef0f4; max-width: 320px; }
+.dim-by-bar > span { display: block; }
+.dim-by-bar .b-elev { background: #b42318; }
+.dim-by-bar .b-mod { background: #d29a1f; }
+.dim-by-bar .b-low { background: #c2c8d0; }
+.dim-by-counts { font-size: 12px; color: #5a6272; margin-left: 10px; white-space: nowrap;
+  font-variant-numeric: tabular-nums; }
+.dim-agents { display: flex; flex-direction: column; gap: 7px; }
+.dim-agent-row { background: #fff; border: 1px solid #e3e6ec; border-radius: 8px;
+  padding: 11px 15px; }
+.dim-agent-row.worst { border-left: 4px solid #b42318; }
+.dim-agent-head { display: flex; justify-content: space-between; align-items: baseline;
+  gap: 10px; }
+.dim-agent-name { font-weight: 700; font-size: 14.5px; }
+.dim-agent-name a { color: inherit; text-decoration: none; border-bottom: 1px dotted #b8c0cf; }
+.dim-agent-name a:hover { border-bottom-color: #465063; }
+.dim-agent-detail { font-size: 12px; color: #2f6fb0; text-decoration: none; }
+.dim-agent-detail:hover { text-decoration: underline; }
+.dim-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; }
+.dim-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 12px;
+  font-weight: 600; border-radius: 20px; padding: 2px 11px; }
+.dim-chip.chip-elev { background: #fde8e8; color: #b42318; }
+.dim-chip.chip-mod { background: #fef7dc; color: #93700b; }
+.dim-more { font-size: 11.5px; color: #8a94a6; }
+.dim-clean { font-size: 12.5px; color: #14714f; margin-top: 6px; }
 .dim-drill:target { border-color: #a05a00; box-shadow: 0 0 0 2px #a05a0033; }
 .dim-drill table { margin-top: 8px; }
 @media print {
@@ -700,88 +738,115 @@ def _exposure_chart(ranked: list[AgentCandidate]) -> str:
     )
 
 
-def _dim_cell(entry: dict, agent_id: str) -> str:
-    exp = entry["exposure"]
-    glyph = _EXP_GLYPH.get(exp, "·")
-    cls = _EXP_CLASS.get(exp, "exp-none")
-    label = _EXP_LABEL.get(exp, "")
-    proxy = "ᴾ" if entry["assessability"] == "proxy" else ""
-    inner = (f'<span class="{cls}">{glyph}{proxy}</span>'
-             f'<span class="lvl {cls}">{html_text(label)}</span>')
-    anchor = f"dim-{html_text(agent_id)}"
-    title = html_text(entry["statement"])
-    return f'<td class="cell" title="{title}"><a href="#{anchor}">{inner}</a></td>'
+_EXP_RANK = {"elevated": 3, "moderate": 2, "low": 1, "none-observed": 0,
+             "not-assessable": 0}
 
 
 def _dimension_matrix(result: ScanResult) -> str:
+    """Concise, horizontal-reading exposure view (redesigned for scannability):
+    a per-dimension rollup worst-first, then a per-agent list showing only each
+    agent's elevated/moderate dimensions as labeled chips. The full per-agent
+    breakdown stays one click away in the drill-downs below. Scores are
+    untouched — this is presentation only."""
     summary = result.dimension_summary
-    dim_order = [d["id"] for d in summary["dimensions"]]
     dim_meta = {d["id"]: d for d in summary["dimensions"]}
     tax = summary["taxonomy"]
 
     parts = ["<section><h2>Dimension exposure</h2>"]
     parts.append(
-        f'<p class="note">Every agent candidate assessed across '
-        f'{len(dim_order)} risk dimensions — taxonomy '
-        f'<code>{html_text(tax["id"])}</code> v{html_text(tax["version"])}. '
-        "Cells encode state by glyph, color, and label. Proxy-tier dimensions "
-        "(ᴾ) reflect indirect signals only and are capped at moderate — runtime "
-        "evaluation is required for direct assessment. Click a cell for evidence.</p>"
+        f'<p class="note">Each agent is scored across '
+        f'{len(dim_meta)} risk dimensions (<code>{html_text(tax["id"])}</code> '
+        f'v{html_text(tax["version"])}). Only elevated and moderate exposures are '
+        "shown below — the levels worth a look. Proxy-tier dimensions (ᴾ) rest on "
+        "indirect signals only and are capped at moderate; runtime evaluation is "
+        "required for direct assessment. Open an agent for its full breakdown and "
+        "evidence.</p>"
     )
 
-    # header
-    head = ['<div class="table-wrap"><table class="matrix"><thead>']
-    groups = [dim_meta[did].get("group", "") for did in dim_order]
-    if any(groups):
-        head.append('<tr class="dim-groups"><th class="agent"></th>')
-        for g, run in groupby(groups):
-            span = len(list(run))
-            label = DIMENSION_GROUP_NAMES.get(g, g or "—")
-            head.append(f'<th class="dim-group" colspan="{span}">{html_text(label)}</th>')
-        head.append("</tr>")
-    head.append('<tr><th class="agent">Agent</th>')
-    for did in dim_order:
-        m = dim_meta[did]
-        cls = "dim proxy" if m["assessability"] == "proxy" else "dim"
-        head.append(f'<th class="{cls}">{html_text(m["name"])}</th>')
-    head.append("</tr></thead><tbody>")
-    parts.append("".join(head))
+    # --- By dimension: worst-first rollup, readable left-to-right ----------
+    n_agents = sum(1 for a in result.agents if a.dimension_assessment is not None)
+    dim_rows = sorted(
+        summary["dimensions"],
+        key=lambda d: (-_EXP_RANK.get(d["max_exposure"], 0),
+                       -d.get("agents_elevated", 0), -d.get("agents_moderate", 0)),
+    )
+    parts.append('<div class="dim-sub">By dimension</div><div class="dim-by">')
+    for d in dim_rows:
+        elev = d.get("agents_elevated", 0)
+        mod = d.get("agents_moderate", 0)
+        lower = max(0, n_agents - elev - mod)
+        proxy = "ᴾ" if d["assessability"] == "proxy" else ""
+        group_label = DIMENSION_GROUP_NAMES.get(d.get("group", ""), "")
+        lv = d["max_exposure"]
+        badge = _exposure_badge(lv)
+        # a slim stacked bar: elevated / moderate / lower
+        def _seg(count, cls):
+            if not count:
+                return ""
+            pct = round(count * 100 / n_agents) if n_agents else 0
+            return f'<span class="{cls}" style="width:{pct}%"></span>'
+        bar = (f'<span class="dim-by-bar">{_seg(elev, "b-elev")}'
+               f'{_seg(mod, "b-mod")}{_seg(lower, "b-low")}</span>')
+        counts = (f'{elev} elevated · {mod} moderate'
+                  if (elev or mod) else "none at moderate or above")
+        parts.append(
+            f'<div class="dim-by-row lv-{lv}">'
+            f'<div class="dim-by-name">{html_text(d["name"])}{proxy}'
+            + (f'<span class="eyebrow">{html_text(group_label)}</span>' if group_label else "")
+            + f"</div><div>{badge}</div>"
+            f'<div style="display:flex;align-items:center">{bar}'
+            f'<span class="dim-by-counts">{counts}</span></div></div>'
+        )
+    parts.append("</div>")
 
-    # org rollup row
-    org = ['<tr class="org"><td class="agent">Org rollup</td>']
-    for did in dim_order:
-        exp = dim_meta[did]["max_exposure"]
-        org.append(f'<td class="cell {_EXP_CLASS.get(exp, "exp-none")}">'
-                   f'{_EXP_GLYPH.get(exp, "·")}</td>')
-    org.append("</tr>")
-    parts.append("".join(org))
-
+    # --- By agent: only the moderate+ exposures, as labeled chips ----------
     ranked = sorted(result.agents, key=lambda a: (-exposure_score(a), a.path, a.symbol))
+    parts.append('<div class="dim-sub">By agent</div><div class="dim-agents">')
     for agent in ranked:
         if agent.dimension_assessment is None:
             continue
-        entries = {e["id"]: e for e in agent.dimension_assessment["dimensions"]}
-        row = [f'<tr><td class="agent">{html_text(agent.name)}</td>']
-        for did in dim_order:
-            entry = entries.get(did)
-            if entry is None:
-                row.append('<td class="cell exp-none">·</td>')
-            else:
-                row.append(_dim_cell(entry, agent.id))
-        row.append("</tr>")
-        parts.append("".join(row))
-    parts.append("</tbody></table></div>")
+        entries = agent.dimension_assessment["dimensions"]
+        notable = sorted(
+            (e for e in entries if _EXP_RANK.get(e["exposure"], 0) >= 2),
+            key=lambda e: (-_EXP_RANK.get(e["exposure"], 0), e["id"]),
+        )
+        lower_n = sum(1 for e in entries if _EXP_RANK.get(e["exposure"], 0) == 1)
+        worst = " worst" if notable and notable[0]["exposure"] == "elevated" else ""
+        anchor = f"dim-{html_text(agent.id)}"
+        head = (
+            f'<div class="dim-agent-row{worst}"><div class="dim-agent-head">'
+            f'<span class="dim-agent-name"><a href="#{anchor}">{html_text(agent.name)}</a></span>'
+            f'<a class="dim-agent-detail" href="#{anchor}">full breakdown →</a></div>'
+        )
+        if notable:
+            chips = []
+            for e in notable:
+                glyph = _EXP_GLYPH.get(e["exposure"], "·")
+                cls = "chip-elev" if e["exposure"] == "elevated" else "chip-mod"
+                proxy = "ᴾ" if e["assessability"] == "proxy" else ""
+                nm = dim_meta.get(e["id"], {}).get("name", e["id"])
+                chips.append(
+                    f'<span class="dim-chip {cls}" title="{html_text(e["statement"])}">'
+                    f'{glyph} {html_text(nm)}{proxy}</span>'
+                )
+            if lower_n:
+                chips.append(f'<span class="dim-more">+{lower_n} lower</span>')
+            head += f'<div class="dim-chips">{"".join(chips)}</div>'
+        else:
+            head += ('<div class="dim-clean">○ Low exposure across all dimensions '
+                     "in scanned files.</div>")
+        parts.append(head + "</div>")
+    parts.append("</div>")
 
     parts.append(
         '<div class="dim-legend">'
         '<span><span class="exp-elevated">●</span> elevated</span>'
         '<span><span class="exp-moderate">◐</span> moderate</span>'
         '<span><span class="exp-low">○</span> low</span>'
-        '<span><span class="exp-none">·</span> none observed</span>'
-        '<span>ᴾ proxy signals only</span></div>'
+        '<span>ᴾ proxy signals only — runtime evaluation required</span></div>'
     )
 
-    # per-agent drill-downs
+    # per-agent drill-downs (unchanged: the full breakdown + evidence) -------
     for agent in ranked:
         if agent.dimension_assessment is None:
             continue
