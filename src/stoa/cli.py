@@ -156,14 +156,19 @@ def build_parser() -> argparse.ArgumentParser:
     export_kind = export.add_mutually_exclusive_group(required=True)
     export_kind.add_argument("--assurance", action="store_true",
                              help="Export the 18-area assurance packet")
-    export_kind.add_argument("--underwriting-demo", action="store_true",
-                             help="Export a pre-filled Munich RE aiSure questionnaire "
-                                  "(pre-filled AI Model Risk Assessment form)")
+    export_kind.add_argument("--underwriting", "--underwriting-demo",
+                             dest="underwriting", action="store_true",
+                             help="Export a pre-filled AI Model Risk Assessment form "
+                                  "(modeled on the aiSure template)")
+    export.add_argument("--underwriting-config", metavar="PATH", default=None,
+                        help="TOML with the applicant's [identity] and real "
+                             "[[performance]] metrics for --underwriting "
+                             "(default: sample figures, clearly labeled)")
     export.add_argument("--format", choices=["json", "md"], default="md",
                         help="Output format for --assurance (default: md)")
     export.add_argument("--out", metavar="PATH", default=None,
                         help="Write output to PATH (default: stdout, or "
-                             "stoa-underwriting.html for --underwriting-demo)")
+                             "stoa-underwriting.html for --underwriting)")
     export.add_argument("--config", metavar="PATH", default=None)
     export.add_argument("--no-git", action="store_true")
 
@@ -533,12 +538,24 @@ def _run_export_command(args: argparse.Namespace) -> int:
         result = run_scan(ScanOptions(root=Path("."), no_git=args.no_git), config)
         document = build_document(result, config)
 
-    if args.underwriting_demo:
-        from .underwriting import render_underwriting_html
+    if args.underwriting:
+        from .underwriting import (
+            UnderwritingConfigError,
+            load_underwriting_config,
+            render_underwriting_html,
+        )
 
+        identity, metrics = None, None
+        if args.underwriting_config:
+            try:
+                identity, metrics = load_underwriting_config(Path(args.underwriting_config))
+            except UnderwritingConfigError as exc:
+                print(f"stoa: {exc}", file=sys.stderr)
+                return EXIT_USAGE
         out_path = Path(args.out) if args.out else Path("stoa-underwriting.html")
-        _atomic_write(out_path, render_underwriting_html(document))
-        print(f"stoa: wrote {out_path} (underwriting-evidence form)")
+        _atomic_write(out_path, render_underwriting_html(document, identity, metrics))
+        source = "applicant config" if args.underwriting_config else "sample figures"
+        print(f"stoa: wrote {out_path} (underwriting-evidence form · {source})")
         return EXIT_OK
 
     git_sha = (document.get("repository") or {}).get("git_ref")

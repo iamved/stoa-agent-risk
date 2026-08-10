@@ -18,7 +18,19 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import sys
 from html import escape
+from pathlib import Path
+
+if sys.version_info >= (3, 11):
+    import tomllib
+else:  # pragma: no cover
+    import tomli as tomllib
+
+
+class UnderwritingConfigError(Exception):
+    """Invalid underwriting config file; maps to exit code 2."""
+
 
 # --- swappable demo identity (a design partner can replace this dict) --------
 DEMO_IDENTITY = {
@@ -33,6 +45,64 @@ DEMO_IDENTITY = {
     "deployment": "Production (customer-facing fraud triage)",
     "currency": "USD",
 }
+
+# Sample performance figures, shown (labeled) only when the applicant supplies
+# none of their own. Never presented as audited data.
+SAMPLE_METRICS = [
+    {"metric": "Ground-truth accuracy", "value": "97.4%", "cadence": "Monthly, held-out labeled set"},
+    {"metric": "False-positive rate", "value": "1.8%", "cadence": "Monthly"},
+    {"metric": "False-negative rate", "value": "0.9%", "cadence": "Monthly"},
+    {"metric": "Population stability index (PSI)", "value": "0.06", "cadence": "Weekly drift monitor"},
+    {"metric": "Decision latency (p95)", "value": "420 ms", "cadence": "Continuous"},
+    {"metric": "Human-review override rate", "value": "3.1%", "cadence": "Monthly"},
+]
+
+# Identity keys the config file may set (anything else is ignored).
+_IDENTITY_KEYS = set(DEMO_IDENTITY)
+
+
+def load_underwriting_config(path: Path) -> tuple[dict, list | None]:
+    """Load an applicant's underwriting config (TOML): identity overrides and
+    real performance metrics. Returns ``(identity_overrides, metrics)`` where
+    ``metrics`` is None when the file supplies none (caller falls back to the
+    labeled sample). Shape::
+
+        [identity]
+        company = "Acme Payments Inc"
+        contact_name = "..."
+        # ... any of the DEMO_IDENTITY keys
+
+        [[performance]]
+        metric = "Ground-truth accuracy"
+        value  = "98.1%"
+        cadence = "Monthly, held-out set"   # optional
+    """
+    if not path.is_file():
+        raise UnderwritingConfigError(f"underwriting config not found: {path}")
+    try:
+        data = tomllib.loads(path.read_text(encoding="utf-8"))
+    except tomllib.TOMLDecodeError as exc:
+        raise UnderwritingConfigError(f"invalid TOML in {path}: {exc}") from exc
+
+    identity = {k: str(v) for k, v in (data.get("identity") or {}).items()
+                if k in _IDENTITY_KEYS}
+    rows = data.get("performance")
+    metrics: list | None = None
+    if rows:
+        if not isinstance(rows, list):
+            raise UnderwritingConfigError(
+                f"{path}: [[performance]] must be an array of tables")
+        metrics = []
+        for i, r in enumerate(rows):
+            if not isinstance(r, dict) or not r.get("metric") or not r.get("value"):
+                raise UnderwritingConfigError(
+                    f"{path}: performance[{i}] needs at least 'metric' and 'value'")
+            metrics.append({
+                "metric": str(r["metric"]),
+                "value": str(r["value"]),
+                "cadence": str(r.get("cadence", "—")),
+            })
+    return identity, metrics
 
 
 def _bool_cell(value: bool) -> str:
@@ -106,32 +176,51 @@ def _derive_from_registry(document: dict) -> dict:
     }
 
 
-def _perf_table() -> str:
-    """Hardcoded model-performance sample (Data Submission Requirements)."""
-    rows = [
-        ("Ground-truth accuracy", "97.4%", "Monthly, held-out labeled set"),
-        ("False-positive rate", "1.8%", "Monthly"),
-        ("False-negative rate", "0.9%", "Monthly"),
-        ("Population stability index (PSI)", "0.06", "Weekly drift monitor"),
-        ("Decision latency (p95)", "420 ms", "Continuous"),
-        ("Human-review override rate", "3.1%", "Monthly"),
-    ]
+def _perf_table(metrics: list) -> str:
+    """Model-performance table (Data Submission Requirements). Renders the
+    applicant's supplied metrics when present, otherwise the labeled sample."""
     body = "".join(
-        f"<tr><td>{escape(m)}</td><td>{escape(v)}</td><td>{escape(c)}</td></tr>"
-        for m, v, c in rows
+        f'<tr><td>{escape(r["metric"])}</td><td>{escape(r["value"])}</td>'
+        f'<td>{escape(r["cadence"])}</td></tr>'
+        for r in metrics
     )
     return (
         '<table class="uw-table"><thead><tr><th>Performance metric</th>'
-        "<th>Sampled value</th><th>Measurement cadence</th></tr></thead>"
+        "<th>Value</th><th>Measurement cadence</th></tr></thead>"
         f"<tbody>{body}</tbody></table>"
     )
 
 
-def render_underwriting_html(document: dict, identity: dict | None = None) -> str:
-    """Render the pre-filled aiSure questionnaire as standalone HTML."""
+def render_underwriting_html(
+    document: dict,
+    identity: dict | None = None,
+    metrics: list | None = None,
+) -> str:
+    """Render the pre-filled aiSure questionnaire as standalone HTML.
+
+    ``metrics`` is the applicant's real performance figures (from their config);
+    when None, the labeled sample is shown and the copy makes that explicit.
+    """
     idn = {**DEMO_IDENTITY, **(identity or {})}
     d = _derive_from_registry(document)
     repo = (document.get("repository") or {}).get("name", "the repository")
+    applicant_metrics = metrics is not None
+    perf_rows = metrics if applicant_metrics else SAMPLE_METRICS
+
+    # The note and the performance caption both state, honestly, whether the
+    # figures are the applicant's own or the placeholder sample.
+    if applicant_metrics:
+        note = (f'Pre-filled by Stoa from a static scan of <strong>{escape(repo)}'
+                "</strong>. Technical fields are populated from scan evidence and "
+                "performance figures from the applicant's submission; the applicant "
+                "confirms all fields before signing.")
+        perf_caption = "Model-performance data (provided by the applicant):"
+    else:
+        note = (f'Pre-filled by Stoa from a static scan of <strong>{escape(repo)}'
+                "</strong>. Technical fields are populated from scan evidence; "
+                "the applicant confirms identity and supplies model-performance "
+                "figures before submission.")
+        perf_caption = "Model-performance data (sample values shown — applicant to supply):"
 
     def field(label: str, value: str) -> str:
         return (f'<div class="uw-field"><span class="uw-label">{escape(label)}</span>'
@@ -146,10 +235,7 @@ def render_underwriting_html(document: dict, identity: dict | None = None) -> st
     <span class="uw-brand">aiSure&trade; — AI Model Risk Assessment</span>
     <button type="button" id="uw-print" class="uw-print-btn">Download PDF</button>
   </div>
-  <p class="uw-note">Pre-filled by Stoa from a static scan of
-     <strong>{escape(repo)}</strong>. Technical fields are populated from scan
-     evidence; the applicant confirms identity and model-performance figures
-     before submission.</p>
+  <p class="uw-note">{note}</p>
 
   <h2>1. General Information</h2>
   {field("Applicant company", idn["company"])}
@@ -178,8 +264,8 @@ def render_underwriting_html(document: dict, identity: dict | None = None) -> st
           else "Not declared") )}
 
   <h2>4. Data Submission Requirements</h2>
-  <p class="uw-sub">Model-performance data (sample values shown — applicant to confirm):</p>
-  {_perf_table()}
+  <p class="uw-sub">{perf_caption}</p>
+  {_perf_table(perf_rows)}
 
   <h3>Insurance requirements (Schedule)</h3>
   <div class="uw-schedule">

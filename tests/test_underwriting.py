@@ -1,9 +1,9 @@
-"""Feature 3: the underwriting-evidence demo export.
+"""Feature 3: the underwriting-evidence export.
 
-The pre-filled Munich RE aiSure questionnaire — all five sections, scan-
-sourced technical fields, swappable demo identity, offline + CSP-clean,
-print-isolated, and clearly a demo. Plus the report button wiring (embedded
-blob + hash-pinned open script) and the CLI export.
+The pre-filled AI Model Risk Assessment (modeled on the aiSure template) —
+all five sections, scan-sourced technical fields, swappable identity, real
+applicant-supplied performance metrics (or a labeled sample), offline +
+CSP-clean, print-isolated. Plus the report button wiring and CLI export.
 """
 
 from __future__ import annotations
@@ -14,12 +14,19 @@ import json
 import re
 from pathlib import Path
 
+import pytest
+
 from stoa.cli import main
 from stoa.config import load_config
 from stoa.report_html import UNDERWRITING_SCRIPT_HASH, render_html
 from stoa.report_json import build_document
 from stoa.scanner import ScanOptions, run_scan
-from stoa.underwriting import DEMO_IDENTITY, render_underwriting_html
+from stoa.underwriting import (
+    DEMO_IDENTITY,
+    UnderwritingConfigError,
+    load_underwriting_config,
+    render_underwriting_html,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -56,8 +63,59 @@ def test_scan_sourced_fields_reflect_the_registry():
     assert f"{n_agents} agent candidate(s)" in html
     # Meridian fires AI002 -> robustness testing evidenced
     assert "AI001/AI002" in html
-    # performance sample table present
+    # with no applicant metrics, the labeled sample table is shown
     assert "Ground-truth accuracy" in html and "97.4%" in html
+    assert "sample values shown" in html  # honest about the placeholder
+
+
+# --- applicant-supplied performance metrics ----------------------------------
+
+
+def test_applicant_metrics_replace_the_sample_and_relabel():
+    doc = _document()
+    metrics = [
+        {"metric": "Ground-truth accuracy", "value": "98.1%", "cadence": "Monthly"},
+        {"metric": "False-positive rate", "value": "1.2%", "cadence": "Weekly"},
+    ]
+    html = render_underwriting_html(doc, metrics=metrics)
+    assert "98.1%" in html and "1.2%" in html          # applicant's real figures
+    assert "97.4%" not in html                          # sample no longer shown
+    assert "provided by the applicant" in html          # relabeled
+    assert "sample values shown" not in html
+
+
+def test_config_loader_parses_identity_and_metrics(tmp_path):
+    cfg = tmp_path / "uw.toml"
+    cfg.write_text(
+        '[identity]\ncompany = "Acme Payments Inc"\nunknown_key = "ignored"\n'
+        '[[performance]]\nmetric = "Accuracy"\nvalue = "99%"\ncadence = "Daily"\n'
+        '[[performance]]\nmetric = "Latency (p95)"\nvalue = "180 ms"\n'
+    )
+    identity, metrics = load_underwriting_config(cfg)
+    assert identity == {"company": "Acme Payments Inc"}  # unknown key dropped
+    assert metrics == [
+        {"metric": "Accuracy", "value": "99%", "cadence": "Daily"},
+        {"metric": "Latency (p95)", "value": "180 ms", "cadence": "—"},  # cadence optional
+    ]
+
+
+def test_config_loader_rejects_incomplete_metric(tmp_path):
+    cfg = tmp_path / "bad.toml"
+    cfg.write_text('[[performance]]\nmetric = "Accuracy"\n')  # no value
+    with pytest.raises(UnderwritingConfigError, match="metric.*value"):
+        load_underwriting_config(cfg)
+
+
+def test_config_loader_missing_file(tmp_path):
+    with pytest.raises(UnderwritingConfigError, match="not found"):
+        load_underwriting_config(tmp_path / "nope.toml")
+
+
+def test_shipped_example_config_is_valid():
+    identity, metrics = load_underwriting_config(
+        REPO_ROOT / "examples" / "underwriting-config.example.toml")
+    assert identity["company"] == "Acme Payments Inc"
+    assert metrics and all(r["metric"] and r["value"] for r in metrics)
 
 
 def test_insurance_requirements_sized_from_exposure():
@@ -78,7 +136,7 @@ def test_form_hygiene_template_attribution_and_confirm_note():
     assert "DEMO" not in normalized and "Fictional" not in normalized
     assert "modeled on the aiSure" in normalized          # template attribution
     assert "confirmed by the applicant" in normalized      # applicant-to-confirm
-    assert "applicant to confirm" in normalized            # on the perf table
+    assert "applicant to supply" in normalized             # on the perf table
 
 
 # --- offline / CSP / print ----------------------------------------------------
@@ -142,22 +200,49 @@ def test_report_still_has_download_button_and_both_hashes():
 # --- CLI ----------------------------------------------------------------------
 
 
-def test_cli_export_underwriting_demo(tmp_path, monkeypatch, capsys):
+def test_cli_export_underwriting_sample(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     doc = _document("examples/sparkwing")
     (tmp_path / "reg.json").write_text(json.dumps(doc))
+    # --underwriting-demo is kept as an alias for --underwriting
     code = main(["export", "reg.json", "--underwriting-demo", "--out", "uw.html"])
     assert code == 0
     out = (tmp_path / "uw.html").read_text()
     assert "aiSure" in out and "AI Model Risk Assessment" in out
-    assert "wrote" in capsys.readouterr().out
+    assert "97.4%" in out and "sample values shown" in out   # labeled sample
+    assert "sample figures" in capsys.readouterr().out
+
+
+def test_cli_export_underwriting_with_applicant_config(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "reg.json").write_text(json.dumps(_document("examples/sparkwing")))
+    (tmp_path / "uw.toml").write_text(
+        '[identity]\ncompany = "Acme Payments Inc"\n'
+        '[[performance]]\nmetric = "Ground-truth accuracy"\nvalue = "98.1%"\n'
+    )
+    code = main(["export", "reg.json", "--underwriting",
+                 "--underwriting-config", "uw.toml", "--out", "uw.html"])
+    assert code == 0
+    out = (tmp_path / "uw.html").read_text()
+    assert "Acme Payments Inc" in out and "98.1%" in out
+    assert "provided by the applicant" in out
+    assert "97.4%" not in out                                # sample gone
+    assert "applicant config" in capsys.readouterr().out
+
+
+def test_cli_export_underwriting_bad_config(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "reg.json").write_text(json.dumps(_document("examples/sparkwing")))
+    (tmp_path / "uw.toml").write_text('[[performance]]\nmetric = "x"\n')  # no value
+    code = main(["export", "reg.json", "--underwriting",
+                 "--underwriting-config", "uw.toml", "--out", "uw.html"])
+    assert code == 2  # usage error, clear message
 
 
 def test_cli_export_requires_a_kind(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     (tmp_path / "reg.json").write_text(json.dumps(_document("examples/sparkwing")))
-    # neither --assurance nor --underwriting-demo -> argparse usage error (exit 2)
-    import pytest
+    # neither --assurance nor --underwriting -> argparse usage error (exit 2)
     with pytest.raises(SystemExit) as exc:
         main(["export", "reg.json"])
     assert exc.value.code == 2
