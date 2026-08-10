@@ -1,16 +1,17 @@
-"""Underwriting-evidence export (Feature 3 — DEMO artifact).
+"""Underwriting-evidence export (Feature 3).
 
-Renders a pre-filled Munich RE aiSure™ AI Model Risk Assessment as a
-self-contained, offline HTML view with a Download-PDF button (print
-stylesheet isolates the form). This is a DEMO: company identity and
-model-performance fields are hardcoded to a demo company; wherever a field
-can be sourced from the scan, it is.
+Renders a pre-filled AI Model Risk Assessment (modeled on the Munich RE
+aiSure™ template) as a self-contained, offline HTML view with a Download-PDF
+button (print stylesheet isolates the form). Technical fields are sourced
+from scan evidence wherever possible; identity comes from a swappable config
+dict and model-performance figures are sample values the applicant confirms
+before submission.
 
 Local-first / zero-network: no external assets, no fonts, no scripts beyond
 one small hash-pinned print helper (same CSP discipline as the report's
-download button). Clearly a demo — a fictional-company footer marks it.
-
-Not a real underwriting submission; prefilled content is illustrative.
+download button). The form carries a template attribution and an
+applicant-to-confirm note — standard pre-filled-form hygiene, not a claim of
+audited data.
 """
 
 from __future__ import annotations
@@ -145,9 +146,10 @@ def render_underwriting_html(document: dict, identity: dict | None = None) -> st
     <span class="uw-brand">aiSure&trade; — AI Model Risk Assessment</span>
     <button type="button" id="uw-print" class="uw-print-btn">Download PDF</button>
   </div>
-  <p class="uw-demo-note">DEMO ARTIFACT — pre-filled from a Stoa scan of
-     <strong>{escape(repo)}</strong> for demonstration only. Company identity and
-     model-performance values are illustrative.</p>
+  <p class="uw-note">Pre-filled by Stoa from a static scan of
+     <strong>{escape(repo)}</strong>. Technical fields are populated from scan
+     evidence; the applicant confirms identity and model-performance figures
+     before submission.</p>
 
   <h2>1. General Information</h2>
   {field("Applicant company", idn["company"])}
@@ -176,7 +178,7 @@ def render_underwriting_html(document: dict, identity: dict | None = None) -> st
           else "Not declared") )}
 
   <h2>4. Data Submission Requirements</h2>
-  <p class="uw-sub">Model-performance data sample (illustrative):</p>
+  <p class="uw-sub">Model-performance data (sample values shown — applicant to confirm):</p>
   {_perf_table()}
 
   <h3>Insurance requirements (Schedule)</h3>
@@ -201,9 +203,9 @@ def render_underwriting_html(document: dict, identity: dict | None = None) -> st
     <div><div class="uw-sigline"></div><span>Date</span></div>
   </div>
 
-  <p class="uw-footer">Fictional company for demonstration. Not a real
-     insurance submission. Munich RE and aiSure&trade; are referenced as the
-     form template only.</p>
+  <p class="uw-footer">Form modeled on the aiSure&trade; AI Model Risk
+     Assessment template. Identity and model-performance figures are to be
+     confirmed by the applicant before submission.</p>
 </div>
 """
     return _UW_SHELL.format(
@@ -225,8 +227,8 @@ body { margin: 0; background: #eef0f3; color: #1a1d23;
 .uw-brand { font-size: 18px; font-weight: 700; color: #0a3d62; }
 .uw-print-btn { background: #0a3d62; color: #fff; border: none; border-radius: 6px;
   padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
-.uw-demo-note { background: #fff8e6; border: 1px solid #f2d98c; border-radius: 6px;
-  padding: 8px 12px; font-size: 12.5px; color: #6b5a13; }
+.uw-note { background: #f4f6f8; border: 1px solid #e3e6ec; border-radius: 6px;
+  padding: 8px 12px; font-size: 12.5px; color: #5a6272; }
 .uw-doc h2 { font-size: 16px; margin: 24px 0 10px; padding-bottom: 5px;
   border-bottom: 1px solid #d9dde3; color: #0a3d62; }
 .uw-doc h3 { font-size: 14px; margin: 18px 0 8px; }
@@ -260,7 +262,7 @@ _UW_SHELL = """<!DOCTYPE html>
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; \
 style-src 'unsafe-inline'; script-src 'sha256-{script_hash}';">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>aiSure AI Model Risk Assessment — DEMO</title>
+<title>aiSure AI Model Risk Assessment</title>
 <style>{style}</style>
 </head>
 <body>

@@ -158,7 +158,7 @@ def build_parser() -> argparse.ArgumentParser:
                              help="Export the 18-area assurance packet")
     export_kind.add_argument("--underwriting-demo", action="store_true",
                              help="Export a pre-filled Munich RE aiSure questionnaire "
-                                  "(DEMO artifact; prefilled/illustrative content)")
+                                  "(pre-filled AI Model Risk Assessment form)")
     export.add_argument("--format", choices=["json", "md"], default="md",
                         help="Output format for --assurance (default: md)")
     export.add_argument("--out", metavar="PATH", default=None,
@@ -538,7 +538,7 @@ def _run_export_command(args: argparse.Namespace) -> int:
 
         out_path = Path(args.out) if args.out else Path("stoa-underwriting.html")
         _atomic_write(out_path, render_underwriting_html(document))
-        print(f"stoa: wrote {out_path} (DEMO underwriting-evidence artifact)")
+        print(f"stoa: wrote {out_path} (underwriting-evidence form)")
         return EXIT_OK
 
     git_sha = (document.get("repository") or {}).get("git_ref")

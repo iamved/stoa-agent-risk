@@ -69,12 +69,16 @@ def test_insurance_requirements_sized_from_exposure():
     assert "Coverage trigger" in html
 
 
-def test_clearly_a_demo():
+def test_form_hygiene_template_attribution_and_confirm_note():
+    """No 'DEMO' framing, but the form stays honest: it attributes the aiSure
+    template (not impersonating Munich RE) and flags that identity and figures
+    are applicant-confirmed (sample numbers aren't presented as audited)."""
     html = render_underwriting_html(_document())
-    normalized = " ".join(html.split())  # collapse source-wrapping whitespace
-    assert "DEMO ARTIFACT" in normalized
-    assert "Fictional company" in normalized
-    assert "Not a real insurance submission" in normalized
+    normalized = " ".join(html.split())
+    assert "DEMO" not in normalized and "Fictional" not in normalized
+    assert "modeled on the aiSure" in normalized          # template attribution
+    assert "confirmed by the applicant" in normalized      # applicant-to-confirm
+    assert "applicant to confirm" in normalized            # on the perf table
 
 
 # --- offline / CSP / print ----------------------------------------------------
@@ -145,7 +149,7 @@ def test_cli_export_underwriting_demo(tmp_path, monkeypatch, capsys):
     code = main(["export", "reg.json", "--underwriting-demo", "--out", "uw.html"])
     assert code == 0
     out = (tmp_path / "uw.html").read_text()
-    assert "aiSure" in out and "DEMO ARTIFACT" in out
+    assert "aiSure" in out and "AI Model Risk Assessment" in out
     assert "wrote" in capsys.readouterr().out
 
 
