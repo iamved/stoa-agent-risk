@@ -432,6 +432,20 @@ MODEL_CALL_FOR_FLOW = re.compile(
     r"\blitellm\.(?:completion|acompletion)\s*\("
 )
 
+# A raw HTTP client call (no official SDK) — requests.post, httpx, fetch, etc.
+# Treated as a model call for the framework-independent flow signals ONLY when
+# the file also references a DIRECT_MODEL_ENDPOINTS URL (see agent_detection):
+# the endpoint gate is the precision control, so an ordinary POST never counts.
+# This catches hand-rolled / in-house-framework agents that hit a model API
+# over raw REST instead of an SDK.
+HTTP_POST_CALL = re.compile(
+    r"\b(?:requests|httpx|aiohttp|session|client|conn|http|urllib3)\b[\w.]*"
+    r"\.(?:post|request)\s*\(|"
+    r"\)\s*\.\s*(?:post|request)\s*\(|"  # Client(...).post( / AsyncClient(...).post(
+    r"\b(?:urlopen|fetch)\s*\(|"
+    r"\baxios(?:\s*\.\s*post)?\s*\("
+)
+
 SUPPORTING_PATTERNS: dict[str, re.Pattern[str]] = {
     "provider_call": re.compile(
         r"\b(?:responses|chat\.completions|messages)\.create\s*\(|"
@@ -442,7 +456,10 @@ SUPPORTING_PATTERNS: dict[str, re.Pattern[str]] = {
         r"\blitellm\.(?:completion|acompletion)\s*\(|\bRouter\s*\("
     ),
     "tools": re.compile(
-        r"\b(?:tools|tool_choice|functions)\s*[:=]\s*(?:\[|\{)"
+        # Tolerate a quoted key: a raw REST payload writes "tools": [...] (a
+        # JSON dict key), where the closing quote sits between the word and the
+        # colon — as valid a tool binding as the Python/JS kwarg tools=[...].
+        r"\b(?:tools|tool_choice|functions)\b['\"]?\s*[:=]\s*(?:\[|\{)"
     ),
     "execution": re.compile(
         r"\b(?:agent\.(?:run|invoke|ainvoke)|\w*agent\.(?:run|invoke|ainvoke)|"

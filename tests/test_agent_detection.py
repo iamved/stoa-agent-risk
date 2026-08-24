@@ -376,6 +376,72 @@ def test_hand_rolled_loop_agent_detected_without_framework():
     assert any(e.rule_id == "AGENT_LOOP" for e in d[0].evidence)
 
 
+def test_quoted_json_tools_key_is_a_tool_binding():
+    """A raw REST payload writes "tools": [...] (a quoted JSON dict key), as
+    valid a tool binding as the Python kwarg tools=[...]. Both must detect."""
+    from stoa.ast_layer import parse
+    src = (
+        "import requests\n"
+        "def run(msg):\n"
+        "    payload = {\n"
+        "        'model': 'gpt-4o',\n"
+        '        "messages": [{"role": "user", "content": msg}],\n'
+        '        "tools": [{"type": "function", "function": {"name": "exec_cmd"}}],\n'
+        "    }\n"
+        "    return requests.post('https://api.openai.com/v1/chat/completions', json=payload).json()\n"
+    )
+    d = detect_agents(src, "svc/raw.py", False, parse("svc/raw.py", "python", src))
+    assert d, "a quoted JSON tools key is a tool binding"
+    assert any(e.rule_id == "AGENT_TOOLS" for e in d[0].evidence)
+
+
+def test_raw_http_model_call_in_loop_detected():
+    """A hand-rolled agent that hits a recognized model endpoint over raw REST
+    (requests.post) inside a loop — no official SDK — is still an agent."""
+    from stoa.ast_layer import parse
+    src = (
+        "import requests, os\n"
+        "def agent(goal):\n"
+        "    history = [{'role': 'user', 'content': goal}]\n"
+        "    for _ in range(10):\n"
+        "        r = requests.post('https://api.openai.com/v1/chat/completions',\n"
+        "                          json={'model': 'gpt-4o', 'messages': history})\n"
+        "        history.append(r.json())\n"
+        "    return history\n"
+    )
+    d = detect_agents(src, "svc/raw_loop.py", False, parse("svc/raw_loop.py", "python", src))
+    assert d, "a raw model call in a loop is an agent even with no SDK"
+    assert any(e.rule_id == "AGENT_LOOP" for e in d[0].evidence)
+
+
+def test_raw_http_loop_to_non_model_endpoint_is_not_an_agent():
+    """The endpoint gate is the precision control: an ordinary POST in a loop,
+    to a non-model URL, must never be mistaken for a model call."""
+    from stoa.ast_layer import parse
+    src = (
+        "import requests\n"
+        "def notify(events):\n"
+        "    for e in events:\n"
+        "        requests.post('https://hooks.example.com/webhook', json=e)\n"
+    )
+    d = detect_agents(src, "svc/notify.py", False, parse("svc/notify.py", "python", src))
+    assert not d, "a plain webhook loop is not an agent"
+
+
+def test_single_raw_model_call_is_not_an_agent():
+    """A single raw call to a model endpoint — no loop, tools, or second site —
+    is a generation utility, not an agent (parity with the SDK single-call rule)."""
+    from stoa.ast_layer import parse
+    src = (
+        "import requests\n"
+        "def summarize(text):\n"
+        "    return requests.post('https://api.openai.com/v1/chat/completions',\n"
+        "                         json={'model': 'gpt-4o', 'messages': [{'role': 'user', 'content': text}]}).json()\n"
+    )
+    d = detect_agents(src, "svc/summ.py", False, parse("svc/summ.py", "python", src))
+    assert not d, "a single raw model call is not an agent"
+
+
 def test_mcp_server_is_an_agentic_surface():
     from stoa.ast_layer import parse
     src = (

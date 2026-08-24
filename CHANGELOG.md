@@ -3,6 +3,23 @@
 All notable changes to Stoa are documented here. The registry JSON schema is
 versioned separately (see [SCHEMA.md](SCHEMA.md)).
 
+## 0.6.1 — Detection: hand-rolled / raw-REST agents
+
+A detection-quality fix. Two regexes in the agent scorer had reproducible
+gaps that hid agents built without an official SDK. No schema change; scores
+and every example's agent count are otherwise unchanged.
+
+### Fixed
+- **Raw HTTP model calls now feed the framework-independent signals.** A
+  hand-rolled agent that loops on `requests.post(...)` / `httpx` / `fetch`
+  against a recognized model endpoint (instead of an SDK method) now trips the
+  "model call in a loop" and "multiple call sites" detectors. Gated on
+  `DIRECT_MODEL_ENDPOINTS`, so an ordinary POST — or a single raw call — never
+  counts (a webhook loop and a lone generation call both stay non-agents).
+- **The `tools` signal accepts a quoted JSON key.** A raw REST payload writes
+  `"tools": [...]` (a JSON dict key); detection previously required the
+  unquoted kwarg `tools=[...]`. Both now count.
+
 ## 0.6.0 — "Regulatory crosswalk & the explainable report"
 
 Registry schema → 1.5 (additive); crosswalk `stoa-crosswalk-1`. Everything is

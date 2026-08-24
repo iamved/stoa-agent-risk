@@ -20,6 +20,7 @@ from .rules import (
     DIRECT_MODEL_ENDPOINTS,
     GENERIC_AGENT_NAME,
     HIGH_AGENT_PATTERNS,
+    HTTP_POST_CALL,
     MODEL_CALL_FOR_FLOW,
     PROVIDER_PATTERNS,
     SUPPORTING_PATTERNS,
@@ -64,19 +65,23 @@ FRAMEWORK_LABELS = {
 }
 
 
-def _model_call_in_loop(parsed) -> Optional[int]:
+def _model_call_in_loop(parsed, allow_raw_http: bool = False) -> Optional[int]:
     """Line of a recognized model call whose ancestor is a loop, if any.
 
     A model call inside a loop is the framework-independent signature of an
     agentic system — the thing hand-rolled agents share with framework ones.
+    When ``allow_raw_http`` (the file references a recognized model endpoint),
+    a raw HTTP client call in the loop counts too, so an agent built on raw
+    REST instead of an official SDK is not invisible.
     """
     if parsed is None or not getattr(parsed, "available", False):
         return None
     call_types = {"call", "call_expression"}
     for node in parsed.walk():
-        if node.type in call_types and MODEL_CALL_FOR_FLOW.search(
-            node.text.decode("utf-8", "replace")
-        ):
+        if node.type not in call_types:
+            continue
+        text = node.text.decode("utf-8", "replace")
+        if MODEL_CALL_FOR_FLOW.search(text) or (allow_raw_http and HTTP_POST_CALL.search(text)):
             cur = node.parent
             while cur is not None:
                 if cur.type in _LOOP_TYPES:
@@ -214,8 +219,12 @@ def detect_agents(
 
     # Framework-independent agentic control flow: a model call inside a loop,
     # and/or multiple model call sites (orchestration). These catch hand-rolled
-    # agents that use direct API calls with no agent framework.
-    loop_line = _model_call_in_loop(parsed)
+    # agents that use direct API calls with no agent framework. Raw HTTP calls
+    # (requests.post, httpx, fetch, …) count toward both signals only when the
+    # file references a recognized model endpoint — the endpoint gate keeps an
+    # ordinary POST from ever counting.
+    raw_http_ok = bool(direct_endpoint)
+    loop_line = _model_call_in_loop(parsed, allow_raw_http=raw_http_ok)
     if loop_line:
         score += SCORE_AGENTIC_LOOP
         evidence.append(
@@ -226,6 +235,8 @@ def detect_agents(
             )
         )
     model_call_sites = len(MODEL_CALL_FOR_FLOW.findall(content))
+    if raw_http_ok:
+        model_call_sites += len(HTTP_POST_CALL.findall(content))
     sig_multi = model_call_sites >= 2
     if sig_multi:
         score += SCORE_MULTI_STEP
