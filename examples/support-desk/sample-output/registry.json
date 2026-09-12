@@ -2,7 +2,7 @@
   "schema_version": "1.6",
   "tool": {
     "name": "stoa",
-    "version": "0.7.0"
+    "version": "0.7.1"
   },
   "repository": {
     "name": "support-desk",

@@ -8,7 +8,7 @@ from pathlib import Path
 from . import diff as diff_module
 from . import git_metadata
 from .agent_detection import detect_agents
-from .iac import detect_iac_agents
+from .iac import detect_iac_module
 from .ai_rules import detect_ai005, detect_ai_correlations
 from .ai_taint import detect_ai_taint
 from .ast_layer import AstCache
@@ -153,6 +153,8 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
     # Controls stated explicitly by infrastructure (IaC), keyed by agent id,
     # injected into dimension scoring alongside code-observed controls.
     iac_controls: dict[str, set[str]] = {}
+    tf_modules: dict[str, list[tuple[str, str]]] = {}          # directory -> [(path, content)]
+    tf_findings_by_path: dict[str, list[Finding]] = {}
 
     for source in files:
         content = file_contents.get(source.relative_path)
@@ -165,12 +167,13 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
 
         if source.language == "terraform":
             # IaC collector: agents *configured* in infrastructure code. The
-            # code-oriented rules (secrets, AI taint, control prompts) don't
-            # apply to HCL, so this branch replaces the code path for .tf.
-            # The core regex rules (hardcoded secrets, insecure endpoints) still
-            # apply to HCL — a literal API key in a .tf is a leak like any other,
-            # and it is redacted at match time exactly as in code. AI taint and
+            # core regex rules (hardcoded secrets, insecure endpoints) still
+            # apply to HCL — a literal API key in a .tf is a leak like any
+            # other, redacted at match time exactly as in code. AI taint and
             # CTRL prompts are code concepts and stay off for this file type.
+            # Agent detection itself runs per *module* (all .tf in a directory)
+            # after the loop, because real deployments split the agent, its
+            # IAM, and its guardrail across files.
             tf_findings = detect_risks(
                 content, source.relative_path, source.language, source.is_testlike, config,
             )
@@ -179,38 +182,10 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
                 finding.suppressed = suppressed
                 finding.suppression_reason = reason
             all_findings.extend(tf_findings)
-            iac_detections = (
-                detect_iac_agents(content, source.relative_path) if config.iac_enabled else []
-            )
-            for det in iac_detections:
-                agents.append(
-                    AgentCandidate(
-                        id=det.id,
-                        name=det.name,
-                        symbol=det.symbol,
-                        path=source.relative_path,
-                        language=source.language,
-                        confidence=det.confidence,
-                        detection_score=det.detection_score,
-                        evidence=det.evidence,
-                        providers=det.providers,
-                        frameworks=det.frameworks,
-                        integrations=det.integrations,
-                        capabilities=det.capabilities,
-                        permission_tags=[],
-                        call_sites={},
-                        findings=sorted(tf_findings, key=lambda f: (f.line, f.rule_id, f.fingerprint)),
-                        source=det.source,
-                        discovery_tier=det.discovery_tier,
-                        platform=det.platform,
-                    )
-                )
-                iac_controls[det.id] = det.controls
-            if iac_detections:
-                agent_content[source.relative_path] = content
-                agent_providers[source.relative_path] = sorted(
-                    {p for d in iac_detections for p in d.providers}
-                )
+            if config.iac_enabled:
+                module_dir = source.relative_path.rsplit("/", 1)[0] if "/" in source.relative_path else ""
+                tf_modules.setdefault(module_dir, []).append((source.relative_path, content))
+                tf_findings_by_path[source.relative_path] = tf_findings
             continue
 
         file_findings = detect_risks(
@@ -312,6 +287,39 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
         if file_agents:
             agent_content[source.relative_path] = content
             agent_providers[source.relative_path] = providers
+
+    for module_dir in sorted(tf_modules):
+        for det in detect_iac_module(tf_modules[module_dir]):
+            agents.append(
+                AgentCandidate(
+                    id=det.id,
+                    name=det.name,
+                    symbol=det.symbol,
+                    path=det.path,
+                    language="terraform",
+                    confidence=det.confidence,
+                    detection_score=det.detection_score,
+                    evidence=det.evidence,
+                    providers=det.providers,
+                    frameworks=det.frameworks,
+                    integrations=det.integrations,
+                    capabilities=det.capabilities,
+                    permission_tags=[],
+                    call_sites={},
+                    findings=sorted(
+                        tf_findings_by_path.get(det.path, []),
+                        key=lambda f: (f.line, f.rule_id, f.fingerprint),
+                    ),
+                    source=det.source,
+                    discovery_tier=det.discovery_tier,
+                    platform=det.platform,
+                )
+            )
+            iac_controls[det.id] = det.controls
+            agent_content[det.path] = file_contents[det.path]
+            agent_providers[det.path] = sorted(
+                set(agent_providers.get(det.path, [])) | set(det.providers)
+            )
 
     _disambiguate_agent_names(agents)
 

@@ -204,8 +204,8 @@ mapping emits no `owasp:` tag rather than a fake one.
 ## Schema 1.6 additions (IaC-discovered agents)
 
 Agents that are *configured* in infrastructure code rather than written in
-application code — today, Databricks Model Serving endpoints found in
-Terraform — join the registry as ordinary agent candidates. Three optional
+application code — Databricks Model Serving endpoints and Amazon Bedrock
+agents found in Terraform — join the registry as ordinary agent candidates. Three optional
 fields say where an agent came from; they are **emitted only when
 non-default**, so a code-only scan is byte-identical to `1.5` apart from
 `schema_version`.
@@ -216,13 +216,20 @@ non-default**, so a code-only scan is byte-identical to `1.5` apart from
 |---|---|---|
 | `source` | string | `"iac"` — discovered in infrastructure code. Absent ⇒ `"code"`. |
 | `discovery_tier` | string | `"recognized"` — inventoried from a resource definition, not deep-scanned; `"full"` once joined to scanned code. Absent ⇒ `"full"`. |
-| `platform` | string | e.g. `"databricks"`. |
+| `platform` | string | `"databricks"` or `"bedrock"` (0.7.1). |
 
 IaC agents carry `language: "terraform"`, `confidence: "high"` (a deployed
 endpoint is not ambiguous), and evidence at the resource block's `file:line`:
-`AGENT_IAC_SERVING_ENDPOINT`, `IAC_GRANT` (privileges and scope, with the
-service principal they were attributed through), `IAC_CONTROL_*` (guardrails,
-rate limit, observability stated by an `ai_gateway` block), `IAC_MODEL_EGRESS`.
+`AGENT_IAC_SERVING_ENDPOINT` / `AGENT_IAC_BEDROCK_AGENT`, `IAC_GRANT`
+(privileges and scope, with the service principal they were attributed
+through), `IAC_IAM_POLICY` (IAM actions and resources, with the role and tool
+Lambda they were attributed through), `IAC_TOOL_BINDING`, `IAC_KNOWLEDGE_BASE`,
+`IAC_CONTROL_*` (guardrail, rate limit, observability stated by an `ai_gateway`
+block, a `guardrail_configuration`, or invocation logging), `IAC_MODEL_EGRESS`,
+`IAC_FOUNDATION_MODEL`. Detection is scoped to the Terraform *module* (all
+`.tf` files in one directory); evidence from another file of the module says
+so in its description (`… (in infra/iam.tf)`). Evidence ids are not schema
+fields and may be added in a patch release.
 Controls stated by IaC are credited in `dimension_assessment` exactly as
 code-observed controls are.
 
@@ -233,15 +240,18 @@ so two resource types sharing a name in one file never collide on `id`;
 (the platform is carried by `platform`, not mislabeled as an agent framework).
 `integrations` gains the id `databricks` (schema 1.6), recognized in code too —
 an agent importing `databricks.vector_search` and the serving endpoint that
-deploys it share the integration. `[iac] enabled = false` in `stoa.toml` turns
+deploys it share the integration; Bedrock agents carry `aws` (and `ses` when
+their tools may send email). `[iac] enabled = false` in `stoa.toml` turns
 IaC agent discovery off; `.tf` files are still scanned for secrets.
 
 **Caveat.** `autonomy_level` on an IaC agent is inferred from code taint the
 resource definition does not carry, so it reads `recommend_only` until the
 endpoint is joined to the code that registers its model. Read reach
-(`capabilities`) and `controls_observed`, not autonomy, on IaC agents. Reach (`database_read` / `database_write`) is
-read from `databricks_grants` privileges; a value the file cannot resolve
-(`var.*`, remote state) is left unresolved, never guessed.
+(`capabilities`) and `controls_observed`, not autonomy, on IaC agents. Reach
+is read from `databricks_grants` privileges or from IAM Allow statements
+mapped conservatively to capability ids; a value the module cannot resolve
+(`var.*`, remote state, `data.*` policy documents) is left unresolved, never
+guessed.
 
 ## Top-level document
 

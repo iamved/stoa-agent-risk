@@ -3,6 +3,51 @@
 All notable changes to Stoa are documented here. The registry JSON schema is
 versioned separately (see [SCHEMA.md](SCHEMA.md)).
 
+## 0.7.1 — "Agents configured in AWS"
+
+Second platform in the IaC dictionary: **Amazon Bedrock Agents**. Registry
+schema stays at 1.6 (`platform` gains the value `"bedrock"`; new evidence ids
+are not schema fields). See [docs/iac.md](docs/iac.md).
+
+### Added — Bedrock in the IaC collector
+- `aws_bedrockagent_agent` → an agent with `platform: bedrock`, providers
+  `bedrock` plus the hosted vendor read from `foundation_model`
+  (`anthropic` / `cohere` / `mistral`), integration `aws`.
+- **Tools** from `aws_bedrockagent_agent_action_group`: Lambda executors →
+  `tool_calling` (function names listed in evidence), `RETURN_CONTROL` noted,
+  `AMAZON.CodeInterpreter` → `code_execution`. **RAG** from knowledge-base
+  associations → `vector_search`.
+- **Controls**: a `guardrail_configuration` → `validation` (the referenced
+  `aws_bedrock_guardrail` is named with its policies);
+  `aws_bedrock_model_invocation_logging_configuration` → `observability`,
+  account-wide.
+- **Reach from IAM.** Allow-statement actions on the agent's role and on each
+  tool Lambda's role are mapped conservatively to capability ids
+  (`dynamodb:*` → `database_write`, `ses:Send*` → `email_send`,
+  `sns:Publish` → `messaging`, `s3:Put*` → `filesystem_write`, `*` →
+  `cloud_resource_access`, plumbing such as `bedrock:InvokeModel` and
+  `iam:PassRole` → nothing). Three policy forms parse: `jsonencode({...})`,
+  heredoc / literal JSON, and AWS managed policy ARNs. `Deny` grants nothing;
+  a policy that is a reference (`data.aws_iam_policy_document`) is reported
+  as unresolved. Wildcard actions and full-access managed policies are called
+  out as broad reach in `IAC_IAM_POLICY` evidence.
+- **Module scope.** IaC detection now runs over all `.tf` files in a
+  directory (Terraform's own unit), so an agent in `agents.tf` is linked to
+  its IAM in `iam.tf` and its guardrail in `guardrails.tf`. Cross-file
+  evidence says where it came from. This also attributes Databricks grants
+  split out of the endpoint's file. Agent ids are unchanged (still built from
+  the defining file's path).
+- HCL extractor: heredocs, quoted keys (`"Version" = …` / JSON `"Key": …`),
+  and comma-separated object literals.
+- Kestrel example (`examples/kestrel/`): two Bedrock agents across five `.tf`
+  files with no model call in code; 17 new tests (suite: 561).
+
+### Known limits
+IAM evaluation is deliberately shallow (no `Condition`, no resource-ARN
+narrowing, no effective permissions); roles or policies created outside the
+module are unresolved; a missing guardrail is visible but does not yet raise
+exposure; autonomy remains uninformative on IaC agents.
+
 ## 0.7.0 — "Agents configured in infrastructure"
 
 Registry schema → 1.6 (additive). The IaC collector finds agents that are

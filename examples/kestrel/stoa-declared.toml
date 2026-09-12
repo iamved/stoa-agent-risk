@@ -1,0 +1,30 @@
+# Declared facts for Kestrel, cross-checked by the scanner. Both agents are
+# deployed *infrastructure* (found in infra/agents.tf by the IaC collector),
+# so they are declared by the same stable id a code agent would get:
+# sha256("infra/agents.tf:aws_bedrockagent_agent.<name>")[:12].
+# Delete a block to see DECL006 name an undeclared deployment.
+
+version = 1
+
+[business]
+industries = ["logistics"]
+regulated_activities = []
+max_customer_dependency = "high"
+
+[agents."e1c13e5209cf"]                 # infra/agents.tf :: aws_bedrockagent_agent.claims_assistant
+name = "kestrel-claims-assistant"
+owner = "customer-care@kestrel.example"
+purpose = "Explains the status and next step of a freight damage claim"
+users = "customers"
+production_status = "production"
+autonomy_intent = "recommend_only"
+data_classes = ["personal"]
+
+[agents."cbcddd13ed38"]                 # infra/agents.tf :: aws_bedrockagent_agent.dispatch_agent
+name = "kestrel-dispatch-agent"
+owner = "dispatch-eng@kestrel.example"
+purpose = "Re-routes shipments and notifies customers and drivers"
+users = "customers"
+production_status = "production"
+autonomy_intent = "bounded_autonomous"
+data_classes = ["personal"]
