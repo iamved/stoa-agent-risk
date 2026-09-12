@@ -97,6 +97,9 @@ def build_parser() -> argparse.ArgumentParser:
                       help="Skip the dimension exposure assessment and matrix")
     scan.add_argument("--no-graph", action="store_true",
                       help="Skip the architecture graph section in the HTML report")
+    scan.add_argument("--tf-plan", metavar="PATH", default=None,
+                      help="Discover IaC agents from `terraform show -json` output (fully "
+                           "resolved values) instead of from .tf files")
     scan.add_argument("--taxonomy", metavar="PATH", default=None,
                       help="Custom dimension taxonomy TOML (replaces the default)")
     scan.add_argument("--with-runtime", metavar="TRACES_DIR", default=None,
@@ -314,6 +317,7 @@ def _run_scan_command(args: argparse.Namespace) -> int:
         no_dimensions=args.no_dimensions,
         no_graph=args.no_graph,
         taxonomy_path=Path(args.taxonomy) if args.taxonomy else None,
+        tf_plan=Path(args.tf_plan) if args.tf_plan else None,
     )
     result = run_scan(options, config)
 

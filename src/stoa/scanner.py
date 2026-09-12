@@ -8,7 +8,7 @@ from pathlib import Path
 from . import diff as diff_module
 from . import git_metadata
 from .agent_detection import detect_agents
-from .iac import detect_iac_module
+from .iac import detect_iac_plan, detect_iac_tree
 from .ai_rules import detect_ai005, detect_ai_correlations
 from .ai_taint import detect_ai_taint
 from .ast_layer import AstCache
@@ -72,6 +72,7 @@ class ScanOptions:
     no_graph: bool = False
     taxonomy_path: Path | None = None
     declarations_path: Path | None = None
+    tf_plan: Path | None = None  # `terraform show -json` output; replaces .tf-based agent discovery
 
 
 # Names too generic to disambiguate agents on their own (Task 1). A bare
@@ -105,6 +106,26 @@ def _disambiguate_agent_names(agents: list[AgentCandidate]) -> None:
             agent.display_name = f"{stem}·{agent.name}" if stem else agent.name
         else:
             agent.display_name = agent.name
+
+
+def _detect_from_plan(plan_path: Path, root: Path, warnings: list[str]):
+    """Load `terraform show -json` output and run IaC detection over it."""
+    import json as _json
+
+    try:
+        doc = _json.loads(Path(plan_path).read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        warnings.append(f"--tf-plan {plan_path}: could not read plan JSON ({exc.__class__.__name__}); "
+                        "no IaC agents from plan")
+        return []
+    if not isinstance(doc, dict):
+        warnings.append(f"--tf-plan {plan_path}: not a Terraform plan document; no IaC agents from plan")
+        return []
+    try:
+        rel = Path(plan_path).resolve().relative_to(root.resolve()).as_posix()
+    except ValueError:
+        rel = Path(plan_path).name                     # outside the repo: keep output repo-relative
+    return detect_iac_plan(doc, rel)
 
 
 def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResult:
@@ -288,38 +309,43 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
             agent_content[source.relative_path] = content
             agent_providers[source.relative_path] = providers
 
-    for module_dir in sorted(tf_modules):
-        for det in detect_iac_module(tf_modules[module_dir]):
-            agents.append(
-                AgentCandidate(
-                    id=det.id,
-                    name=det.name,
-                    symbol=det.symbol,
-                    path=det.path,
-                    language="terraform",
-                    confidence=det.confidence,
-                    detection_score=det.detection_score,
-                    evidence=det.evidence,
-                    providers=det.providers,
-                    frameworks=det.frameworks,
-                    integrations=det.integrations,
-                    capabilities=det.capabilities,
-                    permission_tags=[],
-                    call_sites={},
-                    findings=sorted(
-                        tf_findings_by_path.get(det.path, []),
-                        key=lambda f: (f.line, f.rule_id, f.fingerprint),
-                    ),
-                    source=det.source,
-                    discovery_tier=det.discovery_tier,
-                    platform=det.platform,
-                )
+    if options.tf_plan is not None:
+        # A plan carries fully resolved values and module instances; it replaces
+        # file-based discovery so the same resource is never counted twice.
+        iac_detections = _detect_from_plan(options.tf_plan, root, warnings) if config.iac_enabled else []
+    else:
+        iac_detections = detect_iac_tree(tf_modules) if tf_modules else []
+    for det in iac_detections:
+        agents.append(
+            AgentCandidate(
+                id=det.id,
+                name=det.name,
+                symbol=det.symbol,
+                path=det.path,
+                language="terraform",
+                confidence=det.confidence,
+                detection_score=det.detection_score,
+                evidence=det.evidence,
+                providers=det.providers,
+                frameworks=det.frameworks,
+                integrations=det.integrations,
+                capabilities=det.capabilities,
+                permission_tags=[],
+                call_sites={},
+                findings=sorted(
+                    tf_findings_by_path.get(det.path, []),
+                    key=lambda f: (f.line, f.rule_id, f.fingerprint),
+                ),
+                source=det.source,
+                discovery_tier=det.discovery_tier,
+                platform=det.platform,
             )
-            iac_controls[det.id] = det.controls
-            agent_content[det.path] = file_contents[det.path]
-            agent_providers[det.path] = sorted(
-                set(agent_providers.get(det.path, [])) | set(det.providers)
-            )
+        )
+        iac_controls[det.id] = det.controls
+        agent_content[det.path] = file_contents.get(det.path, "")
+        agent_providers[det.path] = sorted(
+            set(agent_providers.get(det.path, [])) | set(det.providers)
+        )
 
     _disambiguate_agent_names(agents)
 

@@ -216,7 +216,7 @@ non-default**, so a code-only scan is byte-identical to `1.5` apart from
 |---|---|---|
 | `source` | string | `"iac"` — discovered in infrastructure code. Absent ⇒ `"code"`. |
 | `discovery_tier` | string | `"recognized"` — inventoried from a resource definition, not deep-scanned; `"full"` once joined to scanned code. Absent ⇒ `"full"`. |
-| `platform` | string | `"databricks"` or `"bedrock"` (0.7.1). |
+| `platform` | string | `"databricks"`, `"bedrock"` (0.7.1), `"dialogflow_cx"` or `"vertex_ai_agent_builder"` (0.7.2). |
 
 IaC agents carry `language: "terraform"`, `confidence: "high"` (a deployed
 endpoint is not ambiguous), and evidence at the resource block's `file:line`:
@@ -235,13 +235,19 @@ code-observed controls are.
 
 **Identity and vocabulary.** An IaC agent's `symbol` is
 `<resource_type>.<resource_name>` (e.g. `databricks_model_serving.refund_agent`),
-so two resource types sharing a name in one file never collide on `id`;
+so two resource types sharing a name in one file never collide on `id`. From
+0.7.2 the symbol carries a `count` / `for_each` instance (`type.name["key"]`,
+`type.name[1]`) and, for an agent defined in a local module, the call path
+(`module.billing.google_dialogflow_cx_agent.this`), with `path` the defining
+file inside the module; agents read from a `--tf-plan` take the plan file as
+`path` and anchor evidence at line 1 (`IAC_PLAN_SOURCE`). Symbols of agents
+defined directly in a root module are unchanged;
 `name` is the endpoint's human-facing name. `frameworks` is empty for IaC agents
 (the platform is carried by `platform`, not mislabeled as an agent framework).
 `integrations` gains the id `databricks` (schema 1.6), recognized in code too —
 an agent importing `databricks.vector_search` and the serving endpoint that
 deploys it share the integration; Bedrock agents carry `aws` (and `ses` when
-their tools may send email). `[iac] enabled = false` in `stoa.toml` turns
+their tools may send email); Google agents carry `gcp` (and `bigquery`). `[iac] enabled = false` in `stoa.toml` turns
 IaC agent discovery off; `.tf` files are still scanned for secrets.
 
 **Caveat.** `autonomy_level` on an IaC agent is inferred from code taint the

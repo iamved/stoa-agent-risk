@@ -1,6 +1,6 @@
 """Stoa: local-first AI agent inventory and risk scanner."""
 
-__version__ = "0.7.1"
+__version__ = "0.7.2"
 
 # 1.4: runtime trace overlay additions (runtime_evidence, liveness_state,
 # trace_ref, top-level runtime block) — all optional, emitted only by

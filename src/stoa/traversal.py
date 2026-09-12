@@ -21,6 +21,7 @@ LANGUAGE_BY_EXTENSION = {
     ".ts": "typescript",
     ".tsx": "typescript",
     ".tf": "terraform",
+    ".tfvars": "terraform",
 }
 
 

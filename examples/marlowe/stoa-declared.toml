@@ -1,0 +1,38 @@
+# Declared facts for Marlowe, cross-checked by the scanner. All three agents
+# are deployed *infrastructure*: two instances of one local module and one
+# Vertex AI Agent Builder chat engine. Module instances are declared by the
+# id of their instance symbol: sha256("<module file>:module.<call>.<type>.<name>")[:12].
+
+version = 1
+
+[business]
+industries = ["utilities"]
+regulated_activities = []
+max_customer_dependency = "high"
+
+[agents."8a117d8a4b71"]                 # infra/modules/cx-agent/main.tf :: module.billing_assistant.google_dialogflow_cx_agent.this
+name = "marlowe-billing-assistant"
+owner = "customer-care@marlowe.example"
+purpose = "Explains bills and tariffs from read-only billing data and the policy data store"
+users = "customers"
+production_status = "production"
+autonomy_intent = "recommend_only"
+data_classes = ["personal", "financial"]
+
+[agents."9eda8c93fa7d"]                 # infra/modules/cx-agent/main.tf :: module.field_service.google_dialogflow_cx_agent.this
+name = "marlowe-field-service"
+owner = "field-ops@marlowe.example"
+purpose = "Books and reschedules field visits and notifies crews"
+users = "customers"
+production_status = "production"
+autonomy_intent = "bounded_autonomous"
+data_classes = ["personal"]
+
+[agents."43f2d2a81031"]                 # infra/main.tf :: google_discovery_engine_chat_engine.knowledge_assistant
+name = "marlowe-knowledge-assistant"
+owner = "customer-care@marlowe.example"
+purpose = "Answers questions over billing policies and tariff sheets"
+users = "customers"
+production_status = "production"
+autonomy_intent = "recommend_only"
+data_classes = ["personal"]

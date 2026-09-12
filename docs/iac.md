@@ -12,10 +12,12 @@ ordinary `stoa scan` — `.tf` is simply a scanned language now — and emits th
 agent as a candidate that flows through the same registry, report, dimension
 scoring, declarations, and drift as an agent found in code.
 
-> **Scope of this version:** Terraform (`.tf`); Databricks Model Serving and
-> Amazon Bedrock Agents. Everything else Stoa promises still holds — static,
-> local, no `terraform` binary or provider plugins at scan time, deterministic
-> output, additive schema, "observed / not observed" language.
+> **Scope of this version:** Terraform (`.tf`, `.tfvars`, or a
+> `terraform show -json` plan); Databricks Model Serving, Amazon Bedrock
+> Agents, Google Dialogflow CX / Vertex AI Agent Builder. Everything else Stoa
+> promises still holds — static, local, no `terraform` binary or provider
+> plugins at scan time, deterministic output, additive schema, "observed /
+> not observed" language.
 
 ## Why the IaC layer is strong evidence
 
@@ -45,6 +47,42 @@ them. An agent keeps the path of the file that defines it (that is what its
 stable id is built from); evidence that came from another file says so:
 `… (in infra/iam.tf)`.
 
+## Resolved, not guessed
+
+Enterprise Terraform rarely writes a value down where it is used: names come
+from variables, roles from `locals`, and whole agents from a module called
+twice. Stoa resolves what the module itself states, and leaves everything
+else as an unresolved reference:
+
+| Terraform construct | Stoa behaviour |
+|---|---|
+| `variable "x" { default = … }` | the default is the value |
+| `terraform.tfvars`, `*.auto.tfvars` | override the default (they are scanned files, so a secret in a tfvars is found too) |
+| `locals { … }` | resolved against variables and other locals |
+| `"${var.x}-svc"`, `"${local.y}"` | interpolated when every part resolves; otherwise left as written |
+| `count = var.on ? 1 : 0`, `x = cond ? a : b` | picked once the condition resolves to a boolean |
+| `for_each = toset(…)`, `count = n` | expanded to one block per instance; agents get the instance in their symbol (`type.name["key"]`, `type.name[1]`) |
+| `toset`, `tolist`, `concat` | evaluated; any other function leaves the value unresolved |
+| `data "aws_iam_policy_document"` | its statements are the policy, no JSON needed |
+| `module "x" { source = "./modules/agent" … }` | the directory is instantiated with the call's inputs over its own defaults; each call is its own agent, symbol `module.x.<type>.<name>`, path inside the module, an `IAC_MODULE_CALL` evidence line at the call site. A directory used as a module source emits no bare, uninstantiated agents |
+| `var.x` with no default, `module.x.output`, remote state, other data sources | **unresolved** — never guessed |
+
+### Or hand Stoa the plan
+
+```
+terraform plan -out=tfplan && terraform show -json tfplan > plan.json
+stoa scan . --tf-plan plan.json
+```
+
+A plan carries every value fully resolved — variables, modules, `for_each`,
+functions — and Stoa reads resource links from the configuration's
+expression references, so a role ARN that is unknown until apply still links
+the agent to its policy. State output (`terraform show -json` on a state)
+works the same way. When a plan is supplied it **replaces** file-based agent
+discovery so nothing is counted twice; `.tf` files are still scanned for
+secrets. A plan has no `file:line`, so evidence anchors at the plan file
+(`IAC_PLAN_SOURCE`), and agents take the plan's path.
+
 ## What it reads
 
 The recognition dictionary is the IaC analog of the framework patterns used
@@ -71,6 +109,30 @@ for code — keyed on resource type instead of a constructor call.
 | `aws_bedrockagent_agent_action_group` | **tools** — `tool_calling`; a Lambda executor is followed to its role; `RETURN_CONTROL` is noted as tools running in application code; `AMAZON.CodeInterpreter` → `code_execution` |
 | `aws_bedrockagent_agent_knowledge_base_association` | **RAG data source** — `vector_search` |
 | `aws_iam_role_policy`, `aws_iam_policy` + `aws_iam_role_policy_attachment` | **reach** — Allow-statement actions on the agent's role and on each tool Lambda's role, mapped to capabilities (below). Three policy forms parse: `jsonencode({...})`, heredoc / literal JSON, and AWS managed policy ARNs |
+
+**Google — Dialogflow CX / Vertex AI Agent Builder**
+
+| Terraform resource | Stoa concept |
+|---|---|
+| `google_dialogflow_cx_agent` | **the agent** — a conversational agent built in the CX console; provider `google`, integration `gcp` |
+| ↳ `security_settings` → `google_dialogflow_cx_security_settings` | **control** — redaction strategy and scope → `validation`; retention window recorded; insights export → `observability` |
+| ↳ `enable_stackdriver_logging`, `advanced_settings.logging_settings` | **control** — `observability` |
+| `google_dialogflow_cx_generative_settings` | **control** — banned phrases → `validation`; the generative model is recorded |
+| `google_dialogflow_cx_webhook` | **tools** — `tool_calling`; a URI referencing a Cloud Function or Cloud Run service is followed to the **service account** it runs as, then to every `google_*_iam_member` / `_binding` naming that account (roles → capabilities, below); a literal external URI → `external_http` |
+| `google_dialogflow_cx_tool` | **tools** — OpenAPI → `tool_calling` + `external_http`; function spec → `tool_calling` (runs in application code); data store spec → `vector_search` |
+| `google_dialogflow_cx_flow` / `_page` `knowledge_connector_settings` | **RAG** — `vector_search`, data stores named |
+| `google_discovery_engine_chat_engine` | **the agent** when it creates its own (`agent_creation_config`), platform `vertex_ai_agent_builder`; **RAG attribution** to the linked CX agent when it uses `dialogflow_agent_to_link` |
+| `google_discovery_engine_data_store` | **RAG data source** |
+
+| IAM roles | Capability |
+|---|---|
+| `roles/bigquery.dataViewer` / `jobUser` / `user`, `datastore.viewer`, `cloudsql.client`, `spanner.databaseReader` | `database_read` |
+| `roles/bigquery.dataEditor` / `dataOwner` / `admin`, `datastore.user`, `cloudsql.editor`, `spanner.databaseUser` | `database_read` + `database_write` |
+| `roles/storage.objectViewer` · `objectCreator` · `objectAdmin` / `objectUser` / `admin` | `filesystem_read` · `filesystem_write` · both |
+| `roles/pubsub.publisher` / `editor` · `pubsub.subscriber` | `messaging` · `queue_access` |
+| `roles/run.invoker`, `cloudfunctions.invoker`, `workflows.invoker` | `tool_calling` |
+| `roles/owner`, `roles/editor`, `projectIamAdmin`, `serviceAccountTokenCreator`, `compute.admin` | `cloud_resource_access` (primitive roles called out as broad reach) |
+| any other role | *nothing* — reported as not in the dictionary |
 
 IAM actions map to capabilities conservatively — the service says *what kind*
 of thing the tools may do, not the effective permission set:
@@ -99,21 +161,23 @@ blocks, lists, references, heredocs, and the object syntax inside
 
 Each agent becomes a candidate with:
 
-- `source: iac`, `platform: databricks` or `bedrock`,
+- `source: iac`, `platform: databricks`, `bedrock`, `dialogflow_cx` or `vertex_ai_agent_builder`,
   `discovery_tier: recognized` (inventoried from the resource definition, not
   yet deep-scanned) — see the [JSON schema](/docs/schema), schema 1.6;
 - `symbol` = `<resource_type>.<name>` (the resource type keeps ids
   collision-free), `name` = the human-facing name, a stable id of the usual
   `sha256(path:symbol)` shape, `language: terraform`, `confidence: high`;
 - evidence at `file:line`, each attribution path spelled out:
-  `AGENT_IAC_SERVING_ENDPOINT` / `AGENT_IAC_BEDROCK_AGENT`, `IAC_GRANT`,
+  `AGENT_IAC_SERVING_ENDPOINT` / `AGENT_IAC_BEDROCK_AGENT` /
+  `AGENT_IAC_DIALOGFLOW_AGENT` / `AGENT_IAC_CHAT_ENGINE`, `IAC_GRANT`,
   `IAC_IAM_POLICY` (actions, resources, and the role and Lambda they came
   through, with `— wildcard actions, broad reach` where the policy said `*`),
   `IAC_TOOL_BINDING`, `IAC_KNOWLEDGE_BASE`, `IAC_CONTROL_GUARDRAIL` /
   `IAC_CONTROL_RATE_LIMIT` / `IAC_CONTROL_OBSERVABILITY`, `IAC_MODEL_EGRESS`,
-  `IAC_FOUNDATION_MODEL`;
-- integrations `databricks`, or `aws` (plus `ses` when the tools may send
-  email), shared with any code agent that uses the same SDKs.
+  `IAC_FOUNDATION_MODEL`, `IAC_MODULE_CALL`, `IAC_PLAN_SOURCE`;
+- integrations `databricks`, `aws` (plus `ses` when the tools may send
+  email), or `gcp` (plus `bigquery`), shared with any code agent that uses
+  the same SDKs.
 
 Controls stated by infrastructure are credited in `dimension_assessment`
 through the **same** `control_credit` math as code-observed controls —
@@ -124,7 +188,7 @@ to another).
 Secrets are scanned too: a literal API key in a `.tf` is caught and redacted
 exactly as in code.
 
-## Two worked examples
+## Three worked examples
 
 The [Tidewater fixture](https://github.com/iamved/stoa-agent-risk/tree/main/examples/tidewater)
 is a fictional payments company with two Databricks-hosted agents, planted
@@ -159,7 +223,27 @@ dispatch_agent    reach: database_write · email_send · messaging · filesystem
                   mandate-overreach 90
 ```
 
-In both, the infrastructure alone separates the well-fenced agent from the
+The [Marlowe fixture](https://github.com/iamved/stoa-agent-risk/tree/main/examples/marlowe)
+is a utility whose Dialogflow CX agents are deployed through **one local
+module called twice**; the whole contrast lives in the module inputs,
+`locals`, a tfvars override, `count = var.x ? 1 : 0` and
+`for_each = toset(concat(…))`:
+
+```
+files scanned: 6        # 5 .tf + terraform.tfvars
+agents found:  3        # two module instances + a Vertex AI Agent Builder chat engine
+
+module.billing_assistant  reach: database_read · tool_calling · vector_search
+                          controls credited: validation (redaction, retention) · observability
+                          mandate-overreach 0
+module.field_service      reach: cloud_resource_access · database_write · messaging · …
+                                 (roles/editor on project marlowe-prod — primitive role, broad reach)
+                          controls credited: none
+                          mandate-overreach 54
+knowledge_assistant       reach: vector_search over billing-policies
+```
+
+In all three, the infrastructure alone separates the well-fenced agent from the
 poorly-fenced one — and because they are ordinary agents, **drift** sees them
 too: widening a grant from `SELECT` to `ALL_PRIVILEGES`, or a Lambda policy
 from two read actions to `dynamodb:*`, is `database_write` gained, a
@@ -178,16 +262,22 @@ enabled = true     # default; off => .tf files are still scanned for secrets but
 ## Honest limits of this version
 
 - **Terraform only** — no `.tf.json`, no Databricks Asset Bundles
-  (`databricks.yml`), no CloudFormation or CDK output yet.
-- **Two platforms** — Vertex AI and Azure OpenAI resources are not yet in the
-  dictionary.
+  (`databricks.yml`), no CloudFormation or CDK output yet. A plan JSON covers
+  any of these once Terraform has produced it.
+- **Three platforms** — Azure OpenAI / AI Foundry, Amazon Lex, and Bedrock
+  Flows are not yet in the dictionary. GUI builders with no Terraform
+  provider (Copilot Studio, Agentforce, ServiceNow) cannot be seen this way.
+- **Resolution is module-local.** Variables with no default and no tfvars,
+  module outputs read by the parent, remote state, and functions other than
+  `toset` / `tolist` / `concat` stay unresolved. The plan input removes all
+  of these limits at once.
 - **Reach is attributed through the module.** A Databricks grant reaches an
   endpoint through its service principal's name stem; a Bedrock policy
-  reaches an agent through a role defined in the same directory. Anything
-  created elsewhere — another module, a data source, the console — is
-  reported as unresolved. IAM evaluation is deliberately shallow: no
-  `Condition`, no resource-ARN narrowing, no effective-permission
-  computation.
+  through a role, a CX webhook through its executor's service account, each
+  defined in the same module (or module instance). Anything created
+  elsewhere is reported as unresolved. IAM evaluation is deliberately
+  shallow: no `Condition`, no resource-ARN narrowing, no effective-permission
+  computation, and GCP roles outside the dictionary grant nothing.
 - **A missing control is visible but does not yet raise exposure.**
   `controls_observed: []` is honest, but the control-coverage dimension is
   driven by absence *findings* that the code rules emit and the IaC layer
@@ -199,9 +289,10 @@ enabled = true     # default; off => .tf files are still scanned for secrets but
 
 ## What comes next
 
-In order of value: an **`IAC` rule family** so that a missing guardrail, a
-catalog-wide grant, or a wildcard IAM action *moves* exposure (with crosswalk
-entries); the **IaC → code join** (`entity_name` to the registering model on
-Databricks; action-group Lambda to its handler on Bedrock), which hands the
-taint scanner the code and upgrades the tier to `full`; **Asset Bundles** as
-a second input; and **Vertex / Azure OpenAI** rows in the dictionary.
+In order of value: an **`IAC` rule family** so that a missing guardrail or
+security setting, a catalog-wide grant, a wildcard IAM action, or a primitive
+GCP role *moves* exposure (with crosswalk entries); the **IaC → code join**
+(`entity_name` to the registering model on Databricks; action-group Lambda or
+webhook function to its handler), which hands the taint scanner the code and
+upgrades the tier to `full`; **Amazon Lex** and **Bedrock Flows**; **Azure
+OpenAI / AI Foundry** rows; and **Asset Bundles** as a second input.

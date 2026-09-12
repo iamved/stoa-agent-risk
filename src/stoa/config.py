@@ -19,7 +19,7 @@ from .rules import RULES, VALID_RULE_ID
 
 FAIL_LEVELS = ("none", "high", "critical")
 
-DEFAULT_INCLUDE_EXTENSIONS = (".py", ".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".tf")
+DEFAULT_INCLUDE_EXTENSIONS = (".py", ".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".tf", ".tfvars")
 
 DEFAULT_IGNORE_PATHS = (
     ".git/**",

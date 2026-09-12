@@ -3,6 +3,63 @@
 All notable changes to Stoa are documented here. The registry JSON schema is
 versioned separately (see [SCHEMA.md](SCHEMA.md)).
 
+## 0.7.2 — "Resolved Terraform, and agents built in the Google console"
+
+Two things that make the IaC collector hold up on a real repository. Schema
+stays at 1.6 (`platform` gains `dialogflow_cx` and `vertex_ai_agent_builder`;
+new evidence ids are not schema fields). See [docs/iac.md](docs/iac.md).
+
+### Added — resolved Terraform
+- **Variables, tfvars, locals, interpolation.** `variable` defaults,
+  `terraform.tfvars` / `*.auto.tfvars` (now scanned files — a secret in a
+  tfvars is found), `locals`, and `${var.x}` / `${local.y}` interpolation
+  resolve before detection. `.tfvars` joins the default extension list.
+- **`count` / `for_each` expansion** with `toset` / `tolist` / `concat`, and
+  `cond ? a : b` once the condition resolves to a boolean. Instances carry
+  their key in the symbol (`type.name["key"]`, `type.name[1]`).
+- **`data "aws_iam_policy_document"`** statements are read as the policy —
+  the most common "reach unresolved" on AWS is gone.
+- **Local module calls.** `module "x" { source = "./…" }` instantiates the
+  directory with the call's inputs over its defaults; each call is its own
+  agent (`module.x.<type>.<name>`, path inside the module, `IAC_MODULE_CALL`
+  evidence at the call site). Module directories emit no bare agents.
+- **`stoa scan . --tf-plan plan.json`** reads `terraform show -json` output
+  (plan or state): values fully resolved, module instances grouped by
+  address, resource links restored from the configuration's expression
+  references so a role ARN unknown until apply still links. Replaces
+  file-based agent discovery when given; `.tf` secrets scanning continues.
+  Unreadable plans degrade to a warning.
+- Anything still unknown — a variable with no default, a module output read
+  by the parent, other functions, remote state — remains an unresolved
+  reference, never a guess.
+
+### Added — Google connector (Dialogflow CX / Vertex AI Agent Builder)
+- `google_dialogflow_cx_agent` → an agent with `platform: dialogflow_cx`,
+  provider `google`, integration `gcp`.
+- **Controls**: `google_dialogflow_cx_security_settings` (redaction →
+  `validation`, retention recorded, insights export → `observability`);
+  Cloud Logging / interaction logging → `observability`; generative safety
+  banned phrases → `validation`; the generative model recorded.
+- **Tools**: `google_dialogflow_cx_webhook` → `tool_calling`, followed from
+  its URI to the Cloud Function / Cloud Run service, its service account,
+  and every `google_*_iam_member` / `_binding` naming that account; GCP roles
+  map conservatively to capabilities, primitive roles (`roles/editor`) called
+  out as broad reach, unknown roles reported as not in the dictionary.
+  `google_dialogflow_cx_tool` (OpenAPI / function / data store specs).
+- **RAG**: knowledge connectors on flows and pages, Discovery Engine data
+  stores and chat engines. A chat engine that creates its own agent is an
+  agent (`platform: vertex_ai_agent_builder`); one that links a CX agent is
+  attributed to it.
+- Marlowe example (`examples/marlowe/`): one local module called twice with
+  contrasting inputs plus a chat engine; 18 new tests (suite: 579).
+
+### Known limits
+Resolution is module-local; the plan input is the complete answer. GCP IAM
+is evaluated by role name only (no conditions, no custom-role expansion);
+GUI agent builders without a Terraform provider (Copilot Studio, Agentforce,
+ServiceNow) remain invisible. A missing control is still visible but does
+not yet raise exposure.
+
 ## 0.7.1 — "Agents configured in AWS"
 
 Second platform in the IaC dictionary: **Amazon Bedrock Agents**. Registry
