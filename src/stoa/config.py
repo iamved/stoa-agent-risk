@@ -19,7 +19,7 @@ from .rules import RULES, VALID_RULE_ID
 
 FAIL_LEVELS = ("none", "high", "critical")
 
-DEFAULT_INCLUDE_EXTENSIONS = (".py", ".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx")
+DEFAULT_INCLUDE_EXTENSIONS = (".py", ".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".tf")
 
 DEFAULT_IGNORE_PATHS = (
     ".git/**",
@@ -84,6 +84,9 @@ class StoaConfig:
     runtime_error_rate_moderate: float = 0.02
     # [crosswalk] path — override the built-in regulatory crosswalk.
     crosswalk_path: "Path | None" = None
+    # [iac] enabled — discover agents defined in infrastructure code (.tf).
+    # Off => .tf files are still scanned for secrets, but emit no agents.
+    iac_enabled: bool = True
     # [report] path — override the built-in report presentation thresholds.
     report_config_path: "Path | None" = None
 
@@ -179,6 +182,10 @@ def load_config(root: Path, config_path: Path | None = None) -> StoaConfig:
     crosswalk = data.get("crosswalk", {})
     if crosswalk.get("path"):
         config.crosswalk_path = (root / crosswalk["path"]).resolve()
+
+    iac = data.get("iac", {})
+    if "enabled" in iac:
+        config.iac_enabled = bool(iac["enabled"])
 
     report = data.get("report", {})
     if report.get("path"):

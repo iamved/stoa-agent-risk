@@ -33,7 +33,7 @@ def _registry() -> dict:
             "findings": [],
         }
     return {
-        "schema_version": "1.5", "tool": {"name": "stoa", "version": "0"},
+        "schema_version": "1.6", "tool": {"name": "stoa", "version": "0"},
         "repository": {"name": "fixture"}, "summary": {"findings": {}},
         "agents": [
             agent(AGENT_A, "payments", ["payment_access"], ["stripe"]),

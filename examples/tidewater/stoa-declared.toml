@@ -1,0 +1,55 @@
+# Declared facts for Tidewater, cross-checked by the scanner. One entry is
+# deliberately wrong -- refund_agent is declared human_approved (a person signs
+# off every refund), but the code interpolates the model's decision straight
+# into a Stripe refund and an UPDATE with no approval gate. That's DECL001, on
+# purpose. support_agent is declared accurately (recommend_only) as the contrast.
+
+version = 1
+
+[business]
+industries = ["financial_services"]
+regulated_activities = ["payments"]
+max_customer_dependency = "high"
+
+[agents."0c43346c4625"]                 # agents/support_agent.py :: executor
+name = "support_agent"
+owner = "cx-platform@tidewater.example"
+purpose = "Answers customer questions from policy docs and a read-only transaction view"
+users = "external"
+production_status = "production"
+autonomy_intent = "recommend_only"
+data_classes = ["personal", "financial"]
+
+[agents."611fe129751f"]                 # agents/refund_agent.py :: refund_agent
+name = "refund_agent"
+owner = "payments-eng@tidewater.example"
+purpose = "Decides and issues customer refunds"
+users = "external"
+production_status = "production"
+autonomy_intent = "human_approved"
+data_classes = ["personal", "financial"]
+
+[agents."611fe129751f".economic_authority]
+max_per_action = { amount = 500, currency = "USD" }
+
+# The two deployed serving endpoints (found in infra/main.tf by the IaC
+# collector) are real scanned agents in their own right, so they are declared
+# too. Delete these two blocks to see DECL006 name an undeclared *deployment*.
+
+[agents."d9ecbbc1dcd7"]                 # infra/main.tf :: databricks_model_serving.support_agent
+name = "tidewater-support-agent"
+owner = "cx-platform@tidewater.example"
+purpose = "Deployed serving endpoint for the support agent"
+users = "external"
+production_status = "production"
+autonomy_intent = "recommend_only"
+data_classes = ["personal", "financial"]
+
+[agents."3968d0545e17"]                 # infra/main.tf :: databricks_model_serving.refund_agent
+name = "tidewater-refund-agent"
+owner = "payments-eng@tidewater.example"
+purpose = "Deployed serving endpoint for the refund agent"
+users = "external"
+production_status = "production"
+autonomy_intent = "human_approved"
+data_classes = ["personal", "financial"]

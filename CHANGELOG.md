@@ -3,6 +3,46 @@
 All notable changes to Stoa are documented here. The registry JSON schema is
 versioned separately (see [SCHEMA.md](SCHEMA.md)).
 
+## 0.7.0 — "Agents configured in infrastructure"
+
+Registry schema → 1.6 (additive). The IaC collector finds agents that are
+*configured*, not coded — Databricks Model Serving endpoints defined in
+Terraform — and emits them as ordinary agent candidates. A repository with no
+`.tf` files serializes byte-identically to 1.5 apart from `schema_version`.
+Static, local, deterministic; no `terraform` binary or provider plugins at
+scan time. See [docs/iac.md](docs/iac.md).
+
+### Added — IaC collector
+- `.tf` is a scanned language. A zero-dependency HCL block extractor parses
+  `resource` blocks (nested/repeated blocks, lists, references); values the
+  file cannot resolve (`var.*`) are left unresolved, never guessed.
+- `databricks_model_serving` → an agent with `source: iac`,
+  `platform: databricks`, `discovery_tier: recognized`, symbol
+  `databricks_model_serving.<name>`, high confidence, and evidence at the
+  resource block's `file:line`.
+- Controls stated by the endpoint's `ai_gateway` (guardrails → `validation`,
+  rate limits → `rate_limit`, inference tables / usage tracking →
+  `observability`) are credited per endpoint through the existing
+  `control_credit` math. Reach is read from `databricks_grants` (`SELECT` →
+  `database_read`; `MODIFY`/`ALL_PRIVILEGES` → `database_write`, catalog-wide
+  privileges called out); model egress from environment keys.
+- The core secret rules run on HCL too — a literal API key in a `.tf` is
+  caught and redacted as in code.
+- IaC agents participate in declarations, `stoa diff` (a grant widened from
+  `SELECT` to `ALL_PRIVILEGES` is high-severity drift), the graph, and the
+  assurance and underwriting exports.
+- New integration id `databricks`, recognized in code as well. `stoa.toml`
+  `[iac] enabled = false` turns discovery off while keeping secret scanning.
+- `examples/tidewater`: a fixture with two Databricks-hosted agents planted
+  for contrast (one fenced by an AI Gateway with a narrow grant, one with no
+  gateway and catalog-wide privileges), driving 15 tests.
+
+### Known limits (documented, not hidden)
+Terraform only (no Asset Bundles yet); Databricks only; grants attributed via
+the service principal's name stem; a missing control is visible in
+`controls_observed` but does not yet raise exposure; autonomy on IaC agents
+is uninformative until the endpoint→code join lands.
+
 ## 0.6.1 — Detection: hand-rolled / raw-REST agents
 
 A detection-quality fix. Two regexes in the agent scorer had reproducible

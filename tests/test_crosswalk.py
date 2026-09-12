@@ -93,7 +93,7 @@ def test_rt005_is_the_only_control_observed_relation():
 def test_findings_carry_crosswalk_tags_in_registry():
     result, config = _scan("examples/support-desk")
     doc = build_document(result, config)
-    assert doc["schema_version"] == SCHEMA_VERSION == "1.5"
+    assert doc["schema_version"] == SCHEMA_VERSION == "1.6"
     assert doc["crosswalk"]["id"] == "stoa-crosswalk-1"
     assert doc["crosswalk"]["owasp_llm_version"] == "2025"
 

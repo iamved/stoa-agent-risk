@@ -68,7 +68,7 @@ def agent_to_dict(agent: AgentCandidate, include_suppressed: bool) -> dict:
         for f in agent.findings
         if include_suppressed or not f.suppressed
     ]
-    return {
+    record = {
         "id": agent.id,
         "name": agent.name,
         # Disambiguated human-facing label (Task 1). Additive: `name`/`symbol`
@@ -110,6 +110,15 @@ def agent_to_dict(agent: AgentCandidate, include_suppressed: bool) -> dict:
             else {}
         ),
     }
+    # Schema 1.6 provenance — emitted only for agents discovered outside
+    # application code, so a code-only scan is byte-identical to 1.5 apart
+    # from schema_version (the documented additive-minor precedent).
+    if agent.source != "code":
+        record["source"] = agent.source
+        record["discovery_tier"] = agent.discovery_tier
+        if agent.platform:
+            record["platform"] = agent.platform
+    return record
 
 
 def build_document(result: ScanResult, config: StoaConfig) -> dict:

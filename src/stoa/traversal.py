@@ -20,6 +20,7 @@ LANGUAGE_BY_EXTENSION = {
     ".cjs": "javascript",
     ".ts": "typescript",
     ".tsx": "typescript",
+    ".tf": "terraform",
 }
 
 

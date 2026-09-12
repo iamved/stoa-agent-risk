@@ -26,6 +26,7 @@ NAV = [
         ("Assurance export", "assurance-export"),
         ("Underwriting evidence", "underwriting"),
         ("Runtime overlay", "runtime"),
+        ("Infrastructure as code", "iac"),
     ]),
     ("Pilot use cases", [
         ("Meridian — a multi-agent app", "example"),
@@ -168,7 +169,14 @@ def md_to_html(md: str) -> tuple[str, list[tuple[int, str, str]]]:
         if re.match(r"\s*[-*]\s+", line):
             items = []
             while i < len(lines) and re.match(r"\s*[-*]\s+", lines[i]):
-                items.append(inline(re.sub(r"\s*[-*]\s+", "", lines[i], count=1))); i += 1
+                item = re.sub(r"\s*[-*]\s+", "", lines[i], count=1); i += 1
+                # A hard-wrapped item continues on indented lines that are not a new
+                # bullet/heading/fence/table/callout — join them, as markdown does.
+                while (i < len(lines) and lines[i].strip() and lines[i][0] in " \t"
+                       and not re.match(r"\s*[-*]\s+|\s*#{1,4}\s|\s*```|\s*>", lines[i])
+                       and "|" not in lines[i]):
+                    item += " " + lines[i].strip(); i += 1
+                items.append(inline(item))
             out.append("<ul>" + "".join(f"<li>{it}</li>" for it in items) + "</ul>")
             continue
         if line.strip() == "---":
@@ -523,6 +531,9 @@ pii_terms = ["employee_id", "account_number"]
 
 [dimensions]              # replace the default dimension taxonomy
 taxonomy = ".stoa/dimensions.toml"
+
+[iac]                     # agents configured in infrastructure code (.tf)
+enabled = true            # off: .tf still scanned for secrets, emits no agents
 ```
 
 ## Suppression
@@ -819,6 +830,7 @@ CARDS = [
     ("📰", "The report", "A verdict-first HTML report: what to fix, in order, and where your declarations don't match the code — offline, print-ready in five pages.", "/docs/report"),
     ("⚖️", "Regulatory crosswalk", "Every rule anchored to one OWASP LLM Top 10 (2025) class and one EU AI Act article — a labeling layer that never touches scoring.", "/docs/crosswalk"),
     ("📑", "Underwriting evidence", "A pre-filled AI Model Risk Assessment, sourced from scan evidence and the applicant's own performance figures — ready to forward to an insurer.", "/docs/underwriting"),
+    ("🏗️", "Infrastructure as code", "Agents configured in Terraform — Databricks serving endpoints — found from the resource block, with controls credited from the AI Gateway and reach read from grants.", "/docs/iac"),
     ("🕸️", "Architecture graph", "Agents, tools, and capability-sinks as a Mermaid or interactive graph — click any edge for its evidence.", "/docs/graph"),
     ("📋", "Assurance export", "The 18-area assurance packet — declared facts cross-checked against what the scan observed, gaps included.", "/docs/assurance-export"),
     ("🛡️", "Rules", "Sixteen core/control rules, eight AI rules, and seven contradiction rules.", "/docs/rules"),
@@ -890,6 +902,7 @@ PAGES = [
     ("crosswalk", "Regulatory crosswalk", read(REPO / "docs/crosswalk.md"), None, "How Stoa anchors each rule to one OWASP LLM Top 10 (2025) class and one EU AI Act article — a labeling layer that never touches scoring."),
     ("assurance-export", "Assurance export", read(REPO / "docs/assurance-export.md"), None, "stoa export --assurance: the 18-area assurance packet."),
     ("underwriting", "Underwriting evidence", read(REPO / "docs/underwriting.md"), None, "stoa export --underwriting: a pre-filled AI Model Risk Assessment sourced from scan evidence and the applicant's own performance figures."),
+    ("iac", "Infrastructure as code", read(REPO / "docs/iac.md"), None, "The IaC collector: agents configured in Terraform (Databricks Model Serving) found from the resource block, with controls credited from the AI Gateway and reach read from grants."),
     ("runtime", "Runtime overlay", read(REPO / "docs/runtime.md"), None, "The observed evidence layer: instrument agents, analyze local traces, detect behavioral drift, and cross-check declared facts against live behavior (RT rules)."),
     ("rules", "Rules overview", read(REPO / "docs/rules/README.md"), None, "Stoa's core and AI security rules."),
     ("cli", "CLI", CLI, None, "Stoa CLI reference."),

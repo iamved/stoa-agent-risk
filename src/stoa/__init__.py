@@ -1,6 +1,6 @@
 """Stoa: local-first AI agent inventory and risk scanner."""
 
-__version__ = "0.6.1"
+__version__ = "0.7.0"
 
 # 1.4: runtime trace overlay additions (runtime_evidence, liveness_state,
 # trace_ref, top-level runtime block) — all optional, emitted only by
@@ -10,4 +10,7 @@ __version__ = "0.6.1"
 # finding, a top-level `crosswalk` version block, and a per-dimension roll-up
 # on `dimension_summary`. Presentation/labeling only; dimension scores are
 # byte-for-byte unchanged.
-SCHEMA_VERSION = "1.5"
+# 1.6: agents discovered in infrastructure code (IaC collector) carry
+# `source`, `discovery_tier`, and `platform` — emitted only when non-default,
+# so a code-only scan differs from 1.5 by this string alone.
+SCHEMA_VERSION = "1.6"

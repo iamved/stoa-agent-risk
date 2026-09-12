@@ -807,6 +807,11 @@ INTEGRATION_PATTERNS: dict[str, re.Pattern[str]] = {
     "mongodb": re.compile(r"mongodb(?:\+srv)?://|\bpymongo\b|\bMongoClient\s*\(|\bmongoose\b"),
     "redis": re.compile(r"redis(?:s)?://|^\s*import\s+redis\b|\bRedis\s*\(|\bioredis\b", re.MULTILINE),
     "snowflake": re.compile(r"\bsnowflake\.connector\b|\bsnowflake-sdk\b|\bSNOWFLAKE_[A-Z0-9_]+\b"),
+    "databricks": re.compile(
+        r"\bdatabricks\.(?:sdk|vector_search|agents|connect)\b|\bfrom\s+databricks\b|"
+        r"\bDATABRICKS_(?:HOST|TOKEN|WAREHOUSE_ID)\b|\.cloud\.databricks\.com\b|"
+        r"\bdatabricks_model_serving\b"
+    ),
     "bigquery": re.compile(r"\bgoogle\.cloud\.bigquery\b|\bbigquery\.Client\s*\(|\b@google-cloud/bigquery\b"),
     "aws": re.compile(r"\bboto3\b|\b@aws-sdk/|\bAWS_(?:ACCESS_KEY_ID|SECRET_ACCESS_KEY|REGION)\b"),
     "gcp": re.compile(r"\bgoogle\.cloud\b|\bGOOGLE_APPLICATION_CREDENTIALS\b"),

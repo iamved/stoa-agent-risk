@@ -183,9 +183,19 @@ def _statement(assessability, exposure, n_find, n_cap, controls) -> str:
 
 
 def assess_agent(agent: AgentCandidate, content: str, providers: list[str],
-                 taxonomy: Taxonomy) -> dict:
-    """Build the per-agent `dimension_assessment` block (deterministic)."""
-    controls = observed_controls(content)
+                 taxonomy: Taxonomy, extra_controls: set[str] | None = None) -> dict:
+    """Build the per-agent `dimension_assessment` block (deterministic).
+
+    ``extra_controls`` are controls stated explicitly by infrastructure (an
+    IaC ``ai_gateway`` block) rather than inferred from code patterns; they
+    join the observed set so the same credit rules apply.
+    """
+    # Code-pattern controls are read from code. For an IaC-discovered agent the
+    # controls arrive pre-attributed per resource (extra_controls); running the
+    # code regexes over the whole .tf would credit one endpoint's rate limit to
+    # every endpoint in the file.
+    code_controls = observed_controls(content) if agent.source == "code" else set()
+    controls = code_controls | set(extra_controls or ())
     active_findings = [f for f in agent.findings if not f.suppressed]
     entries = []
     unclassified_findings: list[str] = []

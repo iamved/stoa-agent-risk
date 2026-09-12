@@ -3,7 +3,7 @@
 This document describes the structure of `stoa-registry.json`, the JSON
 document produced by `stoa scan`.
 
-**Current schema version: `1.3`**
+**Current schema version: `1.6`**
 
 ## Versioning policy
 
@@ -200,6 +200,48 @@ independent — the crosswalk lives under `crosswalk`, never overwriting it.
 **SARIF:** results and rules gain `owasp:<LLMxx>` and `euaiact:<article>`
 tags alongside the existing `stoa-dim:<dimension>` tags. A blank OWASP
 mapping emits no `owasp:` tag rather than a fake one.
+
+## Schema 1.6 additions (IaC-discovered agents)
+
+Agents that are *configured* in infrastructure code rather than written in
+application code — today, Databricks Model Serving endpoints found in
+Terraform — join the registry as ordinary agent candidates. Three optional
+fields say where an agent came from; they are **emitted only when
+non-default**, so a code-only scan is byte-identical to `1.5` apart from
+`schema_version`.
+
+**On an agent candidate:**
+
+| Field | Type | Meaning |
+|---|---|---|
+| `source` | string | `"iac"` — discovered in infrastructure code. Absent ⇒ `"code"`. |
+| `discovery_tier` | string | `"recognized"` — inventoried from a resource definition, not deep-scanned; `"full"` once joined to scanned code. Absent ⇒ `"full"`. |
+| `platform` | string | e.g. `"databricks"`. |
+
+IaC agents carry `language: "terraform"`, `confidence: "high"` (a deployed
+endpoint is not ambiguous), and evidence at the resource block's `file:line`:
+`AGENT_IAC_SERVING_ENDPOINT`, `IAC_GRANT` (privileges and scope, with the
+service principal they were attributed through), `IAC_CONTROL_*` (guardrails,
+rate limit, observability stated by an `ai_gateway` block), `IAC_MODEL_EGRESS`.
+Controls stated by IaC are credited in `dimension_assessment` exactly as
+code-observed controls are.
+
+**Identity and vocabulary.** An IaC agent's `symbol` is
+`<resource_type>.<resource_name>` (e.g. `databricks_model_serving.refund_agent`),
+so two resource types sharing a name in one file never collide on `id`;
+`name` is the endpoint's human-facing name. `frameworks` is empty for IaC agents
+(the platform is carried by `platform`, not mislabeled as an agent framework).
+`integrations` gains the id `databricks` (schema 1.6), recognized in code too —
+an agent importing `databricks.vector_search` and the serving endpoint that
+deploys it share the integration. `[iac] enabled = false` in `stoa.toml` turns
+IaC agent discovery off; `.tf` files are still scanned for secrets.
+
+**Caveat.** `autonomy_level` on an IaC agent is inferred from code taint the
+resource definition does not carry, so it reads `recommend_only` until the
+endpoint is joined to the code that registers its model. Read reach
+(`capabilities`) and `controls_observed`, not autonomy, on IaC agents. Reach (`database_read` / `database_write`) is
+read from `databricks_grants` privileges; a value the file cannot resolve
+(`var.*`, remote state) is left unresolved, never guessed.
 
 ## Top-level document
 

@@ -133,6 +133,11 @@ class AgentCandidate:
     findings: list[Finding] = field(default_factory=list)
     # Schema 1.1 (Part IV). None until the dimension engine runs (Phase 4).
     dimension_assessment: Optional[dict] = None
+    # Schema 1.6: where the agent was discovered. Defaults describe every
+    # pre-1.6 agent, so omitting them is byte-identical to earlier output.
+    source: str = "code"             # code | iac
+    discovery_tier: str = "full"     # full | recognized | inferred
+    platform: Optional[str] = None    # e.g. databricks, for iac-discovered agents
     # Schema 1.2 (Assurance layer). None unless stoa-declared.toml declares
     # this agent id — the raw declared record, serialized as-is.
     declared: Optional[dict] = None

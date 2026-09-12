@@ -32,7 +32,7 @@ def _registry(declared=None, capabilities=("payment_access",), autonomy=None,
     if autonomy is not None:
         agent["autonomy_level"] = {"level": autonomy, "signals": [], "reason": None}
     registry = {
-        "schema_version": "1.5", "tool": {"name": "stoa", "version": "0"},
+        "schema_version": "1.6", "tool": {"name": "stoa", "version": "0"},
         "repository": {"name": "fixture"}, "summary": {},
         "agents": [agent], "repository_findings": [],
     }

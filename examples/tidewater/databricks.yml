@@ -1,0 +1,51 @@
+# Tidewater — Databricks Asset Bundle. Declares the same two serving endpoints
+# as infra/main.tf in Databricks' native IaC; many teams deploy agents this way
+# rather than (or as well as) through Terraform. YAML, so a second input format
+# for the IaC collector.
+bundle:
+  name: tidewater-agents
+
+resources:
+  model_serving_endpoints:
+    support_agent:
+      name: tidewater-support-agent
+      config:
+        served_entities:
+          - name: support-agent
+            entity_name: prod.agents.support_agent
+            entity_version: "3"
+            workload_size: Small
+      ai_gateway:
+        guardrails:
+          input:
+            pii:
+              behavior: BLOCK
+          output:
+            safety: true
+        inference_table_config:
+          enabled: true
+          catalog_name: prod
+          schema_name: monitoring
+        rate_limits:
+          - calls: 100
+            renewal_period: minute
+    refund_agent:
+      name: tidewater-refund-agent
+      config:
+        served_entities:
+          - name: refund-agent
+            entity_name: prod.agents.refund_agent
+            entity_version: "1"
+            environment_vars:
+              OPENAI_API_KEY: "{{secrets/agents/openai_key}}"
+      # no ai_gateway
+
+targets:
+  dev:
+    mode: development
+    workspace:
+      host: https://tidewater-dev.cloud.databricks.com
+  prod:
+    mode: production
+    workspace:
+      host: https://tidewater.cloud.databricks.com
