@@ -25,7 +25,7 @@ import re
 
 from .ai_rules import _line_of
 from .models import AgentCandidate
-from .rules import APPROVAL_CONSTRUCT, CONTROL_PATTERNS, HIGH_IMPACT_CAPABILITIES, TOOL_BINDING
+from .rules import APPROVAL_CONSTRUCT, CONTROL_PATTERNS, HIGH_IMPACT_CAPABILITIES, TOOL_BINDING, code_only
 
 AUTONOMY_LEVELS = (
     "recommend_only", "human_approved", "bounded_autonomous",
@@ -67,7 +67,7 @@ def infer_autonomy(agent: AgentCandidate, content: str) -> dict:
     # AI003 fired => the scanner already concluded no approval construct was
     # observed for a high-impact capability. Only trust an approval match
     # when AI003 did *not* fire for this agent.
-    approval_present = bool(APPROVAL_CONSTRUCT.search(content)) and not ai003
+    approval_present = bool(APPROVAL_CONSTRUCT.search(code_only(content))) and not ai003
     if approval_present:
         return {
             "level": "human_approved",

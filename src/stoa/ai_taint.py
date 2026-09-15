@@ -33,7 +33,9 @@ _MODEL_OUTPUT = re.compile(
     r"\.choices\[\d+\]\.(?:message|delta)\.content\b|\.output_text\b|"
     r"\.content\[\d+\]\.text\b|\bmessage\.content\b|\.completion\b|"
     r"\b(?:llm|chain|agent)\.(?:invoke|ainvoke|run|call)\s*\(|"
-    r"\b(?:generateText|streamText)\s*\("
+    r"\b(?:generateText|streamText)\s*\(|"
+    # tool-call arguments chosen by the model are model output too (0.7.3)
+    r"\.tool_calls\b|\.function\.arguments\b|\btool_call\.function\b|\.toolCalls\b"
 )
 _MODEL_CALL = re.compile(
     r"\.(?:chat\.completions|responses|messages)\.create\s*\(|"
@@ -78,7 +80,10 @@ _EXEC = re.compile(
     r"\bsubprocess\.(?:run|Popen|call|check_output|check_call)\s*\(|\bpty\.spawn\s*\(|"
     r"\bnew\s+Function\s*\(|\bchild_process\.(?:exec|execSync|spawn)\b|\bvm\.runInContext\b"
 )
-_SQL = re.compile(r"\bcursor\.execute\s*\(|\.raw\s*\(|\btext\s*\(|\.query\s*\(")
+_SQL = re.compile(
+    r"\bcursor\.execute\s*\(|\.raw\s*\(|\btext\s*\(|\.query\s*\(|"
+    r"\bspark\.sql\s*\(|\bsqlContext\.sql\s*\(|\.execute(?:many)?\s*\("   # DB-API / Spark (0.7.3)
+)
 _DESERIALIZE = re.compile(r"\bpickle\.loads?\s*\(|\byaml\.load\s*\(|\bmarshal\.loads?\s*\(")
 _MARKUP_CALL = re.compile(r"\bdocument\.write\s*\(|\bMarkup\s*\(|\bmark_safe\s*\(|\bdangerouslySetInnerHTML\b")
 _REQUEST_SINK = re.compile(r"\brequests\.(?:get|post)\s*\(|\bfetch\s*\(|\bhttpx\.(?:get|post)\b")

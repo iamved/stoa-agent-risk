@@ -3,6 +3,49 @@
 All notable changes to Stoa are documented here. The registry JSON schema is
 versioned separately (see [SCHEMA.md](SCHEMA.md)).
 
+## 0.7.3 — "Design-partner feedback: coverage, noise, control credit"
+
+Three complaints from a first design partner, each pinned by a test in
+`tests/test_feedback_fixes.py`. Dimension scores on the shipped examples move
+where these change what is observed; the golden snapshot is regenerated.
+
+### Fixed — agentic surface
+- **Retry loops are not agent loops.** `for attempt in range(3)`,
+  `while retries < MAX`, `for attempt in Retrying(...)` around one model call
+  no longer make a provider wrapper an agent candidate. The loop header
+  decides; a loop the model steers still counts.
+- **Hosted-model and media providers**: `replicate`, `fal`, `elevenlabs`,
+  `stability`, `runway` join the provider vocabulary, `replicate.run` /
+  `fal_client.run` count as model calls for the loop and multi-step signals,
+  and their API hosts are recognized endpoints. A generation pipeline on
+  Replicate is no longer invisible.
+- **Hand-rolled tool loops are characterized, not just found.** `tools=TOOLS`
+  (a name, not a literal) is a tool binding; the model's `tool_calls` /
+  `function.arguments` are a taint source, so arguments flowing into a shell
+  or SQL sink raise AI002; `spark.sql(...)`, DB-API `.execute(...)` are SQL
+  sinks. A loop that runs `subprocess` on model-chosen arguments now reads
+  `unrestricted_autonomous` with a critical AI002, as it should.
+
+### Fixed — noise
+- **Namespace and identifier URIs are not insecure endpoints.** XMP / RDF /
+  Dublin Core / IPTC / license / XML-schema hosts (`ns.adobe.com`,
+  `purl.org`, `iptc.org`, `creativecommons.org`, `schema.org`, `*.w3.org`,
+  `www.apache.org`, …) are excluded from NET001; media pipelines carry these
+  in bulk.
+
+### Fixed — control credit
+- **Controls one import hop away are credited to the agent.** An agent
+  reached only through a route file that carries authentication, rate
+  limiting, validation or logging is covered by them; the new import graph
+  (`stoa.imports`) links the agent's file to the files that import it and the
+  files it imports (Python module paths, JS/TS relative specifiers). Approval
+  and kill-switch remain agent-local. Previously the per-agent assessment
+  read the agent's own file only, so "auth on every route" showed as
+  *not observed* on every agent behind those routes.
+- **Approval must be code, not commentary.** `# needs human approval` and a
+  docstring no longer credit the approval control or the `human_approved`
+  autonomy level (`code_only()` strips comments and docstrings first).
+
 ## 0.7.2 — "Resolved Terraform, and agents built in the Google console"
 
 Two things that make the IaC collector hold up on a real repository. Schema

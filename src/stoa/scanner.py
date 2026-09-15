@@ -9,11 +9,13 @@ from . import diff as diff_module
 from . import git_metadata
 from .agent_detection import detect_agents
 from .iac import detect_iac_plan, detect_iac_tree
+from .imports import build_import_graph
 from .ai_rules import detect_ai005, detect_ai_correlations
 from .ai_taint import detect_ai_taint
 from .ast_layer import AstCache
 from .autonomy import infer_autonomy
 from .dimensions import (
+    observed_controls,
     assess_agent,
     dimension_summary,
     load_taxonomy,
@@ -106,6 +108,9 @@ def _disambiguate_agent_names(agents: list[AgentCandidate]) -> None:
             agent.display_name = f"{stem}·{agent.name}" if stem else agent.name
         else:
             agent.display_name = agent.name
+
+
+_NEIGHBOR_CONTROLS = frozenset({"authentication", "validation", "rate_limit", "observability"})
 
 
 def _detect_from_plan(plan_path: Path, root: Path, warnings: list[str]):
@@ -437,14 +442,29 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
     if not options.no_dimensions:
         taxonomy = load_taxonomy(options.taxonomy_path or config.dimensions_taxonomy)
         set_finding_dimensions(all_findings, taxonomy)
+        # Controls one import hop away (the route/middleware that fronts an
+        # agent) are credited to it — the agent is covered by them even though
+        # its own file never names them. IaC agents keep their stated controls.
+        import_graph = build_import_graph(file_contents) if agents else {}
+        neighbor_cache: dict[str, set[str]] = {}
         for agent in agents:
             set_finding_dimensions(agent.findings, taxonomy)
+            extra = iac_controls.get(agent.id)
+            if agent.source == "code":
+                if agent.path not in neighbor_cache:
+                    found: set[str] = set()
+                    for other in import_graph.get(agent.path, ()):
+                        # operational controls travel across the import edge;
+                        # approval is agent-local semantics and does not
+                        found |= observed_controls(file_contents.get(other, "")) & _NEIGHBOR_CONTROLS
+                    neighbor_cache[agent.path] = found
+                extra = neighbor_cache[agent.path]
             agent.dimension_assessment = assess_agent(
                 agent,
                 agent_content.get(agent.path, ""),
                 agent_providers.get(agent.path, []),
                 taxonomy,
-                extra_controls=iac_controls.get(agent.id),
+                extra_controls=extra,
             )
         dim_summary = dimension_summary(agents, taxonomy)
 

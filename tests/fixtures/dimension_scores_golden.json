@@ -259,16 +259,16 @@
       "score": 25
     },
     "mandate-overreach": {
-      "exposure": "none-observed",
-      "score": 0
+      "exposure": "low",
+      "score": 18
     },
     "output-fidelity": {
       "exposure": "none-observed",
       "score": 0
     },
     "unreviewed-high-impact-action": {
-      "exposure": "none-observed",
-      "score": 0
+      "exposure": "low",
+      "score": 18
     }
   },
   "examples/support-desk::agents/account_agent.py::account_agent": {

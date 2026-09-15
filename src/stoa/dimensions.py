@@ -25,6 +25,7 @@ from pathlib import Path
 from .models import AgentCandidate, Finding
 from .rules import (
     APPROVAL_CONSTRUCT,
+    code_only,
     CONTROL_PATTERNS,
     DATED_MODEL_SNAPSHOT,
     OBSERVABILITY_CONSTRUCT,
@@ -139,7 +140,7 @@ def _rule_dims(finding: Finding, taxonomy: Taxonomy) -> list[str]:
 def observed_controls(content: str) -> set[str]:
     """Positive control evidence — the one place Stoa reports good news."""
     controls: set[str] = set()
-    if APPROVAL_CONSTRUCT.search(content):
+    if APPROVAL_CONSTRUCT.search(code_only(content)):
         controls.add("approval")
     if CONTROL_PATTERNS["CTRL001"].search(content):
         controls.add("authentication")

@@ -426,6 +426,7 @@ MCP_TOOL_DEF = re.compile(
 # A recognized model call, for control-flow (model-call-in-loop) detection.
 MODEL_CALL_FOR_FLOW = re.compile(
     r"\b(?:chat\.completions|responses|messages)\.create\s*\(|"
+    r"\breplicate\.(?:run|async_run|stream)\s*\(|\bfal_client\.(?:run|subscribe|submit|run_async)\s*\(|"
     r"\b(?:generate_content|generateContent)\s*\(|"
     r"\.(?:invoke|ainvoke|stream)\s*\(|"
     r"\b(?:generateText|streamText|generateObject|streamObject)\s*\(|"
@@ -459,7 +460,10 @@ SUPPORTING_PATTERNS: dict[str, re.Pattern[str]] = {
         # Tolerate a quoted key: a raw REST payload writes "tools": [...] (a
         # JSON dict key), where the closing quote sits between the word and the
         # colon — as valid a tool binding as the Python/JS kwarg tools=[...].
-        r"\b(?:tools|tool_choice|functions)\b['\"]?\s*[:=]\s*(?:\[|\{)"
+        r"\b(?:tools|tool_choice|functions)\b['\"]?\s*[:=]\s*(?:\[|\{)|"
+        r"\btools\s*[:=]\s*(?!None\b|null\b|undefined\b|False\b|false\b)[A-Za-z_]\w*\b|"
+        r"^\s*(?:const\s+|let\s+|var\s+)?(?:TOOLS|tools|tool_list|toolList)\s*(?::\s*[\w<>\[\]]+)?\s*=\s*\[",
+        re.MULTILINE,
     ),
     "execution": re.compile(
         r"\b(?:agent\.(?:run|invoke|ainvoke)|\w*agent\.(?:run|invoke|ainvoke)|"
@@ -572,6 +576,22 @@ PROVIDER_PATTERNS: dict[str, re.Pattern[str]] = {
         re.MULTILINE,
     ),
     "openrouter": re.compile(r"openrouter\.ai|\bOPENROUTER_API_KEY\b"),
+    # Media / hosted-model providers common in generation pipelines (0.7.3).
+    "replicate": re.compile(
+        r"^\s*import\s+replicate\b|^\s*from\s+replicate\b|\breplicate\.(?:run|async_run|stream)\s*\(|"
+        r"\bReplicate\s*\(|api\.replicate\.com|\bREPLICATE_API_TOKEN\b",
+        re.MULTILINE,
+    ),
+    "fal": re.compile(
+        r"\bfal_client\b|['\"]@fal-ai/|\bfal\.(?:run|subscribe|submit)\s*\(|\bfal\.run\b|\bFAL_KEY\b"
+    ),
+    "elevenlabs": re.compile(
+        r"^\s*from\s+elevenlabs\b|^\s*import\s+elevenlabs\b|\bElevenLabs\s*\(|api\.elevenlabs\.io|"
+        r"\bELEVEN(?:LABS)?_API_KEY\b",
+        re.MULTILINE,
+    ),
+    "stability": re.compile(r"\bstability_sdk\b|api\.stability\.ai|\bSTABILITY_(?:API_)?KEY\b"),
+    "runway": re.compile(r"\brunwayml\b|api\.(?:dev\.)?runwayml\.com|\bRUNWAYML_API_SECRET\b"),
     "litellm": re.compile(
         r"^\s*import\s+litellm\b|^\s*from\s+litellm\s+import\b|"
         r"\blitellm\.(?:completion|acompletion)\s*\(",
@@ -607,7 +627,9 @@ DIRECT_MODEL_ENDPOINTS = re.compile(
     r"api\.openai\.com/v1/(?:responses|chat/completions)|"
     r"api\.anthropic\.com/v1/messages|"
     r"api\.groq\.com/openai/v1/chat/completions|"
-    r"openrouter\.ai/api/v1/chat/completions"
+    r"openrouter\.ai/api/v1/chat/completions|"
+    r"api\.replicate\.com/v1/(?:predictions|models)|(?:queue\.)?fal\.run/|"
+    r"api\.elevenlabs\.io/v1/|api\.stability\.ai/v\d"
     r")"
 )
 
@@ -937,7 +959,12 @@ HTTP_URL = re.compile(r"http://([^\s'\"`<>)\]}]+)")
 LOCAL_HTTP_HOST = re.compile(
     r"(?ix)^(?:localhost|127\.0\.0\.1|0\.0\.0\.0|\[?::1\]?|"
     r"[\w.-]*\.(?:test|local|localhost|invalid|example)|"
-    r"example\.(?:com|org|net)|www\.w3\.org|schemas\.[\w.-]+|json-schema\.org)"
+    r"example\.(?:com|org|net)|www\.w3\.org|schemas\.[\w.-]+|json-schema\.org|"
+    # namespace / identifier URIs (XMP, RDF, Dublin Core, licenses, XML): names, not endpoints
+    r"ns\.adobe\.com|purl\.org|iptc\.org|creativecommons\.org|schema\.org|ogp\.me|"
+    r"xmlns\.[\w.-]+|www\.apache\.org|opensource\.org|dublincore\.org|xmlsoap\.org|"
+    r"[\w.-]*openxmlformats\.org|www\.xml\.org|xml\.apache\.org|www\.gnu\.org|"
+    r"docs\.oasis-open\.org|[\w.-]*\.w3\.org|www\.iso\.org)"
     r"(?:[:/]|$)"
 )
 
@@ -1020,8 +1047,12 @@ TEMPERATURE_PRESENT = re.compile(r"\b(?:temperature|top_p)\s*[:=]")
 # AI003 — tool binding + approval constructs
 TOOL_BINDING = re.compile(
     r"@(?:tool|function_tool)\b|\btools\s*[:=]\s*[\[{]|"
+    # tools=TOOLS / tools: toolList — bound through a name, not an inline literal
+    r"\btools\s*[:=]\s*(?!None\b|null\b|undefined\b|False\b|false\b|\[\]|\{\})[A-Za-z_]\w*\b|"
+    r"^\s*(?:const\s+|let\s+|var\s+)?(?:TOOLS|tools|tool_list|toolList)\s*(?::\s*[\w<>\[\]]+)?\s*=\s*\[|"
     r"\bStructuredTool\.from_function\b|\bserver\.tool\s*\(|"
-    r"\btool\s*\(\s*\{|\bFunctionTool\b|\btool_choice\b"
+    r"\btool\s*\(\s*\{|\bFunctionTool\b|\btool_choice\b",
+    re.MULTILINE,
 )
 APPROVAL_CONSTRUCT = re.compile(
     r"\binterrupt(?:_before|_after)?\s*[(=]|\bCommand\s*\(\s*resume|"
@@ -1054,3 +1085,19 @@ SANDBOX_CONSTRUCT = re.compile(
     r"\bRestrictedPython\b|\bfirecracker\b|\bgvisor\b|\bWorkerSandbox\b|"
     r"\bisolated-vm\b)|\bvm\.(?:createContext|runInNewContext)\b"
 )
+
+
+_PY_COMMENT = re.compile(r"(?m)^[ \t]*#[^\n]*$|[ \t]+#[^\n]*$")
+_JS_COMMENT = re.compile(r"(?m)^[ \t]*//[^\n]*$|[ \t]+//[^\n]*$|/\*.*?\*/", re.DOTALL)
+_TRIPLE_STRING = re.compile(r'"""[\s\S]*?"""|\'\'\'[\s\S]*?\'\'\'')
+
+
+def code_only(content: str) -> str:
+    """Source with comments and docstrings removed (0.7.3), so a control that is
+    merely *talked about* ("# needs human approval") is never credited as
+    present. Line structure is preserved for line-number stability."""
+    def _blank(m: re.Match) -> str:
+        return "\n" * m.group(0).count("\n")
+    out = _TRIPLE_STRING.sub(_blank, content)
+    out = _JS_COMMENT.sub(_blank, out)
+    return _PY_COMMENT.sub("", out)

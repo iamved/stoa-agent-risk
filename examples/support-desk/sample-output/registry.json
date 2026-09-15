@@ -2,7 +2,7 @@
   "schema_version": "1.6",
   "tool": {
     "name": "stoa",
-    "version": "0.7.2"
+    "version": "0.7.3"
   },
   "repository": {
     "name": "support-desk",
@@ -649,7 +649,7 @@
         },
         {
           "rule_id": "AGENT_TOOLS",
-          "line": 22,
+          "line": 21,
           "description": "Tool or function schema"
         },
         {
@@ -1121,7 +1121,7 @@
         },
         {
           "rule_id": "AGENT_TOOLS",
-          "line": 22,
+          "line": 21,
           "description": "Tool or function schema"
         },
         {
@@ -1593,7 +1593,7 @@
         },
         {
           "rule_id": "AGENT_TOOLS",
-          "line": 13,
+          "line": 12,
           "description": "Tool or function schema"
         },
         {
@@ -2928,7 +2928,7 @@
         },
         {
           "rule_id": "AGENT_TOOLS",
-          "line": 7,
+          "line": 6,
           "description": "Tool or function schema"
         },
         {

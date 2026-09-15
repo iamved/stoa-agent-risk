@@ -7,6 +7,8 @@ a confidence level. Test-like paths are downweighted.
 
 from __future__ import annotations
 
+import re
+
 from dataclasses import dataclass
 from pathlib import PurePosixPath
 
@@ -85,9 +87,17 @@ def _model_call_in_loop(parsed, allow_raw_http: bool = False) -> Optional[int]:
             cur = node.parent
             while cur is not None:
                 if cur.type in _LOOP_TYPES:
+                    header = cur.text.decode("utf-8", "replace").split("\n", 1)[0]
+                    if _RETRY_LOOP.search(header):
+                        break          # a retry/backoff loop around one call is not agentic control flow
                     return node.start_point[0] + 1
                 cur = cur.parent
     return None
+
+
+# `for attempt in range(3)`, `while retries < MAX_RETRIES`, `for attempt in Retrying(...)`:
+# the loop exists to survive a failure, not to let the model decide the next step.
+_RETRY_LOOP = re.compile(r"(?i)\b(?:attempts?|retry|retries|retrying|backoff|tenacity|max_retries)\b")
 
 
 @dataclass

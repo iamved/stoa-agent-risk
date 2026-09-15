@@ -2,7 +2,7 @@
   "schema_version": "1.6",
   "tool": {
     "name": "stoa",
-    "version": "0.7.2"
+    "version": "0.7.3"
   },
   "repository": {
     "name": "sparkwing",
@@ -3131,16 +3131,14 @@
             "id": "mandate-overreach",
             "group": "B",
             "assessability": "strong",
-            "exposure": "none-observed",
-            "score": 0,
+            "exposure": "low",
+            "score": 18,
             "contributing_findings": [],
             "contributing_capabilities": [
               "database_write"
             ],
-            "controls_observed": [
-              "approval"
-            ],
-            "statement": "No exposure observed; controls observed: approval."
+            "controls_observed": [],
+            "statement": "0 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
             "id": "boundary-leakage",
@@ -3157,16 +3155,14 @@
             "id": "unreviewed-high-impact-action",
             "group": "C",
             "assessability": "strong",
-            "exposure": "none-observed",
-            "score": 0,
+            "exposure": "low",
+            "score": 18,
             "contributing_findings": [],
             "contributing_capabilities": [
               "database_write"
             ],
-            "controls_observed": [
-              "approval"
-            ],
-            "statement": "No exposure observed; controls observed: approval."
+            "controls_observed": [],
+            "statement": "0 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
             "id": "output-fidelity",
