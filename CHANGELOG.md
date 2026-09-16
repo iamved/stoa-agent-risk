@@ -3,6 +3,48 @@
 All notable changes to Stoa are documented here. The registry JSON schema is
 versioned separately (see [SCHEMA.md](SCHEMA.md)).
 
+## 0.7.4 — "Tools are first-class"
+
+Registry schema → 1.7 (additive). An agent's reach is mostly in its tools,
+and its tools mostly live in another file; until now the scanner read the
+agent's file and stopped. See `examples/meridian-pay/` — one refund agent
+built as LangGraph code, Bedrock Terraform, and Databricks Agent Framework.
+
+### Added — tool inventory
+- **Definition pass** over every file: `@tool` / `@function_tool` /
+  `@mcp.tool` functions, `StructuredTool.from_function`, raw JSON function
+  schemas (with the dispatcher that implements them), TS `tool({...})` and
+  `server.tool("name", …)`, `UCFunctionToolkit(function_names=[…])`, Bedrock
+  action-group `function_schema` names. Each tool records parameters, reach
+  (capabilities and integrations from its body, or its Lambda role's reach),
+  numeric guards on its parameters, retry wrapping (one hop into same-file
+  helpers), and whether an idempotency key is visible.
+- **Binding pass** per agent: names passed to `bind_tools`, `ToolNode`,
+  `tools=`, `create_react_agent`, TS `tools:`, list variables expanded,
+  resolved through the one-hop import graph. MCP servers, JSON-schema lists
+  and UC toolkits in the agent's file bind everything they define.
+- `tools` array on the agent record (schema 1.7); agent `capabilities` and
+  `integrations` include the tools'. The architecture graph and both exports
+  inherit the wider reach.
+- **Autonomy sees tools.** A bound tool reaching a high-impact sink is a
+  model-driven side effect; `tool:<name>` signals; IaC agents take no
+  approval or bounding credit from free text. On Meridian Pay the
+  account-actions agent reads `unrestricted_autonomous` and **DECL001 fires
+  in all three stacks** against its `human_approved` declaration.
+- **AI008 — non-idempotent money action under retry** (high). A money or
+  write tool wrapped in `tenacity`, `backoff`, `RetryPolicy`, `max_retries`
+  or a Lambda retry, with no idempotency key or dedupe check on the path: a
+  timeout after the upstream commits posts it again, and each attempt is
+  checked against the per-call limit on its own. Crosswalk: OWASP LLM06, EU
+  AI Act Art. 9.
+- Provider id `databricks` (`ChatDatabricks`, `databricks_langchain`).
+
+### Known limits
+Tools registered dynamically, built in loops, or loaded from config stay
+unresolved. UC functions and unmatched JSON schemas are name-only
+(`resolved: false`): money classification comes from the name. Guards are
+recorded, not yet turned into a finding (limits stated in prompts only).
+
 ## 0.7.3 — "Design-partner feedback: coverage, noise, control credit"
 
 Three complaints from a first design partner, each pinned by a test in

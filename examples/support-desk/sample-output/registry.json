@@ -1,8 +1,8 @@
 {
-  "schema_version": "1.6",
+  "schema_version": "1.7",
   "tool": {
     "name": "stoa",
-    "version": "0.7.3"
+    "version": "0.7.4"
   },
   "repository": {
     "name": "support-desk",

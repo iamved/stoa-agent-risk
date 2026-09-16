@@ -27,6 +27,7 @@ NAV = [
         ("Underwriting evidence", "underwriting"),
         ("Runtime overlay", "runtime"),
         ("Infrastructure as code", "iac"),
+        ("Tool inventory", "tools"),
     ]),
     ("Pilot use cases", [
         ("Meridian — a multi-agent app", "example"),
@@ -831,6 +832,7 @@ CARDS = [
     ("⚖️", "Regulatory crosswalk", "Every rule anchored to one OWASP LLM Top 10 (2025) class and one EU AI Act article — a labeling layer that never touches scoring.", "/docs/crosswalk"),
     ("📑", "Underwriting evidence", "A pre-filled AI Model Risk Assessment, sourced from scan evidence and the applicant's own performance figures — ready to forward to an insurer.", "/docs/underwriting"),
     ("🏗️", "Infrastructure as code", "Agents configured in Terraform — Databricks serving endpoints — found from the resource block, with controls credited from the AI Gateway and reach read from grants.", "/docs/iac"),
+    ("🧰", "Tool inventory", "Every tool an agent binds, with its reach, guards, retry and idempotency — across files and platforms.", "/docs/tools"),
     ("🕸️", "Architecture graph", "Agents, tools, and capability-sinks as a Mermaid or interactive graph — click any edge for its evidence.", "/docs/graph"),
     ("📋", "Assurance export", "The 18-area assurance packet — declared facts cross-checked against what the scan observed, gaps included.", "/docs/assurance-export"),
     ("🛡️", "Rules", "Sixteen core/control rules, eight AI rules, and seven contradiction rules.", "/docs/rules"),
@@ -903,6 +905,7 @@ PAGES = [
     ("assurance-export", "Assurance export", read(REPO / "docs/assurance-export.md"), None, "stoa export --assurance: the 18-area assurance packet."),
     ("underwriting", "Underwriting evidence", read(REPO / "docs/underwriting.md"), None, "stoa export --underwriting: a pre-filled AI Model Risk Assessment sourced from scan evidence and the applicant's own performance figures."),
     ("iac", "Infrastructure as code", read(REPO / "docs/iac.md"), None, "The IaC collector: agents configured in Terraform (Databricks Model Serving) found from the resource block, with controls credited from the AI Gateway and reach read from grants."),
+    ("tools", "Tool inventory", read(REPO / "docs/tools.md"), None, "Tools as first-class objects: what each agent can actually reach, and AI008 for retried money actions."),
     ("runtime", "Runtime overlay", read(REPO / "docs/runtime.md"), None, "The observed evidence layer: instrument agents, analyze local traces, detect behavioral drift, and cross-check declared facts against live behavior (RT rules)."),
     ("rules", "Rules overview", read(REPO / "docs/rules/README.md"), None, "Stoa's core and AI security rules."),
     ("cli", "CLI", CLI, None, "Stoa CLI reference."),

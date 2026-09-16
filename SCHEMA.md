@@ -3,7 +3,7 @@
 This document describes the structure of `stoa-registry.json`, the JSON
 document produced by `stoa scan`.
 
-**Current schema version: `1.6`**
+**Current schema version: `1.7`**
 
 ## Versioning policy
 
@@ -200,6 +200,39 @@ independent — the crosswalk lives under `crosswalk`, never overwriting it.
 **SARIF:** results and rules gain `owasp:<LLMxx>` and `euaiact:<article>`
 tags alongside the existing `stoa-dim:<dimension>` tags. A blank OWASP
 mapping emits no `owasp:` tag rather than a fake one.
+
+## Schema 1.7 additions (tool inventory)
+
+Tools are first-class objects. An agent that binds tools carries a `tools`
+array; agents with no recognized tool binding omit the key, so their records
+are byte-identical to `1.6` apart from `schema_version`.
+
+**On an agent candidate:** `tools` — a list of:
+
+| Field | Type | Meaning |
+|---|---|---|
+| `name` | string | tool name (function name, schema `name`, action-group function, UC function short name) |
+| `path`, `line` | string, int | where the tool is defined — usually **not** the agent's file |
+| `kind` | string | `langchain_tool`, `openai_function_tool`, `mcp_tool`, `json_schema`, `ts_tool`, `uc_function`, `bedrock_action_group` |
+| `params` | list | `{name, type?}` from the signature, zod/JSON schema, or `function_schema` |
+| `capabilities`, `integrations` | list | what the tool's body reaches (same vocabulary as the agent's); for a Bedrock action group, what its Lambda's role allows |
+| `high_impact` | bool | any capability in the high-impact set |
+| `money_action` | bool | the tool moves money (refund, payout, transfer, reissue, waive, …) |
+| `guards` | list | numeric or membership checks on a parameter observed in the body (`amount > 500`) |
+| `retry` | string or null | what wraps the tool in a retry, if anything (`stop_after_attempt (via _post_refund)`) |
+| `idempotency_key` | bool | an idempotency key or dedupe check is visible on the path |
+| `resolved` | bool | false when only a name or schema was seen (UC functions, unmatched JSON schemas) |
+
+The agent's `capabilities` and `integrations` are the union of its own and
+its tools'. `autonomy_level` gains `tool:<name>` signals: a bound tool that
+reaches a high-impact sink is a model-driven side effect even when no taint
+flow is visible in the agent's own file, and IaC agents no longer take
+approval or bounding credit from free text in the resource file.
+
+New rule **AI008** — *Non-idempotent money action under retry* (high;
+dimensions `unreviewed-high-impact-action`, `control-coverage-gap`; OWASP
+LLM06; EU AI Act Art. 9). New provider id `databricks` (`ChatDatabricks`,
+`databricks_langchain`).
 
 ## Schema 1.6 additions (IaC-discovered agents)
 

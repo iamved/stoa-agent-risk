@@ -56,7 +56,7 @@ def _registry(declared=None) -> dict:
         return record
 
     return {
-        "schema_version": "1.6", "tool": {"name": "stoa", "version": "0"},
+        "schema_version": "1.7", "tool": {"name": "stoa", "version": "0"},
         "repository": {"name": "fixture"}, "summary": {},
         "agents": [agent(AGENT), agent(OTHER)],
         "repository_findings": [],

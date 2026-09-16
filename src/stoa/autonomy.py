@@ -59,15 +59,31 @@ def infer_autonomy(agent: AgentCandidate, content: str) -> dict:
     ]
     ai003 = findings_by_rule.get("AI003", [])
 
-    if not ai002_sinks:
+    # Tool-mediated side effects (0.7.4): a bound tool whose body reaches a
+    # high-impact sink is a model-driven action even when no taint flow is
+    # visible in the agent's own file — the framework executes what the model
+    # picks. The tool inventory makes those tools visible here.
+    tool_effects = [
+        t for t in (agent.tools or [])
+        if HIGH_IMPACT_CAPABILITIES.intersection(t.get("capabilities", [])) or t.get("money_action")
+    ]
+    if not ai002_sinks and not tool_effects:
         return {"level": "recommend_only", "signals": [], "reason": None}
 
-    signals = [_signal(f.rule_id, f.path, f.line) for f in ai002_sinks]
+    signals = [_signal(f.rule_id, f.path, f.line) for f in ai002_sinks] + [
+        _signal(f"tool:{t['name']}", t["path"], t["line"]) for t in tool_effects
+    ]
+    if not ai002_sinks:
+        ai002_sinks = [type("_S", (), {"line": t["line"]})() for t in tool_effects]  # anchors only
 
     # AI003 fired => the scanner already concluded no approval construct was
     # observed for a high-impact capability. Only trust an approval match
     # when AI003 did *not* fire for this agent.
-    approval_present = bool(APPROVAL_CONSTRUCT.search(code_only(content))) and not ai003
+    # An IaC agent's file is a resource definition, not the agent's code: a
+    # Step Functions approval task or a rate limit elsewhere in the module
+    # says nothing about *this* agent's path, so free-text matching is off.
+    is_code = getattr(agent, "source", "code") == "code"
+    approval_present = is_code and bool(APPROVAL_CONSTRUCT.search(code_only(content))) and not ai003
     if approval_present:
         return {
             "level": "human_approved",
@@ -75,7 +91,7 @@ def infer_autonomy(agent: AgentCandidate, content: str) -> dict:
             "reason": None,
         }
 
-    bounding_match = BOUNDING_SIGNAL.search(content) or CONTROL_PATTERNS["CTRL003"].search(content)
+    bounding_match = (BOUNDING_SIGNAL.search(content) or CONTROL_PATTERNS["CTRL003"].search(content)) if is_code else None
     has_bounding = bounding_match is not None
     if has_bounding:
         return {
@@ -85,7 +101,7 @@ def infer_autonomy(agent: AgentCandidate, content: str) -> dict:
         }
 
     high_impact = HIGH_IMPACT_CAPABILITIES.intersection(agent.capabilities)
-    has_tool = bool(TOOL_BINDING.search(content))
+    has_tool = bool(TOOL_BINDING.search(content)) or bool(agent.tools)
     if ai003 or (has_tool and high_impact):
         extra = [_signal(f.rule_id, f.path, f.line) for f in ai003] or [
             _signal("high_impact_capability", agent.path, ai002_sinks[0].line)

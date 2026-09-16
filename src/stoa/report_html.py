@@ -1494,6 +1494,27 @@ def _agent_card_details(agent: AgentCandidate, diff_available: bool) -> str:
             f"{html_text(', '.join(agent.providers)) if agent.providers else '—'}</p>"
         )
 
+    if agent.tools:
+        parts.append("<h4>Tools (bound by this agent)</h4><table class=\"tools\"><thead><tr>"
+                     "<th>tool</th><th>reach</th><th>defined at</th><th>retry</th><th>idempotency key</th></tr></thead><tbody>")
+        for t in agent.tools:
+            reach = ", ".join(t.get("capabilities") or []) or ("money action" if t.get("money_action") else "—")
+            flags = []
+            if t.get("money_action"):
+                flags.append("money")
+            if t.get("high_impact"):
+                flags.append("high-impact")
+            if not t.get("resolved", True):
+                flags.append("name only")
+            label = html_text(t["name"]) + (f' <span class="meta">({html_text(", ".join(flags))})</span>' if flags else "")
+            parts.append(
+                f"<tr><td><code>{label}</code></td><td>{html_text(reach)}</td>"
+                f"<td><code>{html_text(t['path'])}:{html_text(t['line'])}</code></td>"
+                f"<td>{html_text(t['retry']) if t.get('retry') else '—'}</td>"
+                f"<td>{'yes' if t.get('idempotency_key') else ('no' if t.get('resolved', True) else 'unresolved')}</td></tr>"
+            )
+        parts.append("</tbody></table>")
+
     parts.append("<h4>Capabilities (static evidence)</h4>")
     if agent.capabilities:
         pills = "".join(

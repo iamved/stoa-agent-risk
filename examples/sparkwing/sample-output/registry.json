@@ -1,8 +1,8 @@
 {
-  "schema_version": "1.6",
+  "schema_version": "1.7",
   "tool": {
     "name": "stoa",
-    "version": "0.7.3"
+    "version": "0.7.4"
   },
   "repository": {
     "name": "sparkwing",
@@ -699,7 +699,24 @@
           }
         ],
         "reason": null
-      }
+      },
+      "tools": [
+        {
+          "name": "certify_submission",
+          "path": "agents/portfolio_certifier.py",
+          "line": 20,
+          "kind": "json_schema",
+          "params": [],
+          "capabilities": [],
+          "integrations": [],
+          "high_impact": false,
+          "money_action": false,
+          "guards": [],
+          "retry": null,
+          "idempotency_key": false,
+          "resolved": false
+        }
+      ]
     },
     {
       "id": "48d190c5af6c",
@@ -1130,7 +1147,24 @@
           }
         ],
         "reason": null
-      }
+      },
+      "tools": [
+        {
+          "name": "certify_submission",
+          "path": "agents/portfolio_certifier.py",
+          "line": 20,
+          "kind": "json_schema",
+          "params": [],
+          "capabilities": [],
+          "integrations": [],
+          "high_impact": false,
+          "money_action": false,
+          "guards": [],
+          "retry": null,
+          "idempotency_key": false,
+          "resolved": false
+        }
+      ]
     },
     {
       "id": "a332ef61e9ee",
@@ -1574,7 +1608,24 @@
         "level": "recommend_only",
         "signals": [],
         "reason": null
-      }
+      },
+      "tools": [
+        {
+          "name": "notify_parent",
+          "path": "agents/progress_notifier.py",
+          "line": 18,
+          "kind": "json_schema",
+          "params": [],
+          "capabilities": [],
+          "integrations": [],
+          "high_impact": false,
+          "money_action": false,
+          "guards": [],
+          "retry": null,
+          "idempotency_key": false,
+          "resolved": false
+        }
+      ]
     },
     {
       "id": "b7699551ca07",
@@ -2018,7 +2069,24 @@
         "level": "recommend_only",
         "signals": [],
         "reason": null
-      }
+      },
+      "tools": [
+        {
+          "name": "notify_parent",
+          "path": "agents/progress_notifier.py",
+          "line": 18,
+          "kind": "json_schema",
+          "params": [],
+          "capabilities": [],
+          "integrations": [],
+          "high_impact": false,
+          "money_action": false,
+          "guards": [],
+          "retry": null,
+          "idempotency_key": false,
+          "resolved": false
+        }
+      ]
     },
     {
       "id": "e1598a668297",
@@ -2457,7 +2525,24 @@
           }
         ],
         "reason": null
-      }
+      },
+      "tools": [
+        {
+          "name": "grade_submission",
+          "path": "agents/project_sandbox.py",
+          "line": 15,
+          "kind": "json_schema",
+          "params": [],
+          "capabilities": [],
+          "integrations": [],
+          "high_impact": false,
+          "money_action": false,
+          "guards": [],
+          "retry": null,
+          "idempotency_key": false,
+          "resolved": false
+        }
+      ]
     },
     {
       "id": "3566a52c29f8",
@@ -2896,7 +2981,24 @@
           }
         ],
         "reason": null
-      }
+      },
+      "tools": [
+        {
+          "name": "grade_submission",
+          "path": "agents/project_sandbox.py",
+          "line": 15,
+          "kind": "json_schema",
+          "params": [],
+          "capabilities": [],
+          "integrations": [],
+          "high_impact": false,
+          "money_action": false,
+          "guards": [],
+          "retry": null,
+          "idempotency_key": false,
+          "resolved": false
+        }
+      ]
     },
     {
       "id": "c237adc7c1e7",

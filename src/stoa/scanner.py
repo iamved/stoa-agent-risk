@@ -10,6 +10,7 @@ from . import git_metadata
 from .agent_detection import detect_agents
 from .iac import detect_iac_plan, detect_iac_tree
 from .imports import build_import_graph
+from .tools import bind_agent_tools, collect_tools, detect_ai008
 from .ai_rules import detect_ai005, detect_ai_correlations
 from .ai_taint import detect_ai_taint
 from .ast_layer import AstCache
@@ -176,6 +177,10 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
         else:
             file_contents[source.relative_path] = content
     repo_controls = scan_repo_controls(list(file_contents.values()))
+    # Tools as first-class objects (0.7.4): every tool definition in the repo,
+    # then bound to agents through the one-hop import graph.
+    import_graph = build_import_graph(file_contents)
+    tool_index = collect_tools(file_contents)
     # Controls stated explicitly by infrastructure (IaC), keyed by agent id,
     # injected into dimension scoring alongside code-observed controls.
     iac_controls: dict[str, set[str]] = {}
@@ -243,9 +248,20 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
         candidate_findings: list[Finding] = []
         file_agents: list[AgentCandidate] = []
         if detections:
-            capabilities = detect_capabilities(content)
+            bound_tools = bind_agent_tools(content, source.relative_path, tool_index, import_graph)
+            capabilities = sorted(
+                set(detect_capabilities(content)) | {c for t in bound_tools for c in t.capabilities}
+            )
             permission_tags = detect_permission_tags(content, capabilities)
             integrations, call_sites = detect_integrations(content)
+            for t in bound_tools:
+                for integ in t.integrations:
+                    if integ not in integrations:
+                        integrations.append(integ)
+            integrations.sort()
+            tool_records = [t.to_dict() for t in bound_tools]
+            tool_findings = detect_ai008(bound_tools, content, config)
+            candidate_findings.extend(tool_findings)
             for detection in detections:
                 if detection.confidence in ("medium", "high"):
                     anchor = detection.evidence[0].line if detection.evidence else 1
@@ -275,7 +291,8 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
                     )
                 else:
                     prompts = []
-                candidate_findings.extend(prompts)
+                prompts = prompts + list(tool_findings)
+                candidate_findings.extend(prompts[:len(prompts) - len(tool_findings)])
                 file_agents.append(
                     AgentCandidate(
                         id=detection.id,
@@ -293,6 +310,7 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
                         permission_tags=permission_tags,
                         call_sites=call_sites,
                         findings=prompts,
+                        tools=tool_records,
                     )
                 )
 
@@ -344,6 +362,7 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
                 source=det.source,
                 discovery_tier=det.discovery_tier,
                 platform=det.platform,
+                tools=det.tools,
             )
         )
         iac_controls[det.id] = det.controls
@@ -445,7 +464,6 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
         # Controls one import hop away (the route/middleware that fronts an
         # agent) are credited to it — the agent is covered by them even though
         # its own file never names them. IaC agents keep their stated controls.
-        import_graph = build_import_graph(file_contents) if agents else {}
         neighbor_cache: dict[str, set[str]] = {}
         for agent in agents:
             set_finding_dimensions(agent.findings, taxonomy)

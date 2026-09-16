@@ -476,6 +476,7 @@ class IacDetection:
     source: str = "iac"
     discovery_tier: str = "recognized"
     path: str = ""                  # file defining the agent resource (module scope)
+    tools: list[dict] = field(default_factory=list)   # schema 1.7 tool inventory (action groups, UC functions)
 
 
 # --- Databricks recognition dictionary ---------------------------------------
@@ -886,6 +887,7 @@ def _detect_bedrock(blocks: list[TfBlock]) -> list[IacDetection]:
 
         # tools: action groups bound to this agent
         lambda_roles: list[tuple[str, str]] = []
+        tool_records: list[dict] = []
         for grp in blocks:
             if grp.type != RES_BR_ACTION_GROUP or _ref(grp.attrs.get("agent_id")) != (RES_BR_AGENT, ag.name):
                 continue
@@ -921,6 +923,18 @@ def _detect_bedrock(blocks: list[TfBlock]) -> list[IacDetection]:
             if fns:
                 desc += f": {', '.join(fns)}"
             evidence.append(Evidence("IAC_TOOL_BINDING", grp.line, desc + _where(grp, ag)))
+            for fn_name in fns:
+                params = [{"name": _lit(pp.get("map_block_key"))} for m in _as_list((_one(grp.attrs.get("function_schema")) or {}).get("member_functions"))
+                          if isinstance(m, dict) for f in _as_list(m.get("functions"))
+                          if isinstance(f, dict) and _lit(f.get("name")) == fn_name
+                          for pp in _as_list(f.get("parameters")) if isinstance(pp, dict) and _lit(pp.get("map_block_key"))]
+                tool_records.append({
+                    "name": fn_name, "path": grp.path, "line": grp.line, "kind": "bedrock_action_group",
+                    "params": params, "capabilities": [], "integrations": [], "high_impact": False,
+                    "money_action": bool(re.search(r"(?i)refund|payout|transfer|charge|payment|reissue|wire|settle|waive", fn_name)),
+                    "guards": [], "retry": None, "idempotency_key": False, "resolved": False,
+                    "executor": (lam[1] if lam and lam[0] == RES_LAMBDA else None),
+                })
 
         # RAG: knowledge bases associated with the agent
         for kb in blocks:
@@ -948,6 +962,14 @@ def _detect_bedrock(blocks: list[TfBlock]) -> list[IacDetection]:
             caps |= c; evidence += ev
             if "ses" in svcs:
                 integrations.add("ses")
+            for rec in tool_records:                       # the tool reaches what its Lambda's role allows
+                if rec.get("executor") == fn:
+                    rec["capabilities"] = sorted(set(rec["capabilities"]) | c)
+                    rec["high_impact"] = bool(set(rec["capabilities"]) & {
+                        "cloud_resource_access", "code_execution", "database_write", "email_send",
+                        "filesystem_write", "messaging", "payment_access", "shell_execution", "source_control"})
+        for rec in tool_records:
+            rec.pop("executor", None)
 
         symbol = ag.address
         detections.append(IacDetection(
@@ -957,7 +979,7 @@ def _detect_bedrock(blocks: list[TfBlock]) -> list[IacDetection]:
             evidence=evidence, frameworks=[],
             providers=sorted(providers), integrations=sorted(integrations),
             capabilities=sorted(caps), controls=controls,
-            platform="bedrock", path=ag.path,
+            platform="bedrock", path=ag.path, tools=tool_records,
         ))
     return detections
 

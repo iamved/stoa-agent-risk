@@ -120,6 +120,12 @@ eu_ai_act = "Art. 15"
 relation = "exposure"
 so_what = "The model reference is unpinned, so behavior can change under you silently."
 
+[rules.AI008]
+owasp_llm_2025 = "LLM06"
+eu_ai_act = "Art. 9"
+relation = "exposure"
+so_what = "A retried money action with no idempotency key can post twice, and each attempt stays under the per-call limit."
+
 [rules.AI006]
 owasp_llm_2025 = "LLM02"
 eu_ai_act = "Art. 10"

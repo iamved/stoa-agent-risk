@@ -138,6 +138,10 @@ class AgentCandidate:
     source: str = "code"             # code | iac
     discovery_tier: str = "full"     # full | recognized | inferred
     platform: Optional[str] = None    # e.g. databricks, for iac-discovered agents
+    # Schema 1.7: the tools this agent binds, as first-class objects (name,
+    # definition site, params, reach, guards, retry, idempotency). Empty for
+    # agents with no recognized tool binding, and then omitted from output.
+    tools: list[dict] = field(default_factory=list)
     # Schema 1.2 (Assurance layer). None unless stoa-declared.toml declares
     # this agent id — the raw declared record, serialized as-is.
     declared: Optional[dict] = None

@@ -139,6 +139,19 @@ RULES: dict[str, RuleSpec] = {
         canonical_name="STOA-LLM06-SENSITIVE-INTERPOLATION",
         owasp={"llm_top10_v1_1": "LLM06", "llm_top10_2025": "LLM02"},
     ),
+    "AI008": RuleSpec(
+        rule_id="AI008",
+        title="Non-idempotent money action under retry",
+        category="ai-agency",
+        default_severity="high",
+        gateable=False,
+        remediation=(
+            "Send an idempotency key derived from a stable identifier (the dispute or order id), "
+            "disable retries on money tools, and check limits per dispute rather than per call."
+        ),
+        canonical_name="STOA-LLM06-NONIDEMPOTENT-RETRY",
+        owasp={"llm_top10_v1_1": "LLM08", "llm_top10_2025": "LLM06"},
+    ),
     "AI005": RuleSpec(
         rule_id="AI005",
         title="Model, endpoint, or artifact dependency observed without a pin or integrity control",
@@ -576,6 +589,10 @@ PROVIDER_PATTERNS: dict[str, re.Pattern[str]] = {
         re.MULTILINE,
     ),
     "openrouter": re.compile(r"openrouter\.ai|\bOPENROUTER_API_KEY\b"),
+    "databricks": re.compile(
+        r"\bChatDatabricks\b|\bdatabricks_langchain\b|\bdatabricks-langchain\b|\bmlflow\.deployments\b|"
+        r"\bDatabricksEmbeddings\b|serving-endpoints/[\w-]+/invocations"
+    ),
     # Media / hosted-model providers common in generation pipelines (0.7.3).
     "replicate": re.compile(
         r"^\s*import\s+replicate\b|^\s*from\s+replicate\b|\breplicate\.(?:run|async_run|stream)\s*\(|"

@@ -113,6 +113,9 @@ def agent_to_dict(agent: AgentCandidate, include_suppressed: bool) -> dict:
     # Schema 1.6 provenance — emitted only for agents discovered outside
     # application code, so a code-only scan is byte-identical to 1.5 apart
     # from schema_version (the documented additive-minor precedent).
+    # Schema 1.7 — the agent's tool inventory, emitted only when non-empty.
+    if agent.tools:
+        record["tools"] = agent.tools
     if agent.source != "code":
         record["source"] = agent.source
         record["discovery_tier"] = agent.discovery_tier

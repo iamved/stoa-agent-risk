@@ -103,6 +103,8 @@ AI003 = ["mandate-overreach", "unreviewed-high-impact-action"]
 AI004 = ["boundary-leakage"]
 AI006 = ["boundary-leakage"]
 AI007 = ["conduct-variability"]
+# AI008: a retried money action with no idempotency key (duplicate posting).
+AI008 = ["unreviewed-high-impact-action", "control-coverage-gap"]
 # AI005 is variant-aware (handled in code): floating-alias -> conduct-variability
 # + dependency-drift, trust-remote-code/unpinned-artifact -> injection-tamper-surface,
 # insecure-endpoint -> dependency-drift.

@@ -1,0 +1,43 @@
+version = 1
+[business]
+industries = ["financial_services"]
+regulated_activities = ["payments", "consumer_banking"]
+max_customer_dependency = "high"
+
+[agents."b8f0111742fc"]      # code/agents/account_actions_agent.py
+name = "account-actions"
+owner = "digital-servicing@meridian.example"
+purpose = "Issues refunds, waives fees, updates contact details, reissues cards"
+users = "customers"
+production_status = "production"
+autonomy_intent = "human_approved"
+data_classes = ["personal", "financial"]
+[agents."b8f0111742fc".economic_authority]
+max_per_action = { amount = 500, currency = "USD" }
+
+[agents."9299e5cfdb41"]      # aws/agents.tf :: aws_bedrockagent_agent.account_actions
+name = "meridian-account-actions"
+owner = "digital-servicing@meridian.example"
+purpose = "Account actions on Bedrock"
+users = "customers"
+production_status = "production"
+autonomy_intent = "human_approved"
+data_classes = ["personal", "financial"]
+
+[agents."3af3aebaa6f7"]      # databricks chat endpoint
+name = "meridian-support-chat"
+owner = "digital-servicing@meridian.example"
+purpose = "Support agent on Databricks"
+users = "customers"
+production_status = "production"
+autonomy_intent = "human_approved"
+data_classes = ["personal", "financial"]
+
+[agents."f18cfdb42fdb"]      # databricks/agents/support_agent.py :: agent
+name = "meridian-support (Databricks)"
+owner = "digital-servicing@meridian.example"
+purpose = "Support agent on Databricks Mosaic AI Agent Framework"
+users = "customers"
+production_status = "production"
+autonomy_intent = "human_approved"
+data_classes = ["personal", "financial"]

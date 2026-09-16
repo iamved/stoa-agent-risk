@@ -151,7 +151,7 @@ def test_contrast_shows_in_dimension_exposure():
 def test_registry_emits_provenance_only_for_iac_agents():
     result, config = _scan(TIDEWATER)
     doc = build_document(result, config)
-    assert doc["schema_version"] == "1.6"
+    assert doc["schema_version"] == "1.7"
     by_source = {}
     for a in doc["agents"]:
         by_source.setdefault(a.get("source", "code"), []).append(a)
