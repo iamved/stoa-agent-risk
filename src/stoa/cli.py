@@ -61,7 +61,15 @@ def build_parser() -> argparse.ArgumentParser:
     scan = subparsers.add_parser("scan", help="Scan a repository")
     scan.add_argument("path", nargs="?", default=".", help="Repository root (default: .)")
     scan.add_argument("--html", metavar="PATH", default="stoa-report.html",
-                      help="HTML report path (default: stoa-report.html)")
+                      help="Legacy summary report path (default: stoa-report.html)")
+    scan.add_argument("--dashboard", metavar="PATH", default="stoa-dashboard.html",
+                      help="Self-contained dashboard path (default: stoa-dashboard.html)")
+    scan.add_argument("--no-dashboard", action="store_true",
+                      help="Do not write the dashboard")
+    scan.add_argument("--open", action="store_true",
+                      help="Open the dashboard in the default browser after the scan")
+    scan.add_argument("--no-history", action="store_true",
+                      help="Do not record this scan under .stoa/history/")
     scan.add_argument("--json", metavar="PATH", default="stoa-registry.json",
                       help="JSON output path (default: stoa-registry.json)")
     scan.add_argument("--base", metavar="GIT_REF", default=None,
@@ -116,6 +124,20 @@ def build_parser() -> argparse.ArgumentParser:
                       help="With --diff-against: fail if unapproved drift ≥ this level")
     scan.add_argument("--fail-on-dimension-increase", metavar="DIM=LEVEL", default=None)
     scan.add_argument("--approvals", metavar="PATH", default=".stoa/approvals.toml")
+
+    dashboard = subparsers.add_parser(
+        "dashboard", help="Build the self-contained dashboard from an existing registry")
+    dashboard.add_argument("input", metavar="REGISTRY",
+                           help="stoa-registry.json (or a stoa-dashboard envelope)")
+    dashboard.add_argument("--baseline", metavar="REGISTRY", default=None,
+                           help="Registry to diff against (drift screen)")
+    dashboard.add_argument("--approvals", metavar="PATH", default=".stoa/approvals.toml")
+    dashboard.add_argument("--root", metavar="DIR", default=".",
+                           help="Repository root holding .stoa/history/ (default: .)")
+    dashboard.add_argument("--out", metavar="PATH", default="stoa-dashboard.html")
+    dashboard.add_argument("--open", action="store_true", help="Open in the default browser")
+    dashboard.add_argument("--config", metavar="PATH", default=None)
+    dashboard.add_argument("--taxonomy", metavar="PATH", default=None)
 
     init = subparsers.add_parser("init", help="Generate integration files")
     init.add_argument("target", choices=["github", "declarations", "runtime"],
@@ -258,6 +280,8 @@ def main(argv: list[str] | None = None) -> int:
             return _run_scan_command(args)
         if args.command == "init":
             return _run_init_command(args)
+        if args.command == "dashboard":
+            return _run_dashboard_command(args)
         if args.command == "diff":
             return _run_diff_command(args)
         if args.command == "graph":
@@ -356,6 +380,19 @@ def _run_scan_command(args: argparse.Namespace) -> int:
     if args.github_annotations:
         emit_annotations(result, sys.stdout)
 
+    dashboard_path = None
+    base_doc = None
+    base_doc_resolved = False
+    if not args.no_dashboard and config.dashboard_enabled:
+        from .report_json import build_document as _build_document
+        document = enriched if args.with_runtime else _build_document(result, config)
+        if args.diff_against:
+            base_doc = _scan_ref_registry(Path(args.path), args.diff_against, config)
+            base_doc_resolved = True
+        dashboard_path = _write_scan_dashboard(
+            result, config, args, document, base_doc, root.resolve(),
+        )
+
     for warning in result.warnings:
         print(f"stoa: warning: {warning}", file=sys.stderr)
 
@@ -369,7 +406,9 @@ def _run_scan_command(args: argparse.Namespace) -> int:
 
     tripped = gate_findings(result, config)
     if not args.quiet:
-        _print_scan_summary(result, args, json_path, html_path)
+        _print_scan_summary(result, args, json_path, html_path, dashboard_path)
+    if dashboard_path is not None and args.open:
+        _open_in_browser(dashboard_path)
     if tripped:
         print(
             f"stoa: gate failed: {len(tripped)} finding"
@@ -385,15 +424,108 @@ def _run_scan_command(args: argparse.Namespace) -> int:
         return EXIT_GATE_FAILED
 
     if args.diff_against:
-        return _scan_diff_against(result, config, args)
+        return _scan_diff_against(result, config, args, base_doc if base_doc_resolved else None,
+                                  base_doc_resolved)
     return EXIT_OK
 
 
-def _scan_diff_against(result, config, args) -> int:
+def _write_scan_dashboard(result, config, args, document, base_doc, root: Path):
+    """Write stoa-dashboard.html next to the registry; never fails the scan."""
+    from .dashboard import build_envelope, load_history, record_history
+    from .dashboard.inject import write_dashboard
+    from .dashboard.template import DashboardTemplateMissing
+
+    diff = None
+    if args.diff_against and base_doc is not None:
+        diff = diff_registries(base_doc, document, Approvals.load(Path(args.approvals)))
+    history: list[dict] = []
+    if not args.no_history and not args.no_git:
+        record_history(root, document, config.dashboard_history_keep)
+        history = load_history(root)
+    envelope = build_envelope(
+        document, diff=diff, history=history,
+        taxonomy_path=config.dimensions_taxonomy, crosswalk_path=config.crosswalk_path,
+    )
+    path = Path(args.dashboard)
+    try:
+        write_dashboard(envelope, path)
+    except DashboardTemplateMissing as exc:
+        print(f"stoa: warning: dashboard skipped: {exc}", file=sys.stderr)
+        return None
+    return path
+
+
+def _open_in_browser(path: Path) -> None:
+    import webbrowser
+    try:
+        webbrowser.open(Path(path).resolve().as_uri())
+    except Exception as exc:  # noqa: BLE001 - opening a browser is best-effort
+        print(f"stoa: could not open a browser: {exc}", file=sys.stderr)
+
+
+def _run_dashboard_command(args: argparse.Namespace) -> int:
+    """`stoa dashboard REGISTRY`: build the dashboard from an existing registry."""
+    from .dashboard import build_envelope, load_history
+    from .dashboard.inject import is_envelope, write_dashboard
+    from .dashboard.template import DashboardTemplateMissing
+
+    input_path = Path(args.input)
+    if not input_path.is_file():
+        print(f"stoa: input not found: {args.input}", file=sys.stderr)
+        return EXIT_USAGE
+    try:
+        document = json.loads(input_path.read_text(encoding="utf-8"))
+    except ValueError as exc:
+        print(f"stoa: {args.input} is not valid JSON: {exc}", file=sys.stderr)
+        return EXIT_USAGE
+    if not isinstance(document, dict):
+        print(f"stoa: {args.input} is not a registry document", file=sys.stderr)
+        return EXIT_USAGE
+
+    root = Path(args.root).resolve()
+    if is_envelope(document):
+        envelope = document
+        if args.baseline:
+            print("stoa: warning: --baseline ignored; the input is already a dashboard envelope",
+                  file=sys.stderr)
+    else:
+        if "schema_version" not in document:
+            print(f"stoa: {args.input} has no schema_version; expected stoa-registry.json",
+                  file=sys.stderr)
+            return EXIT_USAGE
+        config = load_config(root, Path(args.config) if args.config else None)
+        diff = None
+        if args.baseline:
+            baseline_path = Path(args.baseline)
+            if not baseline_path.is_file():
+                print(f"stoa: baseline not found: {args.baseline}", file=sys.stderr)
+                return EXIT_USAGE
+            base_doc = json.loads(baseline_path.read_text(encoding="utf-8"))
+            diff = diff_registries(base_doc, document, Approvals.load(Path(args.approvals)))
+        envelope = build_envelope(
+            document, diff=diff, history=load_history(root),
+            taxonomy_path=Path(args.taxonomy) if args.taxonomy else config.dimensions_taxonomy,
+            crosswalk_path=config.crosswalk_path,
+        )
+
+    out = Path(args.out)
+    try:
+        write_dashboard(envelope, out)
+    except DashboardTemplateMissing as exc:
+        print(f"stoa: {exc}", file=sys.stderr)
+        return EXIT_ERROR
+    print(f"stoa: wrote {out}")
+    if args.open:
+        _open_in_browser(out)
+    return EXIT_OK
+
+
+def _scan_diff_against(result, config, args, base_doc=None, base_doc_resolved=False) -> int:
     """`stoa scan --diff-against REF`: diff the fresh scan against a git ref."""
     from .report_json import build_document
     head_doc = build_document(result, config)
-    base_doc = _scan_ref_registry(Path(args.path), args.diff_against, config)
+    if not base_doc_resolved:
+        base_doc = _scan_ref_registry(Path(args.path), args.diff_against, config)
     if base_doc is None:
         print(f"stoa: warning: base ref {args.diff_against!r} unresolvable — "
               "drift gate skipped", file=sys.stderr)
@@ -653,7 +785,8 @@ def _run_init_declarations(args: argparse.Namespace) -> int:
 
 
 def _print_scan_summary(
-    result: ScanResult, args: argparse.Namespace, json_path: Path, html_path: Path
+    result: ScanResult, args: argparse.Namespace, json_path: Path, html_path: Path,
+    dashboard_path: Path | None = None,
 ) -> None:
     counts = result.severity_counts()
     parts = [
@@ -680,7 +813,9 @@ def _print_scan_summary(
             f"New findings vs {result.repository.base_ref}: "
             + (", ".join(new_parts) if new_parts else "none")
         )
-    print(f"Reports: {html_path}, {json_path}")
+    outputs = [str(dashboard_path)] if dashboard_path is not None else []
+    outputs += [str(html_path), str(json_path)]
+    print("Reports: " + ", ".join(outputs))
     if args.verbose and result.skipped_files:
         print(f"Skipped {len(result.skipped_files)} files:")
         for skipped in result.skipped_files:
