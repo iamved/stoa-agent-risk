@@ -124,3 +124,40 @@ test.describe("risk register", () => {
     expect(snippet).toContain('treatment = "transfer"');
   });
 });
+
+test.describe("evidence and print", () => {
+  test("two views of the same data", async ({ page }) => {
+    await page.goto(fileUrl("meridian-pay", "#/evidence"));
+    await expect(page.getByRole("heading", { name: "What is wrong" })).toBeVisible();
+    await page.goto(fileUrl("meridian-pay", "#/evidence?view=underwriter"));
+    await expect(page.getByRole("heading", { name: "What the agents can do" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Controls: observed versus declared" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Confidence per dimension" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Copy JSON" })).toBeVisible();
+  });
+
+  test("print summary is one page and hides the app chrome", async ({ page }) => {
+    await page.goto(fileUrl("meridian-pay", "#/findings"));
+    await page.evaluate(() => { document.documentElement.dataset.print = "summary"; });
+    await page.emulateMedia({ media: "print" });
+    await expect(page.locator("nav")).toBeHidden();
+    await expect(page.locator(".screen-content")).toBeHidden();
+    const summary = page.locator(".print-summary");
+    await expect(summary).toBeVisible();
+    await expect(summary).toContainText("AI agent risk summary");
+    const height = await summary.evaluate((el) => el.getBoundingClientRect().height);
+    expect(height).toBeLessThan(1000);
+  });
+
+  test("print evidence pack shows the underwriter view only", async ({ page }) => {
+    await page.goto(fileUrl("meridian-pay", "#/evidence"));
+    await page.evaluate(() => { document.documentElement.dataset.print = "pack"; });
+    await page.emulateMedia({ media: "print" });
+    const pack = page.locator(".print-pack");
+    await expect(pack).toBeVisible();
+    await expect(pack).toContainText("AI agent evidence pack");
+    await expect(pack.getByRole("heading", { name: "What the agents can do" })).toBeVisible();
+    await expect(page.locator(".screen-view")).toBeHidden();
+    await expect(page.locator("nav")).toBeHidden();
+  });
+});

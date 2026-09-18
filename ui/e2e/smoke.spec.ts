@@ -73,6 +73,6 @@ test.describe("dashboard over file://", () => {
   test("large fixture loads", async ({ page }) => {
     await page.goto(fileUrl("large"));
     await expect(page.locator("#root")).not.toBeEmpty();
-    await expect(page.getByText("meridian-pay-large")).toBeVisible();
+    await expect(page.getByText("meridian-pay-large").first()).toBeVisible();
   });
 });

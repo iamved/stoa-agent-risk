@@ -367,7 +367,8 @@ export interface AssuranceRow {
 export interface AssuranceArea {
   group: string;
   area_name: string;
-  layers: string[];
+  /** Source layers, e.g. "scanned + declared"; a string in assurance-packet/1.2. */
+  layers: string | string[];
   rows?: AssuranceRow[];
   agents?: { agent_id: string; name: string; fields: Record<string, AssuranceRow> }[];
   [extra: string]: unknown;

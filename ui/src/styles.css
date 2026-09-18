@@ -115,12 +115,31 @@ code, pre, .mono {
   background: var(--color-gold-100);
 }
 
+/* Print. Two renderings of one document, selected by <html data-print>:
+   "summary": the one-page digest (.print-summary) from any screen.
+   "pack":    the evidence pack (.print-pack, on the Evidence screen).
+   Without a mode, the current screen prints as it is. */
+.print-summary,
+.print-pack {
+  display: none;
+}
+
 @media print {
+  @page {
+    margin: 12mm;
+  }
   body {
     background: #fff;
+    font-size: 11.5px;
   }
-  .no-print {
+  .no-print,
+  nav,
+  header {
     display: none !important;
+  }
+  main {
+    padding: 0 !important;
+    max-width: none !important;
   }
   .panel {
     border-color: #bbb;
@@ -129,5 +148,22 @@ code, pre, .mono {
   a {
     text-decoration: none;
     color: inherit;
+  }
+  html[data-print="summary"] .screen-content,
+  html[data-print="summary"] .print-pack,
+  html[data-print="pack"] .screen-view,
+  html[data-print="pack"] .no-pack,
+  html[data-print="pack"] .print-summary {
+    display: none !important;
+  }
+  html[data-print="summary"] .print-summary,
+  html[data-print="pack"] .print-pack {
+    display: block !important;
+  }
+  .print-pack section {
+    break-inside: avoid;
+  }
+  .print-pack h2 {
+    break-after: avoid;
   }
 }

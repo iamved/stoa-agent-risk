@@ -1,0 +1,12 @@
+import { chromium } from "@playwright/test";
+import { pathToFileURL } from "node:url";
+const [,, file, hash, out, mode] = process.argv;
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 1000, height: 1200 } });
+await page.goto(pathToFileURL(file).href + hash);
+await page.waitForTimeout(300);
+await page.evaluate((m) => { document.documentElement.dataset.print = m; }, mode);
+await page.emulateMedia({ media: "print" });
+await page.pdf({ path: out, format: "A4", printBackground: true });
+await page.screenshot({ path: out.replace(".pdf", ".png"), fullPage: true });
+await browser.close();

@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { FRAMEWORKS, useApp } from "../app/context";
 import { buildHash, type ScreenId } from "../app/router";
 import { activeFindings, formatDate } from "../data/selectors";
+import { printAs } from "../app/print";
+import { PrintSummary } from "./PrintSummary";
 
 const NAV: { id: ScreenId; label: string }[] = [
   { id: "overview", label: "Overview" },
@@ -87,12 +89,15 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
                 ))}
               </select>
             </label>
-            <button type="button" onClick={() => window.print()} className="rounded border border-navy bg-navy text-white px-3 py-1.5 text-[13px] hover:bg-navy-700">
+            <button type="button" onClick={() => printAs("summary")} className="rounded border border-navy bg-navy text-white px-3 py-1.5 text-[13px] hover:bg-navy-700">
               Print summary
             </button>
           </div>
         </header>
-        <main className="px-5 py-5 max-w-[1400px]">{children}</main>
+        <main className="px-5 py-5 max-w-[1400px]">
+          <div className="screen-content">{children}</div>
+          <PrintSummary />
+        </main>
       </div>
     </div>
   );

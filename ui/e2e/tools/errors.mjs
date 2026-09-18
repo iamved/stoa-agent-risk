@@ -1,0 +1,11 @@
+import { chromium } from "@playwright/test";
+import { pathToFileURL } from "node:url";
+const [,, file, hash] = process.argv;
+const browser = await chromium.launch();
+const page = await browser.newPage();
+page.on("pageerror", (e) => console.log("PAGEERROR", e.message, e.stack?.split("\n").slice(0, 4).join(" | ")));
+page.on("console", (m) => { if (m.type() === "error") console.log("CONSOLE", m.text().slice(0, 400)); });
+await page.goto(pathToFileURL(file).href + hash);
+await page.waitForTimeout(500);
+console.log("root length", await page.evaluate(() => document.getElementById("root").innerHTML.length));
+await browser.close();
