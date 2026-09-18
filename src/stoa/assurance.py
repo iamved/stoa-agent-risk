@@ -1,17 +1,17 @@
 """The assurance packet (`stoa export --assurance`, Assurance layer Phase 5).
 
-Walks 18 assurance areas, grouped under AIUC-1's six standard categories
-(Data & Privacy, Security, Safety, Reliability, Accountability, Society —
-https://www.aiuc-1.com/) plus a seventh Stoa-only group (G — insurance-
+Walks 18 assurance areas, grouped under the six categories common to AI
+agent trust standards (Data & Privacy, Security, Safety, Reliability,
+Accountability, Society) plus a seventh Stoa-only group (G — insurance-
 specific exposure: business exposure, economic authority, claims evidence)
-that AIUC-1 doesn't cover, because AIUC-1 is a trust standard, not an
+that a trust standard doesn't cover, because a trust standard is not an
 insurance standard. For every row, emits exactly one status: ``scanned``
 (rule id + file:line), ``declared`` (stoa-declared.toml key path + date if
 known), ``ingested`` (an `evidence.*` pointer), or **``not_provided``** —
 explicit, never a silently missing key. An assurance reviewer needs to see
 the gaps as much as the coverage. This grouping is a display header only —
-it does not claim AIUC-1 certification, which requires their accredited
-auditor process.
+it does not claim certification against any standard, which requires that
+standard's own accredited auditor process.
 
 Pure function over an already-built registry document (the same dict shape
 written to stoa-registry.json / returned by report_json.build_document) —
@@ -33,11 +33,11 @@ from __future__ import annotations
 # minor bumps).
 PACKET_SCHEMA = "assurance-packet/1.2"
 
-# The six standard categories from the AIUC-1 agent-trust standard
-# (https://www.aiuc-1.com/), used here as a shared organizing header across
-# the assurance packet and the dimensions.toml scoring taxonomy. `G` is
-# Stoa's own addition on top — the loss-exposure areas AIUC-1 doesn't cover,
-# because AIUC-1 is a trust standard, not an insurance standard.
+# The six categories common to published AI agent trust standards, used
+# here as a shared organizing header across the assurance packet and the
+# dimensions.toml scoring taxonomy. `G` is Stoa's own addition on top — the
+# loss-exposure areas a trust standard doesn't cover, because a trust
+# standard is not an insurance standard.
 GROUPS = (
     ("index", "Index"),
     ("A", "A — Data & Privacy"),
@@ -46,7 +46,7 @@ GROUPS = (
     ("D", "D — Reliability"),
     ("E", "E — Accountability"),
     ("F", "F — Society"),
-    ("G", "G — Insurance-Specific Exposure (beyond AIUC-1)"),
+    ("G", "G — Insurance-Specific Exposure (beyond trust standards)"),
 )
 
 AREAS = (
@@ -262,7 +262,7 @@ _RELIABILITY_DIMENSIONS = ("output-fidelity", "conduct-variability", "dependency
 
 
 def _reliability_scores(registry: dict) -> dict:
-    """AIUC-1 Group D — surfaces the D-group `dimension_assessment` entries
+    """Group D — surfaces the D-group `dimension_assessment` entries
     (already computed by dimensions.py) directly in the packet, so a
     reviewer sees Reliability exposure without cross-referencing a separate
     report table."""
@@ -282,14 +282,14 @@ def _reliability_scores(registry: dict) -> dict:
 
 
 def _security_testing(registry: dict) -> dict:
-    """AIUC-1 Group B — third-party adversarial/security testing evidence."""
+    """Group B — third-party adversarial/security testing evidence."""
     return {"rows": _ingested_rows(registry.get("evidence") or {}, "testing")}
 
 
 def _safety_evaluation(registry: dict) -> dict:
-    """AIUC-1 Group C — declared harmful-output policy + third-party
+    """Group C — declared harmful-output policy + third-party
     harmful-output/hallucination testing evidence. Distinct from Security
-    testing above: AIUC-1 itself separates adversarial testing (Security)
+    testing above: trust standards separate adversarial testing (Security)
     from harmful-output testing (Safety)."""
     governance = registry.get("governance") or {}
     policy_row = (
@@ -302,12 +302,12 @@ def _safety_evaluation(registry: dict) -> dict:
 
 
 def _vendor_due_diligence(registry: dict) -> dict:
-    """AIUC-1 Group E — vendor due-diligence documentation."""
+    """Group E — vendor due-diligence documentation."""
     return {"rows": _ingested_rows(registry.get("evidence") or {}, "vendor")}
 
 
 def _societal_impact(registry: dict) -> dict:
-    """AIUC-1 Group F — declared, attestation-only. Never scored: a static
+    """Group F — declared, attestation-only. Never scored: a static
     per-repo scan has no visibility into deployment-scale societal harm, the
     same restraint dimensions.toml applies by capping proxy-tier dimensions
     below 'elevated'."""

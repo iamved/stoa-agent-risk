@@ -43,7 +43,7 @@ USERS_VALUES = ("internal", "customers", "public")
 PRODUCTION_STATUSES = ("dev", "staging", "production", "deprecated")
 DEPENDENCY_LEVELS = ("low", "medium", "high", "critical")
 DATA_CLASSES = ("personal", "financial", "health", "confidential", "ip", "authentication")
-# AIUC-1 Society category: org-level attestation only, never scored by Stoa —
+# Society category: org-level attestation only, never scored by Stoa —
 # a static per-repo scan has no visibility into deployment-scale societal harm.
 SOCIETAL_RISK_FLAGS = ("critical_infrastructure", "biosecurity_adjacent", "mass_influence")
 
@@ -255,23 +255,23 @@ def generate_stub(agents: list[dict]) -> str:
         "# [governance]",
         '# release_approval = ""',
         '# incident_response = ""',
-        '# harmful_output_policy = ""  # AIUC-1 Safety: declared risk taxonomy / harmful-output policy',
+        '# harmful_output_policy = ""  # Safety: declared risk taxonomy / harmful-output policy',
         "#",
         "# [governance.risk_acceptance]",
         '# owner = ""',
         '# date = "2026-01-01"',
         "",
-        "# [[evidence.testing]]          # AIUC-1 Security: third-party adversarial testing",
+        "# [[evidence.testing]]          # Security: third-party adversarial testing",
         '# kind = "prompt_injection"',
         '# ref = ""',
         '# date = "2026-01-01"',
         "",
-        "# [[evidence.safety_testing]]   # AIUC-1 Safety: third-party harmful-output / hallucination testing",
+        "# [[evidence.safety_testing]]   # Safety: third-party harmful-output / hallucination testing",
         '# kind = "harmful_output"',
         '# ref = ""',
         '# date = "2026-01-01"',
         "",
-        "# [[evidence.vendor]]           # AIUC-1 Accountability: vendor due diligence",
+        "# [[evidence.vendor]]           # Accountability: vendor due diligence",
         '# kind = "vendor_review"',
         '# ref = ""',
         '# date = "2026-01-01"',

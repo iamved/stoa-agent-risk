@@ -100,9 +100,8 @@ source → propagation → sink, e.g.:
 
 ## Part 3 — The Dimension Exposure Matrix
 
-Eight dimensions, grouped under the six standard categories of
-[AIUC-1](https://www.aiuc-1.com/) — the published AI agent trust standard,
-not a house rubric:
+Eight dimensions, grouped under the six categories that published AI agent
+trust standards share — not a house rubric:
 
 | Group | Dimension | This scan |
 |---|---|---|

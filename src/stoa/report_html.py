@@ -78,7 +78,7 @@ UNDERWRITING_SCRIPT_HASH = _sha256_b64(_UNDERWRITING_JS)
 
 SEVERITY_RANK_FOR_EXPOSURE = {"critical": 4, "high": 3, "medium": 1, "low": 0, "info": 0}
 
-# AIUC-1-aligned display groups for the default taxonomy; a custom taxonomy
+# Trust-standard-aligned display groups for the default taxonomy; a custom taxonomy
 # with no `group` set on its dimensions simply renders without this row.
 DIMENSION_GROUP_NAMES = {
     "A": "A · Data & Privacy",

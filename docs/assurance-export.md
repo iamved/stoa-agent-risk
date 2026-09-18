@@ -1,20 +1,21 @@
 # `stoa export --assurance`
 
-Enterprise assurance frameworks — insurance underwriting, [AIUC-1](https://www.aiuc-1.com/)
-(the AI agent trust standard), vendor security reviews — ask for data across
+Enterprise assurance frameworks — insurance underwriting, published AI agent
+trust standards, vendor security reviews — ask for data across
 18 areas, split across three source layers: **scanned** (derivable from
 code), **declared** (human-supplied business facts, see
 [Declarations](declarations.md)), and **ingested** (external artifacts — eval
 results, incident logs — Stoa reserves structured slots for these but
 doesn't generate them).
 
-The 18 areas are grouped under AIUC-1's six standard categories (Data &
-Privacy, Security, Safety, Reliability, Accountability, Society), plus a
-seventh Stoa-only group — insurance-specific exposure (business exposure,
-economic authority, claims evidence) — that AIUC-1 doesn't cover, because
-AIUC-1 is a trust standard, not an insurance standard. This grouping is a
-display header, not an AIUC-1 certification claim; certification requires
-their accredited-auditor process.
+The 18 areas are grouped under the six categories common to AI agent trust
+standards (Data & Privacy, Security, Safety, Reliability, Accountability,
+Society), plus a seventh Stoa-only group — insurance-specific exposure
+(business exposure, economic authority, claims evidence) — that a trust
+standard doesn't cover, because a trust standard is not an insurance
+standard. This grouping is a display header, not a certification claim;
+certification against any standard requires its own accredited-auditor
+process.
 
 `stoa export --assurance` walks all 18 areas and emits a packet where every
 row is tagged with exactly one status — never silently omitted:
@@ -66,11 +67,11 @@ stoa export --assurance stoa-registry.json --format md --out assurance.md
 | 17 | G — Insurance-specific | Economic authority | declared + scanned (enforcement check) |
 | 18 | G — Insurance-specific | Claims evidence | ingested (reserved `observed` provenance — see below) |
 
-Groups A–F mirror AIUC-1's own six categories, split further where AIUC-1
-itself draws a distinction Stoa's data already supports — e.g. AIUC-1
-separates third-party adversarial testing (Security) from third-party
+Groups A–F mirror the six categories trust standards share, split further
+where those standards draw a distinction Stoa's data already supports — e.g.
+third-party adversarial testing (Security) is kept separate from third-party
 harmful-output testing (Safety), so those are two areas (7 and 9), not one.
-Group G has no AIUC-1 equivalent: it's the loss-exposure data an insurance
+Group G has no trust-standard equivalent: it's the loss-exposure data an insurance
 submission needs that a general agent-trust standard was never built to ask
 for.
 
@@ -83,7 +84,7 @@ static scanner and has no runtime traces to report. The `observed`
 edge-provenance value (already reserved in [the architecture graph](graph.md)
 and `SCHEMA.md`) is where a future runtime-trace overlay would surface here.
 Area 15 (Societal impact) is also deliberately never scored — see
-[dimensions.md](dimensions.md) for why Stoa treats AIUC-1's Society category
+[dimensions.md](dimensions.md) for why Stoa treats the Society category
 as attestation-only.
 
 ## Contradictions section
@@ -119,7 +120,7 @@ invariant.
 ### Area 1 — AI inventory (scanned + declared)
 ...
 
-## G — Insurance-Specific Exposure (beyond AIUC-1)
+## G — Insurance-Specific Exposure (beyond trust standards)
 
 ### Area 16 — Business exposure (declared)
 

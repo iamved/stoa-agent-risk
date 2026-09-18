@@ -98,7 +98,7 @@ harmful_output_policy?}`. `evidence` — pointers only, grouped by category
 `historical`, or any other caller-supplied category name), each entry
 `{kind, ref, date?}`. All three present only when `stoa-declared.toml` exists.
 
-## Schema 1.3 additions (AIUC-1 alignment)
+## Schema 1.3 additions (trust-standard alignment)
 
 Renames the default dimension taxonomy's ids and adds a display `group`
 field — see [docs/dimensions.md](docs/dimensions.md) for the full rationale
@@ -117,7 +117,7 @@ existing categories.
 `assurance-packet/1.1` (produced by `stoa export --assurance`, not part of
 `stoa-registry.json` itself): the packet's 14 areas become 18, each now
 carrying a `group` key (one of `index`, `A`–`F`, `G`) that groups them under
-[AIUC-1](https://www.aiuc-1.com/)'s six standard categories plus a seventh,
+the six categories common to AI agent trust standards plus a seventh,
 Stoa-only group for insurance-specific exposure. See
 [docs/assurance-export.md](docs/assurance-export.md).
 
