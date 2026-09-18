@@ -87,3 +87,40 @@ test.describe("inventory", () => {
     await expect(page.getByText("Click a node or edge")).toBeVisible();
   });
 });
+
+test.describe("drift", () => {
+  test("shows the authority increase as needing review, with both refs", async ({ page }) => {
+    await page.goto(fileUrl("meridian-pay", "#/drift"));
+    await expect(page.getByRole("heading", { name: "Needs review" })).toBeVisible();
+    await expect(page.getByText("payment_access").first()).toBeVisible();
+    await expect(page.getByText("needs review").first()).toBeVisible();
+    await expect(page.getByText("a1b2c3d")).toBeVisible();
+    await expect(page.getByText("e4f5a6b").first()).toBeVisible();
+  });
+
+  test("explains how to get a baseline when there is none", async ({ page }) => {
+    await page.goto(fileUrl("registry-only", "#/drift"));
+    await expect(page.getByText("No baseline in this scan")).toBeVisible();
+    await expect(page.getByText("--diff-against origin/main")).toBeVisible();
+  });
+});
+
+test.describe("risk register", () => {
+  test("rows come from the scan, edits produce a TOML snippet", async ({ page }) => {
+    const env = envelope("meridian-pay");
+    await page.goto(fileUrl("meridian-pay", "#/register"));
+    const table = page.getByRole("table", { name: "Risk register" });
+    await expect(table.locator("tbody tr")).toHaveCount(env.register.length);
+    await expect(table.getByText("transfer")).toBeVisible();
+    const target = env.register.find((r: { declared: { treatment: string } | null }) => r.declared?.treatment === "mitigate");
+    await page.goto(fileUrl("meridian-pay", `#/register/${encodeURIComponent(target.risk_id)}`));
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await dialog.getByLabel("Treatment").selectOption("transfer");
+    await expect(dialog.getByRole("link", { name: "Prepare underwriting evidence" })).toBeVisible();
+    const snippet = await dialog.getByLabel("TOML snippet").inputValue();
+    expect(snippet).toContain("[[risk_register]]");
+    expect(snippet).toContain(`risk_id   = "${target.risk_id}"`);
+    expect(snippet).toContain('treatment = "transfer"');
+  });
+});
