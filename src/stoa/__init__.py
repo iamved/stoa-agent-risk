@@ -13,4 +13,11 @@ __version__ = "0.7.4"
 # 1.6: agents discovered in infrastructure code (IaC collector) carry
 # `source`, `discovery_tier`, and `platform` — emitted only when non-default,
 # so a code-only scan differs from 1.5 by this string alone.
-SCHEMA_VERSION = "1.7"
+# 1.8: dashboard data contract — `repository.head_commit` ({hash, date} of
+# HEAD, the commit's own date, never wall-clock), `score_before_controls`
+# on every dimension entry (the score with control credit not yet
+# subtracted; `score`/`exposure` unchanged), and a top-level `risk_register`
+# echoing `[[risk_register]]` from stoa-declared.toml. All additive; a scan
+# without git or declarations differs from 1.7 by this string and the one
+# extra integer per dimension entry.
+SCHEMA_VERSION = "1.8"

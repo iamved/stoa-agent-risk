@@ -179,7 +179,7 @@ def test_ai008_is_silent_with_an_idempotency_key_or_without_retry(tmp_path):
 def test_registry_emits_tools_only_when_present():
     result, config = _scan(MERIDIAN)
     doc = build_document(result, config)
-    assert doc["schema_version"] == "1.7"
+    assert doc["schema_version"] == "1.8"
     with_tools = [a for a in doc["agents"] if "tools" in a]
     without = [a for a in doc["agents"] if "tools" not in a]
     assert with_tools and without                                     # knowledge/escalation agents bind none

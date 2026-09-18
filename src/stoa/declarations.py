@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import sys
 from dataclasses import dataclass, field
+from datetime import date
 from pathlib import Path
 
 if sys.version_info >= (3, 11):
@@ -54,7 +55,10 @@ _KNOWN_AGENT_KEYS = {
 _KNOWN_BUSINESS_KEYS = {
     "industries", "regulated_activities", "max_customer_dependency", "societal_risk_flags",
 }
-_KNOWN_TOP_KEYS = {"version", "business", "agents", "governance", "evidence"}
+_KNOWN_TOP_KEYS = {"version", "business", "agents", "governance", "evidence", "risk_register"}
+TREATMENTS = ("accept", "mitigate", "avoid", "transfer")
+_KNOWN_REGISTER_KEYS = {"risk_id", "owner", "treatment", "rationale", "review_by", "status"}
+REGISTER_STATUSES = ("open", "in_progress", "closed")
 
 
 @dataclass
@@ -87,6 +91,23 @@ class Governance:
 
 
 @dataclass
+class RiskRegisterEntry:
+    """One `[[risk_register]]` row: the declared treatment of a scanned risk.
+
+    ``risk_id`` is ``<dimension-id>/<agent-id>`` — the same pair the scanner
+    emits in each agent's ``dimension_assessment`` — so a row binds to a
+    scored exposure, never to free text.
+    """
+
+    risk_id: str
+    owner: str = ""
+    treatment: str | None = None
+    rationale: str = ""
+    review_by: str | None = None
+    status: str | None = None
+
+
+@dataclass
 class EvidenceRef:
     category: str  # testing | monitoring | contracts | historical
     kind: str
@@ -104,12 +125,14 @@ class Declarations:
         business: dict,
         governance: Governance | None,
         evidence: list[EvidenceRef],
+        risk_register: list[RiskRegisterEntry] | None = None,
     ):
         self.path = path
         self.agents = agents
         self.business = business
         self.governance = governance
         self.evidence = evidence
+        self.risk_register: list[RiskRegisterEntry] = list(risk_register or [])
 
     @property
     def exists(self) -> bool:
@@ -207,7 +230,25 @@ class Declarations:
                     date=entry.get("date"),
                 ))
 
-        return cls(path, agents, business, governance, evidence), warnings
+        risk_register: list[RiskRegisterEntry] = []
+        raw_register = data.get("risk_register", [])
+        if not isinstance(raw_register, list):
+            raise ConfigError(f"{path}: risk_register must be an array of tables ([[risk_register]])")
+        seen_ids: set[str] = set()
+        for index, raw in enumerate(raw_register):
+            if not isinstance(raw, dict):
+                raise ConfigError(f"{path}: risk_register[{index}] must be a table")
+            entry, entry_warnings = _parse_register_entry(path, index, raw)
+            warnings.extend(entry_warnings)
+            if entry is None:
+                continue
+            if entry.risk_id in seen_ids:
+                warnings.append(f"{path}: duplicate risk_register risk_id {entry.risk_id!r} — later entry ignored")
+                continue
+            seen_ids.add(entry.risk_id)
+            risk_register.append(entry)
+
+        return cls(path, agents, business, governance, evidence, risk_register), warnings
 
     def unknown_agent_ids(self, known_ids: set[str]) -> list[str]:
         """Declared ids that no longer match any scanned agent (DECL007)."""
@@ -276,6 +317,13 @@ def generate_stub(agents: list[dict]) -> str:
         '# ref = ""',
         '# date = "2026-01-01"',
         "",
+        "# [[risk_register]]             # declared treatment of a scored exposure",
+        '# risk_id = "<dimension-id>/<agent-id>"  # e.g. unreviewed-high-impact-action/<agent id above>',
+        '# owner = ""',
+        f"# treatment = \"mitigate\"  # {'|'.join(TREATMENTS)}",
+        '# rationale = ""',
+        '# review_by = "2026-01-01"',
+        "",
     ]
     return "\n".join(lines)
 
@@ -309,6 +357,53 @@ def governance_to_dict(gov: Governance) -> dict:
     if gov.harmful_output_policy:
         record["harmful_output_policy"] = gov.harmful_output_policy
     return record
+
+
+def risk_register_entry_to_dict(entry: RiskRegisterEntry) -> dict:
+    record: dict = {"risk_id": entry.risk_id, "owner": entry.owner, "treatment": entry.treatment,
+                    "rationale": entry.rationale}
+    if entry.review_by is not None:
+        record["review_by"] = entry.review_by
+    if entry.status is not None:
+        record["status"] = entry.status
+    return record
+
+
+def _parse_register_entry(path: Path, index: int, raw: dict) -> tuple[RiskRegisterEntry | None, list[str]]:
+    warnings: list[str] = []
+    for key in raw:
+        if key not in _KNOWN_REGISTER_KEYS:
+            warnings.append(f"{path}: unknown key risk_register[{index}].{key} — ignored")
+    risk_id = raw.get("risk_id")
+    if not isinstance(risk_id, str) or "/" not in risk_id:
+        warnings.append(
+            f"{path}: risk_register[{index}] needs risk_id = \"<dimension-id>/<agent-id>\" — entry ignored"
+        )
+        return None, warnings
+    treatment = raw.get("treatment")
+    if treatment is not None and treatment not in TREATMENTS:
+        warnings.append(
+            f"{path}: risk_register[{index}].treatment={treatment!r} is not one of {TREATMENTS} — ignored"
+        )
+        treatment = None
+    status = raw.get("status")
+    if status is not None and status not in REGISTER_STATUSES:
+        warnings.append(
+            f"{path}: risk_register[{index}].status={status!r} is not one of {REGISTER_STATUSES} — ignored"
+        )
+        status = None
+    review_by = raw.get("review_by")
+    if review_by is not None:
+        review_by = str(review_by)   # TOML may parse a bare date as a date object
+        try:
+            date.fromisoformat(review_by[:10])
+        except ValueError:
+            warnings.append(f"{path}: risk_register[{index}].review_by={review_by!r} is not an ISO date — ignored")
+            review_by = None
+    return RiskRegisterEntry(
+        risk_id=risk_id, owner=str(raw.get("owner", "")), treatment=treatment,
+        rationale=str(raw.get("rationale", "")), review_by=review_by, status=status,
+    ), warnings
 
 
 def evidence_to_dict(items: list[EvidenceRef]) -> dict:

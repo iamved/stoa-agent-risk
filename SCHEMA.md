@@ -201,6 +201,45 @@ independent — the crosswalk lives under `crosswalk`, never overwriting it.
 tags alongside the existing `stoa-dim:<dimension>` tags. A blank OWASP
 mapping emits no `owasp:` tag rather than a fake one.
 
+## Schema 1.8 additions (dashboard data contract)
+
+Three additive fields consumed by the dashboard (`stoa-dashboard.html`). No
+score, exposure, or existing field changes.
+
+**On `repository`:** `head_commit` — `{hash, date}` of HEAD. `date` is the
+commit's own ISO-8601 committer date (`git log -1 --format=%cI`), so it is a
+pure function of the commit, never a wall-clock read; two scans of the same
+commit agree byte for byte. Omitted with `--no-git` or outside a repository.
+
+**On every `dimension_assessment.dimensions[]` entry:** `score_before_controls`
+— the same clamped integer as `score`, taken before control credit is
+subtracted. `score` and `exposure` are unchanged; consumers may show the pair
+as inherent versus residual without a second formula. Always present, so a
+1.8 registry differs from 1.7 by this integer per entry and the version string.
+
+**Top-level `risk_register`** (only when `stoa-declared.toml` has a
+`[[risk_register]]` block): the declared treatment of scored exposures, one
+object per entry —
+
+| Field | Type | Meaning |
+|---|---|---|
+| `risk_id` | string | `<dimension-id>/<agent-id>` — binds to a `dimension_assessment` entry |
+| `owner` | string | accountable person or team |
+| `treatment` | `accept \| mitigate \| avoid \| transfer \| null` | declared treatment |
+| `rationale` | string | why |
+| `review_by` | ISO date (optional) | next review |
+| `status` | `open \| in_progress \| closed` (optional) | workflow state |
+
+Entries with a malformed `risk_id` or an unknown `treatment` are dropped with a
+warning; an entry naming an agent id absent from the scan is kept and warned
+about, so a stale row stays visible.
+
+The dashboard's own envelope (`stoa-dashboard/1.0`) wraps the registry
+together with the `stoa-diff/1.0` document, history summaries
+(`stoa-history-entry/1.0`, under `.stoa/history/`), the assurance packet, and
+static rule and taxonomy tables. It is a separate document and is not part of
+`stoa-registry.json`.
+
 ## Schema 1.7 additions (tool inventory)
 
 Tools are first-class objects. An agent that binds tools carries a `tools`

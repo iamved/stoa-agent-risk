@@ -223,6 +223,11 @@ def assess_agent(agent: AgentCandidate, content: str, providers: list[str],
             score += taxonomy.provider_weight
             contrib_cap.append(f"provider:{sorted(providers)[0]}")
 
+        # Schema 1.8: the score before control credit is subtracted. Same
+        # clamp as `score`; lets a consumer show inherent (before controls)
+        # next to residual (`exposure`) without a second formula.
+        before_controls = max(0, min(100, round(score)))
+
         for control in controls:
             if dim.id in taxonomy.control_dimensions.get(control, []):
                 score -= taxonomy.control_credit
@@ -241,6 +246,7 @@ def assess_agent(agent: AgentCandidate, content: str, providers: list[str],
             "assessability": dim.assessability,
             "exposure": exposure,
             "score": final,
+            "score_before_controls": before_controls,
             "contributing_findings": sorted(set(contrib_find)),
             "contributing_capabilities": sorted(set(contrib_cap)),
             "controls_observed": sorted(set(controls_here)),
@@ -259,6 +265,7 @@ def assess_agent(agent: AgentCandidate, content: str, providers: list[str],
             "assessability": "partial",
             "exposure": "low",
             "score": 0,
+            "score_before_controls": 0,
             "contributing_findings": sorted(set(unclassified_findings)),
             "contributing_capabilities": [],
             "controls_observed": [],

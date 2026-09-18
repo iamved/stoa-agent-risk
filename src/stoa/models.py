@@ -177,6 +177,8 @@ class RepositoryInfo:
     root: str = "."
     git_ref: Optional[str] = None
     base_ref: Optional[str] = None
+    # Schema 1.8: HEAD's short hash and committer date; None without git.
+    head_commit: Optional[CommitInfo] = None
 
 
 @dataclass
@@ -201,6 +203,8 @@ class ScanResult:
     # stoa-declared.toml parse/semantic warnings (also folded into `warnings`);
     # kept separate so `stoa scan --strict` can escalate just these to an error.
     declaration_warnings: list[str] = field(default_factory=list)
+    # Schema 1.8: `[[risk_register]]` entries from stoa-declared.toml, as dicts.
+    risk_register: list[dict] = field(default_factory=list)
 
     def unsuppressed_findings(self) -> list[Finding]:
         return [f for f in self.findings if not f.suppressed]

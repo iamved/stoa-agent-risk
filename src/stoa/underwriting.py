@@ -125,7 +125,7 @@ def _sha256_b64(text: str) -> str:
 PRINT_SCRIPT_HASH = _sha256_b64(_print_script())
 
 
-def _derive_from_registry(document: dict) -> dict:
+def derive_from_registry(document: dict) -> dict:
     """Map scan evidence onto the questionnaire's technical fields. Demo: this
     is where the scan genuinely feeds the form (no per-field provenance tags in
     the demo view, per spec)."""
@@ -202,7 +202,7 @@ def render_underwriting_html(
     when None, the labeled sample is shown and the copy makes that explicit.
     """
     idn = {**DEMO_IDENTITY, **(identity or {})}
-    d = _derive_from_registry(document)
+    d = derive_from_registry(document)
     repo = (document.get("repository") or {}).get("name", "the repository")
     applicant_metrics = metrics is not None
     perf_rows = metrics if applicant_metrics else SAMPLE_METRICS
@@ -357,3 +357,7 @@ style-src 'unsafe-inline'; script-src 'sha256-{script_hash}';">
 </body>
 </html>
 """
+
+
+# Backwards-compatible alias; the dashboard envelope imports the public name.
+_derive_from_registry = derive_from_registry

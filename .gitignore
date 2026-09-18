@@ -11,3 +11,13 @@ stoa-summary.md
 site/.vercel/
 .DS_Store
 .gstack/
+
+# Dashboard UI
+ui/node_modules/
+ui/dist/
+ui/test-results/
+ui/playwright-report/
+ui/fixtures/large.envelope.json
+src/stoa/templates/dashboard.html
+stoa-dashboard.html
+.stoa/history/

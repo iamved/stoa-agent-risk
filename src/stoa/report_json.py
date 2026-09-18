@@ -142,6 +142,12 @@ def build_document(result: ScanResult, config: StoaConfig) -> dict:
             "root": result.repository.root,
             "git_ref": result.repository.git_ref,
             "base_ref": result.repository.base_ref,
+            **(
+                {"head_commit": {"hash": result.repository.head_commit.hash,
+                                 "date": result.repository.head_commit.date}}
+                if result.repository.head_commit is not None
+                else {}
+            ),
         },
         "summary": {
             "files_scanned": result.files_scanned,
@@ -180,6 +186,8 @@ def build_document(result: ScanResult, config: StoaConfig) -> dict:
         document["governance"] = result.governance
     if result.evidence is not None:
         document["evidence"] = result.evidence
+    if result.risk_register:
+        document["risk_register"] = result.risk_register
     _annotate_crosswalk(document, config)
     validate_document(document)
     return document

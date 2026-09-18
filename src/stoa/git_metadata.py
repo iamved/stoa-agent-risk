@@ -67,6 +67,22 @@ def head_ref(root: Path) -> str | None:
     return _run_git(root, "rev-parse", "--short", "HEAD")
 
 
+def head_commit(root: Path) -> CommitInfo | None:
+    """Short hash and committer date of HEAD (schema 1.8 `repository.head_commit`).
+
+    The date is the commit's own ISO-8601 committer date, so the value is a
+    pure function of the tree: two scans of the same commit agree byte for
+    byte. Never a wall-clock read.
+    """
+    output = _run_git(root, "log", "-1", "--format=%h%x1f%cI")
+    if not output:
+        return None
+    parts = output.split("\x1f")
+    if len(parts) != 2 or not parts[0]:
+        return None
+    return CommitInfo(hash=parts[0], date=parts[1])
+
+
 def file_attribution(root: Path, relative_path: str) -> tuple[str | None, CommitInfo | None]:
     """(last non-bot author name, last commit info) for one file.
 

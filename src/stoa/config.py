@@ -89,6 +89,9 @@ class StoaConfig:
     iac_enabled: bool = True
     # [report] path — override the built-in report presentation thresholds.
     report_config_path: "Path | None" = None
+    # [dashboard] — the self-contained dashboard written next to the registry.
+    dashboard_enabled: bool = True
+    dashboard_history_keep: int = 10   # entries retained under .stoa/history/
 
     def rule_enabled(self, rule_id: str) -> bool:
         return self.enabled_rules.get(rule_id, True)
@@ -190,6 +193,15 @@ def load_config(root: Path, config_path: Path | None = None) -> StoaConfig:
     report = data.get("report", {})
     if report.get("path"):
         config.report_config_path = (root / report["path"]).resolve()
+
+    dashboard = data.get("dashboard", {})
+    if "enabled" in dashboard:
+        config.dashboard_enabled = bool(dashboard["enabled"])
+    if "history_keep" in dashboard:
+        keep = dashboard["history_keep"]
+        if not isinstance(keep, int) or isinstance(keep, bool) or keep < 0:
+            raise ConfigError("[dashboard] history_keep must be a non-negative integer")
+        config.dashboard_history_keep = keep
 
     runtime = data.get("runtime", {})
     if runtime:

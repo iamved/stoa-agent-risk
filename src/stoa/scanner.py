@@ -29,6 +29,7 @@ from .declarations import (
     agent_declaration_to_dict,
     evidence_to_dict,
     governance_to_dict,
+    risk_register_entry_to_dict,
 )
 from .integration_detection import (
     detect_capabilities,
@@ -375,9 +376,11 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
 
     repo_name = root.name
     git_ref: str | None = None
+    head_commit = None
     if use_git:
         repo_name = git_metadata.repository_name(root)
         git_ref = git_metadata.head_ref(root)
+        head_commit = git_metadata.head_commit(root)
         attribution_cache: dict[str, tuple[str | None, object]] = {}
         for agent in agents:
             if agent.path not in attribution_cache:
@@ -417,6 +420,11 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
     )
     business = governance = evidence = None
     unknown_ids: list[str] = []
+    risk_register: list[dict] = []
+    try:
+        declarations_path_str = str(declarations.path.relative_to(root))
+    except ValueError:
+        declarations_path_str = declarations.path.name
     if declarations.exists:
         unknown_ids = declarations.unknown_agent_ids({a.id for a in agents})
         if unknown_ids:
@@ -434,15 +442,21 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
             governance = governance_to_dict(declarations.governance)
         if declarations.evidence:
             evidence = evidence_to_dict(declarations.evidence)
+        if declarations.risk_register:
+            known_agent_ids = {a.id for a in agents}
+            for entry in declarations.risk_register:
+                _, _, agent_part = entry.risk_id.partition("/")
+                if agent_part and agent_part not in known_agent_ids:
+                    decl_warnings.append(
+                        f"{declarations_path_str}: risk_register entry {entry.risk_id!r} names an "
+                        "agent id not found in this scan"
+                    )
+                risk_register.append(risk_register_entry_to_dict(entry))
     warnings.extend(decl_warnings)
 
     # Contradiction detector (Assurance layer Phase 4) — declared vs. scanned.
     # Runs after autonomy inference and declared-metadata attachment, before
     # dimension tagging, so DECL findings get dimension-tagged like any other.
-    try:
-        declarations_path_str = str(declarations.path.relative_to(root))
-    except ValueError:
-        declarations_path_str = declarations.path.name
     for agent in agents:
         contradictions = detect_agent_contradictions(
             agent, declarations_path_str, declarations.exists, config,
@@ -495,6 +509,7 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
             root=".",
             git_ref=git_ref,
             base_ref=options.base,
+            head_commit=head_commit,
         ),
         files_scanned=len(files),
         agents=agents,
@@ -508,6 +523,7 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
         governance=governance,
         evidence=evidence,
         declaration_warnings=decl_warnings,
+        risk_register=risk_register,
     )
 
 
