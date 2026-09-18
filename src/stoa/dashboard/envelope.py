@@ -96,10 +96,22 @@ def _taxonomy_block(taxonomy_path: Path | None, registry: dict) -> dict:
     }
 
 
+def _baseline_block(baseline: dict) -> dict:
+    repository = baseline.get("repository") or {}
+    return {
+        "name": repository.get("name"),
+        "git_ref": repository.get("git_ref"),
+        "head_commit": repository.get("head_commit"),
+        "scanner_version": (baseline.get("tool") or {}).get("version"),
+        "schema_version": baseline.get("schema_version"),
+    }
+
+
 def build_envelope(
     registry: dict,
     *,
     diff: dict | None = None,
+    baseline: dict | None = None,
     history: list[dict] | None = None,
     taxonomy_path: Path | None = None,
     crosswalk_path: Path | None = None,
@@ -117,6 +129,9 @@ def build_envelope(
         "generator": {"name": "stoa", "version": __version__},
         "registry": registry,
         "diff": diff,
+        # Where the diff's base side came from, so the drift screen can show
+        # both refs and commit dates. None without a baseline.
+        "baseline": _baseline_block(baseline) if baseline is not None and diff is not None else None,
         "history": list(history or []),
         "register": build_register(registry),
         # The same architecture graph the legacy report draws (graph_model),

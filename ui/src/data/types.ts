@@ -450,6 +450,7 @@ export interface Envelope {
   generator: { name: string; version: string };
   registry: Registry;
   diff: DiffDocument | null;
+  baseline: { name: string | null; git_ref: string | null; head_commit: CommitInfo | null; scanner_version: string | null; schema_version: string | null } | null;
   history: HistoryEntry[];
   register: RegisterRow[];
   graph: GraphDocument;

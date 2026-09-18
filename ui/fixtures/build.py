@@ -134,7 +134,7 @@ def build(out: Path = OUT) -> None:
 
     diff = diff_registries(baseline, head)
     history = [entry_from_registry(r) for r in (baseline, middle, head)]
-    envelope = build_envelope(head, diff=diff, history=history)
+    envelope = build_envelope(head, diff=diff, baseline=baseline, history=history)
 
     _write(out, "meridian-pay.baseline.json", baseline)
     _write(out, "meridian-pay.envelope.json", envelope)

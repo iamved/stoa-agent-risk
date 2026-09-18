@@ -443,7 +443,7 @@ def _write_scan_dashboard(result, config, args, document, base_doc, root: Path):
         record_history(root, document, config.dashboard_history_keep)
         history = load_history(root)
     envelope = build_envelope(
-        document, diff=diff, history=history,
+        document, diff=diff, baseline=base_doc if diff is not None else None, history=history,
         taxonomy_path=config.dimensions_taxonomy, crosswalk_path=config.crosswalk_path,
     )
     path = Path(args.dashboard)
@@ -495,6 +495,7 @@ def _run_dashboard_command(args: argparse.Namespace) -> int:
             return EXIT_USAGE
         config = load_config(root, Path(args.config) if args.config else None)
         diff = None
+        base_doc = None
         if args.baseline:
             baseline_path = Path(args.baseline)
             if not baseline_path.is_file():
@@ -503,7 +504,7 @@ def _run_dashboard_command(args: argparse.Namespace) -> int:
             base_doc = json.loads(baseline_path.read_text(encoding="utf-8"))
             diff = diff_registries(base_doc, document, Approvals.load(Path(args.approvals)))
         envelope = build_envelope(
-            document, diff=diff, history=load_history(root),
+            document, diff=diff, baseline=base_doc, history=load_history(root),
             taxonomy_path=Path(args.taxonomy) if args.taxonomy else config.dimensions_taxonomy,
             crosswalk_path=config.crosswalk_path,
         )

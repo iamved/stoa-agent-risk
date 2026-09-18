@@ -156,7 +156,9 @@ def test_envelope_shape_and_determinism(meridian_registry):
     assert env1["schema"] == ENVELOPE_SCHEMA
     assert json.dumps(env1, sort_keys=True) == json.dumps(env2, sort_keys=True)
     assert env1["registry"] is meridian_registry
-    assert env1["diff"] is None and env1["history"] == []
+    assert env1["diff"] is None and env1["history"] == [] and env1["baseline"] is None
+    with_diff = build_envelope(meridian_registry, diff={"schema": "stoa-diff/1.0"}, baseline=meridian_registry)
+    assert with_diff["baseline"]["name"] == meridian_registry["repository"]["name"]
     assert env1["assurance"]["schema"].startswith("assurance-packet/")
     assert env1["assurance"]["header"]["scan_timestamp"] is None  # no wall clock
     assert "AI002" in env1["rules"] and env1["rules"]["AI002"]["crosswalk"]["so_what"]

@@ -16,12 +16,14 @@ export function dashboardPath(name: string): string {
 export default function globalSetup(): void {
   const stoa = process.env.STOA_BIN ?? "stoa";
   mkdirSync(OUT_DIR, { recursive: true });
-  for (const name of FIXTURES) {
-    const fixture = resolve(HERE, "..", "fixtures", `${name}.envelope.json`);
+  const inputs: [string, string][] = FIXTURES.map((name) => [name, resolve(HERE, "..", "fixtures", `${name}.envelope.json`)]);
+  // A plain registry (no diff, no history): the empty states.
+  inputs.push(["registry-only", resolve(HERE, "..", "fixtures", "meridian-pay.baseline.json")]);
+  for (const [name, fixture] of inputs) {
     if (!existsSync(fixture)) {
       throw new Error(`fixture missing: ${fixture} (run ui/fixtures/build.py)`);
     }
-    const result = spawnSync(stoa, ["dashboard", fixture, "--out", dashboardPath(name)], {
+    const result = spawnSync(stoa, ["dashboard", fixture, "--out", dashboardPath(name), "--root", resolve(HERE, "out")], {
       stdio: "inherit",
       env: process.env,
     });

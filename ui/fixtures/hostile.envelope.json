@@ -3603,6 +3603,16 @@
       "file": null
     }
   },
+  "baseline": {
+    "name": "meridian-pay",
+    "git_ref": "a1b2c3d",
+    "head_commit": {
+      "hash": "a1b2c3d",
+      "date": "2026-07-21T09:12:44+00:00"
+    },
+    "scanner_version": "0.7.4",
+    "schema_version": "1.8"
+  },
   "history": [
     {
       "schema": "stoa-history-entry/1.0",

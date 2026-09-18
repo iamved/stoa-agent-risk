@@ -30,7 +30,7 @@ test.describe("dashboard over file://", () => {
     for (const route of ROUTES) {
       await page.goto(fileUrl("meridian-pay", route));
       await expect(page.locator("#root")).not.toBeEmpty();
-      await expect(page.getByText("meridian-pay")).toBeVisible();
+      await expect(page.getByText("meridian-pay").first()).toBeVisible();
     }
     expect(requests).toEqual([]);
     expect(errors).toEqual([]);
