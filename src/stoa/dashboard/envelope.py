@@ -18,7 +18,7 @@ from .. import __version__
 from ..assurance import GROUPS, build_assurance_packet
 from ..crosswalk import CrosswalkError, load_crosswalk
 from ..dimensions import TaxonomyError, load_taxonomy
-from ..rules import RULES
+from ..rules import HIGH_IMPACT_CAPABILITIES, RULES, SENSITIVE_INTEGRATIONS
 from ..underwriting import derive_from_registry
 from .register import build_register
 
@@ -120,4 +120,10 @@ def build_envelope(
         "rules": _rules_table(crosswalk_path),
         "taxonomy": _taxonomy_block(taxonomy_path, registry),
         "frameworks": {"nist_ai_rmf": NIST_AI_RMF},
+        # The scanner's own vocabulary, so the UI never hardcodes which
+        # capabilities or integrations it treats as high impact.
+        "vocabulary": {
+            "high_impact_capabilities": sorted(HIGH_IMPACT_CAPABILITIES),
+            "sensitive_integrations": sorted(SENSITIVE_INTEGRATIONS),
+        },
     }

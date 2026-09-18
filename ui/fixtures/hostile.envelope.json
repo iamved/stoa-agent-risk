@@ -7665,5 +7665,39 @@
         "stoa": "An organizational function outside a static scan's view; not assessed."
       }
     ]
+  },
+  "vocabulary": {
+    "high_impact_capabilities": [
+      "cloud_resource_access",
+      "code_execution",
+      "database_write",
+      "email_send",
+      "filesystem_write",
+      "messaging",
+      "payment_access",
+      "shell_execution",
+      "source_control"
+    ],
+    "sensitive_integrations": [
+      "aws",
+      "azure",
+      "bigquery",
+      "gcp",
+      "github",
+      "gitlab",
+      "hubspot",
+      "mongodb",
+      "mysql",
+      "postgres",
+      "salesforce",
+      "sendgrid",
+      "servicenow",
+      "ses",
+      "shopify",
+      "snowflake",
+      "stripe",
+      "twilio",
+      "zendesk"
+    ]
   }
 }

@@ -1,6 +1,133 @@
 @import "tailwindcss";
 
-:root {
-  --navy: #0e1c36;
-  --gold: #bfa173;
+/* Brand: navy structure, gold accent only (active nav, key figures, focus).
+   Severity and exposure colors are distinct from the brand and every use
+   pairs the color with a label or glyph. Free system font stacks; no
+   network fonts. */
+@theme {
+  --color-navy: #0e1c36;
+  --color-navy-700: #16264a;
+  --color-navy-100: #e6e9f0;
+  --color-gold: #bfa173;
+  --color-gold-100: #f5efe4;
+  --color-ink: #1b1f2a;
+  --color-ink-muted: #5a6272;
+  --color-paper: #f7f7f5;
+  --color-panel: #ffffff;
+  --color-line: #dfe2e8;
+
+  --color-sev-critical: #b42318;
+  --color-sev-critical-bg: #fde8e8;
+  --color-sev-high: #b54708;
+  --color-sev-high-bg: #fdf0e0;
+  --color-sev-medium: #93700b;
+  --color-sev-medium-bg: #fef7dc;
+  --color-sev-low: #465063;
+  --color-sev-low-bg: #eef2f6;
+  --color-sev-info: #1d4ed8;
+  --color-sev-info-bg: #e8f0fe;
+  --color-ok: #2f6f4f;
+  --color-ok-bg: #e7f3ec;
+
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-navy);
+}
+
+code, pre, .mono {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+.panel {
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+}
+
+.caption {
+  color: var(--color-ink-muted);
+  font-size: 12.5px;
+}
+
+.link {
+  color: var(--color-navy);
+  text-decoration: underline;
+  text-decoration-color: var(--color-gold);
+  text-underline-offset: 3px;
+}
+.link:hover {
+  text-decoration-thickness: 2px;
+}
+
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+}
+.tbl th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-muted);
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--color-line);
+  background: var(--color-panel);
+  position: sticky;
+  top: 0;
+}
+.tbl td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--color-line);
+  vertical-align: top;
+}
+.tbl tr[data-clickable="true"] {
+  cursor: pointer;
+}
+.tbl tr[data-clickable="true"]:hover td {
+  background: var(--color-gold-100);
+}
+
+@media print {
+  body {
+    background: #fff;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .panel {
+    border-color: #bbb;
+    break-inside: avoid;
+  }
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
 }

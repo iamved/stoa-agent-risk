@@ -416,4 +416,5 @@ export interface Envelope {
   rules: Record<string, RuleRecord>;
   taxonomy: TaxonomyBlock;
   frameworks: { nist_ai_rmf: { function: string; stoa: string }[] };
+  vocabulary: { high_impact_capabilities: string[]; sensitive_integrations: string[] };
 }
