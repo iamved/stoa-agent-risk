@@ -4030,6 +4030,868 @@
       "unmatched": true
     }
   ],
+  "graph": {
+    "nodes": [
+      {
+        "id": "0d380d199726",
+        "type": "agent",
+        "label": "graph",
+        "dimension_scores": {
+          "mandate-overreach": 0,
+          "boundary-leakage": 0,
+          "unreviewed-high-impact-action": 0,
+          "output-fidelity": 0,
+          "injection-tamper-surface": 0,
+          "conduct-variability": 0,
+          "dependency-drift": 10,
+          "control-coverage-gap": 13
+        },
+        "display_severity": "medium",
+        "path": "code/agents/knowledge_agent.py",
+        "symbol": "graph",
+        "autonomy_level": "recommend_only",
+        "findings": [
+          {
+            "rule_id": "AI005",
+            "severity": "low",
+            "path": "code/agents/knowledge_agent.py",
+            "line": 6,
+            "message": "Model string `gpt-4o` (line 6) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+          },
+          {
+            "rule_id": "CTRL007",
+            "severity": "info",
+            "path": "code/agents/knowledge_agent.py",
+            "line": 14,
+            "message": "No kill-switch signal observed on the agent's entry path (code/agents/knowledge_agent.py:14). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
+          },
+          {
+            "rule_id": "DECL006",
+            "severity": "medium",
+            "path": "code/agents/knowledge_agent.py",
+            "line": 14,
+            "message": "stoa-declared.toml exists but has no [agents.\"0d380d199726\"] entry for `graph`."
+          }
+        ]
+      },
+      {
+        "id": "2237fe0c16d2",
+        "type": "agent",
+        "label": "meridian-front",
+        "dimension_scores": {
+          "mandate-overreach": 0,
+          "boundary-leakage": 0,
+          "unreviewed-high-impact-action": 0,
+          "output-fidelity": 0,
+          "injection-tamper-surface": 0,
+          "conduct-variability": 0,
+          "dependency-drift": 8,
+          "control-coverage-gap": 0
+        },
+        "display_severity": "medium",
+        "path": "aws/agents.tf",
+        "symbol": "aws_bedrockagent_agent.front",
+        "autonomy_level": "recommend_only",
+        "findings": [
+          {
+            "rule_id": "DECL006",
+            "severity": "medium",
+            "path": "aws/agents.tf",
+            "line": 1,
+            "message": "stoa-declared.toml exists but has no [agents.\"2237fe0c16d2\"] entry for `aws_bedrockagent_agent.front`."
+          }
+        ]
+      },
+      {
+        "id": "2a61ffb1db0d",
+        "type": "agent",
+        "label": "graph",
+        "dimension_scores": {
+          "mandate-overreach": 0,
+          "boundary-leakage": 0,
+          "unreviewed-high-impact-action": 0,
+          "output-fidelity": 0,
+          "injection-tamper-surface": 0,
+          "conduct-variability": 0,
+          "dependency-drift": 10,
+          "control-coverage-gap": 0
+        },
+        "display_severity": "medium",
+        "path": "code/agents/front_agent.py",
+        "symbol": "graph",
+        "autonomy_level": "recommend_only",
+        "findings": [
+          {
+            "rule_id": "AI005",
+            "severity": "low",
+            "path": "code/agents/front_agent.py",
+            "line": 12,
+            "message": "Model string `gpt-4o` (line 12) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+          },
+          {
+            "rule_id": "CTRL007",
+            "severity": "info",
+            "path": "code/agents/front_agent.py",
+            "line": 24,
+            "message": "No kill-switch signal observed on the agent's entry path (code/agents/front_agent.py:24). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
+          },
+          {
+            "rule_id": "DECL006",
+            "severity": "medium",
+            "path": "code/agents/front_agent.py",
+            "line": 24,
+            "message": "stoa-declared.toml exists but has no [agents.\"2a61ffb1db0d\"] entry for `graph`."
+          }
+        ]
+      },
+      {
+        "id": "2f7906aae143",
+        "type": "agent",
+        "label": "meridian-escalation",
+        "dimension_scores": {
+          "mandate-overreach": 0,
+          "boundary-leakage": 0,
+          "unreviewed-high-impact-action": 0,
+          "output-fidelity": 0,
+          "injection-tamper-surface": 0,
+          "conduct-variability": 0,
+          "dependency-drift": 8,
+          "control-coverage-gap": 12
+        },
+        "display_severity": "medium",
+        "path": "aws/agents.tf",
+        "symbol": "aws_bedrockagent_agent.escalation",
+        "autonomy_level": "recommend_only",
+        "findings": [
+          {
+            "rule_id": "DECL006",
+            "severity": "medium",
+            "path": "aws/agents.tf",
+            "line": 24,
+            "message": "stoa-declared.toml exists but has no [agents.\"2f7906aae143\"] entry for `aws_bedrockagent_agent.escalation`."
+          }
+        ]
+      },
+      {
+        "id": "3af3aebaa6f7",
+        "type": "agent",
+        "label": "meridian-support-chat",
+        "dimension_scores": {
+          "mandate-overreach": 18,
+          "boundary-leakage": 0,
+          "unreviewed-high-impact-action": 18,
+          "output-fidelity": 0,
+          "injection-tamper-surface": 0,
+          "conduct-variability": 0,
+          "dependency-drift": 0,
+          "control-coverage-gap": 0
+        },
+        "display_severity": null,
+        "path": "databricks/infra/main.tf",
+        "symbol": "databricks_model_serving.support_chat",
+        "autonomy_level": "recommend_only",
+        "findings": []
+      },
+      {
+        "id": "6142266e32cb",
+        "type": "agent",
+        "label": "meridian-support-ivr",
+        "dimension_scores": {
+          "mandate-overreach": 18,
+          "boundary-leakage": 0,
+          "unreviewed-high-impact-action": 18,
+          "output-fidelity": 0,
+          "injection-tamper-surface": 0,
+          "conduct-variability": 0,
+          "dependency-drift": 0,
+          "control-coverage-gap": 12
+        },
+        "display_severity": "medium",
+        "path": "databricks/infra/main.tf",
+        "symbol": "databricks_model_serving.support_ivr",
+        "autonomy_level": "recommend_only",
+        "findings": [
+          {
+            "rule_id": "DECL006",
+            "severity": "medium",
+            "path": "databricks/infra/main.tf",
+            "line": 13,
+            "message": "stoa-declared.toml exists but has no [agents.\"6142266e32cb\"] entry for `databricks_model_serving.support_ivr`."
+          }
+        ]
+      },
+      {
+        "id": "62007a57a832",
+        "type": "agent",
+        "label": "meridian-knowledge",
+        "dimension_scores": {
+          "mandate-overreach": 0,
+          "boundary-leakage": 0,
+          "unreviewed-high-impact-action": 0,
+          "output-fidelity": 0,
+          "injection-tamper-surface": 18,
+          "conduct-variability": 0,
+          "dependency-drift": 8,
+          "control-coverage-gap": 12
+        },
+        "display_severity": "medium",
+        "path": "aws/agents.tf",
+        "symbol": "aws_bedrockagent_agent.knowledge",
+        "autonomy_level": "recommend_only",
+        "findings": [
+          {
+            "rule_id": "DECL006",
+            "severity": "medium",
+            "path": "aws/agents.tf",
+            "line": 18,
+            "message": "stoa-declared.toml exists but has no [agents.\"62007a57a832\"] entry for `aws_bedrockagent_agent.knowledge`."
+          }
+        ]
+      },
+      {
+        "id": "9299e5cfdb41",
+        "type": "agent",
+        "label": "meridian-account-actions",
+        "dimension_scores": {
+          "mandate-overreach": 76,
+          "boundary-leakage": 0,
+          "unreviewed-high-impact-action": 76,
+          "output-fidelity": 0,
+          "injection-tamper-surface": 0,
+          "conduct-variability": 0,
+          "dependency-drift": 8,
+          "control-coverage-gap": 0
+        },
+        "display_severity": "critical",
+        "path": "aws/agents.tf",
+        "symbol": "aws_bedrockagent_agent.account_actions",
+        "autonomy_level": "unrestricted_autonomous",
+        "findings": [
+          {
+            "rule_id": "DECL001",
+            "severity": "critical",
+            "path": "aws/agents.tf",
+            "line": 30,
+            "message": "Agent `aws_bedrockagent_agent.account_actions` is declared `human_approved`, but the scanner inferred `unrestricted_autonomous` from a side-effecting path with no correlated approval gate. Either the declaration is stale, or the approval control is missing."
+          }
+        ]
+      },
+      {
+        "id": "a24a49aaf9ec",
+        "type": "agent",
+        "label": "graph",
+        "dimension_scores": {
+          "mandate-overreach": 0,
+          "boundary-leakage": 18,
+          "unreviewed-high-impact-action": 0,
+          "output-fidelity": 0,
+          "injection-tamper-surface": 0,
+          "conduct-variability": 2,
+          "dependency-drift": 10,
+          "control-coverage-gap": 13
+        },
+        "display_severity": "medium",
+        "path": "code/agents/escalation_agent.py",
+        "symbol": "graph",
+        "autonomy_level": "recommend_only",
+        "findings": [
+          {
+            "rule_id": "AI005",
+            "severity": "low",
+            "path": "code/agents/escalation_agent.py",
+            "line": 6,
+            "message": "Model string `gpt-4o-mini` (line 6) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+          },
+          {
+            "rule_id": "CTRL007",
+            "severity": "info",
+            "path": "code/agents/escalation_agent.py",
+            "line": 13,
+            "message": "No kill-switch signal observed on the agent's entry path (code/agents/escalation_agent.py:13). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
+          },
+          {
+            "rule_id": "DECL006",
+            "severity": "medium",
+            "path": "code/agents/escalation_agent.py",
+            "line": 13,
+            "message": "stoa-declared.toml exists but has no [agents.\"a24a49aaf9ec\"] entry for `graph`."
+          }
+        ]
+      },
+      {
+        "id": "b8f0111742fc",
+        "type": "agent",
+        "label": "graph",
+        "dimension_scores": {
+          "mandate-overreach": 58,
+          "boundary-leakage": 0,
+          "unreviewed-high-impact-action": 53,
+          "output-fidelity": 0,
+          "injection-tamper-surface": 0,
+          "conduct-variability": 0,
+          "dependency-drift": 10,
+          "control-coverage-gap": 0
+        },
+        "display_severity": "critical",
+        "path": "code/agents/account_actions_agent.py",
+        "symbol": "graph",
+        "autonomy_level": "unrestricted_autonomous",
+        "findings": [
+          {
+            "rule_id": "AI005",
+            "severity": "low",
+            "path": "code/agents/account_actions_agent.py",
+            "line": 11,
+            "message": "Model string `gpt-4o` (line 11) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+          },
+          {
+            "rule_id": "AI008",
+            "severity": "high",
+            "path": "code/tools/account_tools.py",
+            "line": 17,
+            "message": "`issue_refund` posts a money action and is retried on failure (retry (via _post_refund)); no idempotency key or dedupe check was observed. A timeout after the upstream commits will post it again, and each attempt is checked against the per-call limit on its own."
+          },
+          {
+            "rule_id": "DECL001",
+            "severity": "critical",
+            "path": "code/tools/account_tools.py",
+            "line": 17,
+            "message": "Agent `graph` is declared `human_approved`, but the scanner inferred `unrestricted_autonomous` from a side-effecting path with no correlated approval gate. Either the declaration is stale, or the approval control is missing."
+          },
+          {
+            "rule_id": "CTRL004",
+            "severity": "info",
+            "path": "code/agents/account_actions_agent.py",
+            "line": 21,
+            "message": "Agent candidate `graph` binds tools executing capability call sites; no logging or tracing construct was observed in this file. Observability may exist at middleware or platform level and would not be visible to this scan. One review prompt per candidate."
+          },
+          {
+            "rule_id": "CTRL007",
+            "severity": "info",
+            "path": "code/agents/account_actions_agent.py",
+            "line": 21,
+            "message": "No kill-switch signal observed on the agent's entry path (code/agents/account_actions_agent.py:21). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
+          },
+          {
+            "rule_id": "DECL005",
+            "severity": "medium",
+            "path": "code/agents/account_actions_agent.py",
+            "line": 21,
+            "message": "Agent `graph` is declared production, but no observability construct was observed (CTRL004)."
+          }
+        ]
+      },
+      {
+        "id": "f18cfdb42fdb",
+        "type": "agent",
+        "label": "agent",
+        "dimension_scores": {
+          "mandate-overreach": 59,
+          "boundary-leakage": 0,
+          "unreviewed-high-impact-action": 59,
+          "output-fidelity": 0,
+          "injection-tamper-surface": 0,
+          "conduct-variability": 0,
+          "dependency-drift": 8,
+          "control-coverage-gap": 13
+        },
+        "display_severity": "critical",
+        "path": "databricks/agents/support_agent.py",
+        "symbol": "agent",
+        "autonomy_level": "unrestricted_autonomous",
+        "findings": [
+          {
+            "rule_id": "DECL001",
+            "severity": "critical",
+            "path": "databricks/agents/support_agent.py",
+            "line": 8,
+            "message": "Agent `agent` is declared `human_approved`, but the scanner inferred `unrestricted_autonomous` from a side-effecting path with no correlated approval gate. Either the declaration is stale, or the approval control is missing."
+          },
+          {
+            "rule_id": "AI003",
+            "severity": "info",
+            "path": "databricks/agents/support_agent.py",
+            "line": 11,
+            "message": "Agent candidate `agent` binds a tool whose body contains high-impact capability call sites (payment-access). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat."
+          },
+          {
+            "rule_id": "CTRL004",
+            "severity": "info",
+            "path": "databricks/agents/support_agent.py",
+            "line": 11,
+            "message": "Agent candidate `agent` binds tools executing capability call sites; no logging or tracing construct was observed in this file. Observability may exist at middleware or platform level and would not be visible to this scan. One review prompt per candidate."
+          },
+          {
+            "rule_id": "CTRL007",
+            "severity": "info",
+            "path": "databricks/agents/support_agent.py",
+            "line": 11,
+            "message": "No kill-switch signal observed on the agent's entry path (databricks/agents/support_agent.py:11). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
+          },
+          {
+            "rule_id": "DECL005",
+            "severity": "medium",
+            "path": "databricks/agents/support_agent.py",
+            "line": 11,
+            "message": "Agent `agent` is declared production, but no observability construct was observed (CTRL004)."
+          }
+        ]
+      },
+      {
+        "id": "resource_database_read",
+        "type": "resource",
+        "label": "Database read",
+        "dimension_scores": {},
+        "display_severity": null,
+        "path": null,
+        "symbol": null,
+        "autonomy_level": null,
+        "findings": []
+      },
+      {
+        "id": "resource_database_write",
+        "type": "resource",
+        "label": "Database write",
+        "dimension_scores": {},
+        "display_severity": null,
+        "path": null,
+        "symbol": null,
+        "autonomy_level": null,
+        "findings": []
+      },
+      {
+        "id": "resource_email_send",
+        "type": "resource",
+        "label": "Email send",
+        "dimension_scores": {},
+        "display_severity": null,
+        "path": null,
+        "symbol": null,
+        "autonomy_level": null,
+        "findings": []
+      },
+      {
+        "id": "resource_external_http",
+        "type": "resource",
+        "label": "External HTTP",
+        "dimension_scores": {},
+        "display_severity": null,
+        "path": null,
+        "symbol": null,
+        "autonomy_level": null,
+        "findings": []
+      },
+      {
+        "id": "resource_payment_access",
+        "type": "resource",
+        "label": "Payment access",
+        "dimension_scores": {},
+        "display_severity": "info",
+        "path": null,
+        "symbol": null,
+        "autonomy_level": null,
+        "findings": []
+      },
+      {
+        "id": "resource_vector_search",
+        "type": "resource",
+        "label": "Vector search",
+        "dimension_scores": {},
+        "display_severity": null,
+        "path": null,
+        "symbol": null,
+        "autonomy_level": null,
+        "findings": []
+      },
+      {
+        "id": "tool_anthropic",
+        "type": "tool",
+        "label": "anthropic",
+        "dimension_scores": {},
+        "display_severity": null,
+        "path": null,
+        "symbol": null,
+        "autonomy_level": null,
+        "findings": []
+      },
+      {
+        "id": "tool_aws",
+        "type": "tool",
+        "label": "aws",
+        "dimension_scores": {},
+        "display_severity": null,
+        "path": null,
+        "symbol": null,
+        "autonomy_level": null,
+        "findings": []
+      },
+      {
+        "id": "tool_bedrock",
+        "type": "tool",
+        "label": "bedrock",
+        "dimension_scores": {},
+        "display_severity": null,
+        "path": null,
+        "symbol": null,
+        "autonomy_level": null,
+        "findings": []
+      },
+      {
+        "id": "tool_databricks",
+        "type": "tool",
+        "label": "databricks",
+        "dimension_scores": {},
+        "display_severity": null,
+        "path": null,
+        "symbol": null,
+        "autonomy_level": null,
+        "findings": []
+      },
+      {
+        "id": "tool_openai",
+        "type": "tool",
+        "label": "openai",
+        "dimension_scores": {},
+        "display_severity": "low",
+        "path": null,
+        "symbol": null,
+        "autonomy_level": null,
+        "findings": []
+      },
+      {
+        "id": "tool_ses",
+        "type": "tool",
+        "label": "ses",
+        "dimension_scores": {},
+        "display_severity": null,
+        "path": null,
+        "symbol": null,
+        "autonomy_level": null,
+        "findings": []
+      }
+    ],
+    "edges": [
+      {
+        "source": "0d380d199726",
+        "target": "tool_openai",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": "low",
+        "weight": 1,
+        "findings": [
+          {
+            "rule_id": "AI005",
+            "severity": "low",
+            "path": "code/agents/knowledge_agent.py",
+            "line": 6,
+            "message": "Model string `gpt-4o` (line 6) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+          }
+        ]
+      },
+      {
+        "source": "2237fe0c16d2",
+        "target": "tool_anthropic",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "2237fe0c16d2",
+        "target": "tool_aws",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "2237fe0c16d2",
+        "target": "tool_bedrock",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "2a61ffb1db0d",
+        "target": "tool_openai",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": "low",
+        "weight": 1,
+        "findings": [
+          {
+            "rule_id": "AI005",
+            "severity": "low",
+            "path": "code/agents/front_agent.py",
+            "line": 12,
+            "message": "Model string `gpt-4o` (line 12) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+          }
+        ]
+      },
+      {
+        "source": "2f7906aae143",
+        "target": "tool_anthropic",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "2f7906aae143",
+        "target": "tool_aws",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "2f7906aae143",
+        "target": "tool_bedrock",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "3af3aebaa6f7",
+        "target": "resource_database_read",
+        "kind": "reads",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "3af3aebaa6f7",
+        "target": "resource_database_write",
+        "kind": "writes",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "3af3aebaa6f7",
+        "target": "tool_databricks",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "6142266e32cb",
+        "target": "resource_database_read",
+        "kind": "reads",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "6142266e32cb",
+        "target": "resource_database_write",
+        "kind": "writes",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "6142266e32cb",
+        "target": "tool_databricks",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "62007a57a832",
+        "target": "resource_vector_search",
+        "kind": "reads",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "62007a57a832",
+        "target": "tool_anthropic",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "62007a57a832",
+        "target": "tool_aws",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "62007a57a832",
+        "target": "tool_bedrock",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "9299e5cfdb41",
+        "target": "resource_database_read",
+        "kind": "reads",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "9299e5cfdb41",
+        "target": "resource_database_write",
+        "kind": "writes",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "9299e5cfdb41",
+        "target": "resource_email_send",
+        "kind": "network",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "9299e5cfdb41",
+        "target": "tool_anthropic",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "9299e5cfdb41",
+        "target": "tool_aws",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "9299e5cfdb41",
+        "target": "tool_bedrock",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "9299e5cfdb41",
+        "target": "tool_ses",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "a24a49aaf9ec",
+        "target": "resource_external_http",
+        "kind": "network",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "a24a49aaf9ec",
+        "target": "tool_openai",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": "low",
+        "weight": 1,
+        "findings": [
+          {
+            "rule_id": "AI005",
+            "severity": "low",
+            "path": "code/agents/escalation_agent.py",
+            "line": 6,
+            "message": "Model string `gpt-4o-mini` (line 6) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+          }
+        ]
+      },
+      {
+        "source": "b8f0111742fc",
+        "target": "resource_payment_access",
+        "kind": "writes",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "b8f0111742fc",
+        "target": "tool_openai",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": "low",
+        "weight": 1,
+        "findings": [
+          {
+            "rule_id": "AI005",
+            "severity": "low",
+            "path": "code/agents/account_actions_agent.py",
+            "line": 11,
+            "message": "Model string `gpt-4o` (line 11) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
+          }
+        ]
+      },
+      {
+        "source": "f18cfdb42fdb",
+        "target": "resource_payment_access",
+        "kind": "writes",
+        "provenance": "declared",
+        "max_severity": "info",
+        "weight": 1,
+        "findings": [
+          {
+            "rule_id": "AI003",
+            "severity": "info",
+            "path": "databricks/agents/support_agent.py",
+            "line": 11,
+            "message": "Agent candidate `agent` binds a tool whose body contains high-impact capability call sites (payment-access). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat."
+          }
+        ]
+      },
+      {
+        "source": "f18cfdb42fdb",
+        "target": "tool_databricks",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      }
+    ]
+  },
   "assurance": {
     "schema": "assurance-packet/1.2",
     "header": {

@@ -404,6 +404,47 @@ export interface UnderwritingDerivation {
   trigger: string;
 }
 
+// --- architecture graph (graph_model.to_json_dict) ------------------------------
+
+export type GraphNodeType = "agent" | "mcp_server" | "tool" | "resource";
+export type GraphEdgeKind = "delegates" | "tool_call" | "mcp" | "reads" | "writes" | "network";
+
+export interface GraphFindingRef {
+  rule_id: string;
+  severity: Severity;
+  path: string;
+  line: number;
+  message?: string;
+}
+
+export interface GraphNode {
+  id: string;
+  type: GraphNodeType;
+  label: string;
+  dimension_scores: Record<string, number>;
+  display_severity: Severity | null;
+  path: string | null;
+  symbol: string | null;
+  autonomy_level: string | null;
+  findings: GraphFindingRef[];
+}
+
+export interface GraphEdge {
+  source: string;
+  target: string;
+  kind: GraphEdgeKind;
+  provenance: "declared" | "observed";
+  max_severity: Severity | null;
+  weight: number;
+  findings: GraphFindingRef[];
+  observed?: boolean;
+}
+
+export interface GraphDocument {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+}
+
 export interface Envelope {
   schema: string;
   generator: { name: string; version: string };
@@ -411,6 +452,7 @@ export interface Envelope {
   diff: DiffDocument | null;
   history: HistoryEntry[];
   register: RegisterRow[];
+  graph: GraphDocument;
   assurance: AssurancePacket;
   underwriting: UnderwritingDerivation;
   rules: Record<string, RuleRecord>;

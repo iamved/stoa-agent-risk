@@ -1,10 +1,125 @@
-import { EmptyState } from "../components/EmptyState";
+import { useMemo, useState } from "react";
+import { useApp } from "../app/context";
+import { buildHash, navigate, useRoute } from "../app/router";
+import { ConfidenceBadge, Pill, SeverityBadge } from "../components/Badge";
+import { DataTable, sortRows, type Column, type SortState } from "../components/DataTable";
+import { FindingDrawer } from "../components/FindingDrawer";
+import { EMPTY_FILTERS, applyFilters, defaultOrder, filtersFromQuery, filtersToQuery, isFiltered, sortFromQuery, type FindingFilters } from "../data/filters";
+import { CONFIDENCE_RANK, SEVERITIES, SEVERITY_RANK, activeFindings, agentLabel, allFindings, countBySeverity, findingByFingerprint, findingTag, frameworkClasses, tagLabel, type FindingRef } from "../data/selectors";
+import type { Severity } from "../data/types";
 
 export function Findings() {
+  const { envelope, framework } = useApp();
+  const route = useRoute();
+  const filters = useMemo(() => filtersFromQuery(route.query), [route.query]);
+  const sort = useMemo(() => sortFromQuery(route.query), [route.query]);
+  const [draft, setDraft] = useState<string | null>(null);
+
+  const rows = useMemo(() => defaultOrder(applyFilters(envelope, filters, framework)), [envelope, filters, framework]);
+  const columns = useMemo<Column<FindingRef>[]>(() => [
+    { id: "severity", header: "Severity", width: "110px", cell: (r) => <SeverityBadge severity={r.finding.severity} />, sortValue: (r) => SEVERITY_RANK[r.finding.severity] },
+    { id: "rule", header: "Rule", width: "90px", cell: (r) => <span className="mono">{r.finding.rule_id}</span>, sortValue: (r) => r.finding.rule_id },
+    { id: "title", header: "Title", width: "minmax(220px, 2fr)", cell: (r) => <span className="line-clamp-2">{r.finding.title}</span>, sortValue: (r) => r.finding.title },
+    { id: "agent", header: "Agent", width: "minmax(120px, 1fr)", cell: (r) => (r.agent ? <span className="truncate block">{agentLabel(r.agent)}{r.agents.length > 1 ? <span className="caption"> +{r.agents.length - 1}</span> : null}</span> : <span className="caption">repository</span>), sortValue: (r) => (r.agent ? agentLabel(r.agent) : "") },
+    { id: "location", header: "Location", width: "minmax(160px, 1.4fr)", cell: (r) => <span className="mono truncate block" title={`${r.finding.path}:${r.finding.line}`}>{r.finding.path}:{r.finding.line}</span>, sortValue: (r) => `${r.finding.path}:${String(r.finding.line).padStart(6, "0")}` },
+    { id: "confidence", header: "Confidence", width: "120px", cell: (r) => <ConfidenceBadge confidence={r.finding.confidence} />, sortValue: (r) => CONFIDENCE_RANK[r.finding.confidence] ?? 0 },
+    { id: "class", header: framework === "owasp" ? "OWASP" : framework === "eu" ? "EU AI Act" : "Class", width: "90px", cell: (r) => { const t = findingTag(r.finding, framework); return t ? <Pill title={tagLabel(t, framework)}>{t}</Pill> : <span className="caption">–</span>; }, sortValue: (r) => findingTag(r.finding, framework) },
+    { id: "status", header: "Status", width: "100px", cell: (r) => (r.finding.suppressed ? <Pill>suppressed</Pill> : r.finding.is_new ? <Pill tone="gold">new</Pill> : <span className="caption">existing</span>), sortValue: (r) => (r.finding.suppressed ? 2 : r.finding.is_new ? 0 : 1) },
+  ], [framework]);
+  const sorted = useMemo(() => sortRows(rows, columns, sort), [rows, columns, sort]);
+
+  const selected = route.id ? findingByFingerprint(envelope.registry, route.id) : null;
+  const backQuery = filtersToQuery(filters, sort);
+
+  const update = (next: FindingFilters, nextSort: SortState | null = sort) => navigate("findings", null, filtersToQuery(next, nextSort));
+  const onSort = (column: string) => update(filters, sort?.column === column ? (sort.dir === "desc" ? { column, dir: "asc" } : null) : { column, dir: "desc" });
+
+  const all = allFindings(envelope.registry);
+  const active = activeFindings(envelope.registry);
+  const bySeverity = countBySeverity(active);
+  const byDimension = envelope.taxonomy.dimensions.map((d) => ({ id: d.id, name: d.name, count: active.filter((r) => r.finding.dimensions?.includes(d.id)).length }));
+  const byStatus = { new: active.filter((r) => r.finding.is_new).length, existing: active.filter((r) => !r.finding.is_new).length, suppressed: all.length - active.length };
+  const agents = envelope.registry.agents;
+  const classes = frameworkClasses(envelope, framework).filter((c) => c.count > 0);
+
   return (
     <div>
-      <h1 className="text-[24px] m-0 mb-4">Findings</h1>
-      <EmptyState title="This screen is on its way">Placeholder for the findings screen.</EmptyState>
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h1 className="text-[24px] m-0">Findings</h1>
+        <div className="caption">{sorted.length} of {all.length} shown{isFiltered(filters) ? " (filtered)" : ""}. Filters live in the address bar, so this view can be shared.</div>
+      </div>
+
+      <div className="mt-4 grid gap-3 md:grid-cols-3">
+        <div className="panel p-3">
+          <div className="caption uppercase text-[11px] tracking-wide mb-2">By severity</div>
+          <div className="flex flex-wrap gap-2">
+            {SEVERITIES.map((sev) => (
+              <button key={sev} type="button" onClick={() => update({ ...filters, severity: filters.severity.includes(sev) ? filters.severity.filter((s) => s !== sev) : [...filters.severity, sev] })} aria-pressed={filters.severity.includes(sev)} className={`flex items-center gap-1 rounded border px-2 py-1 ${filters.severity.includes(sev) ? "border-gold bg-gold-100" : "border-line bg-panel"}`}>
+                <SeverityBadge severity={sev} />
+                <span className="tabular-nums text-[13px]">{bySeverity[sev]}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="panel p-3">
+          <div className="caption uppercase text-[11px] tracking-wide mb-2">By dimension</div>
+          <div className="flex flex-wrap gap-1.5">
+            {byDimension.filter((d) => d.count).map((d) => (
+              <button key={d.id} type="button" onClick={() => update({ ...filters, dimension: filters.dimension === d.id ? null : d.id })} aria-pressed={filters.dimension === d.id} className={`rounded border px-2 py-1 text-[12.5px] ${filters.dimension === d.id ? "border-gold bg-gold-100" : "border-line bg-panel"}`}>
+                {d.name} <span className="tabular-nums caption">{d.count}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="panel p-3">
+          <div className="caption uppercase text-[11px] tracking-wide mb-2">By status</div>
+          <div className="flex flex-wrap gap-1.5">
+            {(["new", "existing", "suppressed"] as const).map((st) => (
+              <button key={st} type="button" onClick={() => update({ ...filters, status: filters.status === st ? null : st })} aria-pressed={filters.status === st} className={`rounded border px-2 py-1 text-[12.5px] ${filters.status === st ? "border-gold bg-gold-100" : "border-line bg-panel"}`}>
+                {st === "new" ? "New since base" : st === "existing" ? "Existing" : "Suppressed"} <span className="tabular-nums caption">{byStatus[st]}</span>
+              </button>
+            ))}
+          </div>
+          {!envelope.registry.repository.base_ref ? <div className="caption mt-2">No base ref in this scan, so nothing is marked new.</div> : null}
+        </div>
+      </div>
+
+      <div className="mt-4 panel p-3 flex flex-wrap items-end gap-3 text-[13px] no-print">
+        <label className="flex flex-col gap-1">
+          <span className="caption">Search</span>
+          <input value={draft ?? filters.q} onChange={(e) => setDraft(e.target.value)} onBlur={() => { if (draft !== null) { update({ ...filters, q: draft }); setDraft(null); } }} onKeyDown={(e) => { if (e.key === "Enter" && draft !== null) { update({ ...filters, q: draft }); setDraft(null); } }} placeholder="rule, title, path, snippet" className="rounded border border-line bg-panel px-2 py-1 w-56" />
+        </label>
+        <Select label="Agent" value={filters.agent ?? ""} onChange={(v) => update({ ...filters, agent: v || null })} options={[{ value: "", label: "All agents" }, ...agents.map((a) => ({ value: a.id, label: agentLabel(a) }))]} />
+        <Select label="Confidence" value={filters.confidence ?? ""} onChange={(v) => update({ ...filters, confidence: v || null })} options={[{ value: "", label: "Any" }, { value: "high", label: "High" }, { value: "medium", label: "Medium" }, { value: "low", label: "Low" }]} />
+        {framework !== "nist" ? <Select label={framework === "owasp" ? "OWASP class" : "EU AI Act article"} value={filters.cls ?? ""} onChange={(v) => update({ ...filters, cls: v || null })} options={[{ value: "", label: "Any" }, ...classes.map((c) => ({ value: c.id, label: `${c.id} ${c.name}` }))]} /> : null}
+        <label className="flex flex-col gap-1">
+          <span className="caption">Rule prefix</span>
+          <input value={filters.rule ?? ""} onChange={(e) => update({ ...filters, rule: e.target.value || null })} placeholder="AI0, DECL, SEC" className="rounded border border-line bg-panel px-2 py-1 w-28 mono" />
+        </label>
+        {isFiltered(filters) || sort ? (
+          <button type="button" onClick={() => update(EMPTY_FILTERS, null)} className="rounded border border-line px-2.5 py-1 hover:bg-paper">Clear filters</button>
+        ) : null}
+      </div>
+
+      <div className="mt-4">
+        <DataTable rows={sorted} columns={columns} rowKey={(r) => r.finding.fingerprint} onRowClick={(r) => navigate("findings", r.finding.fingerprint, backQuery)} sort={sort} onSort={onSort} ariaLabel="Findings" />
+      </div>
+
+      <FindingDrawer ref={selected} backQuery={backQuery} onClose={() => navigate("findings", null, backQuery)} />
+      {route.id && !selected ? <p className="caption mt-3">No finding with fingerprint <span className="mono">{route.id}</span> in this scan. <a className="link" href={buildHash("findings")}>Show all findings</a>.</p> : null}
     </div>
   );
 }
+
+function Select({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[] }) {
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="caption">{label}</span>
+      <select value={value} onChange={(e) => onChange(e.target.value)} className="rounded border border-line bg-panel px-2 py-1 max-w-56">
+        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+    </label>
+  );
+}
+
+export type { Severity };

@@ -194,7 +194,9 @@ def _large(envelope: dict, total: int) -> dict:
     reg = env["registry"]
     agents = reg["agents"]
     templates = [f for a in agents for f in a["findings"]] + reg["repository_findings"]
-    have = len(templates)
+    # Agents in one file share that file's findings; count unique fingerprints
+    # so the target is 5,000 distinct findings, as the dashboard shows them.
+    have = len({f["fingerprint"] for f in templates})
     n = 0
     while have + n < total:
         agent = agents[n % len(agents)]
