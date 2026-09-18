@@ -32,12 +32,14 @@ export function Evidence() {
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-2 no-pack">
         <h1 className="text-[24px] m-0">Evidence</h1>
-        <div className="flex flex-wrap items-center gap-2 no-print" role="tablist" aria-label="View">
-          {(["officer", "underwriter"] as const).map((v) => (
-            <a key={v} role="tab" aria-selected={view === v} href={buildHash("evidence", null, v === "officer" ? {} : { view: v })} className={`rounded border px-3 py-1 text-[13px] no-underline ${view === v ? "border-navy bg-navy text-white" : "border-line bg-panel text-ink"}`}>
-              {v === "officer" ? "Risk officer view" : "Underwriter view"}
-            </a>
-          ))}
+        <div className="flex flex-wrap items-center gap-2 no-print">
+          <div role="tablist" aria-label="View" className="flex items-center gap-2">
+            {(["officer", "underwriter"] as const).map((v) => (
+              <a key={v} role="tab" aria-selected={view === v} href={buildHash("evidence", null, v === "officer" ? {} : { view: v })} className={`rounded border px-3 py-1 text-[13px] no-underline ${view === v ? "border-navy bg-navy text-white" : "border-line bg-panel text-ink"}`}>
+                {v === "officer" ? "Risk officer view" : "Underwriter view"}
+              </a>
+            ))}
+          </div>
           <span className="w-px h-5 bg-line mx-1" aria-hidden="true" />
           <button type="button" onClick={() => printAs("summary")} className="rounded border border-line bg-panel px-3 py-1 text-[13px] hover:bg-paper">Print summary</button>
           <button type="button" onClick={() => printAs("pack")} className="rounded border border-navy bg-navy text-white px-3 py-1 text-[13px] hover:bg-navy-700">Print evidence pack</button>
@@ -111,7 +113,7 @@ function OfficerView() {
             <div className="caption uppercase text-[11px] tracking-wide mb-2">Agent owners</div>
             {owners.size === 0 ? <p className="caption m-0">No agent has a declared owner.</p> : (
               <ul className="m-0 p-0 list-none flex flex-col gap-1 text-[13px]">
-                {[...owners.entries()].sort((a, b) => b[1] - a[1]).map(([o, n]) => <li key={o} className="flex justify-between gap-2"><span>{o}</span><span className="caption tabular-nums">{pluralize(n, "agent")}</span></li>)}
+                {[...owners.entries()].sort((a, b) => b[1] - a[1]).map(([o, n]) => <li key={o} className="flex justify-between gap-2 min-w-0"><span className="break-all">{o}</span><span className="caption tabular-nums whitespace-nowrap">{pluralize(n, "agent")}</span></li>)}
               </ul>
             )}
             <p className="caption mt-2 mb-0">{envelope.registry.agents.filter((a) => !a.declared?.owner).length} agents have no declared owner.</p>

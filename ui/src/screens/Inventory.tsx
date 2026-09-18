@@ -53,7 +53,7 @@ export function Inventory() {
         </div>
       ) : (
         <div className="mt-4 grid gap-4 md:grid-cols-[220px_1fr]">
-          <nav aria-label="Categories" className="panel p-2 self-start">
+          <nav aria-label="Categories" className="panel p-2 self-start min-w-0 max-w-full overflow-hidden">
             <ul className="m-0 p-0 list-none flex md:flex-col gap-1 overflow-x-auto">
               {cats.map((c) => (
                 <li key={c.id}>

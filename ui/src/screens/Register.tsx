@@ -47,7 +47,7 @@ export function Register() {
               ) : rows.map((row) => {
                 const due = reviewDue(row, asOf);
                 return (
-                  <tr key={row.risk_id} data-clickable="true" tabIndex={0} onClick={() => navigate("register", row.risk_id)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate("register", row.risk_id); } }} className={row.unmatched ? "opacity-80" : ""}>
+                  <tr key={row.risk_id} data-clickable="true" tabIndex={0} onClick={() => navigate("register", row.risk_id)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate("register", row.risk_id); } }}>
                     <td>
                       <div className="font-medium">{row.dimension_name}</div>
                       <div className="caption">{row.agent_name ?? row.agent_id}{row.unmatched ? " · unmatched" : ""}</div>

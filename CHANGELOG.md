@@ -3,6 +3,53 @@
 All notable changes to Stoa are documented here. The registry JSON schema is
 versioned separately (see [SCHEMA.md](SCHEMA.md)).
 
+## Unreleased — "The dashboard"
+
+Registry schema → 1.8 (additive). `stoa scan` now also writes
+`stoa-dashboard.html`: one self-contained file, six screens, no server, no
+network. See [docs/dashboard.md](docs/dashboard.md).
+
+### Added — the dashboard
+- **Six screens** over the scan: Overview (eight-dimension matrix by
+  category, decomposable to the agents that produce each level; stat cards;
+  top five findings as plain-English "so what" sentences; framework class
+  strip with gaps kept visible; trends from history), AI inventory (category
+  rail derived from the registry, per-category tables, an agent drawer with
+  declared versus scanned, and the architecture graph), Findings (filters in
+  the URL hash, a virtualized table that stays responsive at 5,000 rows, a
+  drawer with What this check does / Why it matters / How to fix), Drift
+  (the `stoa-diff/1.0` document grouped for review; unapproved authority
+  increases first), Risk register (rows from the scanner's own levels,
+  treatments declared in `stoa-declared.toml`, TOML snippet to paste), and
+  Evidence (risk-officer and underwriter views, two print renderings).
+- **Framework selector** (OWASP LLM Top 10 2025, EU AI Act, NIST AI RMF)
+  changes labels and grouping only. No score moves.
+- **CLI**: `stoa scan --dashboard PATH | --no-dashboard | --open |
+  --no-history`; `stoa dashboard REGISTRY [--baseline REGISTRY] [--out]
+  [--open]`. `--html` is now the legacy summary report and keeps working.
+- **History**: each scan in a git repository records a per-commit summary
+  under `.stoa/history/` (`[dashboard] history_keep`, default 10) for trend
+  lines. Never used for drift.
+- **Schema 1.8**: `repository.head_commit` (commit date, never wall clock),
+  `score_before_controls` on every dimension entry, and a top-level
+  `risk_register` echoing `[[risk_register]]` from `stoa-declared.toml`.
+- **`[[risk_register]]`** in `stoa-declared.toml`: `risk_id`
+  (`<dimension-id>/<agent-id>`), `owner`, `treatment`, `rationale`,
+  `review_by`, `status`.
+
+### Security
+- The dashboard's data is escaped (`<`, `>`, `&`, U+2028, U+2029) and
+  embedded in a JSON script tag; every inline script and stylesheet is
+  hash-pinned in a CSP with `default-src 'none'` and `connect-src 'none'`.
+  A hostile fixture, a zero-network browser test, a redaction test, and a
+  determinism test guard this in CI.
+
+### Packaging
+- The compiled UI (`stoa/templates/dashboard.html`) is built by the release
+  workflow and shipped in the wheel. Users never need Node. A development
+  checkout without it gets a warning from `stoa scan` and a clean error
+  from `stoa dashboard`.
+
 ## 0.7.4 — "Tools are first-class"
 
 Registry schema → 1.7 (additive). An agent's reach is mostly in its tools,

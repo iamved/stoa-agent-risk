@@ -112,6 +112,8 @@ def test_csp_hash_matches_real_template_if_built():
     scripts, styles = inline_hashes(template)
     assert scripts and styles
     assert template.count(PLACEHOLDER) == 1
+    assert len(template.encode("utf-8")) < 1_500_000, "compiled template exceeds the 1.5 MB budget"
+    assert "unsafe-inline" not in content_security_policy(template)
     html = render_dashboard(_envelope(), template)
     assert len(html.encode("utf-8")) < 1_500_000 + len(escape_json_for_script(_envelope()).encode("utf-8"))
 

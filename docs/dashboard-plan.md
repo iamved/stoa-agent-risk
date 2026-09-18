@@ -1,8 +1,8 @@
 # Stoa Dashboard, Phase 1: plan
 
-Status: **awaiting approval**. No code under `ui/` or `src/stoa/` changes until
-this plan is approved. Everything in section 1 is verified against the source
-tree at 0.7.4 (registry schema 1.7).
+Status: **built** (M1 to M8 on `main`). Section 11 records what was actually
+built and where it departs from the plan below. Section 1 describes the tree
+at 0.7.4 (registry schema 1.7), the state the plan was written against.
 
 ---
 
@@ -253,3 +253,43 @@ If scope needs trimming, M5 history sparklines and M6 are the cleanest to defer 
 2. CI-built template (recommended) versus committed artifact.
 3. Keep the 1.5 MB budget with system font stacks (recommended) versus fully inlined fonts at roughly 2 MB.
 4. `stoa dashboard` as a new subcommand (recommended, mirrors `graph`) versus `stoa export --dashboard`.
+
+---
+
+## 11. As built
+
+Everything in sections 2 to 9 was built as planned, with these refinements:
+
+- **Envelope slots added**: `graph` (the `graph_model` document, so the
+  Inventory graph tab reuses the legacy report's model), `baseline`
+  (the base registry's name, ref and commit date for the Drift header),
+  and `vocabulary` (the scanner's high-impact capabilities and sensitive
+  integrations, so the UI never hardcodes them).
+- **Findings are deduplicated by fingerprint** in the UI. Agents in one file
+  share that file's findings in the registry; the summary counts each once.
+- **Drift names** resolve through the registry's `display_name`; the diff
+  document carries raw names.
+- **Cytoscape typings** come from the npm package as a devDependency; the
+  bundle still uses the single vendored copy through a Vite alias, with the
+  file included in Rollup's CommonJS handling.
+- **Register review-due** is judged against the scan's commit date, never the
+  wall clock, so the dashboard stays deterministic.
+- **Print modes** are selected by a `data-print` attribute on `<html>`
+  (`summary` from any screen, `pack` from Evidence). The summary renders to
+  one A4 page from the meridian-pay fixture; the pack to six.
+- **Fonts**: system stacks only (serif for titles, sans for UI, mono for
+  code); no inlined font files.
+
+Measured on the meridian-pay fixture:
+
+| Item | Value |
+|---|---|
+| Compiled template | about 830 KB (budget 1.5 MB), of which the vendored Cytoscape is 435 KB |
+| Envelope for meridian-pay | about 300 KB before escaping |
+| Playwright tests over `file://` | 25 (routes, zero network, CSP, hostile fixture, 5,000-row table, deep links, print modes, axe WCAG A/AA per screen) |
+| Vitest unit tests | 29 |
+| Python tests touching the dashboard | 30 |
+
+The fixtures are generated from `examples/meridian-pay` by
+`ui/fixtures/build.py`; `tests/test_dashboard_fixtures.py` fails when they are
+stale or non-deterministic. The large fixture is generated, not committed.

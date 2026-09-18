@@ -20,7 +20,7 @@
   --color-sev-critical-bg: #fde8e8;
   --color-sev-high: #b54708;
   --color-sev-high-bg: #fdf0e0;
-  --color-sev-medium: #93700b;
+  --color-sev-medium: #755906;
   --color-sev-medium-bg: #fef7dc;
   --color-sev-low: #465063;
   --color-sev-low-bg: #eef2f6;
@@ -46,6 +46,15 @@ body {
   font-size: 14px;
   line-height: 1.45;
   -webkit-font-smoothing: antialiased;
+}
+
+/* The page body never scrolls sideways; wide tables scroll inside their own panel. */
+main {
+  min-width: 0;
+  overflow-x: clip;
+}
+.screen-content > * {
+  min-width: 0;
 }
 
 h1, h2, h3 {

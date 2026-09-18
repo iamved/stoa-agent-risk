@@ -34,16 +34,58 @@ observed" prompt is a review nudge, not a proven vulnerability.
 ```bash
 pipx install stoa-agent-risk
 cd my-repository
-stoa scan .
-open stoa-report.html
+stoa scan . --open
 ```
 
-`stoa scan .` writes `stoa-report.html` and `stoa-registry.json` and exits 0
-(report-only) unless a gate is configured. The JSON is designed to be read by
-coding assistants too:
+`stoa scan .` writes `stoa-dashboard.html`, `stoa-report.html`, and
+`stoa-registry.json` and exits 0 (report-only) unless a gate is configured.
+`--open` opens the dashboard in your browser. The JSON is designed to be read
+by coding assistants too:
 
 ```bash
 stoa scan . --json stoa-registry.json
+```
+
+## The dashboard
+
+One self-contained HTML file, six screens, no server, no network. It opens
+from disk, survives being emailed, and deep links (`#/findings/<id>`) keep
+working. See [docs/dashboard.md](docs/dashboard.md).
+
+![Overview: the eight-dimension matrix, stat cards, and the five findings to read first](docs/images/dashboard-overview.png)
+
+- **Overview**: the eight-dimension matrix grouped by category, each cell
+  decomposable to the agents that produce its level; stat cards; the top
+  five findings as plain-English sentences; framework classes with gaps
+  shown as gaps; trends from previous scans.
+- **AI inventory**: agents in code and in infrastructure, tools, providers,
+  integrations, declarations; an agent drawer with declared versus scanned;
+  the architecture graph.
+- **Findings**: filters in the URL hash so a view is shareable, a
+  virtualized table, and a drawer with what the check does, why it matters,
+  and how to fix it.
+
+![Findings: filters, virtualized table, and the detail drawer](docs/images/dashboard-findings.png)
+
+- **Drift**: the `stoa diff` document grouped for review, unapproved
+  authority increases first.
+- **Risk register**: one row per agent and dimension the scanner scored at
+  moderate or above; treatments declared in `stoa-declared.toml` as a
+  `[[risk_register]]` block, with the snippet to paste.
+- **Evidence**: a risk-officer view and an underwriter view of the same
+  data; print a one-page summary or the full evidence pack from the browser.
+
+![Drift: the baseline and current refs, and the changes that need review](docs/images/dashboard-drift.png)
+
+The framework selector (OWASP LLM Top 10, EU AI Act, NIST AI RMF) changes
+labels only. The scanner is the source of truth: the dashboard never
+recomputes a score. Its data is embedded escaped, every inline script is
+hash-pinned in a Content-Security-Policy with `connect-src 'none'`, and a
+browser test fails on any network request.
+
+```bash
+stoa dashboard stoa-registry.json --baseline previous-registry.json --open
+stoa scan . --no-dashboard          # registry and legacy report only
 ```
 
 ## GitHub Actions
@@ -66,7 +108,10 @@ overwrite):
 
 ```bash
 stoa scan [PATH]
-  --html PATH               HTML report (default stoa-report.html)
+  --dashboard PATH          dashboard (default stoa-dashboard.html); --no-dashboard to skip
+  --open                    open the dashboard in the default browser
+  --no-history              do not record this scan under .stoa/history/
+  --html PATH               legacy summary report (default stoa-report.html)
   --json PATH               JSON registry (default stoa-registry.json)
   --base GIT_REF            enable diff-aware behavior (e.g. origin/main)
   --strict                  fail on all unsuppressed high-confidence criticals

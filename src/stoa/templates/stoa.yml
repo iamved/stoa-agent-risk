@@ -43,6 +43,7 @@ jobs:
             --diff-against "origin/$BASE_REF" \
             --json stoa-registry.json \
             --html stoa-report.html \
+            --dashboard stoa-dashboard.html \
             --diff-json stoa-diff.json \
             --diff-md stoa-changelog.md \
             --github-annotations \
@@ -61,6 +62,7 @@ jobs:
         with:
           name: stoa-agent-risk-report
           path: |
+            stoa-dashboard.html
             stoa-report.html
             stoa-registry.json
             stoa-diff.json
