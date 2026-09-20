@@ -8,6 +8,7 @@ import { Logo } from "./Logo";
 import { PrintSummary } from "./PrintSummary";
 
 type NavItem = { id: string; label: string; href: string; screens: ScreenId[]; count?: number; icon: IconName };
+type NavGroup = { label: string; showLabel: boolean; items: NavItem[] };
 
 export function Shell({ screen, children }: { screen: ScreenId; children: ReactNode }) {
   const { envelope } = useApp();
@@ -17,9 +18,10 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
   const declared = r.agents.filter((a) => a.declared).length;
   const driftCount = envelope.diff ? envelope.diff.summary.agents_changed + envelope.diff.summary.agents_added + envelope.diff.summary.agents_removed : 0;
 
-  const groups: { label: string; items: NavItem[] }[] = [
+  const groups: NavGroup[] = [
     {
       label: "AI estate",
+      showLabel: true,
       items: [
         { id: "overview", label: "Overview", href: buildHash("overview"), screens: ["overview"], icon: "overview" },
         { id: "inventory", label: "Agent Inventory", href: buildHash("inventory"), screens: ["inventory"], count: r.agents.length, icon: "inventory" },
@@ -28,6 +30,7 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
     },
     {
       label: "Risk model",
+      showLabel: false,
       items: [
         { id: "risk", label: "Risk Dashboard", href: buildHash("findings"), screens: ["findings", "drift", "register"], count: findingCount + driftCount, icon: "risk" },
         { id: "controls", label: "Controls & Safeguards", href: buildHash("controls"), screens: ["controls"], icon: "controls" },
@@ -48,7 +51,7 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
         <div className="flex md:flex-col gap-1 md:gap-5 overflow-x-auto w-full px-2 md:px-3 py-2">
           {groups.map((group) => (
             <div key={group.label} className="flex md:flex-col gap-1 shrink-0">
-              <div className="eyebrow hidden md:block px-3 pb-1.5">{group.label}</div>
+              {group.showLabel ? <div className="eyebrow hidden md:block px-3 pb-1.5">{group.label}</div> : null}
               <ul className="m-0 p-0 list-none flex md:flex-col gap-px">
                 {group.items.map((item) => {
                   const active = item.screens.includes(screen);
