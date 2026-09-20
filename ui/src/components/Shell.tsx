@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { FRAMEWORKS, useApp } from "../app/context";
+import { useApp } from "../app/context";
 import { buildHash, type ScreenId } from "../app/router";
 import { activeFindings, formatDate } from "../data/selectors";
 import { printAs } from "../app/print";
@@ -9,7 +9,7 @@ import { PrintSummary } from "./PrintSummary";
 type NavItem = { id: string; label: string; href: string; screens: ScreenId[]; count?: number };
 
 export function Shell({ screen, children }: { screen: ScreenId; children: ReactNode }) {
-  const { envelope, framework, setFramework } = useApp();
+  const { envelope } = useApp();
   const r = envelope.registry;
   const head = r.repository.head_commit;
   const findingCount = activeFindings(r).length;
@@ -87,16 +87,6 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
             </div>
           </div>
           <div className="ml-auto flex items-center gap-3 no-print">
-            <label className="caption flex items-center gap-2">
-              Framework
-              <select value={framework} onChange={(e) => setFramework(e.target.value as typeof framework)} className="rounded-md border border-line bg-panel px-2 py-1.5 text-[13px] text-ink" aria-label="Framework used for labels">
-                {FRAMEWORKS.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.label}
-                  </option>
-                ))}
-              </select>
-            </label>
             <button type="button" onClick={() => printAs("summary")} className="rounded-md border border-navy bg-navy text-white px-3 py-1.5 text-[13px] hover:bg-navy-700">
               Print summary
             </button>

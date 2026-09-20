@@ -15,14 +15,8 @@ const Ctx = createContext<AppState | null>(null);
 
 const PREF_KEY = "stoa.dashboard.framework";
 
-/** Per-viewer convenience only; wrapped because storage can throw or be empty. */
+/** Labels are fixed to OWASP LLM Top 10 (2025); the selector was removed as confusing. The EU AI Act article still shows on each finding. */
 function readPref(): FrameworkId {
-  try {
-    const value = window.localStorage.getItem(PREF_KEY);
-    if (value === "owasp" || value === "eu" || value === "nist") return value;
-  } catch {
-    /* storage unavailable */
-  }
   return "owasp";
 }
 
