@@ -125,15 +125,18 @@ test.describe("risk register", () => {
   });
 });
 
-test.describe("evidence and print", () => {
-  test("two views of the same data", async ({ page }) => {
-    await page.goto(fileUrl("meridian-pay", "#/evidence?view=officer"));
-    await expect(page.getByRole("heading", { name: "What is wrong" })).toBeVisible();
+test.describe("insurance and print", () => {
+  test("shows the pre-filled assessment with sources and the schedule", async ({ page }) => {
     await page.goto(fileUrl("meridian-pay", "#/evidence"));
+    await expect(page.getByRole("heading", { name: "AI Risk Insurance" })).toBeVisible();
+    await expect(page.getByText("pre-filled", { exact: false }).first()).toBeVisible();
+    await expect(page.getByText("1. General information")).toBeVisible();
+    await expect(page.getByText("Insurance requirements (schedule)")).toBeVisible();
+    await expect(page.getByText("Policy limit (aggregate)")).toBeVisible();
+    await expect(page.getByText("5. Declaration")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Print assessment (PDF)" })).toBeVisible();
+    await page.getByText("Show the evidence pack").click();
     await expect(page.getByRole("heading", { name: "What the agents can do" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Controls: observed versus declared" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Confidence per dimension" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Copy JSON" })).toBeVisible();
   });
 
   test("print summary is one page and hides the app chrome", async ({ page }) => {
@@ -149,15 +152,13 @@ test.describe("evidence and print", () => {
     expect(height).toBeLessThan(1000);
   });
 
-  test("print evidence pack shows the underwriter view only", async ({ page }) => {
+  test("print assessment shows the form only", async ({ page }) => {
     await page.goto(fileUrl("meridian-pay", "#/evidence"));
     await page.evaluate(() => { document.documentElement.dataset.print = "pack"; });
     await page.emulateMedia({ media: "print" });
-    const pack = page.locator(".print-pack");
-    await expect(pack).toBeVisible();
-    await expect(pack).toContainText("AI agent evidence pack");
-    await expect(pack.getByRole("heading", { name: "What the agents can do" })).toBeVisible();
-    await expect(page.locator(".screen-view")).toBeHidden();
+    await expect(page.locator(".assessment")).toBeVisible();
+    await expect(page.locator(".assessment")).toContainText("5. Declaration");
+    await expect(page.locator(".screen-view").first()).toBeHidden();
     await expect(page.locator("nav")).toBeHidden();
   });
 });

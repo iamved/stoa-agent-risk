@@ -70,6 +70,9 @@ def build_parser() -> argparse.ArgumentParser:
                       help="Open the dashboard in the default browser after the scan")
     scan.add_argument("--no-history", action="store_true",
                       help="Do not record this scan under .stoa/history/")
+    scan.add_argument("--underwriting-config", metavar="PATH", default=None,
+                      help="Applicant identity, performance figures and declared schedule for the "
+                           "dashboard's AI Risk Insurance assessment (default: .stoa/underwriting.toml if present)")
     scan.add_argument("--json", metavar="PATH", default="stoa-registry.json",
                       help="JSON output path (default: stoa-registry.json)")
     scan.add_argument("--base", metavar="GIT_REF", default=None,
@@ -138,6 +141,9 @@ def build_parser() -> argparse.ArgumentParser:
     dashboard.add_argument("--open", action="store_true", help="Open in the default browser")
     dashboard.add_argument("--config", metavar="PATH", default=None)
     dashboard.add_argument("--taxonomy", metavar="PATH", default=None)
+    dashboard.add_argument("--underwriting-config", metavar="PATH", default=None,
+                           help="Applicant identity, performance figures and declared schedule "
+                                "(default: <root>/.stoa/underwriting.toml if present)")
 
     init = subparsers.add_parser("init", help="Generate integration files")
     init.add_argument("target", choices=["github", "declarations", "runtime"],
@@ -444,6 +450,7 @@ def _write_scan_dashboard(result, config, args, document, base_doc, root: Path):
         history = load_history(root)
     envelope = build_envelope(
         document, diff=diff, baseline=base_doc if diff is not None else None, history=history,
+        underwriting=_load_underwriting(root, args.underwriting_config),
         taxonomy_path=config.dimensions_taxonomy, crosswalk_path=config.crosswalk_path,
     )
     path = Path(args.dashboard)
@@ -453,6 +460,19 @@ def _write_scan_dashboard(result, config, args, document, base_doc, root: Path):
         print(f"stoa: warning: dashboard skipped: {exc}", file=sys.stderr)
         return None
     return path
+
+
+def _load_underwriting(root: Path, explicit: str | None) -> dict | None:
+    """Identity, metrics and schedule for the dashboard assessment; None when absent."""
+    from .underwriting import load_schedule, load_underwriting_config
+
+    path = Path(explicit) if explicit else root / ".stoa" / "underwriting.toml"
+    if not path.is_file():
+        if explicit:
+            print(f"stoa: warning: underwriting config not found: {explicit}", file=sys.stderr)
+        return None
+    identity, metrics = load_underwriting_config(path)
+    return {"identity": identity or None, "metrics": metrics, "schedule": load_schedule(path)}
 
 
 def _open_in_browser(path: Path) -> None:
@@ -505,6 +525,7 @@ def _run_dashboard_command(args: argparse.Namespace) -> int:
             diff = diff_registries(base_doc, document, Approvals.load(Path(args.approvals)))
         envelope = build_envelope(
             document, diff=diff, baseline=base_doc, history=load_history(root),
+            underwriting=_load_underwriting(root, args.underwriting_config),
             taxonomy_path=Path(args.taxonomy) if args.taxonomy else config.dimensions_taxonomy,
             crosswalk_path=config.crosswalk_path,
         )

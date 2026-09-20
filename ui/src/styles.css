@@ -276,14 +276,18 @@ code, pre, .mono {
   html[data-print="pack"] .print-summary {
     display: none !important;
   }
-  html[data-print="summary"] .print-summary,
-  html[data-print="pack"] .print-pack {
+  html[data-print="summary"] .print-summary {
     display: block !important;
   }
-  .print-pack section {
-    break-inside: avoid;
+  html[data-print="pack"] .print-pack-doc .assessment {
+    border: 0;
+    max-width: none;
+    padding: 0;
   }
-  .print-pack h2 {
+  .assessment h3 {
     break-after: avoid;
+  }
+  .assessment table, .assessment .grid {
+    break-inside: avoid;
   }
 }

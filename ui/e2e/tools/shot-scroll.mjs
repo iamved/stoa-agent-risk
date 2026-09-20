@@ -1,0 +1,11 @@
+import { chromium } from "@playwright/test";
+import { pathToFileURL } from "node:url";
+const [,, file, hash, out, y] = process.argv;
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 1200, height: 800 } });
+await page.goto(pathToFileURL(file).href + hash);
+await page.waitForTimeout(300);
+await page.evaluate((top) => window.scrollTo(0, Number(top)), y);
+await page.waitForTimeout(150);
+await page.screenshot({ path: out });
+await browser.close();

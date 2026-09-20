@@ -20,7 +20,7 @@ from ..crosswalk import CrosswalkError, load_crosswalk
 from ..dimensions import TaxonomyError, load_taxonomy
 from ..graph_model import build_graph, overlay_runtime, to_json_dict
 from ..rules import HIGH_IMPACT_CAPABILITIES, RULES, SENSITIVE_INTEGRATIONS
-from ..underwriting import derive_from_registry
+from ..underwriting import build_assessment, derive_from_registry
 from .register import build_register
 
 ENVELOPE_SCHEMA = "stoa-dashboard/1.0"
@@ -113,6 +113,7 @@ def build_envelope(
     diff: dict | None = None,
     baseline: dict | None = None,
     history: list[dict] | None = None,
+    underwriting: dict | None = None,
     taxonomy_path: Path | None = None,
     crosswalk_path: Path | None = None,
 ) -> dict:
@@ -139,6 +140,15 @@ def build_envelope(
         "graph": to_json_dict(graph),
         "assurance": assurance,
         "underwriting": derive_from_registry(registry),
+        # The pre-filled AI Model Risk Assessment (same facts as
+        # `stoa export --underwriting`). `underwriting` may carry the
+        # applicant's identity, performance metrics, and declared schedule.
+        "assessment": build_assessment(
+            registry,
+            identity=(underwriting or {}).get("identity"),
+            metrics=(underwriting or {}).get("metrics"),
+            schedule=(underwriting or {}).get("schedule"),
+        ),
         "rules": _rules_table(crosswalk_path),
         "taxonomy": _taxonomy_block(taxonomy_path, registry),
         "frameworks": {"nist_ai_rmf": NIST_AI_RMF},

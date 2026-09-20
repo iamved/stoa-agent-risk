@@ -248,3 +248,35 @@ def test_dashboard_config_section(tmp_path):
     (tmp_path / "stoa.toml").write_text("[dashboard]\nhistory_keep = -1\n")
     with pytest.raises(ConfigError):
         load_config(tmp_path)
+
+
+# --- the pre-filled assessment --------------------------------------------------
+
+
+def test_assessment_fields_carry_sources_and_declared_schedule_wins(meridian_registry):
+    from stoa.underwriting import build_assessment
+
+    plain = build_assessment(meridian_registry)
+    assert [s["id"] for s in plain["sections"]] == ["general", "development", "post"]
+    sources = {f["source"] for s in plain["sections"] for f in s["fields"]} | {f["source"] for f in plain["schedule"]}
+    assert sources <= {"scan", "declared", "applicant", "sample", "indicative"}
+    assert plain["schedule_source"] == "indicative"
+    assert plain["performance_source"] == "sample"
+    c = plain["counts"]
+    assert c["prefilled"] + c["to_confirm"] + c["indicative"] == c["total"]
+
+    declared = build_assessment(
+        meridian_registry,
+        identity={"company": "Acme"},
+        metrics=[{"metric": "Accuracy", "value": "99%", "cadence": "Monthly"}],
+        schedule={"policy_limit": "US$ 5,000,000", "carrier": "Example Re"},
+    )
+    assert declared["carrier"] == "Example Re"
+    assert declared["schedule_source"] == "declared"
+    limit = next(f for f in declared["schedule"] if f["key"] == "policy_limit")
+    assert limit["value"] == "US$ 5,000,000" and limit["source"] == "declared"
+    assert declared["performance_source"] == "applicant"
+    company = next(f for f in declared["sections"][0]["fields"] if f["key"] == "company")
+    assert company["value"] == "Acme" and company["source"] == "applicant"
+    env = build_envelope(meridian_registry, underwriting={"identity": {"company": "Acme"}, "metrics": None, "schedule": {}})
+    assert env["assessment"]["sections"][0]["fields"][0]["value"] == "Acme"

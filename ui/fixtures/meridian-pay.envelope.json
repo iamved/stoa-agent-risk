@@ -7990,6 +7990,261 @@
     "deductible": "US$ 100,000",
     "trigger": "Unexpected High Number of Errors above the Exhibit B threshold in fraud-triage decisions"
   },
+  "assessment": {
+    "template": "aiSure AI Model Risk Assessment",
+    "carrier": "Munich Re",
+    "product": "aiSure",
+    "repository": "meridian-pay",
+    "sections": [
+      {
+        "id": "general",
+        "title": "General information",
+        "fields": [
+          {
+            "key": "company",
+            "label": "Applicant company",
+            "value": "XYZ Financial Technologies",
+            "source": "sample",
+            "note": ""
+          },
+          {
+            "key": "address",
+            "label": "Address",
+            "value": "500 Market Street, Suite 1200, San Francisco, CA 94105",
+            "source": "sample",
+            "note": ""
+          },
+          {
+            "key": "contact",
+            "label": "Contact",
+            "value": "Jordan Rivera, Chief Technology Officer",
+            "source": "sample",
+            "note": ""
+          },
+          {
+            "key": "contact_email",
+            "label": "Contact email",
+            "value": "risk@xyz-fintech.example",
+            "source": "sample",
+            "note": ""
+          },
+          {
+            "key": "home_state",
+            "label": "Home state",
+            "value": "California",
+            "source": "sample",
+            "note": ""
+          },
+          {
+            "key": "model",
+            "label": "Covered model",
+            "value": "XYZ Fraud-Triage Agent (v2026.2)",
+            "source": "sample",
+            "note": ""
+          },
+          {
+            "key": "deployment",
+            "label": "Deployment",
+            "value": "Production (customer-facing fraud triage)",
+            "source": "sample",
+            "note": ""
+          }
+        ]
+      },
+      {
+        "id": "development",
+        "title": "Model development",
+        "fields": [
+          {
+            "key": "robustness",
+            "label": "Robustness testing (adversarial / prompt-injection)",
+            "value": "No",
+            "source": "scan",
+            "note": "no injection or tamper findings observed"
+          },
+          {
+            "key": "code_quality",
+            "label": "Code-quality checks",
+            "value": "Yes",
+            "source": "scan",
+            "note": "Stoa scan run in CI with stoa diff drift gating"
+          },
+          {
+            "key": "inventory",
+            "label": "Agent inventory scanned",
+            "value": "11 agent candidate(s)",
+            "source": "scan",
+            "note": ""
+          },
+          {
+            "key": "critical",
+            "label": "Critical findings at development time",
+            "value": "4",
+            "source": "scan",
+            "note": ""
+          }
+        ]
+      },
+      {
+        "id": "post",
+        "title": "Customer onboarding and post-deployment",
+        "fields": [
+          {
+            "key": "monitoring",
+            "label": "Post-deployment monitoring",
+            "value": "No",
+            "source": "scan",
+            "note": "CTRL004 gap observed"
+          },
+          {
+            "key": "drift",
+            "label": "Drift mitigation",
+            "value": "Yes",
+            "source": "scan",
+            "note": "capability drift tracked via stoa diff"
+          },
+          {
+            "key": "rollback",
+            "label": "Update / rollback readiness",
+            "value": "Declared in stoa-declared.toml",
+            "source": "declared",
+            "note": ""
+          }
+        ]
+      }
+    ],
+    "performance": [
+      {
+        "metric": "Ground-truth accuracy",
+        "value": "97.4%",
+        "cadence": "Monthly, held-out labeled set",
+        "source": "sample"
+      },
+      {
+        "metric": "False-positive rate",
+        "value": "1.8%",
+        "cadence": "Monthly",
+        "source": "sample"
+      },
+      {
+        "metric": "False-negative rate",
+        "value": "0.9%",
+        "cadence": "Monthly",
+        "source": "sample"
+      },
+      {
+        "metric": "Population stability index (PSI)",
+        "value": "0.06",
+        "cadence": "Weekly drift monitor",
+        "source": "sample"
+      },
+      {
+        "metric": "Decision latency (p95)",
+        "value": "420 ms",
+        "cadence": "Continuous",
+        "source": "sample"
+      },
+      {
+        "metric": "Human-review override rate",
+        "value": "3.1%",
+        "cadence": "Monthly",
+        "source": "sample"
+      }
+    ],
+    "performance_source": "sample",
+    "schedule": [
+      {
+        "key": "elevated_dims",
+        "label": "Elevated-exposure dimensions",
+        "value": "Mandate overreach, Unreviewed high-impact action",
+        "source": "scan",
+        "note": ""
+      },
+      {
+        "key": "econ_findings",
+        "label": "Economic-authority findings",
+        "value": "none observed",
+        "source": "scan",
+        "note": ""
+      },
+      {
+        "key": "policy_limit",
+        "label": "Policy limit (aggregate)",
+        "value": "US$ 25,000,000",
+        "source": "indicative",
+        "note": ""
+      },
+      {
+        "key": "sublimit_own_losses",
+        "label": "Sublimit — own financial losses",
+        "value": "US$ 25,000,000",
+        "source": "indicative",
+        "note": ""
+      },
+      {
+        "key": "sublimit_consequential",
+        "label": "Sublimit — consequential financial expenses",
+        "value": "US$ 10,000,000",
+        "source": "indicative",
+        "note": ""
+      },
+      {
+        "key": "aggregate_deductible",
+        "label": "Aggregate deductible",
+        "value": "US$ 100,000",
+        "source": "indicative",
+        "note": ""
+      },
+      {
+        "key": "co_insurance",
+        "label": "Co-insurance",
+        "value": "10% (own financial losses) / 20% (consequential)",
+        "source": "indicative",
+        "note": ""
+      },
+      {
+        "key": "coverage_trigger",
+        "label": "Coverage trigger",
+        "value": "Unexpected High Number of Errors above the Exhibit B threshold in fraud-triage decisions",
+        "source": "indicative",
+        "note": ""
+      },
+      {
+        "key": "currency",
+        "label": "Currency",
+        "value": "USD",
+        "source": "sample",
+        "note": ""
+      }
+    ],
+    "schedule_source": "indicative",
+    "declaration": "The undersigned confirms that, to the best of their knowledge, the information furnished in this assessment is true and correct in all material respects and no material fact has been knowingly withheld.",
+    "signatory": "Jordan Rivera, Chief Technology Officer",
+    "counts": {
+      "prefilled": 9,
+      "to_confirm": 8,
+      "indicative": 6,
+      "performance_rows": 6,
+      "total": 23
+    },
+    "derived": {
+      "agent_count": 11,
+      "critical_count": 4,
+      "robustness": false,
+      "code_quality": true,
+      "monitoring": false,
+      "drift": true,
+      "has_declarations": true,
+      "econ_findings": [],
+      "elevated_dims": [
+        "Mandate overreach",
+        "Unreviewed high-impact action"
+      ],
+      "limit": "US$ 25,000,000",
+      "deductible": "US$ 100,000",
+      "trigger": "Unexpected High Number of Errors above the Exhibit B threshold in fraud-triage decisions"
+    }
+  },
   "rules": {
     "AI001": {
       "title": "Untrusted input observed flowing into prompt construction",

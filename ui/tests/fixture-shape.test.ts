@@ -59,5 +59,8 @@ describe("meridian-pay fixture matches the consumed contract", () => {
     expect(envelope.graph.nodes.some((n) => n.type === "agent")).toBe(true);
     expect(envelope.graph.edges.length).toBeGreaterThan(0);
     expect(envelope.vocabulary.high_impact_capabilities).toContain("payment_access");
+    expect(envelope.assessment.sections.length).toBe(3);
+    expect(envelope.assessment.schedule.some((f) => f.key === "policy_limit")).toBe(true);
+    expect(envelope.assessment.counts.prefilled).toBeGreaterThan(0);
   });
 });

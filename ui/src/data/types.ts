@@ -446,6 +446,34 @@ export interface GraphDocument {
   edges: GraphEdge[];
 }
 
+// --- the pre-filled AI Model Risk Assessment (underwriting.build_assessment) ---
+
+export type AssessmentSource = "scan" | "declared" | "applicant" | "sample" | "indicative";
+
+export interface AssessmentField {
+  key: string;
+  label: string;
+  value: string;
+  source: AssessmentSource;
+  note: string;
+}
+
+export interface Assessment {
+  template: string;
+  carrier: string;
+  product: string;
+  repository: string;
+  sections: { id: string; title: string; fields: AssessmentField[] }[];
+  performance: { metric: string; value: string; cadence: string; source: "applicant" | "sample" }[];
+  performance_source: "applicant" | "sample";
+  schedule: AssessmentField[];
+  schedule_source: "declared" | "indicative";
+  declaration: string;
+  signatory: string;
+  counts: { prefilled: number; to_confirm: number; indicative: number; performance_rows: number; total: number };
+  derived: UnderwritingDerivation;
+}
+
 export interface Envelope {
   schema: string;
   generator: { name: string; version: string };
@@ -457,6 +485,7 @@ export interface Envelope {
   graph: GraphDocument;
   assurance: AssurancePacket;
   underwriting: UnderwritingDerivation;
+  assessment: Assessment;
   rules: Record<string, RuleRecord>;
   taxonomy: TaxonomyBlock;
   frameworks: { nist_ai_rmf: { function: string; stoa: string }[] };

@@ -77,8 +77,9 @@ working. See [docs/dashboard.md](docs/dashboard.md).
 - **Estimated Financial Loss**: declared economic limits next to the
   money-moving tools found and whether the code enforces them. Stoa never
   models or prices a loss.
-- **AI Risk Insurance**: underwriter and risk-officer evidence views; print a
-  one-page summary or the full evidence pack from the browser.
+- **AI Risk Insurance**: the pre-filled AI Model Risk Assessment as it
+  would be submitted, each field tagged with where it came from, the
+  schedule, and the evidence pack behind it. Print it to PDF from the browser.
 
 ![Drift: the baseline and current refs, and the changes that need review](docs/images/dashboard-drift.png)
 

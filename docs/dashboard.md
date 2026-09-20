@@ -23,11 +23,44 @@ drilling into an agent, reviewing drift, maintaining the risk register.
 | Risk model | Risk Dashboard | three tabs: Findings (filters in the URL, virtualized table, What / Why / Fix drawer), Drift, Risk register |
 | Risk model | Controls & Safeguards | controls observed per agent, tool guards, control gaps by rule |
 | Risk model | Estimated Financial Loss | declared economic limits next to the money-moving tools found, and whether the code enforces them |
-| Risk model | AI Risk Insurance | the underwriter and risk-officer evidence views, printable as a one-page summary or the full pack |
+| Risk model | AI Risk Insurance | the pre-filled AI Model Risk Assessment as it would be submitted (every field tagged from scan, declared, applicant, to confirm, or indicative), the schedule, the steps to submission, and the evidence pack behind it |
 
 Every figure on Estimated Financial Loss was declared by a person; Stoa
 checks enforcement and never models or prices a loss. Stoa prepares
 insurance evidence; carriers price and issue.
+
+## The assessment
+
+AI Risk Insurance renders the same pre-filled AI Model Risk Assessment that
+`stoa export --underwriting` produces, from the same facts. Technical
+answers (robustness evidence, inventory, critical findings, monitoring,
+drift) come from the scan. Identity, model-performance figures, and the
+policy schedule come from an applicant config, read from
+`.stoa/underwriting.toml` when present or from `--underwriting-config PATH`
+on `stoa scan` and `stoa dashboard`:
+
+```toml
+[identity]
+company       = "Acme Payments Inc"
+contact_name  = "Dana Okafor"
+contact_title = "Head of ML Risk"
+model_name    = "Acme Transaction-Risk Agent"
+
+[[performance]]
+metric  = "Ground-truth accuracy"
+value   = "98.1%"
+cadence = "Monthly, held-out labeled set"
+
+[schedule]                      # optional: terms agreed with the carrier
+carrier                = "Munich Re"
+product                = "aiSure"
+policy_limit           = "US$ 25,000,000"
+aggregate_deductible   = "US$ 100,000"
+```
+
+Without a `[schedule]`, the schedule shows indicative terms sized off
+exposure and says so; without `[[performance]]`, sample figures are shown
+and marked to confirm. The page never states that coverage exists.
 
 ## From an existing registry
 

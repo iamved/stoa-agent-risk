@@ -94,8 +94,27 @@ hr{border:none;border-top:1px solid var(--line);margin:26px 0}
 stoa scan . --open          # and opens the dashboard in your browser
 stoa scan . --no-dashboard  # skip it</code></pre>
 <p>The legacy summary report (<code>stoa-report.html</code>) keeps working and prints to about five pages. The dashboard is for exploring: filtering findings, drilling into an agent, reviewing drift, maintaining the risk register.</p>
-<div class="table-wrap"><table><thead><tr><th>Group</th><th>Screen</th><th>What it shows</th></tr></thead><tbody><tr><td>AI estate</td><td>Overview</td><td>the eight-dimension matrix by category, stat cards, the five findings to read first, framework classes, trends</td></tr><tr><td>AI estate</td><td>Agent Inventory</td><td>agents in code and infrastructure, tools, providers, integrations, the architecture graph</td></tr><tr><td>AI estate</td><td>Declared Scope</td><td><code>stoa-declared.toml</code> next to what the scan inferred, with contradictions</td></tr><tr><td>Risk model</td><td>Risk Dashboard</td><td>three tabs: Findings (filters in the URL, virtualized table, What / Why / Fix drawer), Drift, Risk register</td></tr><tr><td>Risk model</td><td>Controls &amp; Safeguards</td><td>controls observed per agent, tool guards, control gaps by rule</td></tr><tr><td>Risk model</td><td>Estimated Financial Loss</td><td>declared economic limits next to the money-moving tools found, and whether the code enforces them</td></tr><tr><td>Risk model</td><td>AI Risk Insurance</td><td>the underwriter and risk-officer evidence views, printable as a one-page summary or the full pack</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>Group</th><th>Screen</th><th>What it shows</th></tr></thead><tbody><tr><td>AI estate</td><td>Overview</td><td>the eight-dimension matrix by category, stat cards, the five findings to read first, framework classes, trends</td></tr><tr><td>AI estate</td><td>Agent Inventory</td><td>agents in code and infrastructure, tools, providers, integrations, the architecture graph</td></tr><tr><td>AI estate</td><td>Declared Scope</td><td><code>stoa-declared.toml</code> next to what the scan inferred, with contradictions</td></tr><tr><td>Risk model</td><td>Risk Dashboard</td><td>three tabs: Findings (filters in the URL, virtualized table, What / Why / Fix drawer), Drift, Risk register</td></tr><tr><td>Risk model</td><td>Controls &amp; Safeguards</td><td>controls observed per agent, tool guards, control gaps by rule</td></tr><tr><td>Risk model</td><td>Estimated Financial Loss</td><td>declared economic limits next to the money-moving tools found, and whether the code enforces them</td></tr><tr><td>Risk model</td><td>AI Risk Insurance</td><td>the pre-filled AI Model Risk Assessment as it would be submitted (every field tagged from scan, declared, applicant, to confirm, or indicative), the schedule, the steps to submission, and the evidence pack behind it</td></tr></tbody></table></div>
 <p>Every figure on Estimated Financial Loss was declared by a person; Stoa checks enforcement and never models or prices a loss. Stoa prepares insurance evidence; carriers price and issue.</p>
+<h2 id="the-assessment">The assessment</h2>
+<p>AI Risk Insurance renders the same pre-filled AI Model Risk Assessment that <code>stoa export --underwriting</code> produces, from the same facts. Technical answers (robustness evidence, inventory, critical findings, monitoring, drift) come from the scan. Identity, model-performance figures, and the policy schedule come from an applicant config, read from <code>.stoa/underwriting.toml</code> when present or from <code>--underwriting-config PATH</code> on <code>stoa scan</code> and <code>stoa dashboard</code>:</p>
+<pre class="code" data-lang="toml"><code>[identity]
+company       = "Acme Payments Inc"
+contact_name  = "Dana Okafor"
+contact_title = "Head of ML Risk"
+model_name    = "Acme Transaction-Risk Agent"
+
+[[performance]]
+metric  = "Ground-truth accuracy"
+value   = "98.1%"
+cadence = "Monthly, held-out labeled set"
+
+[schedule]                      # optional: terms agreed with the carrier
+carrier                = "Munich Re"
+product                = "aiSure"
+policy_limit           = "US$ 25,000,000"
+aggregate_deductible   = "US$ 100,000"</code></pre>
+<p>Without a <code>[schedule]</code>, the schedule shows indicative terms sized off exposure and says so; without <code>[[performance]]</code>, sample figures are shown and marked to confirm. The page never states that coverage exists.</p>
 <h2 id="from-an-existing-registry">From an existing registry</h2>
 <pre class="code" data-lang="bash"><code>stoa dashboard stoa-registry.json                        # no drift screen
 stoa dashboard stoa-registry.json --baseline main.json   # drift against a saved registry
@@ -147,7 +166,7 @@ status    = "in_progress"     # open | in_progress | closed</code></pre>
 stoa dashboard ui/fixtures/meridian-pay.envelope.json --open</code></pre>
 <p><code>ui/fixtures/build.py</code> regenerates the fixtures from <code>examples/meridian-pay</code>; a test fails when they are stale. <code>pnpm --dir ui test</code> runs the unit tests, <code>STOA_BIN=.venv/bin/stoa pnpm --dir ui test:e2e</code> the browser tests over <code>file://</code>.</p><div class="pagenav"><a href="/docs/report">← The report</a><a href="/docs/crosswalk">Regulatory crosswalk →</a></div>
 </main>
-<aside class="toc"><div class="toc-title">On this page</div><a class="toc-l2" href="#from-an-existing-registry">From an existing registry</a><a class="toc-l2" href="#what-is-inside-the-file">What is inside the file</a><a class="toc-l2" href="#history-and-trends">History and trends</a><a class="toc-l2" href="#risk-register">Risk register</a><a class="toc-l2" href="#security-properties">Security properties</a><a class="toc-l2" href="#ci-pattern">CI pattern</a><a class="toc-l2" href="#developing-the-ui">Developing the UI</a></aside>
+<aside class="toc"><div class="toc-title">On this page</div><a class="toc-l2" href="#the-assessment">The assessment</a><a class="toc-l2" href="#from-an-existing-registry">From an existing registry</a><a class="toc-l2" href="#what-is-inside-the-file">What is inside the file</a><a class="toc-l2" href="#history-and-trends">History and trends</a><a class="toc-l2" href="#risk-register">Risk register</a><a class="toc-l2" href="#security-properties">Security properties</a><a class="toc-l2" href="#ci-pattern">CI pattern</a><a class="toc-l2" href="#developing-the-ui">Developing the UI</a></aside>
 </div>
 <script>
 function toggleTheme(){var r=document.documentElement;var cur=r.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');var next=cur==='dark'?'light':'dark';r.setAttribute('data-theme',next);try{localStorage.setItem('stoa-theme',next)}catch(e){}}

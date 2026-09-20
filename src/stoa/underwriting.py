@@ -105,6 +105,122 @@ def load_underwriting_config(path: Path) -> tuple[dict, list | None]:
     return identity, metrics
 
 
+# Indicative schedule terms, sized off exposure for the sample only. The carrier
+# sets the real terms; the dashboard labels these as indicative unless the
+# applicant declares a [schedule] in the underwriting config.
+_SCHEDULE_KEYS = ("policy_limit", "sublimit_own_losses", "sublimit_consequential",
+                  "aggregate_deductible", "co_insurance", "coverage_trigger", "carrier", "product")
+
+
+def load_schedule(path: Path) -> dict:
+    """Optional ``[schedule]`` table from the underwriting config (declared terms)."""
+    try:
+        data = tomllib.loads(path.read_text(encoding="utf-8"))
+    except (OSError, tomllib.TOMLDecodeError):
+        return {}
+    raw = data.get("schedule") or {}
+    return {k: str(v) for k, v in raw.items() if k in _SCHEDULE_KEYS}
+
+
+def build_assessment(document: dict, identity: dict | None = None,
+                     metrics: list | None = None, schedule: dict | None = None) -> dict:
+    """The pre-filled AI Model Risk Assessment as structured data.
+
+    Every field carries a ``source``: ``scan`` (populated from registry
+    evidence), ``declared`` (from stoa-declared.toml or the underwriting
+    config), ``applicant`` (identity the applicant supplied), ``sample``
+    (placeholder the applicant must replace), or ``indicative`` (schedule
+    terms sized off exposure; the carrier sets the final terms). The
+    dashboard renders the form from this and the legacy HTML export renders
+    the same facts, so the two never disagree.
+    """
+    idn_source = "applicant" if identity else "sample"
+    idn = {**DEMO_IDENTITY, **(identity or {})}
+    d = derive_from_registry(document)
+    repo = (document.get("repository") or {}).get("name", "the repository")
+    declared_schedule = dict(schedule or {})
+
+    def f(key: str, label: str, value: str, source: str, note: str = "") -> dict:
+        return {"key": key, "label": label, "value": value, "source": source, "note": note}
+
+    general = [
+        f("company", "Applicant company", idn["company"], idn_source),
+        f("address", "Address", idn["address"], idn_source),
+        f("contact", "Contact", f'{idn["contact_name"]}, {idn["contact_title"]}', idn_source),
+        f("contact_email", "Contact email", idn["contact_email"], idn_source),
+        f("home_state", "Home state", idn["home_state"], idn_source),
+        f("model", "Covered model", f'{idn["model_name"]} (v{idn["model_version"]})', idn_source),
+        f("deployment", "Deployment", idn["deployment"], idn_source),
+    ]
+    development = [
+        f("robustness", "Robustness testing (adversarial / prompt-injection)",
+          "Yes" if d["robustness"] else "No", "scan",
+          "evidenced by injection/tamper findings (AI001/AI002)" if d["robustness"] else "no injection or tamper findings observed"),
+        f("code_quality", "Code-quality checks", "Yes", "scan", "Stoa scan run in CI with stoa diff drift gating"),
+        f("inventory", "Agent inventory scanned", f'{d["agent_count"]} agent candidate(s)', "scan"),
+        f("critical", "Critical findings at development time", str(d["critical_count"]), "scan"),
+    ]
+    post = [
+        f("monitoring", "Post-deployment monitoring", "Yes" if d["monitoring"] else "No", "scan",
+          "observability observed (no CTRL004 gap)" if d["monitoring"] else "CTRL004 gap observed"),
+        f("drift", "Drift mitigation", "Yes", "scan", "capability drift tracked via stoa diff"),
+        f("rollback", "Update / rollback readiness",
+          "Declared in stoa-declared.toml" if d["has_declarations"] else "Not declared",
+          "declared" if d["has_declarations"] else "sample"),
+    ]
+    perf_rows = metrics if metrics is not None else SAMPLE_METRICS
+    performance = [
+        {"metric": r["metric"], "value": r["value"], "cadence": r["cadence"],
+         "source": "applicant" if metrics is not None else "sample"}
+        for r in perf_rows
+    ]
+    elevated = ", ".join(d["elevated_dims"]) if d["elevated_dims"] else "none at elevated"
+    econ = ", ".join(d["econ_findings"]) if d["econ_findings"] else "none observed"
+
+    def term(key: str, label: str, default: str) -> dict:
+        if key in declared_schedule:
+            return f(key, label, declared_schedule[key], "declared")
+        return f(key, label, default, "indicative")
+
+    schedule_rows = [
+        f("elevated_dims", "Elevated-exposure dimensions", elevated, "scan"),
+        f("econ_findings", "Economic-authority findings", econ, "scan"),
+        term("policy_limit", "Policy limit (aggregate)", d["limit"]),
+        term("sublimit_own_losses", "Sublimit — own financial losses", d["limit"]),
+        term("sublimit_consequential", "Sublimit — consequential financial expenses", "US$ 10,000,000"),
+        term("aggregate_deductible", "Aggregate deductible", d["deductible"]),
+        term("co_insurance", "Co-insurance", "10% (own financial losses) / 20% (consequential)"),
+        term("coverage_trigger", "Coverage trigger", d["trigger"]),
+        f("currency", "Currency", idn["currency"], idn_source),
+    ]
+    fields = general + development + post + schedule_rows
+    prefilled = sum(1 for x in fields if x["source"] in ("scan", "declared"))
+    to_confirm = sum(1 for x in fields if x["source"] in ("sample", "applicant"))
+    indicative = sum(1 for x in fields if x["source"] == "indicative")
+    return {
+        "template": "aiSure AI Model Risk Assessment",
+        "carrier": declared_schedule.get("carrier", "Munich Re"),
+        "product": declared_schedule.get("product", "aiSure"),
+        "repository": repo,
+        "sections": [
+            {"id": "general", "title": "General information", "fields": general},
+            {"id": "development", "title": "Model development", "fields": development},
+            {"id": "post", "title": "Customer onboarding and post-deployment", "fields": post},
+        ],
+        "performance": performance,
+        "performance_source": "applicant" if metrics is not None else "sample",
+        "schedule": schedule_rows,
+        "schedule_source": "declared" if any(k in declared_schedule for k in _SCHEDULE_KEYS[:6]) else "indicative",
+        "declaration": ("The undersigned confirms that, to the best of their knowledge, the information "
+                        "furnished in this assessment is true and correct in all material respects and "
+                        "no material fact has been knowingly withheld."),
+        "signatory": f'{idn["contact_name"]}, {idn["contact_title"]}',
+        "counts": {"prefilled": prefilled, "to_confirm": to_confirm, "indicative": indicative,
+                   "performance_rows": len(performance), "total": len(fields)},
+        "derived": d,
+    }
+
+
 def _bool_cell(value: bool) -> str:
     return "Yes" if value else "No"
 
