@@ -48,7 +48,7 @@ stoa scan . --json stoa-registry.json
 
 ## The dashboard
 
-One self-contained HTML file, six screens, no server, no network. It opens
+One self-contained HTML file, seven screens, no server, no network. It opens
 from disk, survives being emailed, and deep links (`#/findings/<id>`) keep
 working. See [docs/dashboard.md](docs/dashboard.md).
 
@@ -61,19 +61,24 @@ working. See [docs/dashboard.md](docs/dashboard.md).
 - **AI inventory**: agents in code and in infrastructure, tools, providers,
   integrations, declarations; an agent drawer with declared versus scanned;
   the architecture graph.
-- **Findings**: filters in the URL hash so a view is shareable, a
-  virtualized table, and a drawer with what the check does, why it matters,
-  and how to fix it.
+- **Declared Scope**: `stoa-declared.toml` next to what the scan inferred,
+  contradictions included.
+- **Risk Dashboard**: Findings (filters in the URL hash so a view is
+  shareable, a virtualized table, a drawer with what the check does, why it
+  matters, and how to fix it), Drift (the `stoa diff` document grouped for
+  review, unapproved authority increases first), and the Risk register (one
+  row per agent and dimension at moderate or above; treatments declared in
+  `stoa-declared.toml` as a `[[risk_register]]` block).
 
 ![Findings: filters, virtualized table, and the detail drawer](docs/images/dashboard-findings.png)
 
-- **Drift**: the `stoa diff` document grouped for review, unapproved
-  authority increases first.
-- **Risk register**: one row per agent and dimension the scanner scored at
-  moderate or above; treatments declared in `stoa-declared.toml` as a
-  `[[risk_register]]` block, with the snippet to paste.
-- **Evidence**: a risk-officer view and an underwriter view of the same
-  data; print a one-page summary or the full evidence pack from the browser.
+- **Controls & Safeguards**: which controls the scanner observed per agent,
+  tool guards, and the gaps it reported.
+- **Estimated Financial Loss**: declared economic limits next to the
+  money-moving tools found and whether the code enforces them. Stoa never
+  models or prices a loss.
+- **AI Risk Insurance**: underwriter and risk-officer evidence views; print a
+  one-page summary or the full evidence pack from the browser.
 
 ![Drift: the baseline and current refs, and the changes that need review](docs/images/dashboard-drift.png)
 

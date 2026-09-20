@@ -1399,6 +1399,14 @@
             "max_per_action": {
               "amount": 500,
               "currency": "USD"
+            },
+            "daily_aggregate": {
+              "amount": 25000,
+              "currency": "USD"
+            },
+            "worst_case_customer_loss": {
+              "amount": 250000,
+              "currency": "USD"
             }
           }
         },

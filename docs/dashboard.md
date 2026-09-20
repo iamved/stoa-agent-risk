@@ -1,7 +1,7 @@
 # The dashboard
 
 `stoa scan` writes `stoa-dashboard.html` next to the registry: one
-self-contained file, six screens, no server, no network. Open it from disk,
+self-contained file, seven screens in two groups, no server, no network. Open it from disk,
 email it, attach it to a ticket. It works over `file://` because everything
 it needs (code, styles, fonts, and the scan data) is inside the file.
 
@@ -14,6 +14,20 @@ stoa scan . --no-dashboard  # skip it
 The legacy summary report (`stoa-report.html`) keeps working and prints to
 about five pages. The dashboard is for exploring: filtering findings,
 drilling into an agent, reviewing drift, maintaining the risk register.
+
+| Group | Screen | What it shows |
+|---|---|---|
+| AI estate | Overview | the eight-dimension matrix by category, stat cards, the five findings to read first, framework classes, trends |
+| AI estate | AI Inventory | agents in code and infrastructure, tools, providers, integrations, the architecture graph |
+| AI estate | Declared Scope | `stoa-declared.toml` next to what the scan inferred, with contradictions |
+| Risk model | Risk Dashboard | three tabs: Findings (filters in the URL, virtualized table, What / Why / Fix drawer), Drift, Risk register |
+| Risk model | Controls & Safeguards | controls observed per agent, tool guards, control gaps by rule |
+| Risk model | Estimated Financial Loss | declared economic limits next to the money-moving tools found, and whether the code enforces them |
+| Risk model | AI Risk Insurance | the underwriter and risk-officer evidence views, printable as a one-page summary or the full pack |
+
+Every figure on Estimated Financial Loss was declared by a person; Stoa
+checks enforcement and never models or prices a loss. Stoa prepares
+insurance evidence; carriers price and issue.
 
 ## From an existing registry
 

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useApp } from "../app/context";
+import { RiskTabs } from "../components/RiskTabs";
 import { buildHash, navigate, useRoute } from "../app/router";
 import { ExposureBadge, Pill } from "../components/Badge";
 import { Drawer } from "../components/Drawer";
@@ -20,6 +21,7 @@ export function Register() {
 
   return (
     <div>
+      <RiskTabs current="register" />
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-[24px] m-0">Risk register</h1>
         <div className="caption">One row per agent and dimension the scanner scored at moderate or above. Treatments are declared in stoa-declared.toml and reviewed like code.</div>

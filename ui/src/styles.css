@@ -5,16 +5,18 @@
    pairs the color with a label or glyph. Free system font stacks; no
    network fonts. */
 @theme {
+  /* Tokens follow stoa.insure: warm off-white ground, white panels, navy ink,
+     one gold accent. Navy tiles carry the single "outcome" figure on a page. */
   --color-navy: #0e1c36;
-  --color-navy-700: #16264a;
+  --color-navy-700: #182a3e;
   --color-navy-100: #e6e9f0;
-  --color-gold: #bfa173;
-  --color-gold-100: #f5efe4;
-  --color-ink: #1b1f2a;
-  --color-ink-muted: #5a6272;
-  --color-paper: #f7f7f5;
+  --color-gold: #b98a2f;
+  --color-gold-100: #f6efdf;
+  --color-ink: #182a3e;
+  --color-ink-muted: #57697c;
+  --color-paper: #faf9f5;
   --color-panel: #ffffff;
-  --color-line: #dfe2e8;
+  --color-line: #dcd9cf;
 
   --color-sev-critical: #b42318;
   --color-sev-critical-bg: #fde8e8;

@@ -293,3 +293,15 @@ Measured on the meridian-pay fixture:
 The fixtures are generated from `examples/meridian-pay` by
 `ui/fixtures/build.py`; `tests/test_dashboard_fixtures.py` fails when they are
 stale or non-deterministic. The large fixture is generated, not committed.
+
+### Navigation revision (2026-09-20)
+
+The sidebar was regrouped to two sections on request: **AI estate**
+(Overview, AI Inventory, Declared Scope) and **Risk model** (Risk Dashboard
+with Findings / Drift / Risk register tabs, Controls & Safeguards, Estimated
+Financial Loss, AI Risk Insurance). Older routes (`#/findings`, `#/drift`,
+`#/register`, `#/evidence`) still resolve, and `#/risk` and `#/insurance`
+are aliases. The palette follows stoa.insure (warm off-white ground, white
+panels, navy ink, one gold accent) with a light sidebar, and the wordmark is
+the site's SVG mark inlined. Estimated Financial Loss shows declared
+`economic_authority` figures only; no loss is modeled.

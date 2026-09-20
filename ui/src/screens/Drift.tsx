@@ -1,4 +1,5 @@
 import { useApp } from "../app/context";
+import { RiskTabs } from "../components/RiskTabs";
 import { buildHash } from "../app/router";
 import { Pill, SeverityBadge } from "../components/Badge";
 import { EmptyState } from "../components/EmptyState";
@@ -18,6 +19,7 @@ export function Drift() {
   if (!diff) {
     return (
       <div>
+        <RiskTabs current="drift" />
         <h1 className="text-[24px] m-0 mb-4">Drift</h1>
         <EmptyState title="No baseline in this scan">
           <p className="m-0">Drift compares two registries produced by the same Stoa version and reports what changed in each agent's reach: capabilities, integrations, providers, findings, and dimension exposure.</p>
@@ -36,6 +38,7 @@ export function Drift() {
 
   return (
     <div>
+      <RiskTabs current="drift" />
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-[24px] m-0">Drift</h1>
         <div className="caption">Call sites added or removed in code, never runtime behavior. Both sides scanned by Stoa {diff.scanner_version}.</div>

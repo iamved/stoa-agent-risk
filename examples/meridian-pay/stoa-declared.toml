@@ -14,6 +14,8 @@ autonomy_intent = "human_approved"
 data_classes = ["personal", "financial"]
 [agents."b8f0111742fc".economic_authority]
 max_per_action = { amount = 500, currency = "USD" }
+daily_aggregate = { amount = 25000, currency = "USD" }
+worst_case_customer_loss = { amount = 250000, currency = "USD" }
 
 [agents."9299e5cfdb41"]      # aws/agents.tf :: aws_bedrockagent_agent.account_actions
 name = "meridian-account-actions"

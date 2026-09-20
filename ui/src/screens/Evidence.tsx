@@ -14,7 +14,7 @@ type View = "officer" | "underwriter";
 export function Evidence() {
   const { envelope, framework } = useApp();
   const route = useRoute();
-  const view: View = route.query.get("view") === "underwriter" ? "underwriter" : "officer";
+  const view: View = route.query.get("view") === "officer" ? "officer" : "underwriter";
   const [copied, setCopied] = useState<"idle" | "done" | "manual">("idle");
 
   const json = useMemo(() => JSON.stringify(envelope.registry, null, 2), [envelope.registry]);
@@ -31,11 +31,11 @@ export function Evidence() {
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-2 no-pack">
-        <h1 className="text-[24px] m-0">Evidence</h1>
+        <h1 className="text-[24px] m-0">AI Risk Insurance</h1>
         <div className="flex flex-wrap items-center gap-2 no-print">
           <div role="tablist" aria-label="View" className="flex items-center gap-2">
             {(["officer", "underwriter"] as const).map((v) => (
-              <a key={v} role="tab" aria-selected={view === v} href={buildHash("evidence", null, v === "officer" ? {} : { view: v })} className={`rounded border px-3 py-1 text-[13px] no-underline ${view === v ? "border-navy bg-navy text-white" : "border-line bg-panel text-ink"}`}>
+              <a key={v} role="tab" aria-selected={view === v} href={buildHash("evidence", null, v === "underwriter" ? {} : { view: v })} className={`rounded border px-3 py-1 text-[13px] no-underline ${view === v ? "border-navy bg-navy text-white" : "border-line bg-panel text-ink"}`}>
                 {v === "officer" ? "Risk officer view" : "Underwriter view"}
               </a>
             ))}
@@ -47,7 +47,7 @@ export function Evidence() {
           <button type="button" onClick={copyJson} className="rounded border border-line bg-panel px-3 py-1 text-[13px] hover:bg-paper">{copied === "done" ? "Copied" : "Copy JSON"}</button>
         </div>
       </div>
-      <p className="caption mt-1 mb-0 no-pack">{view === "officer" ? "Remediation-oriented: what is wrong, who owns it, how to fix it." : "Exposure-oriented: what the agents can do, which controls were observed or declared, contradictions, drift, and confidence per dimension."}{copied === "manual" ? " Clipboard access was blocked in this viewer; use Download or select the JSON manually." : ""}</p>
+      <p className="caption mt-1 mb-0 no-pack">Evidence for transferring AI agent risk. Stoa prepares the evidence; carriers price and issue. {view === "officer" ? "Remediation-oriented: what is wrong, who owns it, how to fix it." : "Exposure-oriented: what the agents can do, which controls were observed or declared, contradictions, drift, and confidence per dimension."}{copied === "manual" ? " Clipboard access was blocked in this viewer; use Download or select the JSON manually." : ""}</p>
 
       <div className="screen-view">{view === "officer" ? <OfficerView /> : <UnderwriterView />}</div>
       <div className="print-pack">

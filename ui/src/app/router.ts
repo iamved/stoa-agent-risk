@@ -7,8 +7,10 @@
  */
 import { useEffect, useState } from "react";
 
-export type ScreenId = "overview" | "inventory" | "findings" | "drift" | "register" | "evidence";
-export const SCREENS: ScreenId[] = ["overview", "inventory", "findings", "drift", "register", "evidence"];
+export type ScreenId = "overview" | "inventory" | "scope" | "findings" | "drift" | "register" | "controls" | "loss" | "evidence";
+export const SCREENS: ScreenId[] = ["overview", "inventory", "scope", "findings", "drift", "register", "controls", "loss", "evidence"];
+/** Older or friendlier paths that resolve to a screen. */
+const ALIASES: Record<string, ScreenId> = { risk: "findings", insurance: "evidence", declarations: "scope" };
 
 export interface Route {
   screen: ScreenId;
@@ -28,7 +30,7 @@ export function parseHash(hash: string): Route {
   const [pathPart = "", queryPart = ""] = raw.split("?", 2);
   const segments = pathPart.split("/").filter((s) => s.length > 0);
   const first = segments[0] ?? "";
-  const screen = isScreen(first) ? first : DEFAULT;
+  const screen = isScreen(first) ? first : (ALIASES[first] ?? DEFAULT);
   const second = segments[1];
   let id: string | null = null;
   if (second !== undefined && second.length > 0) {

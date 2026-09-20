@@ -127,9 +127,9 @@ test.describe("risk register", () => {
 
 test.describe("evidence and print", () => {
   test("two views of the same data", async ({ page }) => {
-    await page.goto(fileUrl("meridian-pay", "#/evidence"));
+    await page.goto(fileUrl("meridian-pay", "#/evidence?view=officer"));
     await expect(page.getByRole("heading", { name: "What is wrong" })).toBeVisible();
-    await page.goto(fileUrl("meridian-pay", "#/evidence?view=underwriter"));
+    await page.goto(fileUrl("meridian-pay", "#/evidence"));
     await expect(page.getByRole("heading", { name: "What the agents can do" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Controls: observed versus declared" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Confidence per dimension" })).toBeVisible();
@@ -159,5 +159,22 @@ test.describe("evidence and print", () => {
     await expect(pack.getByRole("heading", { name: "What the agents can do" })).toBeVisible();
     await expect(page.locator(".screen-view")).toBeHidden();
     await expect(page.locator("nav")).toBeHidden();
+  });
+});
+
+test.describe("estate and risk model screens", () => {
+  test("declared scope, controls, and financial loss render from the registry", async ({ page }) => {
+    await page.goto(fileUrl("meridian-pay", "#/scope"));
+    await expect(page.getByRole("heading", { name: "Declared Scope" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Contradictions" })).toBeVisible();
+    await page.goto(fileUrl("meridian-pay", "#/controls"));
+    await expect(page.getByRole("heading", { name: "Controls & Safeguards" })).toBeVisible();
+    await expect(page.getByText("Human approval").first()).toBeVisible();
+    await page.goto(fileUrl("meridian-pay", "#/loss"));
+    await expect(page.getByRole("heading", { name: "Estimated Financial Loss" })).toBeVisible();
+    await expect(page.getByText("500 USD").first()).toBeVisible();
+    await page.goto(fileUrl("meridian-pay", "#/risk"));
+    await expect(page.getByRole("tab", { name: /Findings/ })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByRole("navigation", { name: "Screens" })).toContainText("AI Risk Insurance");
   });
 });

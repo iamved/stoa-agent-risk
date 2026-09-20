@@ -146,7 +146,7 @@ function NameTable({ rows, label, onOpen }: { rows: NameRow[]; label: string; on
   );
 }
 
-function DeclarationsTable({ agents, onOpen }: { agents: Agent[]; onOpen: (a: Agent) => void }) {
+export function DeclarationsTable({ agents, onOpen }: { agents: Agent[]; onOpen: (a: Agent) => void }) {
   const { envelope } = useApp();
   const r = envelope.registry;
   return (

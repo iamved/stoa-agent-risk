@@ -11,6 +11,9 @@ import { Findings } from "../screens/Findings";
 import { Drift } from "../screens/Drift";
 import { Register } from "../screens/Register";
 import { Evidence } from "../screens/Evidence";
+import { Scope } from "../screens/Scope";
+import { Controls } from "../screens/Controls";
+import { Loss } from "../screens/Loss";
 
 type State = { status: "loading" } | { status: "ready"; envelope: Envelope } | { status: "problem"; problem: SchemaProblem };
 
@@ -45,6 +48,9 @@ function Routed() {
     route.screen === "drift" ? <Drift /> :
     route.screen === "register" ? <Register /> :
     route.screen === "evidence" ? <Evidence /> :
+    route.screen === "scope" ? <Scope /> :
+    route.screen === "controls" ? <Controls /> :
+    route.screen === "loss" ? <Loss /> :
     <Overview />;
   return <Shell screen={route.screen}>{screen}</Shell>;
 }

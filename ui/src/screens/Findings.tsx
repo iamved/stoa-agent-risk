@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useApp } from "../app/context";
+import { RiskTabs } from "../components/RiskTabs";
 import { buildHash, navigate, useRoute } from "../app/router";
 import { ConfidenceBadge, Pill, SeverityBadge } from "../components/Badge";
 import { DataTable, sortRows, type Column, type SortState } from "../components/DataTable";
@@ -44,6 +45,7 @@ export function Findings() {
 
   return (
     <div>
+      <RiskTabs current="findings" />
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-[24px] m-0">Findings</h1>
         <div className="caption">{sorted.length} of {all.length} shown{isFiltered(filters) ? " (filtered)" : ""}. Filters live in the address bar, so this view can be shared.</div>
