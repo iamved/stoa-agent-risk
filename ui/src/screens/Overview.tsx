@@ -1,20 +1,16 @@
 import { useApp } from "../app/context";
 import { buildHash } from "../app/router";
 import { DimensionMatrix } from "../components/DimensionMatrix";
-import { FrameworkStrip } from "../components/FrameworkStrip";
 import { Section } from "../components/Section";
-import { Sparkline } from "../components/Sparkline";
 import { StatCard } from "../components/StatCard";
 import { TopRisks } from "../components/TopRisks";
 import { SeverityBadge } from "../components/Badge";
-import { SEVERITIES, elevatedAgents, findingsTrend, pluralize, stats } from "../data/selectors";
-import { frameworkLabel } from "../data/frameworks";
+import { SEVERITIES, elevatedAgents, pluralize, stats } from "../data/selectors";
 
 export function Overview() {
-  const { envelope, framework } = useApp();
+  const { envelope } = useApp();
   const s = stats(envelope);
   const elevated = elevatedAgents(envelope);
-  const history = envelope.history;
   const activeTotal = SEVERITIES.reduce((n, sev) => n + s.findings[sev], 0);
 
   return (
@@ -75,32 +71,10 @@ export function Overview() {
         <DimensionMatrix />
       </Section>
 
-      <div className="grid gap-6 xl:grid-cols-[3fr_2fr] mt-6">
-        <Section title="Read these first" caption="Highest severity, one per rule where possible. Each links to its finding.">
-          <TopRisks />
-        </Section>
-        <Section title={`${frameworkLabel(framework)} classes`} caption="What this scan assessed under the selected framework.">
-          <FrameworkStrip />
-        </Section>
-      </div>
+      <Section title="Read these first" caption="Highest severity, one per rule where possible. Each links to its finding.">
+        <TopRisks />
+      </Section>
 
-      {history.length > 1 ? (
-        <Section title="Trend" caption={`${history.length} scans recorded under .stoa/history/. Per-dimension trends are on each matrix cell.`}>
-          <div className="panel p-3 flex flex-wrap gap-6">
-            {(["critical", "high", "medium"] as const).map((sev) => {
-              const points = findingsTrend(history, sev);
-              const max = Math.max(1, ...points.map((p) => p.value));
-              return (
-                <div key={sev} className="flex items-center gap-3">
-                  <SeverityBadge severity={sev} />
-                  <Sparkline points={points} max={max} label={`${sev} findings`} width={140} height={32} />
-                  <span className="caption tabular-nums">{points[points.length - 1]?.value ?? 0} now</span>
-                </div>
-              );
-            })}
-          </div>
-        </Section>
-      ) : null}
     </div>
   );
 }
