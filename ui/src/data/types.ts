@@ -489,6 +489,17 @@ export interface Assessment {
   derived: UnderwritingDerivation;
 }
 
+export interface IntakeBlock {
+  revenue?: number;
+  sector?: string;
+  jurisdictions?: string[];
+  records?: number;
+  regulated?: boolean;
+  minors?: boolean;
+  monthly_action_volume?: number;
+  existing_coverage?: { type: string; limit: number; ai_exclusion: boolean }[];
+}
+
 export interface Envelope {
   schema: string;
   generator: { name: string; version: string };
@@ -501,6 +512,7 @@ export interface Envelope {
   assurance: AssurancePacket;
   underwriting: UnderwritingDerivation;
   assessment: Assessment;
+  intake: IntakeBlock | null;
   rules: Record<string, RuleRecord>;
   taxonomy: TaxonomyBlock;
   frameworks: { nist_ai_rmf: { function: string; stoa: string }[] };

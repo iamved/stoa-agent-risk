@@ -149,6 +149,10 @@ def build_envelope(
             metrics=(underwriting or {}).get("metrics"),
             schedule=(underwriting or {}).get("schedule"),
         ),
+        # Business context for the loss outlook (revenue, sector, records,
+        # existing policies). None without an [intake] block; the page then
+        # shows declared limits only and never a modeled figure.
+        "intake": (underwriting or {}).get("intake"),
         "rules": _rules_table(crosswalk_path),
         "taxonomy": _taxonomy_block(taxonomy_path, registry),
         "frameworks": {"nist_ai_rmf": NIST_AI_RMF},

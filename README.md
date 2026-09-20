@@ -74,14 +74,18 @@ working. See [docs/dashboard.md](docs/dashboard.md).
 
 - **Controls & Safeguards**: which controls the scanner observed per agent,
   tool guards, and the gaps it reported.
-- **Estimated Financial Loss**: declared economic limits next to the
-  money-moving tools found and whether the code enforces them. Stoa never
-  models or prices a loss.
+- **Estimated Financial Loss**: a seeded loss outlook over public AI loss
+  events, driven by the scanned agent's reach and scores plus declared
+  business context: bad-year and average-year loss, suggested limit and
+  retention, gaps against current policies, comparable past cases, and the
+  levers that lower it. An indication, not a quote.
 - **AI Risk Insurance**: the pre-filled AI Model Risk Assessment as it
   would be submitted, each field tagged with where it came from, the
   schedule, and the evidence pack behind it. Print it to PDF from the browser.
 
 ![Drift: the baseline and current refs, and the changes that need review](docs/images/dashboard-drift.png)
+
+![Estimated Financial Loss: the loss outlook for one agent, with the exceedance curve and suggested coverage](docs/images/dashboard-loss.png)
 
 The framework selector (OWASP LLM Top 10, EU AI Act, NIST AI RMF) changes
 labels only. The scanner is the source of truth: the dashboard never

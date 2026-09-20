@@ -1,0 +1,1798 @@
+{
+ "EVENTS": [
+  {
+   "id": "E01",
+   "title": "Moffatt v. Air Canada: chatbot invented a refund policy",
+   "year": 2024,
+   "org": "Air Canada",
+   "sector": "airline",
+   "band": "large",
+   "rev": 16000000000,
+   "jur": "CA",
+   "cat": "hall",
+   "sys": "chatbot",
+   "sig": {
+    "fin": 0,
+    "pii": 0,
+    "write": 0,
+    "cust": 1,
+    "auto": "low",
+    "hil": "none"
+   },
+   "comps": [
+    {
+     "type": "judgment",
+     "usd": 600,
+     "party": "third",
+     "ins": "yes",
+     "grade": "A",
+     "src": "BC Civil Resolution Tribunal, 2024 BCCRT 149 (about CAD 812)"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E02",
+   "title": "Mata v. Avianca: fabricated case citations in a court filing",
+   "year": 2023,
+   "org": "Levidow, Levidow & Oberman",
+   "sector": "legal",
+   "band": "micro",
+   "rev": null,
+   "jur": "US",
+   "cat": "hall",
+   "sys": "generative",
+   "sig": {
+    "fin": 0,
+    "pii": 0,
+    "write": 0,
+    "cust": 0,
+    "auto": "low",
+    "hil": "partial"
+   },
+   "comps": [
+    {
+     "type": "judgment",
+     "usd": 5000,
+     "party": "first",
+     "ins": "partial",
+     "grade": "A",
+     "src": "SDNY sanctions order, June 2023"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E03",
+   "title": "Lacey v. State Farm: sanctions for AI-generated bogus research",
+   "year": 2025,
+   "org": "Two law firms (special master order)",
+   "sector": "legal",
+   "band": "large",
+   "rev": 1300000000,
+   "jur": "US",
+   "cat": "hall",
+   "sys": "generative",
+   "sig": {
+    "fin": 0,
+    "pii": 0,
+    "write": 0,
+    "cust": 0,
+    "auto": "low",
+    "hil": "partial"
+   },
+   "comps": [
+    {
+     "type": "judgment",
+     "usd": 31100,
+     "party": "first",
+     "ins": "partial",
+     "grade": "B",
+     "src": "C.D. Cal. special master order, May 2025"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E04",
+   "title": "MyPillow defamation defense: brief with nonexistent cases",
+   "year": 2025,
+   "org": "Defense counsel",
+   "sector": "legal",
+   "band": "micro",
+   "rev": null,
+   "jur": "US",
+   "cat": "hall",
+   "sys": "generative",
+   "sig": {
+    "fin": 0,
+    "pii": 0,
+    "write": 0,
+    "cust": 0,
+    "auto": "low",
+    "hil": "partial"
+   },
+   "comps": [
+    {
+     "type": "judgment",
+     "usd": 6000,
+     "party": "first",
+     "ins": "partial",
+     "grade": "B",
+     "src": "D. Colo. sanctions order, July 2025"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E05",
+   "title": "Government report with fabricated references, partial refund",
+   "year": 2025,
+   "org": "Deloitte Australia",
+   "sector": "consulting",
+   "band": "large",
+   "rev": null,
+   "jur": "AU",
+   "cat": "hall",
+   "sys": "generative",
+   "sig": {
+    "fin": 0,
+    "pii": 0,
+    "write": 0,
+    "cust": 1,
+    "auto": "low",
+    "hil": "partial"
+   },
+   "comps": [
+    {
+     "type": "contract_refund",
+     "usd": null,
+     "party": "first",
+     "ins": "yes",
+     "grade": "B",
+     "src": "Press reports, Oct 2025; contract about AUD 440k, refund amount not confirmed here"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E06",
+   "title": "Bard launch demo gave a wrong answer",
+   "year": 2023,
+   "org": "Alphabet",
+   "sector": "software",
+   "band": "mega",
+   "rev": 283000000000,
+   "jur": "US",
+   "cat": "hall",
+   "sys": "generative",
+   "sig": {
+    "fin": 0,
+    "pii": 0,
+    "write": 0,
+    "cust": 1,
+    "auto": "low",
+    "hil": "none"
+   },
+   "comps": [
+    {
+     "type": "market_cap_change",
+     "usd": 100000000000,
+     "party": "first",
+     "ins": "no",
+     "grade": "B",
+     "src": "Press reports, Feb 2023 (one-day market value move)"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E07",
+   "title": "Tessa eating-disorder helpline bot gave harmful advice",
+   "year": 2023,
+   "org": "NEDA",
+   "sector": "health",
+   "band": "micro",
+   "rev": null,
+   "jur": "US",
+   "cat": "hall",
+   "sys": "chatbot",
+   "sig": {
+    "fin": 0,
+    "pii": 1,
+    "write": 0,
+    "cust": 1,
+    "auto": "medium",
+    "hil": "none"
+   },
+   "comps": [],
+   "status": "final",
+   "nearMiss": true
+  },
+  {
+   "id": "E08",
+   "title": "MyCity chatbot told businesses to break the law",
+   "year": 2024,
+   "org": "City of New York",
+   "sector": "government",
+   "band": "large",
+   "rev": null,
+   "jur": "US",
+   "cat": "hall",
+   "sys": "chatbot",
+   "sig": {
+    "fin": 0,
+    "pii": 0,
+    "write": 0,
+    "cust": 1,
+    "auto": "low",
+    "hil": "none"
+   },
+   "comps": [],
+   "status": "final",
+   "nearMiss": true
+  },
+  {
+   "id": "E09",
+   "title": "Support bot invented a login policy, customers cancelled",
+   "year": 2025,
+   "org": "Cursor (Anysphere)",
+   "sector": "software",
+   "band": "mid",
+   "rev": null,
+   "jur": "US",
+   "cat": "hall",
+   "sys": "chatbot",
+   "sig": {
+    "fin": 0,
+    "pii": 1,
+    "write": 0,
+    "cust": 1,
+    "auto": "medium",
+    "hil": "none"
+   },
+   "comps": [],
+   "status": "final",
+   "nearMiss": true
+  },
+  {
+   "id": "E10",
+   "title": "Dealership chatbot talked into a one-dollar truck offer",
+   "year": 2023,
+   "org": "Chevrolet of Watsonville",
+   "sector": "retail",
+   "band": "small",
+   "rev": null,
+   "jur": "US",
+   "cat": "inj",
+   "sys": "chatbot",
+   "sig": {
+    "fin": 0,
+    "pii": 0,
+    "write": 0,
+    "cust": 1,
+    "auto": "low",
+    "hil": "none"
+   },
+   "comps": [],
+   "status": "final",
+   "nearMiss": true
+  },
+  {
+   "id": "E11",
+   "title": "EchoLeak: zero-click data exfiltration from an enterprise copilot",
+   "year": 2025,
+   "org": "Microsoft",
+   "sector": "software",
+   "band": "mega",
+   "rev": 245000000000,
+   "jur": "US",
+   "cat": "inj",
+   "sys": "agent",
+   "sig": {
+    "fin": 0,
+    "pii": 1,
+    "write": 0,
+    "cust": 0,
+    "auto": "medium",
+    "hil": "none"
+   },
+   "comps": [],
+   "status": "final",
+   "nearMiss": true
+  },
+  {
+   "id": "E12",
+   "title": "Workspace AI assistant indirect prompt injection disclosure",
+   "year": 2024,
+   "org": "Slack (Salesforce)",
+   "sector": "software",
+   "band": "large",
+   "rev": null,
+   "jur": "US",
+   "cat": "inj",
+   "sys": "agent",
+   "sig": {
+    "fin": 0,
+    "pii": 1,
+    "write": 0,
+    "cust": 0,
+    "auto": "medium",
+    "hil": "none"
+   },
+   "comps": [],
+   "status": "final",
+   "nearMiss": true
+  },
+  {
+   "id": "E13",
+   "title": "Coding assistant extension shipped with an injected wiper prompt",
+   "year": 2025,
+   "org": "Amazon (Q Developer)",
+   "sector": "software",
+   "band": "mega",
+   "rev": 638000000000,
+   "jur": "US",
+   "cat": "inj",
+   "sys": "agent",
+   "sig": {
+    "fin": 0,
+    "pii": 0,
+    "write": 1,
+    "cust": 0,
+    "auto": "high",
+    "hil": "none"
+   },
+   "comps": [],
+   "status": "final",
+   "nearMiss": true
+  },
+  {
+   "id": "E14",
+   "title": "Autonomous crypto agent's wallet drained via queued malicious prompts",
+   "year": 2025,
+   "org": "AIXBT",
+   "sector": "crypto",
+   "band": "micro",
+   "rev": null,
+   "jur": "US",
+   "cat": "inj",
+   "sys": "agent",
+   "sig": {
+    "fin": 1,
+    "pii": 0,
+    "write": 1,
+    "cust": 1,
+    "auto": "high",
+    "hil": "none"
+   },
+   "comps": [
+    {
+     "type": "fraud_loss",
+     "usd": 100000,
+     "party": "first",
+     "ins": "partial",
+     "grade": "C",
+     "src": "Press reports, Mar 2025 (about 55 ETH)"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E15",
+   "title": "Italian privacy regulator fines a chatbot provider",
+   "year": 2024,
+   "org": "OpenAI",
+   "sector": "software",
+   "band": "large",
+   "rev": 3700000000,
+   "jur": "EU",
+   "cat": "leak",
+   "sys": "generative",
+   "sig": {
+    "fin": 0,
+    "pii": 1,
+    "write": 0,
+    "cust": 1,
+    "auto": "low",
+    "hil": "none"
+   },
+   "comps": [
+    {
+     "type": "regulatory_fine",
+     "usd": 15600000,
+     "party": "third",
+     "ins": "partial",
+     "grade": "A",
+     "src": "Garante decision, Dec 2024 (EUR 15M)"
+    }
+   ],
+   "status": "appealed",
+   "fitAnyway": true
+  },
+  {
+   "id": "E16",
+   "title": "Italian privacy regulator fines a companion chatbot",
+   "year": 2025,
+   "org": "Luka (Replika)",
+   "sector": "software",
+   "band": "small",
+   "rev": null,
+   "jur": "EU",
+   "cat": "leak",
+   "sys": "chatbot",
+   "sig": {
+    "fin": 0,
+    "pii": 1,
+    "write": 0,
+    "cust": 1,
+    "auto": "medium",
+    "hil": "none"
+   },
+   "comps": [
+    {
+     "type": "regulatory_fine",
+     "usd": 5600000,
+     "party": "third",
+     "ins": "partial",
+     "grade": "A",
+     "src": "Garante decision, 2025 (EUR 5M)"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E17",
+   "title": "Dutch regulator fines a facial recognition vendor",
+   "year": 2024,
+   "org": "Clearview AI",
+   "sector": "software",
+   "band": "small",
+   "rev": null,
+   "jur": "EU",
+   "cat": "leak",
+   "sys": "decision",
+   "sig": {
+    "fin": 0,
+    "pii": 1,
+    "write": 0,
+    "cust": 0,
+    "auto": "medium",
+    "hil": "none"
+   },
+   "comps": [
+    {
+     "type": "regulatory_fine",
+     "usd": 33000000,
+     "party": "third",
+     "ins": "partial",
+     "grade": "A",
+     "src": "Dutch DPA decision, Sept 2024 (EUR 30.5M)"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E18",
+   "title": "Voice assistant recordings class settlement",
+   "year": 2025,
+   "org": "Apple",
+   "sector": "consumer tech",
+   "band": "mega",
+   "rev": 391000000000,
+   "jur": "US",
+   "cat": "leak",
+   "sys": "chatbot",
+   "sig": {
+    "fin": 0,
+    "pii": 1,
+    "write": 0,
+    "cust": 1,
+    "auto": "low",
+    "hil": "none"
+   },
+   "comps": [
+    {
+     "type": "settlement",
+     "usd": 95000000,
+     "party": "third",
+     "ins": "yes",
+     "grade": "A",
+     "src": "Lopez v. Apple settlement, N.D. Cal."
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E19",
+   "title": "State biometric privacy settlement over face tagging",
+   "year": 2024,
+   "org": "Meta",
+   "sector": "software",
+   "band": "mega",
+   "rev": 135000000000,
+   "jur": "US",
+   "cat": "leak",
+   "sys": "decision",
+   "sig": {
+    "fin": 0,
+    "pii": 1,
+    "write": 0,
+    "cust": 1,
+    "auto": "medium",
+    "hil": "none"
+   },
+   "comps": [
+    {
+     "type": "settlement",
+     "usd": 1400000000,
+     "party": "third",
+     "ins": "partial",
+     "grade": "A",
+     "src": "Texas Attorney General release, July 2024"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E20",
+   "title": "Biometric privacy class settlement over face tagging",
+   "year": 2021,
+   "org": "Facebook",
+   "sector": "software",
+   "band": "mega",
+   "rev": 86000000000,
+   "jur": "US",
+   "cat": "leak",
+   "sys": "decision",
+   "sig": {
+    "fin": 0,
+    "pii": 1,
+    "write": 0,
+    "cust": 1,
+    "auto": "medium",
+    "hil": "none"
+   },
+   "comps": [
+    {
+     "type": "settlement",
+     "usd": 650000000,
+     "party": "third",
+     "ins": "yes",
+     "grade": "A",
+     "src": "In re Facebook Biometric Information Privacy Litigation, N.D. Cal."
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E21",
+   "title": "Children's voice recordings retained by a voice assistant",
+   "year": 2023,
+   "org": "Amazon (Alexa)",
+   "sector": "consumer tech",
+   "band": "mega",
+   "rev": 514000000000,
+   "jur": "US",
+   "cat": "leak",
+   "sys": "chatbot",
+   "sig": {
+    "fin": 0,
+    "pii": 1,
+    "write": 0,
+    "cust": 1,
+    "auto": "low",
+    "hil": "none"
+   },
+   "comps": [
+    {
+     "type": "regulatory_fine",
+     "usd": 25000000,
+     "party": "third",
+     "ins": "partial",
+     "grade": "A",
+     "src": "FTC and DOJ release, 2023"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E22",
+   "title": "Children's data used to train models, algorithm deletion ordered",
+   "year": 2022,
+   "org": "WW International (Kurbo)",
+   "sector": "consumer",
+   "band": "large",
+   "rev": 1200000000,
+   "jur": "US",
+   "cat": "leak",
+   "sys": "decision",
+   "sig": {
+    "fin": 0,
+    "pii": 1,
+    "write": 0,
+    "cust": 1,
+    "auto": "low",
+    "hil": "none"
+   },
+   "comps": [
+    {
+     "type": "regulatory_fine",
+     "usd": 1500000,
+     "party": "third",
+     "ins": "partial",
+     "grade": "A",
+     "src": "FTC release, Mar 2022"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E23",
+   "title": "Insurer's AI video claims analysis, biometric class settlement",
+   "year": 2022,
+   "org": "Lemonade",
+   "sector": "insurance",
+   "band": "mid",
+   "rev": 128000000,
+   "jur": "US",
+   "cat": "leak",
+   "sys": "decision",
+   "sig": {
+    "fin": 1,
+    "pii": 1,
+    "write": 0,
+    "cust": 1,
+    "auto": "high",
+    "hil": "partial"
+   },
+   "comps": [
+    {
+     "type": "settlement",
+     "usd": 4000000,
+     "party": "third",
+     "ins": "yes",
+     "grade": "B",
+     "src": "Press reports of BIPA class settlement, 2022"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E24",
+   "title": "Engineers pasted source code into a public chatbot",
+   "year": 2023,
+   "org": "Samsung",
+   "sector": "electronics",
+   "band": "mega",
+   "rev": 200000000000,
+   "jur": "KR",
+   "cat": "leak",
+   "sys": "generative",
+   "sig": {
+    "fin": 0,
+    "pii": 0,
+    "write": 0,
+    "cust": 0,
+    "auto": "low",
+    "hil": "none"
+   },
+   "comps": [],
+   "status": "final",
+   "nearMiss": true
+  },
+  {
+   "id": "E25",
+   "title": "Hiring chatbot backend exposed applicant records",
+   "year": 2025,
+   "org": "Paradox.ai / McDonald's",
+   "sector": "hr tech",
+   "band": "mid",
+   "rev": null,
+   "jur": "US",
+   "cat": "leak",
+   "sys": "chatbot",
+   "sig": {
+    "fin": 0,
+    "pii": 1,
+    "write": 1,
+    "cust": 1,
+    "auto": "medium",
+    "hil": "none"
+   },
+   "comps": [
+    {
+     "type": "incident_response",
+     "usd": null,
+     "party": "first",
+     "ins": "yes",
+     "grade": "B",
+     "src": "Security researcher disclosure, 2025; no loss figure published"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E26",
+   "title": "Cache bug exposed other users' chat titles and payment details",
+   "year": 2023,
+   "org": "OpenAI",
+   "sector": "software",
+   "band": "mid",
+   "rev": null,
+   "jur": "US",
+   "cat": "leak",
+   "sys": "generative",
+   "sig": {
+    "fin": 0,
+    "pii": 1,
+    "write": 0,
+    "cust": 1,
+    "auto": "low",
+    "hil": "none"
+   },
+   "comps": [],
+   "status": "final",
+   "nearMiss": true
+  },
+  {
+   "id": "E27",
+   "title": "Authors' class settlement over pirated training books",
+   "year": 2025,
+   "org": "Anthropic",
+   "sector": "software",
+   "band": "large",
+   "rev": 5000000000,
+   "jur": "US",
+   "cat": "ip",
+   "sys": "generative",
+   "sig": {
+    "fin": 0,
+    "pii": 0,
+    "write": 0,
+    "cust": 1,
+    "auto": "low",
+    "hil": "none"
+   },
+   "comps": [
+    {
+     "type": "settlement",
+     "usd": 1500000000,
+     "party": "third",
+     "ins": "partial",
+     "grade": "A",
+     "src": "Bartz v. Anthropic settlement, N.D. Cal., 2025"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E28",
+   "title": "Newspaper copyright suit over training and outputs",
+   "year": 2023,
+   "org": "OpenAI / Microsoft",
+   "sector": "software",
+   "band": "large",
+   "rev": null,
+   "jur": "US",
+   "cat": "ip",
+   "sys": "generative",
+   "sig": {
+    "fin": 0,
+    "pii": 0,
+    "write": 0,
+    "cust": 1,
+    "auto": "low",
+    "hil": "none"
+   },
+   "comps": [],
+   "status": "pending"
+  },
+  {
+   "id": "E29",
+   "title": "Studios sue an image generator over character outputs",
+   "year": 2025,
+   "org": "Midjourney",
+   "sector": "software",
+   "band": "mid",
+   "rev": null,
+   "jur": "US",
+   "cat": "ip",
+   "sys": "generative",
+   "sig": {
+    "fin": 0,
+    "pii": 0,
+    "write": 0,
+    "cust": 1,
+    "auto": "low",
+    "hil": "none"
+   },
+   "comps": [],
+   "status": "pending"
+  },
+  {
+   "id": "E30",
+   "title": "Legal research startup found liable for training on headnotes",
+   "year": 2025,
+   "org": "Ross Intelligence",
+   "sector": "legal tech",
+   "band": "micro",
+   "rev": null,
+   "jur": "US",
+   "cat": "ip",
+   "sys": "generative",
+   "sig": {
+    "fin": 0,
+    "pii": 0,
+    "write": 0,
+    "cust": 1,
+    "auto": "low",
+    "hil": "none"
+   },
+   "comps": [],
+   "status": "appealed"
+  },
+  {
+   "id": "E31",
+   "title": "Home pricing model overpaid, business line shut down",
+   "year": 2021,
+   "org": "Zillow",
+   "sector": "real estate",
+   "band": "large",
+   "rev": 8100000000,
+   "jur": "US",
+   "cat": "perf",
+   "sys": "decision",
+   "sig": {
+    "fin": 1,
+    "pii": 0,
+    "write": 1,
+    "cust": 0,
+    "auto": "high",
+    "hil": "partial"
+   },
+   "comps": [
+    {
+     "type": "asset_writedown",
+     "usd": 304000000,
+     "party": "first",
+     "ins": "no",
+     "grade": "A",
+     "src": "Company Q3 2021 results (inventory writedown)"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E32",
+   "title": "Ad targeting model ingested bad data, revenue shortfall",
+   "year": 2022,
+   "org": "Unity",
+   "sector": "software",
+   "band": "large",
+   "rev": 1100000000,
+   "jur": "US",
+   "cat": "perf",
+   "sys": "decision",
+   "sig": {
+    "fin": 0,
+    "pii": 0,
+    "write": 1,
+    "cust": 0,
+    "auto": "high",
+    "hil": "none"
+   },
+   "comps": [
+    {
+     "type": "business_interruption",
+     "usd": 110000000,
+     "party": "first",
+     "ins": "no",
+     "grade": "A",
+     "src": "Company Q1 2022 earnings call (own revenue impact)"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E33",
+   "title": "Oncology advisor project abandoned after audit",
+   "year": 2017,
+   "org": "MD Anderson / IBM Watson",
+   "sector": "health",
+   "band": "large",
+   "rev": null,
+   "jur": "US",
+   "cat": "perf",
+   "sys": "decision",
+   "sig": {
+    "fin": 0,
+    "pii": 1,
+    "write": 0,
+    "cust": 0,
+    "auto": "low",
+    "hil": "full"
+   },
+   "comps": [
+    {
+     "type": "asset_writedown",
+     "usd": 62000000,
+     "party": "first",
+     "ins": "no",
+     "grade": "B",
+     "src": "University of Texas audit, press reports"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E34",
+   "title": "\"Robot lawyer\" could not do what it advertised",
+   "year": 2025,
+   "org": "DoNotPay",
+   "sector": "legal tech",
+   "band": "small",
+   "rev": null,
+   "jur": "US",
+   "cat": "perf",
+   "sys": "generative",
+   "sig": {
+    "fin": 0,
+    "pii": 1,
+    "write": 0,
+    "cust": 1,
+    "auto": "medium",
+    "hil": "none"
+   },
+   "comps": [
+    {
+     "type": "regulatory_fine",
+     "usd": 193000,
+     "party": "third",
+     "ins": "partial",
+     "grade": "A",
+     "src": "FTC final order, 2025"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E35",
+   "title": "Robotaxi dragged a pedestrian, incident report incomplete",
+   "year": 2023,
+   "org": "Cruise",
+   "sector": "mobility",
+   "band": "mid",
+   "rev": null,
+   "jur": "US",
+   "cat": "perf",
+   "sys": "physical",
+   "sig": {
+    "fin": 0,
+    "pii": 0,
+    "write": 1,
+    "cust": 1,
+    "auto": "high",
+    "hil": "none"
+   },
+   "comps": [
+    {
+     "type": "regulatory_fine",
+     "usd": 1500000,
+     "party": "third",
+     "ins": "partial",
+     "grade": "A",
+     "src": "NHTSA consent order, 2024"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E36",
+   "title": "Driver assistance fatal crash, jury verdict",
+   "year": 2025,
+   "org": "Tesla",
+   "sector": "automotive",
+   "band": "mega",
+   "rev": 97000000000,
+   "jur": "US",
+   "cat": "perf",
+   "sys": "physical",
+   "sig": {
+    "fin": 0,
+    "pii": 0,
+    "write": 1,
+    "cust": 1,
+    "auto": "high",
+    "hil": "partial"
+   },
+   "comps": [
+    {
+     "type": "judgment",
+     "usd": 243000000,
+     "party": "third",
+     "ins": "yes",
+     "grade": "A",
+     "src": "Benavides v. Tesla, S.D. Fla., Aug 2025"
+    }
+   ],
+   "status": "appealed"
+  },
+  {
+   "id": "E37",
+   "title": "Automated fraud detection falsely accused benefit claimants",
+   "year": 2022,
+   "org": "State of Michigan (MiDAS)",
+   "sector": "government",
+   "band": "large",
+   "rev": null,
+   "jur": "US",
+   "cat": "perf",
+   "sys": "analog",
+   "sig": {
+    "fin": 1,
+    "pii": 1,
+    "write": 1,
+    "cust": 1,
+    "auto": "high",
+    "hil": "none"
+   },
+   "comps": [
+    {
+     "type": "settlement",
+     "usd": 20000000,
+     "party": "third",
+     "ins": "partial",
+     "grade": "B",
+     "src": "Class settlement, press reports"
+    }
+   ],
+   "status": "final",
+   "analog": true
+  },
+  {
+   "id": "E38",
+   "title": "Automated debt recovery raised unlawful debts",
+   "year": 2020,
+   "org": "Australian Government (Robodebt)",
+   "sector": "government",
+   "band": "mega",
+   "rev": null,
+   "jur": "AU",
+   "cat": "perf",
+   "sys": "analog",
+   "sig": {
+    "fin": 1,
+    "pii": 1,
+    "write": 1,
+    "cust": 1,
+    "auto": "high",
+    "hil": "none"
+   },
+   "comps": [
+    {
+     "type": "settlement",
+     "usd": 1200000000,
+     "party": "third",
+     "ins": "no",
+     "grade": "B",
+     "src": "Class settlement about AUD 1.8B including refunds (sovereign program)"
+    }
+   ],
+   "status": "final",
+   "analog": true
+  },
+  {
+   "id": "E39",
+   "title": "Care-denial prediction model class action",
+   "year": 2023,
+   "org": "UnitedHealth (naviHealth)",
+   "sector": "health",
+   "band": "mega",
+   "rev": 372000000000,
+   "jur": "US",
+   "cat": "perf",
+   "sys": "decision",
+   "sig": {
+    "fin": 1,
+    "pii": 1,
+    "write": 1,
+    "cust": 0,
+    "auto": "high",
+    "hil": "partial"
+   },
+   "comps": [],
+   "status": "pending"
+  },
+  {
+   "id": "E40",
+   "title": "Hiring software auto-rejected older applicants",
+   "year": 2023,
+   "org": "iTutorGroup",
+   "sector": "edtech",
+   "band": "small",
+   "rev": null,
+   "jur": "US",
+   "cat": "bias",
+   "sys": "decision",
+   "sig": {
+    "fin": 0,
+    "pii": 1,
+    "write": 1,
+    "cust": 0,
+    "auto": "high",
+    "hil": "none"
+   },
+   "comps": [
+    {
+     "type": "settlement",
+     "usd": 365000,
+     "party": "third",
+     "ins": "yes",
+     "grade": "A",
+     "src": "EEOC consent decree, Aug 2023"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E41",
+   "title": "Tenant screening score disadvantaged voucher holders",
+   "year": 2024,
+   "org": "SafeRent Solutions",
+   "sector": "proptech",
+   "band": "small",
+   "rev": null,
+   "jur": "US",
+   "cat": "bias",
+   "sys": "decision",
+   "sig": {
+    "fin": 0,
+    "pii": 1,
+    "write": 0,
+    "cust": 0,
+    "auto": "high",
+    "hil": "none"
+   },
+   "comps": [
+    {
+     "type": "settlement",
+     "usd": 2275000,
+     "party": "third",
+     "ins": "yes",
+     "grade": "A",
+     "src": "Louis v. SafeRent, D. Mass., 2024"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E42",
+   "title": "Housing ad delivery algorithm, civil penalty",
+   "year": 2022,
+   "org": "Meta",
+   "sector": "software",
+   "band": "mega",
+   "rev": 117000000000,
+   "jur": "US",
+   "cat": "bias",
+   "sys": "decision",
+   "sig": {
+    "fin": 0,
+    "pii": 1,
+    "write": 0,
+    "cust": 1,
+    "auto": "high",
+    "hil": "none"
+   },
+   "comps": [
+    {
+     "type": "regulatory_fine",
+     "usd": 115054,
+     "party": "third",
+     "ins": "partial",
+     "grade": "A",
+     "src": "DOJ settlement, June 2022"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E43",
+   "title": "Student loan underwriting model, state fair lending settlement",
+   "year": 2025,
+   "org": "Earnest Operations",
+   "sector": "fintech",
+   "band": "mid",
+   "rev": null,
+   "jur": "US",
+   "cat": "bias",
+   "sys": "decision",
+   "sig": {
+    "fin": 1,
+    "pii": 1,
+    "write": 1,
+    "cust": 1,
+    "auto": "high",
+    "hil": "partial"
+   },
+   "comps": [
+    {
+     "type": "settlement",
+     "usd": 2500000,
+     "party": "third",
+     "ins": "partial",
+     "grade": "B",
+     "src": "Massachusetts Attorney General release, July 2025"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E44",
+   "title": "Childcare benefits risk model, data protection fine",
+   "year": 2021,
+   "org": "Dutch Tax Administration",
+   "sector": "government",
+   "band": "large",
+   "rev": null,
+   "jur": "EU",
+   "cat": "bias",
+   "sys": "decision",
+   "sig": {
+    "fin": 1,
+    "pii": 1,
+    "write": 1,
+    "cust": 1,
+    "auto": "high",
+    "hil": "partial"
+   },
+   "comps": [
+    {
+     "type": "regulatory_fine",
+     "usd": 3300000,
+     "party": "third",
+     "ins": "partial",
+     "grade": "A",
+     "src": "Dutch DPA decision, 2021 (EUR 2.75M)"
+    }
+   ],
+   "status": "final"
+  },
+  {
+   "id": "E45",
+   "title": "Applicant screening platform collective action",
+   "year": 2023,
+   "org": "Workday",
+   "sector": "hr tech",
+   "band": "large",
+   "rev": 7300000000,
+   "jur": "US",
+   "cat": "bias",
+   "sys": "decision",
+   "sig": {
+    "fin": 0,
+    "pii": 1,
+    "write": 1,
+    "cust": 0,
+    "auto": "high",
+    "hil": "none"
+   },
+   "comps": [],
+   "status": "pending"
+  },
+  {
+   "id": "E46",
+   "title": "Store facial recognition misidentified shoppers, 5-year ban",
+   "year": 2023,
+   "org": "Rite Aid",
+   "sector": "retail",
+   "band": "large",
+   "rev": 24000000000,
+   "jur": "US",
+   "cat": "bias",
+   "sys": "decision",
+   "sig": {
+    "fin": 0,
+    "pii": 1,
+    "write": 0,
+    "cust": 1,
+    "auto": "medium",
+    "hil": "partial"
+   },
+   "comps": [],
+   "status": "final",
+   "nearMiss": true
+  },
+  {
+   "id": "E47",
+   "title": "Faulty automated trading deployment, 45 minutes of bad orders",
+   "year": 2012,
+   "org": "Knight Capital",
+   "sector": "fintech",
+   "band": "large",
+   "rev": 1400000000,
+   "jur": "US",
+   "cat": "trans",
+   "sys": "analog",
+   "sig": {
+    "fin": 1,
+    "pii": 0,
+    "write": 1,
+    "cust": 0,
+    "auto": "high",
+    "hil": "none"
+   },
+   "comps": [
+    {
+     "type": "direct_financial_loss",
+     "usd": 440000000,
+     "party": "first",
+     "ins": "partial",
+     "grade": "A",
+     "src": "SEC order, 2013"
+    }
+   ],
+   "status": "final",
+   "analog": true
+  },
+  {
+   "id": "E48",
+   "title": "Deepfake video call led staff to wire funds",
+   "year": 2024,
+   "org": "Arup",
+   "sector": "engineering",
+   "band": "large",
+   "rev": 2600000000,
+   "jur": "HK",
+   "cat": "trans",
+   "sys": "analog",
+   "sig": {
+    "fin": 1,
+    "pii": 0,
+    "write": 1,
+    "cust": 0,
+    "auto": "low",
+    "hil": "partial"
+   },
+   "comps": [
+    {
+     "type": "fraud_loss",
+     "usd": 25600000,
+     "party": "first",
+     "ins": "yes",
+     "grade": "B",
+     "src": "Company confirmation, press reports, 2024 (about HKD 200M)"
+    }
+   ],
+   "status": "final",
+   "analog": true
+  },
+  {
+   "id": "E49",
+   "title": "Coding agent deleted a production database during a freeze",
+   "year": 2025,
+   "org": "Replit (customer project)",
+   "sector": "software",
+   "band": "mid",
+   "rev": null,
+   "jur": "US",
+   "cat": "loss",
+   "sys": "agent",
+   "sig": {
+    "fin": 0,
+    "pii": 1,
+    "write": 1,
+    "cust": 0,
+    "auto": "high",
+    "hil": "none"
+   },
+   "comps": [],
+   "status": "final",
+   "nearMiss": true
+  },
+  {
+   "id": "E50",
+   "title": "Command-line agent destroyed user files after a failed move",
+   "year": 2025,
+   "org": "Google (Gemini CLI)",
+   "sector": "software",
+   "band": "mega",
+   "rev": null,
+   "jur": "US",
+   "cat": "loss",
+   "sys": "agent",
+   "sig": {
+    "fin": 0,
+    "pii": 0,
+    "write": 1,
+    "cust": 0,
+    "auto": "high",
+    "hil": "none"
+   },
+   "comps": [],
+   "status": "final",
+   "nearMiss": true
+  }
+ ],
+ "CATS": [
+  {
+   "key": "hall",
+   "name": "AI Hallucinations",
+   "dims": [
+    "output_fidelity"
+   ],
+   "third": true
+  },
+  {
+   "key": "inj",
+   "name": "Prompt Injections",
+   "dims": [
+    "injection_tamper_surface"
+   ],
+   "third": false
+  },
+  {
+   "key": "leak",
+   "name": "Data Leakage",
+   "dims": [
+    "boundary_leakage"
+   ],
+   "third": true
+  },
+  {
+   "key": "ip",
+   "name": "IP Infringement",
+   "dims": [
+    "output_fidelity",
+    "control_coverage_gap"
+   ],
+   "third": true
+  },
+  {
+   "key": "perf",
+   "name": "Performance Failure",
+   "dims": [
+    "conduct_variability",
+    "dependency_drift"
+   ],
+   "third": true
+  },
+  {
+   "key": "bias",
+   "name": "Algorithmic Bias",
+   "dims": [
+    "unreviewed_high_impact_action",
+    "control_coverage_gap"
+   ],
+   "third": true
+  },
+  {
+   "key": "trans",
+   "name": "Erroneous Transactions",
+   "dims": [
+    "mandate_overreach",
+    "unreviewed_high_impact_action"
+   ],
+   "third": false
+  },
+  {
+   "key": "loss",
+   "name": "Data Loss and Corruption",
+   "dims": [
+    "mandate_overreach",
+    "dependency_drift"
+   ],
+   "third": false
+  }
+ ],
+ "DIMS": [
+  [
+   "boundary_leakage",
+   "Boundary leakage"
+  ],
+  [
+   "mandate_overreach",
+   "Mandate overreach"
+  ],
+  [
+   "injection_tamper_surface",
+   "Injection and tamper surface"
+  ],
+  [
+   "control_coverage_gap",
+   "Control coverage gap"
+  ],
+  [
+   "unreviewed_high_impact_action",
+   "Unreviewed high-impact action"
+  ],
+  [
+   "output_fidelity",
+   "Output fidelity"
+  ],
+  [
+   "conduct_variability",
+   "Conduct variability"
+  ],
+  [
+   "dependency_drift",
+   "Dependency drift"
+  ]
+ ],
+ "DEFAULT_ASSUME": {
+  "version": "demo-0.1",
+  "alpha": 0.5,
+  "scaleClamp": [
+   0.01,
+   10
+  ],
+  "k": 8,
+  "reportingShift": -1.5,
+  "defenseLoad": 1.25,
+  "capMult": 0.5,
+  "insFrac": {
+   "yes": 1,
+   "partial": 0.5,
+   "no": 0
+  },
+  "inflation": 0.03,
+  "currentYear": 2026,
+  "pLow": 0.95,
+  "pMid": 0.99,
+  "pHigh": 0.996,
+  "years": 100000,
+  "bootReps": 30,
+  "bootYears": 10000,
+  "shockSigma": 0.3,
+  "sigmaCap": 2.1,
+  "transCapShare": 0.02,
+  "refRevenue": 50000000,
+  "priorJitter": 0.5,
+  "base": {
+   "hall": 0.15,
+   "inj": 0.08,
+   "leak": 0.06,
+   "ip": 0.02,
+   "perf": 0.08,
+   "bias": 0.04,
+   "trans": 0.1,
+   "loss": 0.05
+  },
+  "prior": {
+   "hall": {
+    "median": 40000,
+    "sigma": 1.8
+   },
+   "inj": {
+    "median": 120000,
+    "sigma": 1.8
+   },
+   "leak": {
+    "median": 200000,
+    "sigma": 1.9
+   },
+   "ip": {
+    "median": 250000,
+    "sigma": 2
+   },
+   "perf": {
+    "median": 150000,
+    "sigma": 1.8
+   },
+   "bias": {
+    "median": 250000,
+    "sigma": 1.8
+   },
+   "trans": {
+    "median": 80000,
+    "sigma": 2
+   },
+   "loss": {
+    "median": 100000,
+    "sigma": 1.7
+   }
+  },
+  "hil": {
+   "none": 1,
+   "partial": 0.7,
+   "approval_above_threshold": 0.5,
+   "full": 0.25
+  },
+  "autonomy": {
+   "low": 0.7,
+   "medium": 1,
+   "high": 1.3
+  },
+  "gateFloor": {
+   "trans": 0.02,
+   "leak": 0.05,
+   "loss": 0.1
+  },
+  "limitSteps": [
+   1000000,
+   2000000,
+   3000000,
+   5000000,
+   10000000,
+   15000000,
+   20000000,
+   25000000,
+   50000000,
+   100000000
+  ],
+  "subSteps": [
+   250000,
+   500000,
+   1000000,
+   2000000,
+   3000000,
+   5000000,
+   10000000,
+   15000000,
+   20000000,
+   25000000,
+   50000000,
+   100000000
+  ],
+  "retSteps": [
+   10000,
+   25000,
+   50000,
+   100000,
+   250000,
+   500000,
+   1000000
+  ]
+ },
+ "FIXTURES": {
+  "F1": {
+   "label": "EdTech, seed stage: tutoring chatbot",
+   "scan": {
+    "schema": "stoa-risk-report/1.2",
+    "agents": [
+     {
+      "name": "tutor-chat",
+      "capabilities": {
+       "financial_authority": {
+        "enabled": false,
+        "max_per_action_usd": 0,
+        "monthly_action_volume": 0
+       },
+       "pii_access": true,
+       "sensitive_data_access": "none",
+       "write_access_to_systems": false,
+       "autonomy_level": "medium",
+       "human_in_loop": "none",
+       "customer_facing": true
+      },
+      "dimension_scores": {
+       "boundary_leakage": 58,
+       "mandate_overreach": 30,
+       "injection_tamper_surface": 60,
+       "control_coverage_gap": 65,
+       "unreviewed_high_impact_action": 35,
+       "output_fidelity": 66,
+       "conduct_variability": 55,
+       "dependency_drift": 45
+      }
+     }
+    ]
+   },
+   "intake": {
+    "revenue": 2000000,
+    "sector": "edtech",
+    "jurisdictions": [
+     "US"
+    ],
+    "records": 120000,
+    "regulated": true,
+    "minors": true,
+    "existing_coverage": []
+   }
+  },
+  "F2": {
+   "label": "Fintech, Series B: refund agent",
+   "scan": {
+    "schema": "stoa-risk-report/1.2",
+    "agents": [
+     {
+      "name": "refund-agent",
+      "capabilities": {
+       "financial_authority": {
+        "enabled": true,
+        "max_per_action_usd": 500,
+        "monthly_action_volume": 200000
+       },
+       "pii_access": true,
+       "sensitive_data_access": "payment",
+       "write_access_to_systems": true,
+       "autonomy_level": "high",
+       "human_in_loop": "none",
+       "customer_facing": true
+      },
+      "dimension_scores": {
+       "boundary_leakage": 62,
+       "mandate_overreach": 71,
+       "injection_tamper_surface": 55,
+       "control_coverage_gap": 68,
+       "unreviewed_high_impact_action": 80,
+       "output_fidelity": 40,
+       "conduct_variability": 35,
+       "dependency_drift": 30
+      }
+     }
+    ]
+   },
+   "intake": {
+    "revenue": 40000000,
+    "sector": "fintech",
+    "jurisdictions": [
+     "US",
+     "EU"
+    ],
+    "records": 1500000,
+    "regulated": true,
+    "minors": false,
+    "existing_coverage": [
+     {
+      "type": "cyber",
+      "limit": 5000000,
+      "ai_exclusion": true
+     }
+    ]
+   }
+  },
+  "F3": {
+   "label": "HealthTech, growth stage: prior-auth triage agent",
+   "scan": {
+    "schema": "stoa-risk-report/1.2",
+    "agents": [
+     {
+      "name": "prior-auth-triage",
+      "capabilities": {
+       "financial_authority": {
+        "enabled": false,
+        "max_per_action_usd": 0,
+        "monthly_action_volume": 0
+       },
+       "pii_access": true,
+       "sensitive_data_access": "phi",
+       "write_access_to_systems": true,
+       "autonomy_level": "medium",
+       "human_in_loop": "partial",
+       "customer_facing": false
+      },
+      "dimension_scores": {
+       "boundary_leakage": 55,
+       "mandate_overreach": 48,
+       "injection_tamper_surface": 38,
+       "control_coverage_gap": 52,
+       "unreviewed_high_impact_action": 74,
+       "output_fidelity": 58,
+       "conduct_variability": 50,
+       "dependency_drift": 42
+      }
+     }
+    ]
+   },
+   "intake": {
+    "revenue": 150000000,
+    "sector": "healthtech",
+    "jurisdictions": [
+     "US"
+    ],
+    "records": 3000000,
+    "regulated": true,
+    "minors": false,
+    "existing_coverage": [
+     {
+      "type": "tech_eo",
+      "limit": 10000000,
+      "ai_exclusion": false
+     }
+    ]
+   }
+  }
+ }
+}

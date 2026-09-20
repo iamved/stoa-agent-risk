@@ -464,7 +464,7 @@ def _write_scan_dashboard(result, config, args, document, base_doc, root: Path):
 
 def _load_underwriting(root: Path, explicit: str | None) -> dict | None:
     """Identity, metrics and schedule for the dashboard assessment; None when absent."""
-    from .underwriting import load_schedule, load_underwriting_config
+    from .underwriting import load_intake, load_schedule, load_underwriting_config
 
     path = Path(explicit) if explicit else root / ".stoa" / "underwriting.toml"
     if not path.is_file():
@@ -472,7 +472,8 @@ def _load_underwriting(root: Path, explicit: str | None) -> dict | None:
             print(f"stoa: warning: underwriting config not found: {explicit}", file=sys.stderr)
         return None
     identity, metrics = load_underwriting_config(path)
-    return {"identity": identity or None, "metrics": metrics, "schedule": load_schedule(path)}
+    return {"identity": identity or None, "metrics": metrics, "schedule": load_schedule(path),
+            "intake": load_intake(path)}
 
 
 def _open_in_browser(path: Path) -> None:

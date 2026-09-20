@@ -8253,6 +8253,25 @@
       "trigger": "Unexpected High Number of Errors above the Exhibit B threshold in fraud-triage decisions"
     }
   },
+  "intake": {
+    "revenue": 40000000,
+    "sector": "fintech",
+    "jurisdictions": [
+      "AU",
+      "US"
+    ],
+    "records": 1500000,
+    "regulated": true,
+    "minors": false,
+    "monthly_action_volume": 200000,
+    "existing_coverage": [
+      {
+        "type": "cyber",
+        "limit": 5000000.0,
+        "ai_exclusion": true
+      }
+    ]
+  },
   "rules": {
     "AI001": {
       "title": "Untrusted input observed flowing into prompt construction",

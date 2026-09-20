@@ -286,3 +286,34 @@ def test_assessment_fields_carry_sources_and_declared_schedule_wins(meridian_reg
     assert company["value"] == "Acme" and company["source"] == "applicant"
     env = build_envelope(meridian_registry, underwriting={"identity": {"company": "Acme"}, "metrics": None, "schedule": {}})
     assert env["assessment"]["sections"][0]["fields"][0]["value"] == "Acme"
+
+
+def test_intake_block_loads_and_reaches_envelope(tmp_path, meridian_registry):
+    from stoa.underwriting import load_intake
+
+    path = tmp_path / "underwriting.toml"
+    path.write_text("""[intake]
+revenue = 40000000
+sector = "fintech"
+jurisdictions = ["AU", "US"]
+records = 1500000
+regulated = true
+bogus = 1
+
+[[intake.existing_coverage]]
+type = "cyber"
+limit = 5000000
+ai_exclusion = true
+
+[[intake.existing_coverage]]
+type = "flood"
+limit = 1
+""")
+    intake = load_intake(path)
+    assert intake["revenue"] == 40000000 and intake["jurisdictions"] == ["AU", "US"]
+    assert "bogus" not in intake
+    assert intake["existing_coverage"] == [{"type": "cyber", "limit": 5000000.0, "ai_exclusion": True}]
+    assert load_intake(tmp_path / "missing.toml") is None
+    env = build_envelope(meridian_registry, underwriting={"intake": intake})
+    assert env["intake"]["sector"] == "fintech"
+    assert build_envelope(meridian_registry)["intake"] is None

@@ -9,6 +9,8 @@ import { STATUS_LABEL, STATUS_ORDER, areaSummaries, controlsByAgent, packetTotal
 import { changes } from "../data/drift";
 import { agentLabel, dimensionMatrix, formatDate, pluralize } from "../data/selectors";
 import type { AssessmentField, AssessmentIdentity, AssessmentSource } from "../data/types";
+import { EVENTS, indicate, money as fmtMoney } from "../data/lossModel";
+import { agentToModel, candidateAgents, intakeFromEnvelope } from "../data/lossInputs";
 
 const IDENTITY_FIELDS: { key: keyof AssessmentIdentity; label: string }[] = [
   { key: "company", label: "Applicant company" },
@@ -107,7 +109,24 @@ export function Evidence() {
   const performanceEdited = JSON.stringify(performance) !== JSON.stringify(a.performance.map((r) => ({ metric: r.metric, value: r.value, cadence: r.cadence })));
   const anyEdit = editedIdentity.size > 0 || editedSchedule.size > 0 || performanceEdited || carrier !== a.carrier || product !== a.product;
   const general = generalRows(identity, a.identity_source, editedIdentity);
-  const scheduleRows: AssessmentField[] = a.schedule.map((f) => ((SCHEDULE_TERMS as readonly string[]).includes(f.key) ? { ...f, value: schedule[f.key] ?? f.value, source: editedSchedule.has(f.key as (typeof SCHEDULE_TERMS)[number]) ? "declared" : f.source } : f));
+  // The loss outlook's suggested limit and retention fill indicative schedule
+  // terms when business context is declared; declared or edited terms win.
+  const outlook = useMemo(() => {
+    const { intake, monthlyVolume, declared } = intakeFromEnvelope(envelope);
+    const agent = candidateAgents(envelope)[0];
+    if (!declared || !agent) return null;
+    const { model } = agentToModel(envelope, agent, monthlyVolume);
+    const r = indicate(EVENTS, model, intake, 42, {}, { years: 20000, noBoot: true });
+    return { limit: fmtMoney(r.limits.standard), retention: fmtMoney(r.retention), agent: model.name, confidence: r.confidence };
+  }, [envelope]);
+  const outlookValue: Record<string, string> = outlook ? { policy_limit: outlook.limit, sublimit_own_losses: outlook.limit, aggregate_deductible: outlook.retention } : {};
+  const scheduleRows: AssessmentField[] = a.schedule.map((f) => {
+    if (!(SCHEDULE_TERMS as readonly string[]).includes(f.key)) return f;
+    const edited = editedSchedule.has(f.key as (typeof SCHEDULE_TERMS)[number]);
+    if (edited) return { ...f, value: schedule[f.key] ?? f.value, source: "declared" };
+    if (f.source === "indicative" && outlookValue[f.key]) return { ...f, value: outlookValue[f.key]!, note: `from the loss outlook for ${outlook!.agent} (${outlook!.confidence} confidence)` };
+    return { ...f, value: schedule[f.key] ?? f.value };
+  });
   const scheduleDeclared = a.schedule_source === "declared" || editedSchedule.size > 0;
   const prefilled = a.counts.prefilled + editedIdentity.size + editedSchedule.size;
   const pct = a.counts.total ? Math.min(100, Math.round((prefilled / a.counts.total) * 100)) : 0;

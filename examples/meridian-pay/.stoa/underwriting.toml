@@ -37,3 +37,18 @@ cadence = "Continuous"
 metric  = "Human-review override rate"
 value   = "2.7%"
 cadence = "Monthly"
+
+# Business context for the loss outlook. The scan cannot know these.
+[intake]
+revenue               = 40000000
+sector                = "fintech"
+jurisdictions         = ["AU", "US"]
+records               = 1500000
+regulated             = true
+minors                = false
+monthly_action_volume = 200000
+
+[[intake.existing_coverage]]
+type         = "cyber"
+limit        = 5000000
+ai_exclusion = true

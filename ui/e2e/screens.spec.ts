@@ -178,6 +178,27 @@ test.describe("insurance and print", () => {
   });
 });
 
+test.describe("loss outlook", () => {
+  test("models the refund agent from the scan and the declared intake", async ({ page }) => {
+    await page.goto(fileUrl("meridian-pay", "#/loss"));
+    await expect(page.getByRole("heading", { name: /A bad year could cost \$/ })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText("Suggested coverage limit")).toBeVisible();
+    await expect(page.locator("svg[role=img]").first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Where the loss could come from, and when it has happened before" })).toBeVisible();
+    await expect(page.getByText("AI exclusion applies").first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: "What would lower it" })).toBeVisible();
+    await expect(page.getByText("Not a quote, not a premium, not advice").first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Declared limits and enforcement" })).toBeVisible();
+  });
+
+  test("without an intake block it says so and still runs on placeholders", async ({ page }) => {
+    await page.goto(fileUrl("registry-only", "#/loss"));
+    await expect(page.getByText("No business context declared")).toBeVisible();
+    await expect(page.getByRole("heading", { name: /A bad year could cost \$/ })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByLabel("Intake config snippet")).toHaveValue(/\[intake\]/);
+  });
+});
+
 test.describe("estate and risk model screens", () => {
   test("declared scope, controls, and financial loss render from the registry", async ({ page }) => {
     await page.goto(fileUrl("meridian-pay", "#/scope"));
@@ -188,7 +209,7 @@ test.describe("estate and risk model screens", () => {
     await expect(page.getByText("Human approval").first()).toBeVisible();
     await page.goto(fileUrl("meridian-pay", "#/loss"));
     await expect(page.getByRole("heading", { name: "Estimated Financial Loss" })).toBeVisible();
-    await expect(page.getByText("500 USD").first()).toBeVisible();
+    await expect(page.getByText("500 USD").first()).toBeVisible({ timeout: 30_000 });
     await page.goto(fileUrl("meridian-pay", "#/risk"));
     await expect(page.getByRole("tab", { name: /Findings/ })).toHaveAttribute("aria-selected", "true");
     await expect(page.getByRole("navigation", { name: "Screens" })).toContainText("AI Risk Insurance");

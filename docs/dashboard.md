@@ -22,12 +22,54 @@ drilling into an agent, reviewing drift, maintaining the risk register.
 | AI estate | Declared Scope | `stoa-declared.toml` next to what the scan inferred, with contradictions |
 | Risk model | Risk Dashboard | three tabs: Findings (filters in the URL, virtualized table, What / Why / Fix drawer), Drift, Risk register |
 | Risk model | Controls & Safeguards | controls observed per agent, tool guards, control gaps by rule |
-| Risk model | Estimated Financial Loss | declared economic limits next to the money-moving tools found, and whether the code enforces them |
+| Risk model | Estimated Financial Loss | the AI loss outlook for a scanned agent (bad-year and average-year loss, exceedance curve, suggested limit and retention, gaps against current policies, comparable public events, what-if levers), plus the declared limits the scan checks |
 | Risk model | AI Risk Insurance | the pre-filled AI Model Risk Assessment as it would be submitted (every field tagged from scan, declared, applicant, to confirm, or indicative), the schedule, the steps to submission, and the evidence pack behind it |
 
-Every figure on Estimated Financial Loss was declared by a person; Stoa
-checks enforcement and never models or prices a loss. Stoa prepares
-insurance evidence; carriers price and issue.
+## The loss outlook
+
+Estimated Financial Loss runs a seeded Monte Carlo over 50 public AI loss
+events (hallucinations, prompt injection, data leakage, IP, performance
+failure, bias, erroneous transactions, data loss). Frequency per category
+comes from the agent's dimension scores, autonomy and observed approval
+controls; severity comes from comparable events scaled to the company's
+revenue and blended with a prior by credibility. It reports the expected
+annual loss, 1-in-20 / 100 / 250 year losses, an exceedance curve, a
+suggested limit and retention, per-category gaps against current policies,
+the closest past cases, and the levers that would lower the figure.
+
+The agent's inputs come from the scan (money-moving tools and the declared
+per-action limit, data classes, write capabilities, inferred autonomy,
+approval controls, dimension scores); the page lists exactly which scan fact
+set each input. Business context comes from an `[intake]` block in
+`.stoa/underwriting.toml`:
+
+```toml
+[intake]
+revenue               = 40000000
+sector                = "fintech"          # fintech | healthtech | edtech | software | retail | legal
+jurisdictions         = ["AU", "US"]
+records               = 1500000            # personal records held
+regulated             = true
+minors                = false
+monthly_action_volume = 200000
+
+[[intake.existing_coverage]]
+type         = "cyber"                     # cyber | tech_eo | crime
+limit        = 5000000
+ai_exclusion = true
+```
+
+Without it the page says so and runs on placeholder context, with the
+snippet to save. Everything can be adjusted on the page; edits stay in
+memory. The model is seeded, so the same inputs always give the same
+figures, and its dataset, assumptions version and parameters are shown on
+the page. It is an indication for discussion with a licensed broker and
+carrier: not a quote, not a premium, not advice. When business context is
+declared, the assessment schedule on AI Risk Insurance takes the suggested
+limit and retention as indicative terms.
+
+The declared limits table stays below the outlook: those figures were
+written by a person, and Stoa checks whether the code enforces them.
 
 ## The assessment
 

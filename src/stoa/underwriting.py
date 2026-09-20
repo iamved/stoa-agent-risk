@@ -145,6 +145,33 @@ def _default_identity(document: dict, repo: str) -> dict:
     }
 
 
+_INTAKE_KEYS = ("revenue", "sector", "jurisdictions", "records", "regulated", "minors", "monthly_action_volume")
+
+
+def load_intake(path: Path) -> dict | None:
+    """Optional ``[intake]`` table for the loss outlook (business context the
+    scan cannot know: revenue, sector, jurisdictions, records held, existing
+    policies). None when absent; the dashboard then shows declared limits only."""
+    try:
+        data = tomllib.loads(path.read_text(encoding="utf-8"))
+    except (OSError, tomllib.TOMLDecodeError):
+        return None
+    raw = data.get("intake")
+    if not isinstance(raw, dict):
+        return None
+    out: dict = {}
+    for key in _INTAKE_KEYS:
+        if key in raw:
+            out[key] = raw[key]
+    coverage = []
+    for item in raw.get("existing_coverage") or []:
+        if isinstance(item, dict) and item.get("type") in ("cyber", "tech_eo", "crime"):
+            coverage.append({"type": item["type"], "limit": float(item.get("limit", 0) or 0),
+                             "ai_exclusion": bool(item.get("ai_exclusion", False))})
+    out["existing_coverage"] = coverage
+    return out
+
+
 def build_assessment(document: dict, identity: dict | None = None,
                      metrics: list | None = None, schedule: dict | None = None) -> dict:
     """The pre-filled AI Model Risk Assessment as structured data.
