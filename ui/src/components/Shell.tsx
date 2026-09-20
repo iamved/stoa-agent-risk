@@ -20,18 +20,12 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
 
   const groups: NavGroup[] = [
     {
-      label: "AI estate",
-      showLabel: true,
+      label: "Screens",
+      showLabel: false,
       items: [
         { id: "overview", label: "Overview", href: buildHash("overview"), screens: ["overview"], icon: "overview" },
         { id: "inventory", label: "Agent Inventory", href: buildHash("inventory"), screens: ["inventory"], count: r.agents.length, icon: "inventory" },
         { id: "scope", label: "Declared Scope", href: buildHash("scope"), screens: ["scope"], count: declared, icon: "scope" },
-      ],
-    },
-    {
-      label: "Risk model",
-      showLabel: false,
-      items: [
         { id: "risk", label: "Risk Dashboard", href: buildHash("findings"), screens: ["findings", "drift", "register"], count: findingCount + driftCount, icon: "risk" },
         { id: "controls", label: "Controls & Safeguards", href: buildHash("controls"), screens: ["controls"], icon: "controls" },
         { id: "loss", label: "Estimated Financial Loss", href: buildHash("loss"), screens: ["loss"], icon: "loss" },
