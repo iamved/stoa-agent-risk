@@ -5,7 +5,7 @@ import { Drawer } from "./Drawer";
 import { Chips, KeyValue } from "./KeyValue";
 import { Snippet } from "./Snippet";
 import { agentLabel, dimensionName, tagLabel, type FindingRef } from "../data/selectors";
-import { euArticleName, owaspName } from "../data/frameworks";
+import { euArticleDescription, euArticleName, owaspDescription, owaspName } from "../data/frameworks";
 
 /** What this check does / Why it matters / How to fix, plus the evidence. */
 export function FindingDrawer({ ref, onClose, backQuery }: { ref: FindingRef | null; onClose: () => void; backQuery?: URLSearchParams }) {
@@ -66,7 +66,22 @@ export function FindingDrawer({ ref, onClose, backQuery }: { ref: FindingRef | n
       <Doc title="Why it matters">
         <p className="m-0">{cw?.so_what ?? f.title}</p>
         {cw ? (
-          <p className="caption m-0 mt-2">{cw.owasp_llm_2025 ? `OWASP ${cw.owasp_llm_2025} ${owaspName(cw.owasp_llm_2025)}` : "Not an OWASP LLM class"}{cw.eu_ai_act ? ` · EU AI Act ${cw.eu_ai_act} ${euArticleName(cw.eu_ai_act)}` : ""}</p>
+          <dl className="m-0 mt-3 grid gap-2 text-[12.5px]">
+            {cw.owasp_llm_2025 ? (
+              <div>
+                <dt className="font-medium text-navy">OWASP {cw.owasp_llm_2025}: {owaspName(cw.owasp_llm_2025)}</dt>
+                <dd className="m-0 caption">{owaspDescription(cw.owasp_llm_2025)}</dd>
+              </div>
+            ) : (
+              <div><dt className="font-medium text-navy">OWASP LLM Top 10</dt><dd className="m-0 caption">Not an LLM-specific class; a classic software weakness.</dd></div>
+            )}
+            {cw.eu_ai_act ? (
+              <div>
+                <dt className="font-medium text-navy">EU AI Act {cw.eu_ai_act}: {euArticleName(cw.eu_ai_act)}</dt>
+                <dd className="m-0 caption">{euArticleDescription(cw.eu_ai_act)}</dd>
+              </div>
+            ) : null}
+          </dl>
         ) : null}
       </Doc>
 

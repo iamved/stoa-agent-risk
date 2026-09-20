@@ -32,6 +32,8 @@ test.describe("findings", () => {
     await expect(dialog.getByText("What this check does")).toBeVisible();
     await expect(dialog.getByText("Why it matters")).toBeVisible();
     await expect(dialog.getByText("How to fix")).toBeVisible();
+    await expect(dialog.getByText(/^OWASP LLM\d\d: /)).toBeVisible();
+    await expect(dialog.getByText("Vulnerabilities arise from compromised third-party components, external datasets, or pretrained models.").or(dialog.getByText(/The system is granted more functionality|Model output is passed to other systems|Excessive or uncontrolled use/))).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
     expect(await page.evaluate(() => window.location.hash)).toBe("#/findings");

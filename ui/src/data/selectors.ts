@@ -15,7 +15,7 @@ import type {
   Severity,
   TaxonomyDimension,
 } from "./types";
-import { EU_AI_ACT_ARTICLES, OWASP_LLM_2025, euArticleName, owaspName, type FrameworkId } from "./frameworks";
+import { EU_AI_ACT_ARTICLES, OWASP_LLM_2025, euArticleDescription, euArticleName, owaspDescription, owaspName, type FrameworkId } from "./frameworks";
 
 export const SEVERITIES: Severity[] = ["critical", "high", "medium", "low", "info"];
 export const SEVERITY_RANK: Record<Severity, number> = { critical: 4, high: 3, medium: 2, low: 1, info: 0 };
@@ -110,8 +110,8 @@ export function findingTag(finding: Finding, framework: FrameworkId): string {
 
 export function tagLabel(tag: string, framework: FrameworkId): string {
   if (!tag) return "No class";
-  if (framework === "owasp") return `${tag} ${owaspName(tag)}`;
-  if (framework === "eu") return `${tag} ${euArticleName(tag)}`;
+  if (framework === "owasp") return `${tag}: ${owaspName(tag)}. ${owaspDescription(tag)}`.trim();
+  if (framework === "eu") return `${tag}: ${euArticleName(tag)}. ${euArticleDescription(tag)}`.trim();
   return tag;
 }
 
