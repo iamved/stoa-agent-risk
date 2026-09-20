@@ -362,3 +362,55 @@ export function formatDate(iso: string | null | undefined): string {
 export function pluralize(n: number, singular: string, plural = `${singular}s`): string {
   return `${n} ${n === 1 ? singular : plural}`;
 }
+
+
+// --- overview: deltas against the baseline and findings by dimension -------------------
+
+export interface Delta { value: number; label: string }
+
+/** Changes since the baseline for the four headline figures; null without a diff. */
+export function overviewDeltas(env: Envelope): { agents: Delta | null; findings: Delta | null; authority: Delta | null; elevated: Delta | null } {
+  const diff = env.diff;
+  if (!diff) return { agents: null, findings: null, authority: null, elevated: null };
+  const highImpact = new Set(env.vocabulary.high_impact_capabilities);
+  const sensitive = new Set(env.vocabulary.sensitive_integrations);
+  let authority = 0;
+  let elevated = 0;
+  for (const c of diff.agents.changed) {
+    if (c.capabilities.added.some((x) => x.high_impact ?? highImpact.has(x.id)) || c.integrations.added.some((x) => x.sensitive ?? sensitive.has(x.id))) authority += 1;
+    if (c.dimension_delta.some((d) => d.direction === "increased" && d.to === "elevated")) elevated += 1;
+  }
+  for (const a of diff.agents.added) if (a.capabilities.some((x) => highImpact.has(x)) || a.integrations.some((x) => sensitive.has(x))) authority += 1;
+  const newHigh = diff.summary.findings_delta.new_critical + diff.summary.findings_delta.new_high;
+  return {
+    agents: { value: diff.summary.agents_added - diff.summary.agents_removed, label: `${diff.summary.agents_added} added, ${diff.summary.agents_removed} removed` },
+    findings: { value: newHigh - diff.summary.findings_delta.resolved, label: `${newHigh} new, ${diff.summary.findings_delta.resolved} resolved` },
+    authority: { value: authority, label: authority ? "gained money or write reach" : "no change in reach" },
+    elevated: { value: elevated, label: elevated ? "rose to elevated" : "none rose to elevated" },
+  };
+}
+
+export interface DimensionBar {
+  dimension: TaxonomyDimension;
+  counts: Record<RiskLevel, number>;
+  total: number;
+  maxExposure: Exposure;
+  agents: MatrixAgent[];
+}
+
+/** Active findings per dimension by risk level, in taxonomy order, with the org-level exposure and the agents behind it. */
+export function findingsByDimension(env: Envelope): DimensionBar[] {
+  const cells = dimensionMatrix(env, "owasp").flatMap((g) => g.cells);
+  const active = activeFindings(env.registry);
+  return cells.map((cell) => {
+    const counts: Record<RiskLevel, number> = { high: 0, medium: 0, low: 0 };
+    for (const ref of active) if (ref.finding.dimensions?.includes(cell.dimension.id)) counts[riskLevel(ref.finding.severity)] += 1;
+    return { dimension: cell.dimension, counts, total: counts.high + counts.medium + counts.low, maxExposure: cell.maxExposure, agents: cell.agents };
+  });
+}
+
+export function initials(name: string): string {
+  const clean = name.replace(/[·_-]+/g, " ").trim();
+  const parts = clean.split(/\s+/).filter(Boolean);
+  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase() || "?";
+}
