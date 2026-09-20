@@ -24,28 +24,26 @@ export function Register() {
       <RiskTabs current="register" />
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="m-0">Risk register</h1>
-        <div className="caption">One row per agent and dimension the scanner scored at moderate or above. Treatments are declared in stoa-declared.toml and reviewed like code.</div>
+        <div className="caption">One row per agent and dimension at moderate exposure or above. Click a row to set its owner and treatment.</div>
       </div>
 
-      <div className="mt-4 grid gap-3 grid-cols-2 md:grid-cols-5">
-        <StatCard label="Register rows" value={s.rows} detail={`${s.declared} with a declared treatment`} />
-        <StatCard label="Undeclared" value={s.byTreatment.undeclared} detail="no owner or treatment yet" tone={s.byTreatment.undeclared ? "warn" : "neutral"} />
-        <StatCard label="Transfer" value={s.byTreatment.transfer} detail={`${s.byTreatment.mitigate} mitigate · ${s.byTreatment.accept} accept · ${s.byTreatment.avoid} avoid`} href={s.byTreatment.transfer ? buildHash("evidence", null, { view: "underwriter" }) : undefined} />
-        <StatCard label="Review due" value={s.due} detail={asOf ? `as of ${formatDate(asOf)}` : "no scan date"} tone={s.due ? "warn" : "neutral"} />
-        <StatCard label="Unmatched declarations" value={s.unmatched} detail="declared risk ids with no scored exposure" tone={s.unmatched ? "warn" : "neutral"} />
+      <div className="mt-4 grid gap-3 grid-cols-3">
+        <StatCard label="Risks" value={s.rows} detail={`${s.declared} with a treatment`} />
+        <StatCard label="No owner or treatment yet" value={s.byTreatment.undeclared} tone={s.byTreatment.undeclared ? "warn" : "neutral"} />
+        <StatCard label="Marked for insurance transfer" value={s.byTreatment.transfer} href={s.byTreatment.transfer ? buildHash("evidence") : undefined} />
       </div>
 
-      <Section title="Register" caption="Inherent is the score before observed controls are credited; residual is the scanner's own level. Click a row to declare or edit its treatment.">
+      <Section title="Register" caption="Inherent is before controls are credited; residual is after.">
         <div className="panel overflow-x-auto" tabIndex={0}>
           <table className="tbl" aria-label="Risk register">
             <thead>
               <tr>
-                <th>Risk</th><th>Description</th><th>Inherent</th><th>Residual</th><th>Treatment</th><th>Owner</th><th>Controls</th><th>Status</th><th>Review by</th>
+                <th>Risk</th><th>Inherent</th><th>Residual</th><th>Treatment</th><th>Owner</th><th>Review by</th>
               </tr>
             </thead>
             <tbody>
               {rows.length === 0 ? (
-                <tr><td colSpan={9} className="caption text-center">No agent scored at moderate or above in this scan, so the register is empty.</td></tr>
+                <tr><td colSpan={6} className="caption text-center">No agent is at moderate exposure or above, so the register is empty.</td></tr>
               ) : rows.map((row) => {
                 const due = reviewDue(row, asOf);
                 return (
@@ -54,13 +52,10 @@ export function Register() {
                       <div className="font-medium">{row.dimension_name}</div>
                       <div className="caption">{row.agent_name ?? row.agent_id}{row.unmatched ? " · unmatched" : ""}</div>
                     </td>
-                    <td className="max-w-[320px] caption">{row.statement}</td>
                     <td>{row.inherent ? <ExposureBadge exposure={row.inherent.level} /> : <span className="caption">–</span>}</td>
                     <td>{row.residual ? <ExposureBadge exposure={row.residual.level} /> : <span className="caption">–</span>}</td>
                     <td>{row.declared?.treatment ? <Pill tone={row.declared.treatment === "transfer" ? "gold" : "neutral"}>{row.declared.treatment}</Pill> : <span className="caption">undeclared</span>}</td>
                     <td className="caption">{row.declared?.owner || "–"}</td>
-                    <td className="tabular-nums">{row.controls_observed.length}</td>
-                    <td className="caption">{row.declared?.status ?? "–"}</td>
                     <td className={due ? "text-sev-high font-medium" : "caption"}>{row.declared?.review_by ? formatDate(row.declared.review_by) : "–"}{due ? " (due)" : ""}</td>
                   </tr>
                 );

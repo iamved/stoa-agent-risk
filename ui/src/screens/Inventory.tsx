@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useApp } from "../app/context";
 import { buildHash, navigate, useRoute } from "../app/router";
 import { AgentDrawer } from "../components/AgentDrawer";
-import { ConfidenceBadge, ExposureBadge, Pill } from "../components/Badge";
+import { ExposureBadge, Pill } from "../components/Badge";
 import { DataTable, sortRows, type Column, type SortState } from "../components/DataTable";
 import { GraphView } from "../components/GraphView";
 import { Chips } from "../components/KeyValue";
@@ -48,7 +48,7 @@ export function Inventory() {
 
       {view === "graph" ? (
         <div className="mt-4">
-          <p className="caption mt-0 mb-3">Agents, tools, providers, and capability sinks this scan observed, with the findings that explain each connection. The same model as the legacy report's graph.</p>
+          <p className="caption mt-0 mb-3">Agents, tools, providers and what they reach. Click a node or edge for its evidence.</p>
           <GraphView />
         </div>
       ) : (
@@ -97,7 +97,6 @@ function AgentsTable({ agents, query, onQuery, onOpen, sort, onSort }: { agents:
     { id: "autonomy", header: "Autonomy", width: "150px", cell: (a) => <span className="text-[12.5px]">{a.autonomy_level?.level ?? "indeterminate"}</span>, sortValue: (a) => a.autonomy_level?.level ?? "" },
     { id: "scope", header: "Scope", width: "minmax(140px, 1fr)", cell: (a) => <Chips items={[...a.capabilities.map((c) => ({ label: c, hot: envelope.vocabulary.high_impact_capabilities.includes(c) })), ...a.integrations.map((i) => ({ label: i, hot: envelope.vocabulary.sensitive_integrations.includes(i) }))]} empty="no reach observed" />, sortValue: (a) => a.capabilities.length + a.integrations.length },
     { id: "exposure", header: "Exposure", width: "120px", cell: (a) => <ExposureBadge exposure={worstExposure(a)} />, sortValue: (a) => EXPOSURE_RANK[worstExposure(a)] },
-    { id: "confidence", header: "Confidence", width: "120px", cell: (a) => <ConfidenceBadge confidence={a.confidence} />, sortValue: (a) => a.confidence },
     { id: "findings", header: "Findings", width: "80px", align: "right", cell: (a) => <span className="tabular-nums">{agentFindingCount(envelope, a)}</span>, sortValue: (a) => agentFindingCount(envelope, a) },
   ], [envelope]);
   const sorted = sortRows(rows, columns, sort ?? { column: "exposure", dir: "desc" });
@@ -106,7 +105,7 @@ function AgentsTable({ agents, query, onQuery, onOpen, sort, onSort }: { agents:
       <div className="flex flex-wrap items-center gap-3 mb-3 text-[13px] no-print">
         <label className="flex items-center gap-1.5">
           <input type="checkbox" checked={query.get("authority") === "1"} onChange={(e) => onQuery({ authority: e.target.checked ? "1" : null })} />
-          Financial or write authority only
+          Can move money or write to systems
         </label>
         <input value={query.get("q") ?? ""} onChange={(e) => onQuery({ q: e.target.value || null })} placeholder="filter by name, path, capability" className="field" aria-label="Filter agents" />
         <span className="caption">{sorted.length} of {agents.length}</span>

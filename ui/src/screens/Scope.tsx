@@ -37,26 +37,25 @@ export function Scope() {
           <button type="button" onClick={() => setEditing(!editing)} aria-pressed={editing} className={`btn ${editing ? "chip-gold" : "btn-primary"}`}>{editing ? "Done editing" : "Edit business context"}</button>
         </div>
       </div>
-      <p className="caption mt-1 mb-0">What your organization says about itself and its agents. The scan cannot know these; it cross-checks them against the code, and the loss outlook and the insurance assessment read them. Declarations are saved to the repository and reviewed like code.</p>
+      <p className="caption mt-1 mb-0">What you tell Stoa about your business and your agents. The scan checks it against the code; the loss outlook and the insurance assessment use it.</p>
 
-      <div className="mt-4 grid gap-3 grid-cols-2 md:grid-cols-4">
-        <StatCard label="Business context complete" value={`${done.pct}%`} detail={`${done.filled} of ${done.total} fields that change what Stoa can say`} tone={done.pct < 60 ? "warn" : "neutral"} />
-        <StatCard label="Agents declared" value={state.agents.filter((a) => a.owner.trim() || a.autonomy_intent).length} detail={`of ${state.agents.length} scanned agents`} />
-        <StatCard label="Money-moving agents with a limit" value={`${state.agents.filter((a) => a.moneyMover && a.max_per_action.trim()).length} / ${state.agents.filter((a) => a.moneyMover).length}`} detail="the scan checks each limit is enforced" tone={state.agents.some((a) => a.moneyMover && !a.max_per_action.trim()) ? "warn" : "neutral"} />
-        <StatCard label="Current policies declared" value={state.policies.length} detail="feeds the outlook's gap analysis" />
+      <div className="mt-4 grid gap-3 grid-cols-3">
+        <StatCard label="Complete" value={`${done.pct}%`} detail={`${done.filled} of ${done.total} fields`} tone={done.pct < 60 ? "warn" : "neutral"} />
+        <StatCard label="Agents with an owner" value={`${state.agents.filter((a) => a.owner.trim()).length} / ${state.agents.length}`} />
+        <StatCard label="Money movers with a limit" value={`${state.agents.filter((a) => a.moneyMover && a.max_per_action.trim()).length} / ${state.agents.filter((a) => a.moneyMover).length}`} tone={state.agents.some((a) => a.moneyMover && !a.max_per_action.trim()) ? "warn" : "neutral"} />
       </div>
 
       {done.gaps.length ? (
         <div className="mt-3 panel px-4 py-3 text-[13px]">
           <div className="caption uppercase text-[11px] tracking-wide mb-1.5">Worth filling in next</div>
           <ul className="m-0 p-0 list-none flex flex-wrap gap-x-5 gap-y-1">
-            {done.gaps.slice(0, 8).map((g, i) => <li key={i}><span className="font-medium">{g.section}: {g.label}</span> <span className="caption">({g.why})</span></li>)}
-            {done.gaps.length > 8 ? <li className="caption">and {done.gaps.length - 8} more</li> : null}
+            {done.gaps.slice(0, 5).map((g, i) => <li key={i}><span className="font-medium">{g.section}: {g.label}</span> <span className="caption">({g.why})</span></li>)}
+            {done.gaps.length > 5 ? <li className="caption">and {done.gaps.length - 5} more</li> : null}
           </ul>
         </div>
       ) : null}
 
-      <Section title="Organization" caption="Industry, regulated activities and customer dependency. Attestation only; the scanner never scores these.">
+      <Section title="Organization">
         <div className="panel p-4 grid gap-4 md:grid-cols-2">
           <Field label="Industries" hint="comma separated, e.g. financial_services, payments" editing={editing} value={state.org.industries} onChange={(v) => patch({ org: { ...state.org, industries: v } })} />
           <Field label="Regulated activities" hint="comma separated, e.g. payments, consumer_banking" editing={editing} value={state.org.regulated_activities} onChange={(v) => patch({ org: { ...state.org, regulated_activities: v } })} />
@@ -65,7 +64,7 @@ export function Scope() {
         </div>
       </Section>
 
-      <Section title="Business context for the outlook and the assessment" caption="Revenue, records and current insurance drive the loss outlook; the applicant identity fills the assessment.">
+      <Section title="Business and insurance" caption="Used by the loss outlook and the insurance assessment.">
         <div className="panel p-4 grid gap-4 md:grid-cols-3">
           <Field label="Annual revenue (USD)" editing={editing} value={state.intake.revenue} onChange={(v) => patch({ intake: { ...state.intake, revenue: v } })} />
           <Select label="Sector" editing={editing} value={state.intake.sector} options={SECTORS} onChange={(v) => patch({ intake: { ...state.intake, sector: v } })} />
@@ -100,7 +99,7 @@ export function Scope() {
         </div>
       </Section>
 
-      <Section title="Agents" caption="Every scanned agent. Declared intent sits next to what the scan inferred; the scanner reports the difference as a finding on the Risk Dashboard.">
+      <Section title="Agents" caption="What you intend each agent to do, next to what the scan found.">
         <div className="panel overflow-x-auto" tabIndex={0}>
           <table className="tbl">
             <thead><tr><th>Agent</th><th>Owner</th><th>Purpose</th><th>Users</th><th>Status</th><th>Intended autonomy</th><th>Inferred</th><th>Data classes</th><th>Max per action</th></tr></thead>
@@ -124,7 +123,7 @@ export function Scope() {
         {editing ? <p className="caption mt-2 mb-0">Daily aggregate and worst-case customer loss can be set per agent in the generated file; the table edits the per-action limit the scanner enforces.</p> : null}
       </Section>
 
-      <Section title="Governance" caption="Where release approval, incident response and harmful-output policy are documented.">
+      <Section title="Governance">
         <div className="panel p-4 grid gap-4 md:grid-cols-2">
           <Field label="Release approval" hint="e.g. Documented in RELEASING.md" editing={editing} value={state.gov.release_approval} onChange={(v) => patch({ gov: { ...state.gov, release_approval: v } })} />
           <Field label="Incident response" hint="e.g. runbooks/ir.md" editing={editing} value={state.gov.incident_response} onChange={(v) => patch({ gov: { ...state.gov, incident_response: v } })} />
@@ -136,7 +135,7 @@ export function Scope() {
         </div>
       </Section>
 
-      <Section title="Evidence references" caption="Pointers to external artifacts: adversarial testing, monitoring, contracts, vendor reviews. Listed in the assurance packet, never verified by the scan." actions={editing ? <button type="button" onClick={() => patch({ evidence: [...state.evidence, { category: "testing", kind: "", ref: "", date: "" }] })} className="btn btn-sm">Add reference</button> : undefined}>
+      <Section title="Evidence references" caption="Links to external reports and contracts. Listed, not verified." actions={editing ? <button type="button" onClick={() => patch({ evidence: [...state.evidence, { category: "testing", kind: "", ref: "", date: "" }] })} className="btn btn-sm">Add reference</button> : undefined}>
         {state.evidence.length === 0 ? <p className="caption m-0">None declared.</p> : (
           <div className="panel overflow-x-auto" tabIndex={0}><table className="tbl"><thead><tr><th>Category</th><th>Kind</th><th>Reference</th><th>Date</th>{editing ? <th /> : null}</tr></thead><tbody>
             {state.evidence.map((e, i) => (
@@ -153,7 +152,7 @@ export function Scope() {
       </Section>
 
       {editing || dirty ? (
-        <Section title="Save to the repository" caption="This file cannot write to your repository. Commit these two files; the next scan cross-checks the declarations and pre-fills the outlook and the assessment from them.">
+        <Section title="Save" caption="Copy these two files into your repository and commit them. The next scan picks them up.">
           <div className="grid gap-4 lg:grid-cols-2">
             <SaveBox name="stoa-declared.toml" text={declaredToml} copied={copied === "declared"} onCopy={() => copy("declared", declaredToml)} />
             <SaveBox name=".stoa/underwriting.toml" text={underwritingToml} copied={copied === "underwriting"} onCopy={() => copy("underwriting", underwritingToml)} />

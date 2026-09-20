@@ -64,7 +64,7 @@ export function PrintSummary() {
 
       <div className="grid grid-cols-2 gap-4 mt-3">
         <div>
-          <h3 className="text-[13px] m-0 mb-1">Read these first</h3>
+          <h3 className="text-[13px] m-0 mb-1">Top findings</h3>
           <ol className="m-0 pl-4 text-[11.5px] flex flex-col gap-0.5">
             {risks.map(({ ref, soWhat }) => (
               <li key={ref.finding.fingerprint}>

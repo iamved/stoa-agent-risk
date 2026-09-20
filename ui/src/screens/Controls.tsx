@@ -22,17 +22,16 @@ export function Controls() {
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="m-0">Controls & Safeguards</h1>
-        <div className="caption">A control is credited when the scanner observes it in code or infrastructure. Observed is not verified; none observed is not absent.</div>
+        <div className="caption">Safeguards the scan observed in code, and where it looked for one and found none.</div>
       </div>
 
-      <div className="mt-4 grid gap-3 grid-cols-2 md:grid-cols-4">
-        <StatCard label="Agents with an approval control" value={`${withApproval} / ${rows.length}`} detail="human approval construct observed" tone={withApproval < rows.length ? "warn" : "neutral"} />
-        <StatCard label="Control gaps" value={gapCount} detail="control-family findings (CTRL, AI003, AI007, AI008)" href={buildHash("findings", null, { rule: "CTRL" })} tone={gapCount ? "warn" : "neutral"} />
-        <StatCard label="High-impact tools without guards" value={unguarded} detail="money or high-impact tools with no numeric guard" tone={unguarded ? "warn" : "neutral"} />
-        <StatCard label="Retries without idempotency" value={retries} detail="a retried money action can post twice" tone={retries ? "warn" : "neutral"} />
+      <div className="mt-4 grid gap-3 grid-cols-3">
+        <StatCard label="Agents with human approval" value={`${withApproval} / ${rows.length}`} tone={withApproval < rows.length ? "warn" : "neutral"} />
+        <StatCard label="Missing controls" value={gapCount} detail="review prompts, not proven weaknesses" href={buildHash("findings", null, { rule: "CTRL" })} tone={gapCount ? "warn" : "neutral"} />
+        <StatCard label="Money tools without a guard" value={unguarded + retries} detail={retries ? `${retries} can post twice on retry` : undefined} tone={unguarded + retries ? "warn" : "neutral"} />
       </div>
 
-      <Section title="Control coverage" caption="How many agents show each safeguard at least once.">
+      <Section title="Which safeguards were seen" caption="Agents showing each safeguard.">
         <div className="panel p-3 grid gap-2 md:grid-cols-2">
           {cov.map((c) => {
             const pct = c.total ? Math.round((c.agents / c.total) * 100) : 0;
@@ -47,7 +46,7 @@ export function Controls() {
         </div>
       </Section>
 
-      <Section title="By agent" caption="Observed controls and tool guards per agent.">
+      <Section title="By agent">
         <div className="panel overflow-x-auto" tabIndex={0}>
           <table className="tbl">
             <thead><tr><th>Agent</th><th>Controls observed</th><th>Tool guards</th></tr></thead>
@@ -68,7 +67,7 @@ export function Controls() {
         </div>
       </Section>
 
-      <Section title="Gaps by rule" caption="Each is a review prompt, not a proven weakness: the scanner looked for a control and did not observe one.">
+      <Section title="Missing controls" caption="The scan looked for a safeguard and did not find one.">
         {gaps.length === 0 ? <p className="caption m-0">No control gaps reported.</p> : (
           <ul className="m-0 p-0 list-none panel divide-y divide-line">
             {gaps.map((g) => (

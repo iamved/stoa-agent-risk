@@ -37,7 +37,6 @@ export function FindingDrawer({ ref, onClose, backQuery }: { ref: FindingRef | n
           )) : "repository (not attached to an agent)" },
           { k: "Location", v: <span className="mono">{f.path}:{f.line}{f.column ? `:${f.column}` : ""}</span> },
           { k: "Dimensions", v: <Chips items={(f.dimensions ?? []).map((d) => ({ label: dimensionName(envelope, d) }))} /> },
-          { k: "Category", v: f.category },
         ]}
       />
 
@@ -60,17 +59,14 @@ export function FindingDrawer({ ref, onClose, backQuery }: { ref: FindingRef | n
       ) : null}
 
       <Doc title="What this check does">
-        {rule ? <p className="m-0">{rule.title}{rule.canonical_name ? <span className="caption"> ({rule.canonical_name})</span> : null}. Category: {rule.category}. Default severity {rule.default_severity}{rule.gateable ? "; can gate a build at high confidence" : "; reports but never gates"}.</p> : <p className="m-0 caption">Rule metadata not available.</p>}
+        {rule ? <p className="m-0">{rule.title}.{rule.gateable ? " Can fail a build at high confidence." : ""}</p> : <p className="m-0 caption">Rule metadata not available.</p>}
         {f.message ? <p className="m-0 mt-2">{f.message}</p> : null}
       </Doc>
 
       <Doc title="Why it matters">
         <p className="m-0">{cw?.so_what ?? f.title}</p>
         {cw ? (
-          <ul className="m-0 mt-2 p-0 list-none caption flex flex-col gap-0.5">
-            <li>OWASP LLM Top 10 (2025): {cw.owasp_llm_2025 ? `${cw.owasp_llm_2025} ${owaspName(cw.owasp_llm_2025)}` : "no class (classic weakness)"}</li>
-            <li>EU AI Act: {cw.eu_ai_act ? `${cw.eu_ai_act} ${euArticleName(cw.eu_ai_act)}` : "not anchored"}</li>
-          </ul>
+          <p className="caption m-0 mt-2">{cw.owasp_llm_2025 ? `OWASP ${cw.owasp_llm_2025} ${owaspName(cw.owasp_llm_2025)}` : "Not an OWASP LLM class"}{cw.eu_ai_act ? ` · EU AI Act ${cw.eu_ai_act} ${euArticleName(cw.eu_ai_act)}` : ""}</p>
         ) : null}
       </Doc>
 
@@ -78,12 +74,12 @@ export function FindingDrawer({ ref, onClose, backQuery }: { ref: FindingRef | n
         <p className="m-0">{f.remediation}</p>
       </Doc>
 
-      <Doc title="Evidence chips">
-        <Chips items={[...(f.evidence_tags ?? []).map((t) => ({ label: t })), ...(f.variant ? [{ label: `variant: ${f.variant}` }] : []), ...(f.canonical_name ? [{ label: f.canonical_name }] : [])]} empty="no additional tags" tone="mono" />
-        {f.declared_ref ? <p className="caption mt-2 mb-0">Declared at <span className="mono">{f.declared_ref.path}</span> key <span className="mono">{f.declared_ref.key}</span></p> : null}
-        {f.suppressed && f.suppression_reason ? <p className="caption mt-2 mb-0">Suppressed: {f.suppression_reason}</p> : null}
-        <p className="caption mt-2 mb-0 mono">fingerprint {f.fingerprint}</p>
-      </Doc>
+      {f.declared_ref || (f.suppressed && f.suppression_reason) ? (
+        <Doc title="Notes">
+          {f.declared_ref ? <p className="caption m-0">Declared at <span className="mono">{f.declared_ref.path}</span>, key <span className="mono">{f.declared_ref.key}</span></p> : null}
+          {f.suppressed && f.suppression_reason ? <p className="caption m-0">Suppressed: {f.suppression_reason}</p> : null}
+        </Doc>
+      ) : null}
     </Drawer>
   );
 }

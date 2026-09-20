@@ -171,7 +171,7 @@ export function Evidence() {
         </div>
       </div>
       <p className="caption mt-1 mb-0 no-pack">
-        What a submission to {carrier} {product} looks like for this codebase. Stoa prepares the evidence; {carrier} prices and issues.
+        Your {carrier} {product} assessment, pre-filled from the scan. {carrier} prices and issues.
         {copied === "manual" ? " Clipboard access was blocked in this viewer; use Download instead." : ""}
       </p>
 
@@ -303,7 +303,7 @@ export function Evidence() {
             <textarea readOnly value={toml} rows={Math.min(30, toml.split("\n").length)} className="w-full rounded-md border border-line bg-panel p-3 mono text-[12px]" aria-label="Underwriting config snippet" onFocus={(e) => e.currentTarget.select()} />
           </Section>
         ) : null}
-        <Section title="Evidence behind the assessment" caption="What an underwriter can verify from this scan: reach, controls observed versus declared, contradictions, drift, and confidence per dimension.">
+        <Section title="Evidence pack" caption="What an underwriter can verify from this scan.">
           <details className="panel">
             <summary className="px-4 py-3 cursor-pointer text-[13.5px] font-medium text-navy">Show the evidence pack</summary>
             <div className="px-4 pb-4"><EvidencePack /></div>

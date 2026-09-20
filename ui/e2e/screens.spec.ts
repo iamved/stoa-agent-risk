@@ -84,7 +84,7 @@ test.describe("inventory", () => {
     await page.goto(fileUrl("meridian-pay", "#/inventory?view=graph"));
     const canvas = page.getByTestId("graph-canvas").locator("canvas").first();
     await expect(canvas).toBeVisible();
-    await expect(page.getByText("Click a node or edge")).toBeVisible();
+    await expect(page.getByText("Click a node or edge").first()).toBeVisible();
   });
 });
 
@@ -184,11 +184,11 @@ test.describe("loss outlook", () => {
     await expect(page.getByRole("heading", { name: /A bad year could cost \$/ })).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText("Suggested coverage limit")).toBeVisible();
     await expect(page.locator("svg[role=img]").first()).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Where the loss could come from, and when it has happened before" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Where the loss could come from" })).toBeVisible();
     await expect(page.getByText("AI exclusion applies").first()).toBeVisible();
     await expect(page.getByRole("heading", { name: "What would lower it" })).toBeVisible();
     await expect(page.getByText("Not a quote, not a premium, not advice").first()).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Declared limits and enforcement" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Declared limits" })).toBeVisible();
   });
 
   test("without an intake block it says so and still runs on placeholders", async ({ page }) => {
@@ -204,7 +204,7 @@ test.describe("estate and risk model screens", () => {
     await page.goto(fileUrl("meridian-pay", "#/scope"));
     await expect(page.getByRole("heading", { name: "Declared Scope" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Contradictions" })).toHaveCount(0);
-    await expect(page.getByText("Business context complete")).toBeVisible();
+    await expect(page.getByText("Complete", { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Edit business context" }).click();
     await page.getByLabel("meridian-front owner").fill("front-desk@meridian.example");
     await page.getByLabel("Release approval").fill("RELEASING.md");

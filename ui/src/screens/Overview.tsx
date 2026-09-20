@@ -4,77 +4,49 @@ import { DimensionMatrix } from "../components/DimensionMatrix";
 import { Section } from "../components/Section";
 import { StatCard } from "../components/StatCard";
 import { TopRisks } from "../components/TopRisks";
-import { SeverityBadge } from "../components/Badge";
-import { SEVERITIES, elevatedAgents, pluralize, stats } from "../data/selectors";
+import { elevatedAgents, pluralize, stats } from "../data/selectors";
 
 export function Overview() {
   const { envelope } = useApp();
   const s = stats(envelope);
   const elevated = elevatedAgents(envelope);
-  const activeTotal = SEVERITIES.reduce((n, sev) => n + s.findings[sev], 0);
+  const urgent = s.findings.critical + s.findings.high;
 
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="m-0">Overview</h1>
-        <div className="caption">Exposure is what the code makes possible, not what has happened. Every level below is decomposable.</div>
+        <div className="caption">What the code makes possible, not what has happened.</div>
       </div>
 
-      <div className="mt-4 grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
-        <StatCard label="Agent candidates" value={s.agents} detail={`${s.highConfidence} high confidence`} href={buildHash("inventory")} />
-        <StatCard label="With financial or write authority" value={s.authorityAgents} detail="high-impact capability or money-moving tool" href={buildHash("inventory", null, { authority: "1" })} tone={s.authorityAgents ? "warn" : "neutral"} />
-        <StatCard label="Unreviewed high-impact actions" value={s.unreviewedHighImpact} detail="AI003: no approval control observed" href={buildHash("findings", null, { rule: "AI003" })} tone={s.unreviewedHighImpact ? "warn" : "neutral"} />
-        <StatCard label="Declared vs scanned contradictions" value={s.contradictions} detail="DECL rules" href={buildHash("findings", null, { rule: "DECL" })} tone={s.contradictions ? "warn" : "neutral"} />
-        <StatCard
-          label="Open findings"
-          value={activeTotal}
-          detail={
-            <span className="flex flex-wrap gap-1">
-              {SEVERITIES.filter((sev) => s.findings[sev]).map((sev) => (
-                <span key={sev} className="inline-flex items-center gap-1">
-                  <SeverityBadge severity={sev} />
-                  <span className="tabular-nums">{s.findings[sev]}</span>
-                </span>
-              ))}
-              {s.suppressed ? <span>· {s.suppressed} suppressed</span> : null}
-            </span>
-          }
-          href={buildHash("findings")}
-        />
-        <StatCard
-          label="Changes since baseline"
-          value={s.drift ? s.drift.changed + s.drift.added + s.drift.removed : "–"}
-          detail={s.drift ? `${pluralize(s.drift.changed, "agent")} changed · ${s.drift.added} added · ${s.drift.removed} removed · unapproved drift ${s.drift.unapproved}` : "no baseline in this scan"}
-          href={buildHash("drift")}
-          tone={s.drift && s.drift.escalationsHigh ? "warn" : "neutral"}
-        />
+      <div className="mt-4 grid gap-3 grid-cols-2 xl:grid-cols-4">
+        <StatCard label="AI agents found" value={s.agents} href={buildHash("inventory")} />
+        <StatCard label="Can move money or write to systems" value={s.authorityAgents} href={buildHash("inventory", null, { authority: "1" })} tone={s.authorityAgents ? "warn" : "neutral"} />
+        <StatCard label="Critical and high findings" value={urgent} detail={`${s.findings.medium + s.findings.low + s.findings.info} lower severity`} href={buildHash("findings", null, { severity: "critical,high" })} tone={urgent ? "warn" : "neutral"} />
+        <StatCard label="Changed since last scan" value={s.drift ? s.drift.changed + s.drift.added + s.drift.removed : "–"} detail={s.drift ? (s.drift.escalationsHigh ? `${pluralize(s.drift.escalationsHigh, "high-impact change")} to review` : "nothing to review") : "no baseline"} href={buildHash("drift")} tone={s.drift && s.drift.escalationsHigh ? "warn" : "neutral"} />
       </div>
 
-      <Section title="Where the exposure sits" caption="Eight dimensions, four categories. Click a dimension to see which agents produce its level.">
+      <Section title="Risk by dimension" caption="Click a dimension to see which agents drive it.">
         {elevated.length ? (
           <p className="m-0 mb-3 text-[13.5px]">
-            <span className="num text-navy text-[20px] align-middle mr-2">{elevated.length}</span>
-            {elevated.length === 1 ? "agent carries" : "agents carry"} elevated exposure:{" "}
-            {elevated.map(({ agent, entries }, i) => (
+            <span className="num text-navy text-[18px] align-middle mr-1.5">{elevated.length}</span>
+            {elevated.length === 1 ? "agent is at elevated exposure: " : "agents are at elevated exposure: "}
+            {elevated.map(({ agent }, i) => (
               <span key={agent.id}>
-                <a href={buildHash("inventory", agent.id)} className="link">
-                  {agent.display_name || agent.name}
-                </a>
-                <span className="caption"> ({entries.map((e) => e.id).join(", ")})</span>
+                <a href={buildHash("inventory", agent.id)} className="link">{agent.display_name || agent.name}</a>
                 {i < elevated.length - 1 ? ", " : "."}
               </span>
             ))}
           </p>
         ) : (
-          <p className="m-0 mb-3 caption">No agent carries elevated exposure in this scan.</p>
+          <p className="m-0 mb-3 caption">No agent is at elevated exposure.</p>
         )}
         <DimensionMatrix />
       </Section>
 
-      <Section title="Read these first" caption="Highest severity, one per rule where possible. Each links to its finding.">
+      <Section title="Top findings" caption="Highest severity first. Click one to see the evidence and the fix.">
         <TopRisks />
       </Section>
-
     </div>
   );
 }

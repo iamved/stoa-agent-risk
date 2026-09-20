@@ -63,7 +63,7 @@ export function Loss() {
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="m-0">Estimated Financial Loss</h1>
-        <div className="caption">An indication for discussion with a licensed broker and carrier. Not a quote, not a premium, not advice.</div>
+        <div className="caption">An indication for a broker conversation. Not a quote.</div>
       </div>
 
       <div className="mt-4 flex flex-wrap items-end justify-between gap-4 pb-3 border-b border-line">
@@ -86,7 +86,7 @@ export function Loss() {
       ) : null}
 
       <details className="mt-3 no-print" open={adjusting} onToggle={(e) => setAdjusting((e.target as HTMLDetailsElement).open)}>
-        <summary className="cursor-pointer caption">Adjust the deployment (the scan supplies the agent's reach and scores; the business context comes from you)</summary>
+        <summary className="cursor-pointer caption">Adjust the inputs</summary>
         <div className="panel mt-3 p-4 grid gap-x-8 gap-y-3 md:grid-cols-3 text-[13px]">
           <div className="flex flex-col gap-2">
             <div className="eyebrow">The business</div>
@@ -162,7 +162,7 @@ export function Loss() {
 
       <DeclaredLimits />
 
-      <p className="caption mt-8 pt-4 border-t border-line max-w-[90ch]">Indication for discussion with a licensed broker and carrier. Not a quote, not a premium, not advice. Past cases are real public events; amounts are approximate figures pending source verification. Loss estimates rest on illustrative assumptions (version {result?.r.assumptions_version ?? "demo-0.1"}, seed {SEED}) that need actuarial review. Stoa prepares evidence; carriers price and issue.</p>
+      <p className="caption mt-8 pt-4 border-t border-line max-w-[90ch]">Indication for discussion with a licensed broker and carrier. Not a quote, not a premium, not advice. Past cases are public events with approximate amounts; the assumptions (version {result?.r.assumptions_version ?? "demo-0.1"}, seed {SEED}) need actuarial review.</p>
     </div>
   );
 }
@@ -211,7 +211,7 @@ function Outlook({ r, levers, intake, model }: { r: Indication; levers: WhatIf[]
         <a href={buildHash("evidence")} className="link self-end text-[12.5px]">Carry into the assessment schedule</a>
       </div>
 
-      <Section title="Where the loss could come from, and when it has happened before" caption={`${r.dataset.events} public events; ${r.dataset.fit_points} with a usable, scaled amount.`}>
+      <Section title="Where the loss could come from" caption="With the closest public cases, scaled to your size.">
         <div className="flex flex-col divide-y divide-line">
           {major.map((c, i) => {
             const g = gap(c.key);
@@ -232,7 +232,7 @@ function Outlook({ r, levers, intake, model }: { r: Indication; levers: WhatIf[]
         {minor.length ? <p className="caption mt-3 mb-0">Small for this deployment: {minor.map((c) => catName(c.key)).join(", ")}.</p> : null}
       </Section>
 
-      <Section title="What would lower it" caption="Each lever re-runs the model with one change and scales the bad-year figure.">
+      <Section title="What would lower it">
         {levers.length ? (
           <table className="tbl max-w-[760px]">
             <thead><tr><th>Change</th><th className="text-right">Bad-year loss</th><th className="text-right">Effect</th></tr></thead>
@@ -270,7 +270,7 @@ function DeclaredLimits() {
   const { envelope } = useApp();
   const rows = lossRows(envelope);
   return (
-    <Section title="Declared limits and enforcement" caption="Every figure here was declared in stoa-declared.toml. Stoa checks whether the code enforces it (DECL003) and whether a money action can post twice (AI008).">
+    <Section title="Declared limits" caption="Limits you declared, and whether the code enforces them.">
       <div className="panel overflow-x-auto" tabIndex={0}>
         <table className="tbl">
           <thead><tr><th>Agent</th><th>Money-moving tools</th><th>Max per action</th><th>Daily aggregate</th><th>Worst-case customer loss</th><th>Enforcement</th><th>Exposure</th></tr></thead>
