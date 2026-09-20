@@ -43,9 +43,8 @@ export function UserMenu() {
           <div className="px-3 py-2 border-b border-line">
             <div className="text-[13px] font-medium text-navy">{name}</div>
             <div className="caption">{[title, company].filter(Boolean).join(" · ") || "No reviewer declared"}</div>
-            {!declared ? <div className="caption mt-1">Set your name and title in Declared Scope so the assessment carries the right signatory.</div> : null}
+            {!declared ? <div className="caption mt-1">Set your name and title in .stoa/underwriting.toml so the assessment carries the right signatory.</div> : null}
           </div>
-          <a role="menuitem" href={buildHash("scope")} onClick={() => setOpen(false)} className="block rounded px-3 py-2 text-[13px] no-underline text-ink hover:bg-paper">Edit reviewer profile</a>
           <button role="menuitem" type="button" onClick={() => { setOpen(false); printAs("summary"); }} className="w-full text-left rounded px-3 py-2 text-[13px] hover:bg-paper">Print summary</button>
           <a role="menuitem" href={buildHash("evidence")} onClick={() => setOpen(false)} className="block rounded px-3 py-2 text-[13px] no-underline text-ink hover:bg-paper">Open the insurance assessment</a>
           <div className="px-3 pt-2 pb-1 caption text-[11px] border-t border-line mt-1">Identity comes from .stoa/underwriting.toml. This page does not sign anyone in.</div>

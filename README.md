@@ -61,10 +61,6 @@ working. See [docs/dashboard.md](docs/dashboard.md).
 - **Agent inventory**: agents in code and in infrastructure, tools, providers,
   integrations, declarations; an agent drawer with declared versus scanned;
   the architecture graph.
-- **Declared Scope**: the business context a person supplies (organization,
-  governance, each agent's owner, intent, data classes and limits, current
-  insurance, applicant identity), editable on the page and saved as the two
-  files the scanner reads, with a completeness figure.
 - **Risk Dashboard**: Findings (filters in the URL hash so a view is
   shareable, a virtualized table, a drawer with what the check does, why it
   matters, and how to fix it), Drift (the `stoa diff` document grouped for

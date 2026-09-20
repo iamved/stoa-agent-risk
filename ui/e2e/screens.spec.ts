@@ -226,6 +226,7 @@ test.describe("estate and risk model screens", () => {
     await page.goto(fileUrl("meridian-pay", "#/risk"));
     await expect(page.getByRole("tab", { name: /Findings/ })).toHaveAttribute("aria-selected", "true");
     await expect(page.getByRole("navigation", { name: "Screens" })).toContainText("AI Risk Insurance");
+    await expect(page.getByRole("navigation", { name: "Screens" })).not.toContainText("Declared Scope");
   });
 });
 
@@ -236,7 +237,7 @@ test.describe("reviewer", () => {
     await expect(btn).toBeVisible();
     await btn.click();
     await expect(page.getByRole("menuitem", { name: "Print summary" })).toBeVisible();
-    await expect(page.getByRole("menuitem", { name: "Edit reviewer profile" })).toBeVisible();
+    await expect(page.getByRole("menuitem", { name: "Open the insurance assessment" })).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(page.getByRole("menu")).toHaveCount(0);
     await page.goto(fileUrl("registry-only", "#/overview"));

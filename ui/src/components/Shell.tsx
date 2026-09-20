@@ -15,7 +15,6 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
   const r = envelope.registry;
   const head = r.repository.head_commit;
   const findingCount = activeFindings(r).length;
-  const declared = r.agents.filter((a) => a.declared).length;
   const driftCount = envelope.diff ? envelope.diff.summary.agents_changed + envelope.diff.summary.agents_added + envelope.diff.summary.agents_removed : 0;
 
   const groups: NavGroup[] = [
@@ -25,7 +24,7 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
       items: [
         { id: "overview", label: "Overview", href: buildHash("overview"), screens: ["overview"], icon: "overview" },
         { id: "inventory", label: "Agent Inventory", href: buildHash("inventory"), screens: ["inventory"], count: r.agents.length, icon: "inventory" },
-        { id: "scope", label: "Declared Scope", href: buildHash("scope"), screens: ["scope"], count: declared, icon: "scope" },
+        // Declared Scope stays reachable at #/scope but is hidden from the sidebar for now.
         { id: "risk", label: "Risk Dashboard", href: buildHash("findings"), screens: ["findings", "drift", "register"], count: findingCount + driftCount, icon: "risk" },
         { id: "controls", label: "Controls & Safeguards", href: buildHash("controls"), screens: ["controls"], icon: "controls" },
         { id: "loss", label: "Estimated Financial Loss", href: buildHash("loss"), screens: ["loss"], icon: "loss" },
