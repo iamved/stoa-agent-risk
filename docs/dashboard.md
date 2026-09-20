@@ -19,7 +19,7 @@ drilling into an agent, reviewing drift, maintaining the risk register.
 |---|---|---|
 | AI estate | Overview | the eight-dimension matrix by category, stat cards, the five findings to read first, framework classes, trends |
 | AI estate | Agent Inventory | agents in code and infrastructure, tools, providers, integrations, the architecture graph |
-| AI estate | Declared Scope | `stoa-declared.toml` next to what the scan inferred, with contradictions |
+| AI estate | Declared Scope | the business context a person supplies (organization, governance, every agent's owner, intent, data classes and limits, current insurance, applicant identity), editable on the page and saved as `stoa-declared.toml` and `.stoa/underwriting.toml`; a completeness figure names the fields worth filling next |
 | Risk model | Risk Dashboard | three tabs: Findings (filters in the URL, virtualized table, What / Why / Fix drawer), Drift, Risk register |
 | Risk model | Controls & Safeguards | controls observed per agent, tool guards, control gaps by rule |
 | Risk model | Estimated Financial Loss | the AI loss outlook for a scanned agent (bad-year and average-year loss, exceedance curve, suggested limit and retention, gaps against current policies, comparable public events, what-if levers), plus the declared limits the scan checks |

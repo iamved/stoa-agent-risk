@@ -13,17 +13,35 @@ export const DEFAULT_INTAKE: Intake = { revenue: 10e6, sector: "software", juris
 
 const WRITE_CAPS = new Set(["database_write", "filesystem_write", "shell_exec", "payment_access", "email_send", "messaging", "code_execution"]);
 
+const SECTOR_BY_INDUSTRY: [RegExp, string][] = [[/fin|bank|pay|insur/i, "fintech"], [/health|medic|pharma|care/i, "healthtech"], [/edu|school|learn/i, "edtech"], [/retail|commerce|shop/i, "retail"], [/legal|law/i, "legal"]];
+const JUR_BY_GEO: Record<string, string> = { us: "US", usa: "US", eu: "EU", de: "EU", fr: "EU", nl: "EU", it: "EU", es: "EU", ie: "EU", ca: "CA", au: "AU", kr: "KR", hk: "HK" };
+
+/** Sector, regulation and jurisdictions the declared facts imply, used when the intake block is silent. */
+export function declaredContext(env: Envelope): { sector: string | null; regulated: boolean | null; jurisdictions: string[] } {
+  const business = (env.registry.business ?? {}) as { industries?: unknown; regulated_activities?: unknown };
+  const industries = Array.isArray(business.industries) ? business.industries.map(String) : [];
+  let sector: string | null = null;
+  for (const ind of industries) for (const [re, s] of SECTOR_BY_INDUSTRY) if (!sector && re.test(ind)) sector = s;
+  if (!sector && industries.length) sector = "software";
+  const regulated = Array.isArray(business.regulated_activities) ? business.regulated_activities.length > 0 : null;
+  const jur = new Set<string>();
+  for (const a of env.registry.agents) for (const g of a.declared?.geography ?? []) { const code = JUR_BY_GEO[g.toLowerCase()] ?? g.toUpperCase(); jur.add(code); }
+  return { sector, regulated, jurisdictions: [...jur].sort() };
+}
+
 export function intakeFromEnvelope(env: Envelope): { intake: Intake; monthlyVolume: number; declared: boolean } {
   const raw = env.intake;
-  if (!raw) return { intake: DEFAULT_INTAKE, monthlyVolume: 50_000, declared: false };
+  const ctx = declaredContext(env);
+  const base: Intake = { ...DEFAULT_INTAKE, sector: ctx.sector ?? DEFAULT_INTAKE.sector, regulated: ctx.regulated ?? DEFAULT_INTAKE.regulated, jurisdictions: ctx.jurisdictions.length ? ctx.jurisdictions : DEFAULT_INTAKE.jurisdictions };
+  if (!raw) return { intake: base, monthlyVolume: 50_000, declared: false };
   const coverage: Policy[] = (raw.existing_coverage ?? []).filter((p): p is Policy => p.type === "cyber" || p.type === "tech_eo" || p.type === "crime");
   return {
     intake: {
-      revenue: raw.revenue ?? DEFAULT_INTAKE.revenue,
-      sector: raw.sector ?? DEFAULT_INTAKE.sector,
-      jurisdictions: raw.jurisdictions?.length ? raw.jurisdictions : DEFAULT_INTAKE.jurisdictions,
-      records: raw.records ?? DEFAULT_INTAKE.records,
-      regulated: raw.regulated ?? false,
+      revenue: raw.revenue ?? base.revenue,
+      sector: raw.sector ?? base.sector,
+      jurisdictions: raw.jurisdictions?.length ? raw.jurisdictions : base.jurisdictions,
+      records: raw.records ?? base.records,
+      regulated: raw.regulated ?? base.regulated,
       minors: raw.minors ?? false,
       existing_coverage: coverage,
     },

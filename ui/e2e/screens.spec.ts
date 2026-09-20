@@ -203,7 +203,18 @@ test.describe("estate and risk model screens", () => {
   test("declared scope, controls, and financial loss render from the registry", async ({ page }) => {
     await page.goto(fileUrl("meridian-pay", "#/scope"));
     await expect(page.getByRole("heading", { name: "Declared Scope" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Contradictions" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Contradictions" })).toHaveCount(0);
+    await expect(page.getByText("Business context complete")).toBeVisible();
+    await page.getByRole("button", { name: "Edit business context" }).click();
+    await page.getByLabel("meridian-front owner").fill("front-desk@meridian.example");
+    await page.getByLabel("Release approval").fill("RELEASING.md");
+    await page.getByRole("button", { name: "Done editing" }).click();
+    const declared = await page.getByLabel("stoa-declared.toml contents").inputValue();
+    expect(declared).toContain('owner = "front-desk@meridian.example"');
+    expect(declared).toContain('release_approval = "RELEASING.md"');
+    expect(declared).toContain("[[risk_register]]");
+    const uw = await page.getByLabel(".stoa/underwriting.toml contents").inputValue();
+    expect(uw).toContain('sector                = "fintech"');
     await page.goto(fileUrl("meridian-pay", "#/controls"));
     await expect(page.getByRole("heading", { name: "Controls & Safeguards" })).toBeVisible();
     await expect(page.getByText("Human approval").first()).toBeVisible();
