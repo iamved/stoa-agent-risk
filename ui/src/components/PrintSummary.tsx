@@ -1,6 +1,6 @@
 import { useApp } from "../app/context";
 import { ExposureBadge, SeverityBadge } from "./Badge";
-import { SEVERITIES, agentLabel, dimensionMatrix, elevatedAgents, formatDate, stats, topRisks } from "../data/selectors";
+import { RISK_LABEL, RISK_LEVELS, agentLabel, countByLevel, activeFindings, dimensionMatrix, elevatedAgents, formatDate, stats, topRisks } from "../data/selectors";
 import { fixFirst } from "../data/evidence";
 
 /**
@@ -16,7 +16,8 @@ export function PrintSummary() {
   const risks = topRisks(envelope, 5);
   const fixes = fixFirst(envelope).slice(0, 5);
   const head = r.repository.head_commit;
-  const activeTotal = SEVERITIES.reduce((n, sev) => n + s.findings[sev], 0);
+  const levels = countByLevel(activeFindings(r));
+  const activeTotal = RISK_LEVELS.reduce((n, l) => n + levels[l], 0);
 
   return (
     <section className="print-summary" aria-hidden="true">
@@ -33,7 +34,7 @@ export function PrintSummary() {
         <Stat label="With financial or write authority" value={s.authorityAgents} />
         <Stat label="Unreviewed high-impact actions" value={s.unreviewedHighImpact} />
         <Stat label="Declared vs scanned contradictions" value={s.contradictions} />
-        <Stat label="Open findings" value={activeTotal} />
+        <Stat label="Open findings" value={`${activeTotal} (${RISK_LEVELS.map((l) => `${levels[l]} ${RISK_LABEL[l].toLowerCase()}`).join(", ")})`} />
         <Stat label="Changes since baseline" value={s.drift ? s.drift.changed + s.drift.added + s.drift.removed : "–"} />
       </div>
 

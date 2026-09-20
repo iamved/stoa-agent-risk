@@ -9,16 +9,16 @@ import { SEVERITY_RANK, activeFindings, agentLabel, type FindingRef } from "./se
 
 export const CONTROL_LABEL: Record<string, string> = {
   approval: "Human approval",
+  kill_switch: "Kill switch",
   authentication: "Authentication",
   validation: "Input validation",
   rate_limit: "Rate limiting",
   observability: "Observability",
   deterministic_sampling: "Deterministic sampling",
-  pinned_model: "Pinned model",
   sandbox: "Sandboxing",
-  guardrail: "Guardrail",
-  ai_gateway: "AI gateway",
 };
+/** Controls shown in the coverage list. Others the scanner may report stay in the per-agent chips. */
+export const COVERAGE_CONTROLS = ["approval", "kill_switch", "authentication", "validation", "rate_limit", "observability", "deterministic_sampling", "sandbox"];
 
 export function controlLabel(id: string): string {
   return CONTROL_LABEL[id] ?? id.replace(/_/g, " ");
@@ -45,6 +45,12 @@ export function agentControlRows(env: Envelope): AgentControlRow[] {
     .map((agent) => {
       const observed = new Set<string>();
       for (const d of agent.dimension_assessment?.dimensions ?? []) for (const c of d.controls_observed) observed.add(c);
+      // A kill switch is reported the other way round: CTRL007 fires when none is
+      // observed. So an assessed agent (medium or high confidence) with no CTRL007
+      // finding showed one.
+      const assessed = agent.confidence === "medium" || agent.confidence === "high";
+      const noKillSwitch = active.some((r) => r.finding.rule_id === "CTRL007" && r.agents.some((a) => a.id === agent.id));
+      if (assessed && !noKillSwitch) observed.add("kill_switch");
       const tools = agent.tools ?? [];
       return {
         agent,
@@ -69,8 +75,7 @@ export interface ControlCoverage {
 /** How many agents show each control at least once. */
 export function coverage(env: Envelope): ControlCoverage[] {
   const rows = agentControlRows(env);
-  const ids = new Set<string>(Object.keys(CONTROL_LABEL));
-  for (const r of rows) for (const c of r.observed) ids.add(c);
+  const ids = new Set<string>(COVERAGE_CONTROLS);
   return [...ids]
     .map((id) => ({ id, label: controlLabel(id), agents: rows.filter((r) => r.observed.includes(id)).length, total: rows.length }))
     .sort((a, b) => b.agents - a.agents || a.label.localeCompare(b.label));

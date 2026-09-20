@@ -8007,6 +8007,11 @@
     "identity_source": "applicant",
     "carrier": "Munich Re",
     "product": "aiSure",
+    "advisor": {
+      "url": "https://stoa.insure",
+      "email": "",
+      "submit_email": ""
+    },
     "repository": "meridian-pay",
     "sections": [
       {

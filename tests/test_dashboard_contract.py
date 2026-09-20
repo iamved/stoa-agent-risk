@@ -278,6 +278,9 @@ def test_assessment_fields_carry_sources_and_declared_schedule_wins(meridian_reg
         schedule={"policy_limit": "US$ 5,000,000", "carrier": "Example Re"},
     )
     assert declared["carrier"] == "Example Re"
+    assert plain["advisor"]["url"] == "https://stoa.insure" and plain["advisor"]["email"] == ""
+    with_advisor = build_assessment(meridian_registry, schedule={"advisor_url": "https://cal.example/stoa", "advisor_email": "advisors@stoa.insure"})
+    assert with_advisor["advisor"] == {"url": "https://cal.example/stoa", "email": "advisors@stoa.insure", "submit_email": ""}
     assert declared["schedule_source"] == "declared"
     limit = next(f for f in declared["schedule"] if f["key"] == "policy_limit")
     assert limit["value"] == "US$ 5,000,000" and limit["source"] == "declared"

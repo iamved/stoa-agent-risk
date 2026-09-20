@@ -109,7 +109,8 @@ def load_underwriting_config(path: Path) -> tuple[dict, list | None]:
 # sets the real terms; the dashboard labels these as indicative unless the
 # applicant declares a [schedule] in the underwriting config.
 _SCHEDULE_KEYS = ("policy_limit", "sublimit_own_losses", "sublimit_consequential",
-                  "aggregate_deductible", "co_insurance", "coverage_trigger", "carrier", "product")
+                  "aggregate_deductible", "co_insurance", "coverage_trigger", "carrier", "product",
+                  "advisor_url", "advisor_email", "submit_email")
 
 
 def load_schedule(path: Path) -> dict:
@@ -258,6 +259,13 @@ def build_assessment(document: dict, identity: dict | None = None,
         "identity_source": idn_source,
         "carrier": declared_schedule.get("carrier", "Munich Re"),
         "product": declared_schedule.get("product", "aiSure"),
+        # Where the "buy" steps lead. Declared in [schedule]; the defaults point
+        # at Stoa's own site so a demo never invents a carrier contact.
+        "advisor": {
+            "url": declared_schedule.get("advisor_url", "https://stoa.insure"),
+            "email": declared_schedule.get("advisor_email", ""),
+            "submit_email": declared_schedule.get("submit_email", ""),
+        },
         "repository": repo,
         "sections": [
             {"id": "general", "title": "General information", "fields": general},

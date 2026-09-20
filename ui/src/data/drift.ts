@@ -6,7 +6,7 @@
  * integration, a dimension rising, or a new agent that binds either).
  */
 import type { DiffDocument, DriftSeverity, Envelope, Exposure } from "./types";
-import { EXPOSURE_LABEL } from "./selectors";
+import { EXPOSURE_LABEL, RISK_LABEL, riskLevel } from "./selectors";
 
 export type ChangeKind =
   | "capability_added"
@@ -101,7 +101,7 @@ export function changes(env: Envelope): Change[] {
       out.push({ ...base, kind: "renamed", label: `${c.renamed_from} to ${c.name}`, detail: "matched by evidence overlap", severity: "info", approved: true, authorityIncrease: false, needsReview: false });
     }
     for (const f of c.findings_delta.new) {
-      out.push({ ...base, kind: "finding_new", label: f.rule_id, detail: `${f.severity} at line ${f.line}`, severity: f.severity === "critical" || f.severity === "high" ? "high" : f.severity === "medium" ? "medium" : "info", approved: false, authorityIncrease: false, needsReview: f.severity === "critical", fingerprint: f.fingerprint });
+      out.push({ ...base, kind: "finding_new", label: f.rule_id, detail: `${RISK_LABEL[riskLevel(f.severity)].toLowerCase()} risk at line ${f.line}`, severity: f.severity === "critical" || f.severity === "high" ? "high" : f.severity === "medium" ? "medium" : "info", approved: false, authorityIncrease: false, needsReview: f.severity === "critical", fingerprint: f.fingerprint });
     }
     for (const f of c.findings_delta.resolved) {
       out.push({ ...base, kind: "finding_resolved", label: f.rule_id, detail: "no longer present", severity: "info", approved: true, authorityIncrease: false, needsReview: false, fingerprint: f.fingerprint });

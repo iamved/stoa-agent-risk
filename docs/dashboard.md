@@ -98,7 +98,20 @@ carrier                = "Munich Re"
 product                = "aiSure"
 policy_limit           = "US$ 25,000,000"
 aggregate_deductible   = "US$ 100,000"
+advisor_url            = "https://cal.example/stoa-advisor"   # "Schedule a call" destination
+advisor_email          = "advisors@stoa.insure"               # optional "Email an advisor"
+submit_email           = "submissions@example-carrier.com"    # optional "Email the signed assessment"
 ```
+
+The AI Risk Insurance page offers two ways to proceed: **Print and sign**
+(the assessment, ready for signature) and **Schedule a call** with a Stoa
+advisor. The call link comes from `advisor_url` and defaults to the Stoa
+site; no carrier contact is ever invented.
+
+The dashboard shows findings as three risk levels: **High** (scanner
+severities critical and high), **Medium** (medium), and **Low** (low and
+info). The scanner's own severity is kept in the registry and shown in the
+chip's tooltip.
 
 Without a `[schedule]`, the schedule shows indicative terms sized off
 exposure and says so; without `[[performance]]`, sample figures are shown

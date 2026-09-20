@@ -18,6 +18,20 @@ import type {
 import { EU_AI_ACT_ARTICLES, OWASP_LLM_2025, euArticleDescription, euArticleName, owaspDescription, owaspName, type FrameworkId } from "./frameworks";
 
 export const SEVERITIES: Severity[] = ["critical", "high", "medium", "low", "info"];
+
+/** The dashboard shows three risk levels; the scanner's five severities map onto them. */
+export type RiskLevel = "high" | "medium" | "low";
+export const RISK_LEVELS: RiskLevel[] = ["high", "medium", "low"];
+export const RISK_LABEL: Record<RiskLevel, string> = { high: "High", medium: "Medium", low: "Low" };
+export const RISK_SEVERITIES: Record<RiskLevel, Severity[]> = { high: ["critical", "high"], medium: ["medium"], low: ["low", "info"] };
+export function riskLevel(severity: Severity): RiskLevel {
+  return severity === "critical" || severity === "high" ? "high" : severity === "medium" ? "medium" : "low";
+}
+export function countByLevel(refs: FindingRef[]): Record<RiskLevel, number> {
+  const out: Record<RiskLevel, number> = { high: 0, medium: 0, low: 0 };
+  for (const ref of refs) out[riskLevel(ref.finding.severity)] += 1;
+  return out;
+}
 export const SEVERITY_RANK: Record<Severity, number> = { critical: 4, high: 3, medium: 2, low: 1, info: 0 };
 export const CONFIDENCE_RANK: Record<string, number> = { high: 2, medium: 1, low: 0 };
 export const EXPOSURE_RANK: Record<Exposure, number> = {

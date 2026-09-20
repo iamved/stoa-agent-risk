@@ -1,11 +1,13 @@
 import type { ReactNode } from "react";
 import type { Confidence, Exposure, Severity } from "../data/types";
-import { ASSESSABILITY_HINT, ASSESSABILITY_LABEL, EXPOSURE_LABEL } from "../data/selectors";
+import { ASSESSABILITY_HINT, ASSESSABILITY_LABEL, EXPOSURE_LABEL, RISK_LABEL, riskLevel } from "../data/selectors";
 
 /* Status chips: a colored dot plus a text label, so nothing relies on color alone. */
 
+/** Shown as one of three risk levels; the scanner's severity is in the tooltip. */
 export function SeverityBadge({ severity }: { severity: Severity }) {
-  return <span className={`chip chip-${severity}`}>{severity}</span>;
+  const level = riskLevel(severity);
+  return <span className={`chip chip-${level}`} title={`scanner severity: ${severity}`}>{RISK_LABEL[level]}</span>;
 }
 
 const EXPOSURE_CLASS: Record<Exposure, string> = {

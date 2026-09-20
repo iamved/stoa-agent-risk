@@ -477,6 +477,7 @@ export interface Assessment {
   identity_source: "applicant" | "sample";
   carrier: string;
   product: string;
+  advisor: { url: string; email: string; submit_email: string };
   repository: string;
   sections: { id: string; title: string; fields: AssessmentField[] }[];
   performance: { metric: string; value: string; cadence: string; source: "applicant" | "sample" }[];

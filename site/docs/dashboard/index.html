@@ -130,7 +130,12 @@ cadence = "Monthly, held-out labeled set"
 carrier                = "Munich Re"
 product                = "aiSure"
 policy_limit           = "US$ 25,000,000"
-aggregate_deductible   = "US$ 100,000"</code></pre>
+aggregate_deductible   = "US$ 100,000"
+advisor_url            = "https://cal.example/stoa-advisor"   # "Schedule a call" destination
+advisor_email          = "advisors@stoa.insure"               # optional "Email an advisor"
+submit_email           = "submissions@example-carrier.com"    # optional "Email the signed assessment"</code></pre>
+<p>The AI Risk Insurance page offers two ways to proceed: <strong>Print and sign</strong> (the assessment, ready for signature) and <strong>Schedule a call</strong> with a Stoa advisor. The call link comes from <code>advisor_url</code> and defaults to the Stoa site; no carrier contact is ever invented.</p>
+<p>The dashboard shows findings as three risk levels: <strong>High</strong> (scanner severities critical and high), <strong>Medium</strong> (medium), and <strong>Low</strong> (low and info). The scanner's own severity is kept in the registry and shown in the chip's tooltip.</p>
 <p>Without a <code>[schedule]</code>, the schedule shows indicative terms sized off exposure and says so; without <code>[[performance]]</code>, sample figures are shown and marked to confirm. Without any config the placeholder identity is derived from the repository name and every contact field reads "To be confirmed". The page never states that coverage exists.</p>
 <p><strong>Edit assessment</strong> on the page makes identity, performance figures, and schedule terms editable in place; the printed form uses the edited values, and a config snippet appears to save as <code>.stoa/underwriting.toml</code>. Answers that come from scan evidence (robustness findings, inventory, critical findings, monitoring, drift) stay read-only: they change when the code changes.</p>
 <h2 id="from-an-existing-registry">From an existing registry</h2>

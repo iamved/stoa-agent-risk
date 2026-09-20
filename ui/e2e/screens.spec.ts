@@ -17,7 +17,7 @@ test.describe("findings", () => {
     await page.goto(fileUrl("meridian-pay", "#/findings?severity=critical"));
     const table = page.getByRole("table", { name: "Findings" });
     await expect(table).toHaveAttribute("aria-rowcount", String(env.registry.summary.findings.critical));
-    await page.getByRole("button", { name: /high\s+\d+/ }).first().click();
+    await page.getByRole("button", { name: /^High\s+\d+$/ }).click();
     await expect.poll(() => page.evaluate(() => window.location.hash)).toContain("severity=critical%2Chigh");
     await page.reload();
     await expect(table).toHaveAttribute("aria-rowcount", String(env.registry.summary.findings.critical + env.registry.summary.findings.high));
@@ -137,6 +137,8 @@ test.describe("insurance and print", () => {
     await expect(page.getByText("Policy limit (aggregate)")).toBeVisible();
     await expect(page.getByText("5. Declaration")).toBeVisible();
     await expect(page.getByRole("button", { name: "Print assessment (PDF)" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Print and sign" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Schedule a call" })).toHaveAttribute("href", "https://stoa.insure");
     await page.getByText("Show the evidence pack").click();
     await expect(page.getByRole("heading", { name: "What the agents can do" })).toBeVisible();
   });
@@ -220,6 +222,8 @@ test.describe("estate and risk model screens", () => {
     await page.goto(fileUrl("meridian-pay", "#/controls"));
     await expect(page.getByRole("heading", { name: "Controls & Safeguards" })).toBeVisible();
     await expect(page.getByText("Human approval").first()).toBeVisible();
+    await expect(page.getByText("Kill switch").first()).toBeVisible();
+    await expect(page.getByText("Pinned model")).toHaveCount(0);
     await page.goto(fileUrl("meridian-pay", "#/loss"));
     await expect(page.getByRole("heading", { name: "Estimated Financial Loss" })).toBeVisible();
     await expect(page.getByText("500 USD").first()).toBeVisible({ timeout: 30_000 });

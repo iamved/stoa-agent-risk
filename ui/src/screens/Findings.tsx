@@ -6,7 +6,7 @@ import { Pill, SeverityBadge } from "../components/Badge";
 import { DataTable, sortRows, type Column, type SortState } from "../components/DataTable";
 import { FindingDrawer } from "../components/FindingDrawer";
 import { EMPTY_FILTERS, applyFilters, defaultOrder, filtersFromQuery, filtersToQuery, isFiltered, sortFromQuery, type FindingFilters } from "../data/filters";
-import { SEVERITIES, SEVERITY_RANK, activeFindings, agentLabel, allFindings, countBySeverity, findingByFingerprint, findingTag, frameworkClasses, tagLabel, type FindingRef } from "../data/selectors";
+import { RISK_LABEL, RISK_LEVELS, RISK_SEVERITIES, SEVERITY_RANK, activeFindings, countByLevel, agentLabel, allFindings, findingByFingerprint, findingTag, frameworkClasses, tagLabel, type FindingRef } from "../data/selectors";
 import type { Severity } from "../data/types";
 
 export function Findings() {
@@ -18,7 +18,7 @@ export function Findings() {
 
   const rows = useMemo(() => defaultOrder(applyFilters(envelope, filters, framework)), [envelope, filters, framework]);
   const columns = useMemo<Column<FindingRef>[]>(() => [
-    { id: "severity", header: "Severity", width: "110px", cell: (r) => <SeverityBadge severity={r.finding.severity} />, sortValue: (r) => SEVERITY_RANK[r.finding.severity] },
+    { id: "severity", header: "Risk", width: "100px", cell: (r) => <SeverityBadge severity={r.finding.severity} />, sortValue: (r) => SEVERITY_RANK[r.finding.severity] },
     { id: "rule", header: "Rule", width: "90px", cell: (r) => <span className="mono">{r.finding.rule_id}</span>, sortValue: (r) => r.finding.rule_id },
     { id: "title", header: "Title", width: "minmax(220px, 2fr)", cell: (r) => <span className="line-clamp-2">{r.finding.title}{r.finding.is_new ? <Pill tone="gold">new</Pill> : null}{r.finding.suppressed ? <Pill>suppressed</Pill> : null}</span>, sortValue: (r) => r.finding.title },
     { id: "agent", header: "Agent", width: "minmax(120px, 1fr)", cell: (r) => (r.agent ? <span className="truncate block">{agentLabel(r.agent)}{r.agents.length > 1 ? <span className="caption"> +{r.agents.length - 1}</span> : null}</span> : <span className="caption">repository</span>), sortValue: (r) => (r.agent ? agentLabel(r.agent) : "") },
@@ -35,7 +35,7 @@ export function Findings() {
 
   const all = allFindings(envelope.registry);
   const active = activeFindings(envelope.registry);
-  const bySeverity = countBySeverity(active);
+  const byLevel = countByLevel(active);
   const byDimension = envelope.taxonomy.dimensions.map((d) => ({ id: d.id, name: d.name, count: active.filter((r) => r.finding.dimensions?.includes(d.id)).length }));
   const agents = envelope.registry.agents;
   const classes = frameworkClasses(envelope, framework).filter((c) => c.count > 0);
@@ -50,14 +50,18 @@ export function Findings() {
 
       <div className="mt-4 grid gap-3 md:grid-cols-2">
         <div className="panel p-3">
-          <div className="caption uppercase text-[11px] tracking-wide mb-2">By severity</div>
+          <div className="caption uppercase text-[11px] tracking-wide mb-2">By risk level</div>
           <div className="flex flex-wrap gap-2">
-            {SEVERITIES.map((sev) => (
-              <button key={sev} type="button" onClick={() => update({ ...filters, severity: filters.severity.includes(sev) ? filters.severity.filter((s) => s !== sev) : [...filters.severity, sev] })} aria-pressed={filters.severity.includes(sev)} className={`flex items-center gap-1 rounded border px-2 py-1 ${filters.severity.includes(sev) ? "border-gold bg-gold-100" : "border-line bg-panel"}`}>
-                <SeverityBadge severity={sev} />
-                <span className="tabular-nums text-[13px]">{bySeverity[sev]}</span>
-              </button>
-            ))}
+            {RISK_LEVELS.map((level) => {
+              const members = RISK_SEVERITIES[level];
+              const on = members.every((s) => filters.severity.includes(s));
+              return (
+                <button key={level} type="button" onClick={() => update({ ...filters, severity: on ? filters.severity.filter((s) => !members.includes(s)) : [...filters.severity.filter((s) => !members.includes(s)), ...members] })} aria-pressed={on} className={`flex items-center gap-1.5 rounded border px-2 py-1 ${on ? "border-gold bg-gold-100" : "border-line bg-panel"}`}>
+                  <span className={`chip chip-${level}`}>{RISK_LABEL[level]}</span>
+                  <span className="tabular-nums text-[13px]">{byLevel[level]}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
         <div className="panel p-3">

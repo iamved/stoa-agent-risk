@@ -206,6 +206,29 @@ export function Evidence() {
         </div>
       </div>
 
+      <div className="screen-view">
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <div className="panel p-5 flex flex-col gap-2">
+            <div className="eyebrow">Ready to proceed</div>
+            <h2 className="m-0">Sign the assessment</h2>
+            <p className="caption m-0">Print it, sign the declaration on the last page, and send it to {carrier}. {a.counts.to_confirm - editedIdentity.size > 0 ? `${a.counts.to_confirm - editedIdentity.size} fields still say To confirm; review them first.` : "Every field is filled."}</p>
+            <div className="mt-auto pt-2 flex flex-wrap gap-2">
+              <button type="button" onClick={() => printAs("pack")} className="btn btn-primary">Print and sign</button>
+              {a.advisor.submit_email ? <a href={`mailto:${a.advisor.submit_email}?subject=${encodeURIComponent(`${product} assessment: ${identity.company || a.repository}`)}`} className="btn">Email the signed assessment</a> : null}
+            </div>
+          </div>
+          <div className="panel p-5 flex flex-col gap-2">
+            <div className="eyebrow">Not sure yet</div>
+            <h2 className="m-0">Talk to a Stoa advisor</h2>
+            <p className="caption m-0">A short call to walk through the assessment, the loss outlook, and what {carrier} will ask for. Stoa prepares the evidence; {carrier} prices and issues.</p>
+            <div className="mt-auto pt-2 flex flex-wrap gap-2">
+              <a href={a.advisor.url} target="_blank" rel="noreferrer" className="btn btn-primary">Schedule a call</a>
+              {a.advisor.email ? <a href={`mailto:${a.advisor.email}?subject=${encodeURIComponent(`AI risk insurance: ${identity.company || a.repository}`)}`} className="btn">Email an advisor</a> : null}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* The assessment document. Shown on screen and printed by "Print assessment". */}
       <div className="print-pack-doc mt-6">
         <div className="panel max-w-[880px] mx-auto px-8 py-7 assessment">

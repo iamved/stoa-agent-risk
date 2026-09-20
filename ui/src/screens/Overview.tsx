@@ -22,7 +22,7 @@ export function Overview() {
       <div className="mt-4 grid gap-3 grid-cols-2 xl:grid-cols-4">
         <StatCard label="AI agents found" value={s.agents} href={buildHash("inventory")} />
         <StatCard label="Can move money or write to systems" value={s.authorityAgents} href={buildHash("inventory", null, { authority: "1" })} tone={s.authorityAgents ? "warn" : "neutral"} />
-        <StatCard label="Critical and high findings" value={urgent} detail={`${s.findings.medium + s.findings.low + s.findings.info} lower severity`} href={buildHash("findings", null, { severity: "critical,high" })} tone={urgent ? "warn" : "neutral"} />
+        <StatCard label="High-risk findings" value={urgent} detail={`${s.findings.medium} medium · ${s.findings.low + s.findings.info} low`} href={buildHash("findings", null, { severity: "critical,high" })} tone={urgent ? "warn" : "neutral"} />
         <StatCard label="Changed since last scan" value={s.drift ? s.drift.changed + s.drift.added + s.drift.removed : "–"} detail={s.drift ? (s.drift.escalationsHigh ? `${pluralize(s.drift.escalationsHigh, "high-impact change")} to review` : "nothing to review") : "no baseline"} href={buildHash("drift")} tone={s.drift && s.drift.escalationsHigh ? "warn" : "neutral"} />
       </div>
 
