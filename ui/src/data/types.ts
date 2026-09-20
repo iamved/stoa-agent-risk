@@ -458,8 +458,23 @@ export interface AssessmentField {
   note: string;
 }
 
+export interface AssessmentIdentity {
+  company: string;
+  contact_name: string;
+  contact_title: string;
+  contact_email: string;
+  address: string;
+  home_state: string;
+  model_name: string;
+  model_version: string;
+  deployment: string;
+  currency: string;
+}
+
 export interface Assessment {
   template: string;
+  identity: AssessmentIdentity;
+  identity_source: "applicant" | "sample";
   carrier: string;
   product: string;
   repository: string;

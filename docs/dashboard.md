@@ -60,7 +60,16 @@ aggregate_deductible   = "US$ 100,000"
 
 Without a `[schedule]`, the schedule shows indicative terms sized off
 exposure and says so; without `[[performance]]`, sample figures are shown
-and marked to confirm. The page never states that coverage exists.
+and marked to confirm. Without any config the placeholder identity is
+derived from the repository name and every contact field reads "To be
+confirmed". The page never states that coverage exists.
+
+**Edit assessment** on the page makes identity, performance figures, and
+schedule terms editable in place; the printed form uses the edited values,
+and a config snippet appears to save as `.stoa/underwriting.toml`. Answers
+that come from scan evidence (robustness findings, inventory, critical
+findings, monitoring, drift) stay read-only: they change when the code
+changes.
 
 ## From an existing registry
 

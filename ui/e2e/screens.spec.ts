@@ -139,6 +139,21 @@ test.describe("insurance and print", () => {
     await expect(page.getByRole("heading", { name: "What the agents can do" })).toBeVisible();
   });
 
+  test("the assessment is editable and produces the config snippet", async ({ page }) => {
+    await page.goto(fileUrl("meridian-pay", "#/evidence"));
+    await expect(page.locator(".assessment")).toContainText("Meridian Pay");
+    await page.getByRole("button", { name: "Edit assessment" }).click();
+    await page.getByLabel("Applicant company").fill("Meridian Pay Ltd");
+    await page.getByLabel("Policy limit (aggregate)").fill("US$ 5,000,000");
+    await page.getByRole("button", { name: "Done editing" }).click();
+    await expect(page.locator(".assessment")).toContainText("Meridian Pay Ltd");
+    await expect(page.locator(".assessment")).toContainText("US$ 5,000,000");
+    const snippet = await page.getByLabel("Underwriting config snippet").inputValue();
+    expect(snippet).toContain('company        = "Meridian Pay Ltd"');
+    expect(snippet).toContain('policy_limit           = "US$ 5,000,000"');
+    expect(snippet).toContain("[[performance]]");
+  });
+
   test("print summary is one page and hides the app chrome", async ({ page }) => {
     await page.goto(fileUrl("meridian-pay", "#/findings"));
     await page.evaluate(() => { document.documentElement.dataset.print = "summary"; });

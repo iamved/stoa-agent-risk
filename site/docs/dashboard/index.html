@@ -114,7 +114,8 @@ carrier                = "Munich Re"
 product                = "aiSure"
 policy_limit           = "US$ 25,000,000"
 aggregate_deductible   = "US$ 100,000"</code></pre>
-<p>Without a <code>[schedule]</code>, the schedule shows indicative terms sized off exposure and says so; without <code>[[performance]]</code>, sample figures are shown and marked to confirm. The page never states that coverage exists.</p>
+<p>Without a <code>[schedule]</code>, the schedule shows indicative terms sized off exposure and says so; without <code>[[performance]]</code>, sample figures are shown and marked to confirm. Without any config the placeholder identity is derived from the repository name and every contact field reads "To be confirmed". The page never states that coverage exists.</p>
+<p><strong>Edit assessment</strong> on the page makes identity, performance figures, and schedule terms editable in place; the printed form uses the edited values, and a config snippet appears to save as <code>.stoa/underwriting.toml</code>. Answers that come from scan evidence (robustness findings, inventory, critical findings, monitoring, drift) stay read-only: they change when the code changes.</p>
 <h2 id="from-an-existing-registry">From an existing registry</h2>
 <pre class="code" data-lang="bash"><code>stoa dashboard stoa-registry.json                        # no drift screen
 stoa dashboard stoa-registry.json --baseline main.json   # drift against a saved registry

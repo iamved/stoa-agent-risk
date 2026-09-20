@@ -122,6 +122,29 @@ def load_schedule(path: Path) -> dict:
     return {k: str(v) for k, v in raw.items() if k in _SCHEDULE_KEYS}
 
 
+def _default_identity(document: dict, repo: str) -> dict:
+    """Placeholder identity derived from the scanned repository, never a
+    fictional company: the applicant confirms or replaces every field."""
+    company = " ".join(part.capitalize() for part in repo.replace("_", "-").split("-") if part) or "Applicant"
+    agents = document.get("agents") or []
+    statuses = [((a.get("declared") or {}).get("production_status") or "") for a in agents]
+    production = sum(1 for st in statuses if st == "production")
+    deployment = (f"Production ({production} of {len(agents)} agents declared production)"
+                  if production else ("To be confirmed" if agents else "No agents detected"))
+    return {
+        "company": company,
+        "contact_name": "",
+        "contact_title": "",
+        "contact_email": "",
+        "address": "",
+        "home_state": "",
+        "model_name": f"{company} AI agents",
+        "model_version": (document.get("repository") or {}).get("git_ref") or "",
+        "deployment": deployment,
+        "currency": "USD",
+    }
+
+
 def build_assessment(document: dict, identity: dict | None = None,
                      metrics: list | None = None, schedule: dict | None = None) -> dict:
     """The pre-filled AI Model Risk Assessment as structured data.
@@ -134,23 +157,28 @@ def build_assessment(document: dict, identity: dict | None = None,
     dashboard renders the form from this and the legacy HTML export renders
     the same facts, so the two never disagree.
     """
-    idn_source = "applicant" if identity else "sample"
-    idn = {**DEMO_IDENTITY, **(identity or {})}
     d = derive_from_registry(document)
     repo = (document.get("repository") or {}).get("name", "the repository")
+    idn_source = "applicant" if identity else "sample"
+    idn = {**_default_identity(document, repo), **(identity or {})}
     declared_schedule = dict(schedule or {})
 
     def f(key: str, label: str, value: str, source: str, note: str = "") -> dict:
         return {"key": key, "label": label, "value": value, "source": source, "note": note}
 
+    def tbc(value: str) -> str:
+        return value or "To be confirmed"
+
+    contact = ", ".join(x for x in (idn["contact_name"], idn["contact_title"]) if x)
+    model = idn["model_name"] + (f' (v{idn["model_version"]})' if idn["model_version"] else "")
     general = [
-        f("company", "Applicant company", idn["company"], idn_source),
-        f("address", "Address", idn["address"], idn_source),
-        f("contact", "Contact", f'{idn["contact_name"]}, {idn["contact_title"]}', idn_source),
-        f("contact_email", "Contact email", idn["contact_email"], idn_source),
-        f("home_state", "Home state", idn["home_state"], idn_source),
-        f("model", "Covered model", f'{idn["model_name"]} (v{idn["model_version"]})', idn_source),
-        f("deployment", "Deployment", idn["deployment"], idn_source),
+        f("company", "Applicant company", tbc(idn["company"]), idn_source),
+        f("address", "Address", tbc(idn["address"]), idn_source),
+        f("contact", "Contact", tbc(contact), idn_source),
+        f("contact_email", "Contact email", tbc(idn["contact_email"]), idn_source),
+        f("home_state", "Home state", tbc(idn["home_state"]), idn_source),
+        f("model", "Covered model", tbc(model), idn_source),
+        f("deployment", "Deployment", tbc(idn["deployment"]), idn_source),
     ]
     development = [
         f("robustness", "Robustness testing (adversarial / prompt-injection)",
@@ -191,7 +219,7 @@ def build_assessment(document: dict, identity: dict | None = None,
         term("aggregate_deductible", "Aggregate deductible", d["deductible"]),
         term("co_insurance", "Co-insurance", "10% (own financial losses) / 20% (consequential)"),
         term("coverage_trigger", "Coverage trigger", d["trigger"]),
-        f("currency", "Currency", idn["currency"], idn_source),
+        f("currency", "Currency", tbc(idn["currency"]), idn_source),
     ]
     fields = general + development + post + schedule_rows
     prefilled = sum(1 for x in fields if x["source"] in ("scan", "declared"))
@@ -199,6 +227,8 @@ def build_assessment(document: dict, identity: dict | None = None,
     indicative = sum(1 for x in fields if x["source"] == "indicative")
     return {
         "template": "aiSure AI Model Risk Assessment",
+        "identity": dict(idn),
+        "identity_source": idn_source,
         "carrier": declared_schedule.get("carrier", "Munich Re"),
         "product": declared_schedule.get("product", "aiSure"),
         "repository": repo,
@@ -214,7 +244,7 @@ def build_assessment(document: dict, identity: dict | None = None,
         "declaration": ("The undersigned confirms that, to the best of their knowledge, the information "
                         "furnished in this assessment is true and correct in all material respects and "
                         "no material fact has been knowingly withheld."),
-        "signatory": f'{idn["contact_name"]}, {idn["contact_title"]}',
+        "signatory": contact or "Authorized signatory",
         "counts": {"prefilled": prefilled, "to_confirm": to_confirm, "indicative": indicative,
                    "performance_rows": len(performance), "total": len(fields)},
         "derived": d,

@@ -28,6 +28,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
+from stoa.cli import _load_underwriting  # noqa: E402
 from stoa.config import load_config  # noqa: E402
 from stoa.dashboard import build_envelope, entry_from_registry  # noqa: E402
 from stoa.registry_diff import diff_registries  # noqa: E402
@@ -131,10 +132,11 @@ def build(out: Path = OUT) -> None:
         baseline = _stamp(_scan(baseline_root), "baseline")
         middle = _stamp(_scan(middle_root), "middle")
         head = _stamp(_scan(head_root), "head")
+        underwriting = _load_underwriting(head_root, None)
 
     diff = diff_registries(baseline, head)
     history = [entry_from_registry(r) for r in (baseline, middle, head)]
-    envelope = build_envelope(head, diff=diff, baseline=baseline, history=history)
+    envelope = build_envelope(head, diff=diff, baseline=baseline, history=history, underwriting=underwriting)
 
     _write(out, "meridian-pay.baseline.json", baseline)
     _write(out, "meridian-pay.envelope.json", envelope)

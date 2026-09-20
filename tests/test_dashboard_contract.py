@@ -258,6 +258,12 @@ def test_assessment_fields_carry_sources_and_declared_schedule_wins(meridian_reg
 
     plain = build_assessment(meridian_registry)
     assert [s["id"] for s in plain["sections"]] == ["general", "development", "post"]
+    assert plain["identity"]["company"] == "Meridian Pay"
+    assert plain["identity_source"] == "sample"
+    assert "XYZ" not in json.dumps(plain)
+    company = next(f for f in plain["sections"][0]["fields"] if f["key"] == "company")
+    assert company["value"] == "Meridian Pay"
+    assert next(f for f in plain["sections"][0]["fields"] if f["key"] == "contact")["value"] == "To be confirmed"
     sources = {f["source"] for s in plain["sections"] for f in s["fields"]} | {f["source"] for f in plain["schedule"]}
     assert sources <= {"scan", "declared", "applicant", "sample", "indicative"}
     assert plain["schedule_source"] == "indicative"

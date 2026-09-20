@@ -7992,6 +7992,19 @@
   },
   "assessment": {
     "template": "aiSure AI Model Risk Assessment",
+    "identity": {
+      "company": "Meridian Pay",
+      "contact_name": "Priya Natarajan",
+      "contact_title": "Chief Risk Officer",
+      "contact_email": "risk@meridian.example",
+      "address": "88 Harbour Street, Level 12, Sydney NSW 2000",
+      "home_state": "New South Wales",
+      "model_name": "Meridian support agent (refunds, fee waivers, account actions)",
+      "model_version": "2026.9",
+      "deployment": "Production (customer-facing support, chat and IVR)",
+      "currency": "USD"
+    },
+    "identity_source": "applicant",
     "carrier": "Munich Re",
     "product": "aiSure",
     "repository": "meridian-pay",
@@ -8003,50 +8016,50 @@
           {
             "key": "company",
             "label": "Applicant company",
-            "value": "XYZ Financial Technologies",
-            "source": "sample",
+            "value": "Meridian Pay",
+            "source": "applicant",
             "note": ""
           },
           {
             "key": "address",
             "label": "Address",
-            "value": "500 Market Street, Suite 1200, San Francisco, CA 94105",
-            "source": "sample",
+            "value": "88 Harbour Street, Level 12, Sydney NSW 2000",
+            "source": "applicant",
             "note": ""
           },
           {
             "key": "contact",
             "label": "Contact",
-            "value": "Jordan Rivera, Chief Technology Officer",
-            "source": "sample",
+            "value": "Priya Natarajan, Chief Risk Officer",
+            "source": "applicant",
             "note": ""
           },
           {
             "key": "contact_email",
             "label": "Contact email",
-            "value": "risk@xyz-fintech.example",
-            "source": "sample",
+            "value": "risk@meridian.example",
+            "source": "applicant",
             "note": ""
           },
           {
             "key": "home_state",
             "label": "Home state",
-            "value": "California",
-            "source": "sample",
+            "value": "New South Wales",
+            "source": "applicant",
             "note": ""
           },
           {
             "key": "model",
             "label": "Covered model",
-            "value": "XYZ Fraud-Triage Agent (v2026.2)",
-            "source": "sample",
+            "value": "Meridian support agent (refunds, fee waivers, account actions) (v2026.9)",
+            "source": "applicant",
             "note": ""
           },
           {
             "key": "deployment",
             "label": "Deployment",
-            "value": "Production (customer-facing fraud triage)",
-            "source": "sample",
+            "value": "Production (customer-facing support, chat and IVR)",
+            "source": "applicant",
             "note": ""
           }
         ]
@@ -8115,43 +8128,37 @@
     ],
     "performance": [
       {
-        "metric": "Ground-truth accuracy",
-        "value": "97.4%",
+        "metric": "Refund decision accuracy",
+        "value": "96.8%",
         "cadence": "Monthly, held-out labeled set",
-        "source": "sample"
+        "source": "applicant"
       },
       {
-        "metric": "False-positive rate",
-        "value": "1.8%",
-        "cadence": "Monthly",
-        "source": "sample"
+        "metric": "Duplicate-refund rate",
+        "value": "0.04%",
+        "cadence": "Weekly",
+        "source": "applicant"
       },
       {
-        "metric": "False-negative rate",
-        "value": "0.9%",
-        "cadence": "Monthly",
-        "source": "sample"
-      },
-      {
-        "metric": "Population stability index (PSI)",
-        "value": "0.06",
-        "cadence": "Weekly drift monitor",
-        "source": "sample"
+        "metric": "Escalation rate to human agent",
+        "value": "11.2%",
+        "cadence": "Weekly",
+        "source": "applicant"
       },
       {
         "metric": "Decision latency (p95)",
-        "value": "420 ms",
+        "value": "1.9 s",
         "cadence": "Continuous",
-        "source": "sample"
+        "source": "applicant"
       },
       {
         "metric": "Human-review override rate",
-        "value": "3.1%",
+        "value": "2.7%",
         "cadence": "Monthly",
-        "source": "sample"
+        "source": "applicant"
       }
     ],
-    "performance_source": "sample",
+    "performance_source": "applicant",
     "schedule": [
       {
         "key": "elevated_dims",
@@ -8213,18 +8220,18 @@
         "key": "currency",
         "label": "Currency",
         "value": "USD",
-        "source": "sample",
+        "source": "applicant",
         "note": ""
       }
     ],
     "schedule_source": "indicative",
     "declaration": "The undersigned confirms that, to the best of their knowledge, the information furnished in this assessment is true and correct in all material respects and no material fact has been knowingly withheld.",
-    "signatory": "Jordan Rivera, Chief Technology Officer",
+    "signatory": "Priya Natarajan, Chief Risk Officer",
     "counts": {
       "prefilled": 9,
       "to_confirm": 8,
       "indicative": 6,
-      "performance_rows": 6,
+      "performance_rows": 5,
       "total": 23
     },
     "derived": {

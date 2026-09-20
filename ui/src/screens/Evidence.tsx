@@ -8,7 +8,60 @@ import { Section } from "../components/Section";
 import { STATUS_LABEL, STATUS_ORDER, areaSummaries, controlsByAgent, packetTotals, type AreaSummary, type Status } from "../data/evidence";
 import { changes } from "../data/drift";
 import { agentLabel, dimensionMatrix, formatDate, pluralize } from "../data/selectors";
-import type { AssessmentField, AssessmentSource } from "../data/types";
+import type { AssessmentField, AssessmentIdentity, AssessmentSource } from "../data/types";
+
+const IDENTITY_FIELDS: { key: keyof AssessmentIdentity; label: string }[] = [
+  { key: "company", label: "Applicant company" },
+  { key: "address", label: "Address" },
+  { key: "contact_name", label: "Contact name" },
+  { key: "contact_title", label: "Contact title" },
+  { key: "contact_email", label: "Contact email" },
+  { key: "home_state", label: "Home state" },
+  { key: "model_name", label: "Covered model" },
+  { key: "model_version", label: "Model version" },
+  { key: "deployment", label: "Deployment" },
+  { key: "currency", label: "Currency" },
+];
+const SCHEDULE_TERMS = ["policy_limit", "sublimit_own_losses", "sublimit_consequential", "aggregate_deductible", "co_insurance", "coverage_trigger"] as const;
+type PerfRow = { metric: string; value: string; cadence: string };
+
+function tomlString(value: string): string {
+  return `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n")}"`;
+}
+
+/** The .stoa/underwriting.toml that reproduces the edited form on the next scan. */
+function toToml(identity: AssessmentIdentity, performance: PerfRow[], schedule: Record<string, string>, carrier: string, product: string): string {
+  const lines: string[] = ["# .stoa/underwriting.toml — applicant identity, measured figures, and agreed schedule terms.", "", "[identity]"];
+  for (const f of IDENTITY_FIELDS) lines.push(`${f.key.padEnd(14)} = ${tomlString(identity[f.key])}`);
+  for (const row of performance) {
+    if (!row.metric.trim()) continue;
+    lines.push("", "[[performance]]", `metric  = ${tomlString(row.metric)}`, `value   = ${tomlString(row.value)}`, `cadence = ${tomlString(row.cadence)}`);
+  }
+  const declared = SCHEDULE_TERMS.filter((k) => schedule[k]);
+  if (declared.length || carrier || product) {
+    lines.push("", "[schedule]");
+    if (carrier) lines.push(`carrier                = ${tomlString(carrier)}`);
+    if (product) lines.push(`product                = ${tomlString(product)}`);
+    for (const k of declared) lines.push(`${k.padEnd(22)} = ${tomlString(schedule[k] ?? "")}`);
+  }
+  return lines.join("\n") + "\n";
+}
+
+function generalRows(identity: AssessmentIdentity, source: AssessmentSource, edited: Set<string>): AssessmentField[] {
+  const tbc = (v: string) => v || "To be confirmed";
+  const contact = [identity.contact_name, identity.contact_title].filter(Boolean).join(", ");
+  const model = identity.model_name + (identity.model_version ? ` (v${identity.model_version})` : "");
+  const src = (keys: string[]): AssessmentSource => (keys.some((k) => edited.has(k)) ? "applicant" : source);
+  return [
+    { key: "company", label: "Applicant company", value: tbc(identity.company), source: src(["company"]), note: "" },
+    { key: "address", label: "Address", value: tbc(identity.address), source: src(["address"]), note: "" },
+    { key: "contact", label: "Contact", value: tbc(contact), source: src(["contact_name", "contact_title"]), note: "" },
+    { key: "contact_email", label: "Contact email", value: tbc(identity.contact_email), source: src(["contact_email"]), note: "" },
+    { key: "home_state", label: "Home state", value: tbc(identity.home_state), source: src(["home_state"]), note: "" },
+    { key: "model", label: "Covered model", value: tbc(model), source: src(["model_name", "model_version"]), note: "" },
+    { key: "deployment", label: "Deployment", value: tbc(identity.deployment), source: src(["deployment"]), note: "" },
+  ];
+}
 
 const SOURCE_LABEL: Record<AssessmentSource, string> = {
   scan: "from scan",
@@ -37,7 +90,43 @@ export function Evidence() {
   const head = r.repository.head_commit;
   const [copied, setCopied] = useState<"idle" | "done" | "manual">("idle");
   const transfers = envelope.register.filter((row) => row.declared?.treatment === "transfer");
-  const pct = a.counts.total ? Math.round((a.counts.prefilled / a.counts.total) * 100) : 0;
+
+  // Editable parts: identity, performance figures, schedule terms. Scan-derived
+  // answers are evidence and stay read-only. Edits live in memory; the TOML
+  // snippet is how they get back into the repository.
+  const [editing, setEditing] = useState(false);
+  const [identity, setIdentity] = useState<AssessmentIdentity>(a.identity);
+  const [performance, setPerformance] = useState<PerfRow[]>(a.performance.map((r) => ({ metric: r.metric, value: r.value, cadence: r.cadence })));
+  const initialSchedule = useMemo(() => Object.fromEntries(a.schedule.filter((f) => (SCHEDULE_TERMS as readonly string[]).includes(f.key)).map((f) => [f.key, f.value])) as Record<string, string>, [a.schedule]);
+  const [schedule, setSchedule] = useState<Record<string, string>>(initialSchedule);
+  const [carrier, setCarrier] = useState(a.carrier);
+  const [product, setProduct] = useState(a.product);
+  const [tomlCopied, setTomlCopied] = useState(false);
+  const editedIdentity = new Set(IDENTITY_FIELDS.filter((f) => identity[f.key] !== a.identity[f.key]).map((f) => f.key as string));
+  const editedSchedule = new Set(SCHEDULE_TERMS.filter((k) => (schedule[k] ?? "") !== (initialSchedule[k] ?? "")));
+  const performanceEdited = JSON.stringify(performance) !== JSON.stringify(a.performance.map((r) => ({ metric: r.metric, value: r.value, cadence: r.cadence })));
+  const anyEdit = editedIdentity.size > 0 || editedSchedule.size > 0 || performanceEdited || carrier !== a.carrier || product !== a.product;
+  const general = generalRows(identity, a.identity_source, editedIdentity);
+  const scheduleRows: AssessmentField[] = a.schedule.map((f) => ((SCHEDULE_TERMS as readonly string[]).includes(f.key) ? { ...f, value: schedule[f.key] ?? f.value, source: editedSchedule.has(f.key as (typeof SCHEDULE_TERMS)[number]) ? "declared" : f.source } : f));
+  const scheduleDeclared = a.schedule_source === "declared" || editedSchedule.size > 0;
+  const prefilled = a.counts.prefilled + editedIdentity.size + editedSchedule.size;
+  const pct = a.counts.total ? Math.min(100, Math.round((prefilled / a.counts.total) * 100)) : 0;
+  const toml = toToml(identity, performance, schedule, carrier, product);
+  const copyToml = async () => {
+    try {
+      await navigator.clipboard.writeText(toml);
+      setTomlCopied(true);
+    } catch {
+      setTomlCopied(false);
+    }
+  };
+  const reset = () => {
+    setIdentity(a.identity);
+    setPerformance(a.performance.map((r) => ({ metric: r.metric, value: r.value, cadence: r.cadence })));
+    setSchedule(initialSchedule);
+    setCarrier(a.carrier);
+    setProduct(a.product);
+  };
 
   const json = useMemo(() => JSON.stringify(envelope.registry, null, 2), [envelope.registry]);
   const copyJson = async () => {
@@ -55,6 +144,7 @@ export function Evidence() {
       <div className="flex flex-wrap items-baseline justify-between gap-2 no-pack">
         <h1 className="m-0">AI Risk Insurance</h1>
         <div className="flex flex-wrap items-center gap-2 no-print">
+          <button type="button" onClick={() => setEditing(!editing)} aria-pressed={editing} className={`btn ${editing ? "chip-gold" : ""}`}>{editing ? "Done editing" : "Edit assessment"}</button>
           <button type="button" onClick={() => printAs("pack")} className="btn btn-primary">Print assessment (PDF)</button>
           <button type="button" onClick={() => printAs("summary")} className="btn">Print summary</button>
           <a href={downloadHref} download="stoa-registry.json" className="btn">Download report JSON</a>
@@ -62,7 +152,7 @@ export function Evidence() {
         </div>
       </div>
       <p className="caption mt-1 mb-0 no-pack">
-        What a submission to {a.carrier} {a.product} looks like for this codebase. Stoa prepares the evidence; {a.carrier} prices and issues.
+        What a submission to {carrier} {product} looks like for this codebase. Stoa prepares the evidence; {carrier} prices and issues.
         {copied === "manual" ? " Clipboard access was blocked in this viewer; use Download instead." : ""}
       </p>
 
@@ -73,7 +163,7 @@ export function Evidence() {
               <div>
                 <div className="eyebrow">Readiness</div>
                 <div className="num text-[28px] text-navy leading-none mt-1">{pct}% pre-filled</div>
-                <div className="caption mt-1">{a.counts.prefilled} of {a.counts.total} fields come from the scan or your declarations. {a.counts.to_confirm} need your confirmation.</div>
+                <div className="caption mt-1">{prefilled} of {a.counts.total} fields come from the scan or your declarations. {Math.max(0, a.counts.to_confirm - editedIdentity.size)} still need your confirmation; {Math.max(0, a.counts.indicative - editedSchedule.size)} schedule terms are indicative until agreed.</div>
               </div>
               <div className="flex items-center gap-2">
                 <span className="h-2 w-40 rounded-full bg-paper border border-line overflow-hidden" aria-hidden="true"><span className="block h-full bg-gold" style={{ width: `${pct}%` }} /></span>
@@ -81,9 +171,9 @@ export function Evidence() {
             </div>
             <ol className="m-0 mt-4 p-0 list-none grid gap-3 md:grid-cols-4">
               <Step n={1} title="Review the pre-filled evidence" body="Every technical answer below points at scan evidence. Nothing is typed by hand." done />
-              <Step n={2} title="Confirm identity and performance" body={a.performance_source === "applicant" ? "Identity and performance figures were supplied in the underwriting config." : "Replace the sample identity and performance figures in .stoa/underwriting.toml."} done={a.performance_source === "applicant"} />
+              <Step n={2} title="Confirm identity and performance" body={a.performance_source === "applicant" && !anyEdit ? "Identity and performance figures were supplied in .stoa/underwriting.toml." : "Use Edit assessment, then save the config snippet to .stoa/underwriting.toml."} done={a.performance_source === "applicant" && a.identity_source === "applicant"} />
               <Step n={3} title="Sign the declaration" body="Print the assessment; the signature block is on the last page." />
-              <Step n={4} title={`Submit to ${a.carrier}`} body={`Send the signed PDF and the evidence pack to your ${a.carrier} ${a.product} contact. ${a.carrier} sets the final terms.`} />
+              <Step n={4} title={`Submit to ${carrier}`} body={`Send the signed PDF and the evidence pack to your ${carrier} ${product} contact. ${carrier} sets the final terms.`} />
             </ol>
           </div>
           <div className="rounded-lg border border-navy bg-navy text-white p-5">
@@ -102,7 +192,7 @@ export function Evidence() {
         <div className="panel max-w-[880px] mx-auto px-8 py-7 assessment">
           <div className="flex items-end justify-between gap-4 border-b-2 border-navy pb-3">
             <div>
-              <div className="text-[18px] font-semibold text-navy">{a.product}™ — {a.template}</div>
+              <div className="text-[18px] font-semibold text-navy">{product}™ — {a.template}</div>
               <div className="caption mt-0.5">Pre-filled by Stoa from a static scan of <strong>{a.repository}</strong>{head ? `, committed ${formatDate(head.date)}` : ""}. Technical fields are populated from scan evidence; the applicant confirms identity and supplies performance figures before submission.</div>
             </div>
             <div className="hidden md:flex flex-col gap-1 text-[11px] caption whitespace-nowrap no-print">
@@ -110,42 +200,90 @@ export function Evidence() {
             </div>
           </div>
 
-          {a.sections.map((section, i) => (
-            <FormSection key={section.id} number={i + 1} title={section.title} fields={section.fields} />
+          {editing ? (
+            <div className="mt-6 rounded-md border border-gold/50 bg-gold-100/40 p-4 no-print">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="text-[13px] font-medium text-navy">Editing. Scan-derived answers stay read-only; they change when the code changes.</div>
+                <button type="button" onClick={reset} className="btn btn-sm" disabled={!anyEdit}>Reset</button>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2 mt-3">
+                {IDENTITY_FIELDS.map((f) => (
+                  <label key={f.key} className="flex flex-col gap-1 text-[12.5px]">
+                    <span className="caption">{f.label}</span>
+                    <input value={identity[f.key]} onChange={(e) => setIdentity({ ...identity, [f.key]: e.target.value })} className="field" aria-label={f.label} />
+                  </label>
+                ))}
+                <label className="flex flex-col gap-1 text-[12.5px]"><span className="caption">Carrier</span><input value={carrier} onChange={(e) => setCarrier(e.target.value)} className="field" aria-label="Carrier" /></label>
+                <label className="flex flex-col gap-1 text-[12.5px]"><span className="caption">Product</span><input value={product} onChange={(e) => setProduct(e.target.value)} className="field" aria-label="Product" /></label>
+              </div>
+            </div>
+          ) : null}
+
+          <FormSection number={1} title="General information" fields={general} />
+          {a.sections.filter((s) => s.id !== "general").map((section, i) => (
+            <FormSection key={section.id} number={i + 2} title={section.title} fields={section.fields} />
           ))}
 
           <h3 className="mt-6 mb-2 text-navy border-b border-line pb-1.5">4. Data submission requirements</h3>
-          <div className="caption mb-2 flex items-center gap-2">Model-performance data <SourceChip source={a.performance_source} />{a.performance_source === "sample" ? <span>sample values shown; the applicant supplies measured figures</span> : <span>provided by the applicant</span>}</div>
+          <div className="caption mb-2 flex flex-wrap items-center gap-2">Model-performance data <SourceChip source={performanceEdited ? "applicant" : a.performance_source} />{a.performance_source === "sample" && !performanceEdited ? <span>sample values shown; the applicant supplies measured figures</span> : <span>provided by the applicant</span>}</div>
           <table className="tbl">
-            <thead><tr><th>Performance metric</th><th>Value</th><th>Measurement cadence</th></tr></thead>
+            <thead><tr><th>Performance metric</th><th>Value</th><th>Measurement cadence</th>{editing ? <th className="no-print" /> : null}</tr></thead>
             <tbody>
-              {a.performance.map((row) => (
-                <tr key={row.metric}><td>{row.metric}</td><td className="tabular-nums">{row.value}</td><td className="caption">{row.cadence}</td></tr>
+              {performance.map((row, i) => (
+                <tr key={i}>
+                  {editing ? (
+                    <>
+                      <td><input value={row.metric} onChange={(e) => setPerformance(performance.map((r, j) => (j === i ? { ...r, metric: e.target.value } : r)))} className="field w-full" aria-label={`Metric ${i + 1}`} /></td>
+                      <td><input value={row.value} onChange={(e) => setPerformance(performance.map((r, j) => (j === i ? { ...r, value: e.target.value } : r)))} className="field w-full tabular-nums" aria-label={`Value ${i + 1}`} /></td>
+                      <td><input value={row.cadence} onChange={(e) => setPerformance(performance.map((r, j) => (j === i ? { ...r, cadence: e.target.value } : r)))} className="field w-full" aria-label={`Cadence ${i + 1}`} /></td>
+                      <td className="no-print"><button type="button" onClick={() => setPerformance(performance.filter((_, j) => j !== i))} className="btn btn-sm" aria-label={`Remove metric ${i + 1}`}>Remove</button></td>
+                    </>
+                  ) : (
+                    <>
+                      <td>{row.metric}</td><td className="tabular-nums">{row.value}</td><td className="caption">{row.cadence}</td>
+                    </>
+                  )}
+                </tr>
               ))}
             </tbody>
           </table>
+          {editing ? <button type="button" onClick={() => setPerformance([...performance, { metric: "", value: "", cadence: "" }])} className="btn btn-sm mt-2 no-print">Add metric</button> : null}
 
           <div className="mt-5 rounded-md border border-navy/30 overflow-hidden">
             <div className="bg-navy text-white px-4 py-2 flex flex-wrap items-center justify-between gap-2">
               <span className="text-[13px] font-semibold">Insurance requirements (schedule)</span>
-              <span className="text-[11.5px] text-white/75">{a.schedule_source === "declared" ? "terms declared in the underwriting config" : `indicative terms sized off exposure; ${a.carrier} sets the final terms`}</span>
+              <span className="text-[11.5px] text-white/75">{scheduleDeclared ? `terms as declared; ${carrier} confirms them` : `indicative terms sized off exposure; ${carrier} sets the final terms`}</span>
             </div>
             <div className="divide-y divide-line">
-              {a.schedule.map((f) => <FieldRow key={f.key} field={f} />)}
+              {scheduleRows.map((f) => (
+                editing && (SCHEDULE_TERMS as readonly string[]).includes(f.key) ? (
+                  <div key={f.key} className="grid grid-cols-[minmax(160px,260px)_1fr] gap-x-4 items-center px-1 py-2 text-[13px] no-print">
+                    <span className="caption">{f.label}</span>
+                    <input value={schedule[f.key] ?? ""} onChange={(e) => setSchedule({ ...schedule, [f.key]: e.target.value })} className="field w-full" aria-label={f.label} />
+                  </div>
+                ) : (
+                  <FieldRow key={f.key} field={f} />
+                )
+              ))}
             </div>
           </div>
 
           <h3 className="mt-6 mb-2 text-navy border-b border-line pb-1.5">5. Declaration</h3>
           <p className="m-0 text-[13px] leading-relaxed">{a.declaration}</p>
           <div className="grid md:grid-cols-2 gap-10 mt-8">
-            <div><div className="border-b border-ink h-9" /><div className="caption mt-1">Signature — {a.signatory}</div></div>
+            <div><div className="border-b border-ink h-9" /><div className="caption mt-1">Signature — {[identity.contact_name, identity.contact_title].filter(Boolean).join(", ") || "Authorized signatory"}</div></div>
             <div><div className="border-b border-ink h-9" /><div className="caption mt-1">Date</div></div>
           </div>
-          <p className="caption italic mt-6 mb-0 text-[11.5px]">Form modeled on the {a.product}™ {a.template} template. Identity and model-performance figures are to be confirmed by the applicant before submission. Stoa prepares evidence; carriers price and issue.</p>
+          <p className="caption italic mt-6 mb-0 text-[11.5px]">Form modeled on the {product}™ {a.template} template. Identity and model-performance figures are to be confirmed by the applicant before submission. Stoa prepares evidence; carriers price and issue.</p>
         </div>
       </div>
 
       <div className="screen-view">
+        {editing || anyEdit ? (
+          <Section title="Save your edits" caption="This file cannot write to your repository. Save the snippet as .stoa/underwriting.toml and commit it; the next scan pre-fills the form from it." actions={<button type="button" onClick={copyToml} className="btn btn-sm">{tomlCopied ? "Copied" : "Copy"}</button>}>
+            <textarea readOnly value={toml} rows={Math.min(30, toml.split("\n").length)} className="w-full rounded-md border border-line bg-panel p-3 mono text-[12px]" aria-label="Underwriting config snippet" onFocus={(e) => e.currentTarget.select()} />
+          </Section>
+        ) : null}
         <Section title="Evidence behind the assessment" caption="What an underwriter can verify from this scan: reach, controls observed versus declared, contradictions, drift, and confidence per dimension.">
           <details className="panel">
             <summary className="px-4 py-3 cursor-pointer text-[13.5px] font-medium text-navy">Show the evidence pack</summary>

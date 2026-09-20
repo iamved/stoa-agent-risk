@@ -1,0 +1,39 @@
+# Applicant identity and measured figures for the AI Risk Insurance
+# assessment (dashboard) and `stoa export --underwriting`. Fictional example.
+
+[identity]
+company        = "Meridian Pay"
+contact_name   = "Priya Natarajan"
+contact_title  = "Chief Risk Officer"
+contact_email  = "risk@meridian.example"
+address        = "88 Harbour Street, Level 12, Sydney NSW 2000"
+home_state     = "New South Wales"
+model_name     = "Meridian support agent (refunds, fee waivers, account actions)"
+model_version  = "2026.9"
+deployment     = "Production (customer-facing support, chat and IVR)"
+currency       = "USD"
+
+[[performance]]
+metric  = "Refund decision accuracy"
+value   = "96.8%"
+cadence = "Monthly, held-out labeled set"
+
+[[performance]]
+metric  = "Duplicate-refund rate"
+value   = "0.04%"
+cadence = "Weekly"
+
+[[performance]]
+metric  = "Escalation rate to human agent"
+value   = "11.2%"
+cadence = "Weekly"
+
+[[performance]]
+metric  = "Decision latency (p95)"
+value   = "1.9 s"
+cadence = "Continuous"
+
+[[performance]]
+metric  = "Human-review override rate"
+value   = "2.7%"
+cadence = "Monthly"
