@@ -36,7 +36,7 @@ export function Inventory() {
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="m-0">AI inventory</h1>
+        <h1 className="m-0">Agent inventory</h1>
         <div className="flex items-center gap-2 no-print" role="tablist" aria-label="View">
           {(["table", "graph"] as const).map((v) => (
             <a key={v} role="tab" aria-selected={view === v} href={buildHash("inventory", null, (() => { const n = new URLSearchParams(route.query); if (v === "graph") n.set("view", "graph"); else n.delete("view"); return n; })())} className={`rounded border px-3 py-1 text-[13px] no-underline ${view === v ? "border-navy bg-navy text-white" : "border-line bg-panel text-ink"}`}>

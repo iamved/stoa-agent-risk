@@ -297,7 +297,7 @@ stale or non-deterministic. The large fixture is generated, not committed.
 ### Navigation revision (2026-09-20)
 
 The sidebar was regrouped to two sections on request: **AI estate**
-(Overview, AI Inventory, Declared Scope) and **Risk model** (Risk Dashboard
+(Overview, Agent Inventory, Declared Scope) and **Risk model** (Risk Dashboard
 with Findings / Drift / Risk register tabs, Controls & Safeguards, Estimated
 Financial Loss, AI Risk Insurance). Older routes (`#/findings`, `#/drift`,
 `#/register`, `#/evidence`) still resolve, and `#/risk` and `#/insurance`

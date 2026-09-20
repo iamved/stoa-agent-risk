@@ -22,7 +22,7 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
       label: "AI estate",
       items: [
         { id: "overview", label: "Overview", href: buildHash("overview"), screens: ["overview"], icon: "overview" },
-        { id: "inventory", label: "AI Inventory", href: buildHash("inventory"), screens: ["inventory"], count: r.agents.length, icon: "inventory" },
+        { id: "inventory", label: "Agent Inventory", href: buildHash("inventory"), screens: ["inventory"], count: r.agents.length, icon: "inventory" },
         { id: "scope", label: "Declared Scope", href: buildHash("scope"), screens: ["scope"], count: declared, icon: "scope" },
       ],
     },
@@ -83,8 +83,6 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
           <div className="min-w-0">
             <div className="text-[15px] font-semibold text-navy leading-tight truncate">{r.repository.name}</div>
             <div className="caption flex flex-wrap items-center gap-x-2">
-              {r.repository.git_ref ? <span className="mono">{r.repository.git_ref}</span> : <span>no git ref</span>}
-              <span aria-hidden="true">·</span>
               <span>{head ? `committed ${formatDate(head.date)}` : "commit date unavailable"}</span>
               <span aria-hidden="true">·</span>
               <span>{r.summary.files_scanned} files scanned</span>

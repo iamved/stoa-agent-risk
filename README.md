@@ -58,7 +58,7 @@ working. See [docs/dashboard.md](docs/dashboard.md).
   decomposable to the agents that produce its level; stat cards; the top
   five findings as plain-English sentences; framework classes with gaps
   shown as gaps; trends from previous scans.
-- **AI inventory**: agents in code and in infrastructure, tools, providers,
+- **Agent inventory**: agents in code and in infrastructure, tools, providers,
   integrations, declarations; an agent drawer with declared versus scanned;
   the architecture graph.
 - **Declared Scope**: `stoa-declared.toml` next to what the scan inferred,

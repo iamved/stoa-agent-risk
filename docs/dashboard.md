@@ -18,7 +18,7 @@ drilling into an agent, reviewing drift, maintaining the risk register.
 | Group | Screen | What it shows |
 |---|---|---|
 | AI estate | Overview | the eight-dimension matrix by category, stat cards, the five findings to read first, framework classes, trends |
-| AI estate | AI Inventory | agents in code and infrastructure, tools, providers, integrations, the architecture graph |
+| AI estate | Agent Inventory | agents in code and infrastructure, tools, providers, integrations, the architecture graph |
 | AI estate | Declared Scope | `stoa-declared.toml` next to what the scan inferred, with contradictions |
 | Risk model | Risk Dashboard | three tabs: Findings (filters in the URL, virtualized table, What / Why / Fix drawer), Drift, Risk register |
 | Risk model | Controls & Safeguards | controls observed per agent, tool guards, control gaps by rule |
