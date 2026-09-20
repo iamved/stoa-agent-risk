@@ -80,8 +80,6 @@ export function completeness(s: ScopeState): Completeness {
   ];
   for (const a of s.agents) {
     checks.push({ ok: Boolean(a.owner.trim()), section: a.label, label: "Owner", why: "who answers for this agent" });
-    checks.push({ ok: Boolean(a.autonomy_intent), section: a.label, label: "Intended autonomy", why: "cross-checked against inferred autonomy (DECL001)" });
-    checks.push({ ok: Boolean(a.users), section: a.label, label: "Users", why: "customer facing or internal in the outlook" });
     checks.push({ ok: a.data_classes.length > 0, section: a.label, label: "Data classes", why: "cross-checked against observed data access (DECL004)" });
     if (a.moneyMover) checks.push({ ok: Boolean(a.max_per_action.trim()), section: a.label, label: "Max per action", why: "this agent moves money; the scan checks the limit is enforced (DECL003)" });
   }

@@ -6,7 +6,7 @@ import { Pill } from "../components/Badge";
 import { Chips } from "../components/KeyValue";
 import { Section } from "../components/Section";
 import { StatCard } from "../components/StatCard";
-import { AUTONOMY_INTENTS, DATA_CLASSES, DEPENDENCY_LEVELS, EVIDENCE_CATEGORIES, POLICY_TYPES, PRODUCTION_STATUSES, SECTORS, SOCIETAL_FLAGS, USERS, completeness, isEqualScope, scopeFromEnvelope, toDeclaredToml, toUnderwritingToml, type AgentState, type ScopeState } from "../data/scope";
+import { DATA_CLASSES, DEPENDENCY_LEVELS, EVIDENCE_CATEGORIES, POLICY_TYPES, SECTORS, SOCIETAL_FLAGS, completeness, isEqualScope, scopeFromEnvelope, toDeclaredToml, toUnderwritingToml, type AgentState, type ScopeState } from "../data/scope";
 import { agentById } from "../data/selectors";
 
 /** Declared Scope: the business context a person supplies, next to what the scan inferred. Editable; saves as the two files the scanner reads. */
@@ -102,16 +102,13 @@ export function Scope() {
       <Section title="Agents" caption="What you intend each agent to do, next to what the scan found.">
         <div className="panel overflow-x-auto" tabIndex={0}>
           <table className="tbl">
-            <thead><tr><th>Agent</th><th>Owner</th><th>Purpose</th><th>Users</th><th>Status</th><th>Intended autonomy</th><th>Inferred</th><th>Data classes</th><th>Max per action</th></tr></thead>
+            <thead><tr><th>Agent</th><th>Owner</th><th>Purpose</th><th>Inferred autonomy</th><th>Data classes</th><th>Max per action</th></tr></thead>
             <tbody>
               {state.agents.map((a) => (
                 <tr key={a.id} data-clickable={editing ? undefined : "true"} tabIndex={editing ? -1 : 0} onClick={editing ? undefined : () => navigate("scope", a.id)} onKeyDown={editing ? undefined : (e) => { if (e.key === "Enter") navigate("scope", a.id); }}>
                   <td><div className="font-medium">{a.label}</div><div className="caption mono">{a.path}</div>{a.moneyMover ? <div className="mt-1"><Pill tone="warn">moves money</Pill></div> : null}</td>
                   <td>{editing ? <input value={a.owner} onChange={(e) => patchAgent(a.id, { owner: e.target.value })} className="field w-44" aria-label={`${a.label} owner`} placeholder="team or person" /> : a.owner || <span className="caption">not declared</span>}</td>
                   <td>{editing ? <input value={a.purpose} onChange={(e) => patchAgent(a.id, { purpose: e.target.value })} className="field w-56" aria-label={`${a.label} purpose`} /> : <span className="caption">{a.purpose || "not declared"}</span>}</td>
-                  <td>{editing ? <select value={a.users} onChange={(e) => patchAgent(a.id, { users: e.target.value })} className="field" aria-label={`${a.label} users`}><option value="">unset</option>{USERS.map((u) => <option key={u} value={u}>{u}</option>)}</select> : a.users || <span className="caption">–</span>}</td>
-                  <td>{editing ? <select value={a.production_status} onChange={(e) => patchAgent(a.id, { production_status: e.target.value })} className="field" aria-label={`${a.label} status`}><option value="">unset</option>{PRODUCTION_STATUSES.map((u) => <option key={u} value={u}>{u}</option>)}</select> : a.production_status || <span className="caption">–</span>}</td>
-                  <td>{editing ? <select value={a.autonomy_intent} onChange={(e) => patchAgent(a.id, { autonomy_intent: e.target.value })} className="field" aria-label={`${a.label} intended autonomy`}><option value="">unset</option>{AUTONOMY_INTENTS.map((u) => <option key={u} value={u}>{u}</option>)}</select> : a.autonomy_intent || <span className="caption">–</span>}</td>
                   <td className="caption">{a.inferredAutonomy ?? "indeterminate"}</td>
                   <td>{editing ? <Multi label={`${a.label} data classes`} editing values={a.data_classes} options={DATA_CLASSES} onChange={(v) => patchAgent(a.id, { data_classes: v })} compact /> : <Chips items={a.data_classes.map((d) => ({ label: d }))} empty="–" />}</td>
                   <td className="tabular-nums">{editing ? <span className="flex items-center gap-1"><input value={a.max_per_action} onChange={(e) => patchAgent(a.id, { max_per_action: e.target.value })} className="field w-24" aria-label={`${a.label} max per action`} placeholder={a.moneyMover ? "required" : ""} /><input value={a.currency} onChange={(e) => patchAgent(a.id, { currency: e.target.value })} className="field w-16" aria-label={`${a.label} currency`} /></span> : a.max_per_action ? `${Number(a.max_per_action).toLocaleString()} ${a.currency}` : <span className={a.moneyMover ? "text-sev-high" : "caption"}>{a.moneyMover ? "missing" : "–"}</span>}</td>
