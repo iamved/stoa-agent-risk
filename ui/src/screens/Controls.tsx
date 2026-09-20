@@ -1,6 +1,6 @@
 import { useApp } from "../app/context";
 import { buildHash } from "../app/router";
-import { Pill, SeverityBadge } from "../components/Badge";
+import { SeverityBadge } from "../components/Badge";
 import { Chips } from "../components/KeyValue";
 import { Section } from "../components/Section";
 import { StatCard } from "../components/StatCard";
@@ -47,10 +47,10 @@ export function Controls() {
         </div>
       </Section>
 
-      <Section title="By agent" caption="Observed controls, tool guards, and the gaps the scanner reported.">
+      <Section title="By agent" caption="Observed controls and tool guards per agent.">
         <div className="panel overflow-x-auto">
           <table className="tbl">
-            <thead><tr><th>Agent</th><th>Controls observed</th><th>Tool guards</th><th>Gaps</th></tr></thead>
+            <thead><tr><th>Agent</th><th>Controls observed</th><th>Tool guards</th></tr></thead>
             <tbody>
               {rows.map((r) => (
                 <tr key={r.agent.id}>
@@ -60,11 +60,6 @@ export function Controls() {
                     {(r.agent.tools ?? []).length === 0 ? "no tools bound" : `${r.toolGuards} of ${(r.agent.tools ?? []).length} tools guarded`}
                     {r.toolsWithoutGuards ? <div className="text-sev-high">{r.toolsWithoutGuards} high-impact without a guard</div> : null}
                     {r.retriesWithoutIdempotency ? <div className="text-sev-high">{r.retriesWithoutIdempotency} retried without idempotency key</div> : null}
-                  </td>
-                  <td>
-                    {r.gaps.length === 0 ? <span className="caption">none</span> : (
-                      <span className="flex flex-wrap gap-1">{r.gaps.map((g) => <a key={g.finding.fingerprint} href={buildHash("findings", g.finding.fingerprint)} className="no-underline"><Pill tone={g.finding.severity === "critical" || g.finding.severity === "high" ? "warn" : "neutral"}>{g.finding.rule_id}</Pill></a>)}</span>
-                    )}
                   </td>
                 </tr>
               ))}
