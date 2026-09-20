@@ -2,10 +2,10 @@ import type { ReactNode } from "react";
 import { useApp } from "../app/context";
 import { buildHash, type ScreenId } from "../app/router";
 import { activeFindings, formatDate } from "../data/selectors";
-import { printAs } from "../app/print";
 import { Icon, type IconName } from "./Icons";
 import { Logo } from "./Logo";
 import { PrintSummary } from "./PrintSummary";
+import { UserMenu } from "./UserMenu";
 
 type NavItem = { id: string; label: string; href: string; screens: ScreenId[]; count?: number; icon: IconName };
 type NavGroup = { label: string; showLabel: boolean; items: NavItem[] };
@@ -86,9 +86,7 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
             </div>
           </div>
           <div className="ml-auto flex items-center gap-2 no-print">
-            <button type="button" onClick={() => printAs("summary")} className="btn btn-primary">
-              Print summary
-            </button>
+            <UserMenu />
           </div>
         </header>
         <main className="px-6 pb-8 pt-5 max-w-[1360px]">

@@ -226,3 +226,18 @@ test.describe("estate and risk model screens", () => {
     await expect(page.getByRole("navigation", { name: "Screens" })).toContainText("AI Risk Insurance");
   });
 });
+
+test.describe("reviewer", () => {
+  test("the top bar shows who is reviewing and keeps the print action", async ({ page }) => {
+    await page.goto(fileUrl("meridian-pay", "#/overview"));
+    const btn = page.getByRole("button", { name: /Reviewing as Priya Natarajan, Chief Risk Officer at Meridian Pay/ });
+    await expect(btn).toBeVisible();
+    await btn.click();
+    await expect(page.getByRole("menuitem", { name: "Print summary" })).toBeVisible();
+    await expect(page.getByRole("menuitem", { name: "Edit reviewer profile" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("menu")).toHaveCount(0);
+    await page.goto(fileUrl("registry-only", "#/overview"));
+    await expect(page.getByRole("button", { name: /Reviewing as Risk officer/ })).toBeVisible();
+  });
+});
