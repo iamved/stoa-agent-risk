@@ -21,3 +21,6 @@ ui/fixtures/large.envelope.json
 src/stoa/templates/dashboard.html
 stoa-dashboard.html
 .stoa/history/
+.vercel/
+.vercel
+.env*

@@ -830,6 +830,7 @@ CARDS = [
     ("🧭", "Dimension exposure", "Eight risk dimensions — five direct, three proxy — with deterministic scoring.", "/docs/dimensions"),
     ("📈", "Capability drift", "stoa diff: did any agent's reach change? Approve intentional changes in-repo.", "/docs/diff"),
     ("📰", "The report", "A verdict-first HTML report: what to fix, in order, and where your declarations don't match the code — offline, print-ready in five pages.", "/docs/report"),
+    ("🗂️", "The dashboard", "Seven screens in one offline file: inventory, findings, drift, controls, the loss outlook, and the pre-filled insurance assessment. Open the live demo.", "/dashboard"),
     ("⚖️", "Regulatory crosswalk", "Every rule anchored to one OWASP LLM Top 10 (2025) class and one EU AI Act article — a labeling layer that never touches scoring.", "/docs/crosswalk"),
     ("📑", "Underwriting evidence", "A pre-filled AI Model Risk Assessment, sourced from scan evidence and the applicant's own performance figures — ready to forward to an insurer.", "/docs/underwriting"),
     ("🏗️", "Infrastructure as code", "Agents configured in Terraform — Databricks serving endpoints — found from the resource block, with controls credited from the AI Gateway and reach read from grants.", "/docs/iac"),
