@@ -47,7 +47,7 @@ export function Findings() {
     <div>
       <RiskTabs current="findings" />
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-[24px] m-0">Findings</h1>
+        <h1 className="m-0">Findings</h1>
         <div className="caption">{sorted.length} of {all.length} shown{isFiltered(filters) ? " (filtered)" : ""}. Filters live in the address bar, so this view can be shared.</div>
       </div>
 
@@ -89,17 +89,17 @@ export function Findings() {
       <div className="mt-4 panel p-3 flex flex-wrap items-end gap-3 text-[13px] no-print">
         <label className="flex flex-col gap-1">
           <span className="caption">Search</span>
-          <input value={draft ?? filters.q} onChange={(e) => setDraft(e.target.value)} onBlur={() => { if (draft !== null) { update({ ...filters, q: draft }); setDraft(null); } }} onKeyDown={(e) => { if (e.key === "Enter" && draft !== null) { update({ ...filters, q: draft }); setDraft(null); } }} placeholder="rule, title, path, snippet" className="rounded border border-line bg-panel px-2 py-1 w-56" />
+          <input value={draft ?? filters.q} onChange={(e) => setDraft(e.target.value)} onBlur={() => { if (draft !== null) { update({ ...filters, q: draft }); setDraft(null); } }} onKeyDown={(e) => { if (e.key === "Enter" && draft !== null) { update({ ...filters, q: draft }); setDraft(null); } }} placeholder="rule, title, path, snippet" className="field" />
         </label>
         <Select label="Agent" value={filters.agent ?? ""} onChange={(v) => update({ ...filters, agent: v || null })} options={[{ value: "", label: "All agents" }, ...agents.map((a) => ({ value: a.id, label: agentLabel(a) }))]} />
         <Select label="Confidence" value={filters.confidence ?? ""} onChange={(v) => update({ ...filters, confidence: v || null })} options={[{ value: "", label: "Any" }, { value: "high", label: "High" }, { value: "medium", label: "Medium" }, { value: "low", label: "Low" }]} />
         {framework !== "nist" ? <Select label={framework === "owasp" ? "OWASP class" : "EU AI Act article"} value={filters.cls ?? ""} onChange={(v) => update({ ...filters, cls: v || null })} options={[{ value: "", label: "Any" }, ...classes.map((c) => ({ value: c.id, label: `${c.id} ${c.name}` }))]} /> : null}
         <label className="flex flex-col gap-1">
           <span className="caption">Rule prefix</span>
-          <input value={filters.rule ?? ""} onChange={(e) => update({ ...filters, rule: e.target.value || null })} placeholder="AI0, DECL, SEC" className="rounded border border-line bg-panel px-2 py-1 w-28 mono" />
+          <input value={filters.rule ?? ""} onChange={(e) => update({ ...filters, rule: e.target.value || null })} placeholder="AI0, DECL, SEC" className="field" />
         </label>
         {isFiltered(filters) || sort ? (
-          <button type="button" onClick={() => update(EMPTY_FILTERS, null)} className="rounded border border-line px-2.5 py-1 hover:bg-paper">Clear filters</button>
+          <button type="button" onClick={() => update(EMPTY_FILTERS, null)} className="btn btn-sm">Clear filters</button>
         ) : null}
       </div>
 
@@ -117,7 +117,7 @@ function Select({ label, value, onChange, options }: { label: string; value: str
   return (
     <label className="flex flex-col gap-1">
       <span className="caption">{label}</span>
-      <select value={value} onChange={(e) => onChange(e.target.value)} className="rounded border border-line bg-panel px-2 py-1 max-w-56">
+      <select value={value} onChange={(e) => onChange(e.target.value)} className="field">
         {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
     </label>

@@ -110,13 +110,13 @@ export function GraphView() {
         ))}
         <label className="flex items-center gap-1">
           Min severity
-          <select value={minSeverity} onChange={(e) => setMinSeverity(e.target.value)} className="rounded border border-line bg-panel px-1.5 py-0.5">
+          <select value={minSeverity} onChange={(e) => setMinSeverity(e.target.value)} className="field">
             <option value="none">All</option><option value="info">Info+</option><option value="low">Low+</option><option value="medium">Medium+</option><option value="high">High+</option><option value="critical">Critical</option>
           </select>
         </label>
         <label className="flex items-center gap-1">
           Search
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="label" className="rounded border border-line bg-panel px-1.5 py-0.5" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="label" className="field" />
         </label>
       </div>
       <div className="grid gap-3 lg:grid-cols-[1fr_320px]">

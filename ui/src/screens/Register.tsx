@@ -23,7 +23,7 @@ export function Register() {
     <div>
       <RiskTabs current="register" />
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-[24px] m-0">Risk register</h1>
+        <h1 className="m-0">Risk register</h1>
         <div className="caption">One row per agent and dimension the scanner scored at moderate or above. Treatments are declared in stoa-declared.toml and reviewed like code.</div>
       </div>
 
@@ -36,7 +36,7 @@ export function Register() {
       </div>
 
       <Section title="Register" caption="Inherent is the score before observed controls are credited; residual is the scanner's own level. Click a row to declare or edit its treatment.">
-        <div className="panel overflow-x-auto">
+        <div className="panel overflow-x-auto" tabIndex={0}>
           <table className="tbl" aria-label="Risk register">
             <thead>
               <tr>
@@ -118,40 +118,40 @@ function RegisterDrawerBody({ row, onClose }: { row: RegisterRow; onClose: () =>
         <div className="grid gap-3 md:grid-cols-2 text-[13px]">
           <label className="flex flex-col gap-1">
             <span className="caption">Owner</span>
-            <input value={draft.owner} onChange={(e) => setDraft({ ...draft, owner: e.target.value })} className="rounded border border-line bg-panel px-2 py-1" placeholder="team or person" />
+            <input value={draft.owner} onChange={(e) => setDraft({ ...draft, owner: e.target.value })} className="field" placeholder="team or person" />
           </label>
           <label className="flex flex-col gap-1">
             <span className="caption">Treatment</span>
-            <select value={draft.treatment} onChange={(e) => setDraft({ ...draft, treatment: e.target.value as Declared["treatment"] })} className="rounded border border-line bg-panel px-2 py-1" aria-label="Treatment">
+            <select value={draft.treatment} onChange={(e) => setDraft({ ...draft, treatment: e.target.value as Declared["treatment"] })} className="field" aria-label="Treatment">
               <option value="">undeclared</option>
               {TREATMENTS.map((t) => <option key={t} value={t}>{t}</option>)}
             </select>
           </label>
           <label className="flex flex-col gap-1 md:col-span-2">
             <span className="caption">Rationale</span>
-            <textarea value={draft.rationale} onChange={(e) => setDraft({ ...draft, rationale: e.target.value })} rows={2} className="rounded border border-line bg-panel px-2 py-1" />
+            <textarea value={draft.rationale} onChange={(e) => setDraft({ ...draft, rationale: e.target.value })} rows={2} className="field" />
           </label>
           <label className="flex flex-col gap-1">
             <span className="caption">Review by</span>
-            <input type="date" value={draft.review_by} onChange={(e) => setDraft({ ...draft, review_by: e.target.value })} className="rounded border border-line bg-panel px-2 py-1" />
+            <input type="date" value={draft.review_by} onChange={(e) => setDraft({ ...draft, review_by: e.target.value })} className="field" />
           </label>
           <label className="flex flex-col gap-1">
             <span className="caption">Status</span>
-            <select value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value as Declared["status"] })} className="rounded border border-line bg-panel px-2 py-1" aria-label="Status">
+            <select value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value as Declared["status"] })} className="field" aria-label="Status">
               <option value="">unset</option>
               {STATUSES.map((st) => <option key={st} value={st}>{st}</option>)}
             </select>
           </label>
         </div>
         {draft.treatment === "transfer" ? (
-          <a href={buildHash("evidence", null, { view: "underwriter" })} className="mt-3 inline-block rounded border border-navy bg-navy text-white px-3 py-1.5 text-[13px] no-underline hover:bg-navy-700">Prepare underwriting evidence</a>
+          <a href={buildHash("evidence", null, { view: "underwriter" })} className="mt-3 inline-block btn btn-primary">Prepare underwriting evidence</a>
         ) : null}
       </section>
 
       <section className="mt-5">
         <div className="flex items-center justify-between gap-2 mb-1.5">
           <h3 className="text-[14px] m-0">stoa-declared.toml snippet{changed ? <span className="caption font-sans font-normal"> · edited</span> : null}</h3>
-          <button type="button" onClick={copy} className="rounded border border-line px-2.5 py-1 text-[12.5px] hover:bg-paper">{copied === "done" ? "Copied" : "Copy"}</button>
+          <button type="button" onClick={copy} className="btn btn-sm">{copied === "done" ? "Copied" : "Copy"}</button>
         </div>
         <textarea readOnly value={toml} rows={toml.split("\n").length} className="w-full rounded border border-line bg-paper p-2 mono text-[12px]" aria-label="TOML snippet" onFocus={(e) => e.currentTarget.select()} />
         <p className="caption mt-1.5 mb-0">This file cannot write to your repository. Paste the block into <span className="mono">stoa-declared.toml</span> (replacing any existing entry with this risk id) and commit it, so the treatment is reviewed in a pull request.{copied === "manual" ? " Clipboard access was blocked; select the text above to copy it." : ""}</p>

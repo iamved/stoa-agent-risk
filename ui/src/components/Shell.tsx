@@ -3,10 +3,11 @@ import { useApp } from "../app/context";
 import { buildHash, type ScreenId } from "../app/router";
 import { activeFindings, formatDate } from "../data/selectors";
 import { printAs } from "../app/print";
+import { Icon, type IconName } from "./Icons";
 import { Logo } from "./Logo";
 import { PrintSummary } from "./PrintSummary";
 
-type NavItem = { id: string; label: string; href: string; screens: ScreenId[]; count?: number };
+type NavItem = { id: string; label: string; href: string; screens: ScreenId[]; count?: number; icon: IconName };
 
 export function Shell({ screen, children }: { screen: ScreenId; children: ReactNode }) {
   const { envelope } = useApp();
@@ -20,46 +21,49 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
     {
       label: "AI estate",
       items: [
-        { id: "overview", label: "Overview", href: buildHash("overview"), screens: ["overview"] },
-        { id: "inventory", label: "AI Inventory", href: buildHash("inventory"), screens: ["inventory"], count: r.agents.length },
-        { id: "scope", label: "Declared Scope", href: buildHash("scope"), screens: ["scope"], count: declared },
+        { id: "overview", label: "Overview", href: buildHash("overview"), screens: ["overview"], icon: "overview" },
+        { id: "inventory", label: "AI Inventory", href: buildHash("inventory"), screens: ["inventory"], count: r.agents.length, icon: "inventory" },
+        { id: "scope", label: "Declared Scope", href: buildHash("scope"), screens: ["scope"], count: declared, icon: "scope" },
       ],
     },
     {
       label: "Risk model",
       items: [
-        { id: "risk", label: "Risk Dashboard", href: buildHash("findings"), screens: ["findings", "drift", "register"], count: findingCount + driftCount },
-        { id: "controls", label: "Controls & Safeguards", href: buildHash("controls"), screens: ["controls"] },
-        { id: "loss", label: "Estimated Financial Loss", href: buildHash("loss"), screens: ["loss"] },
-        { id: "insurance", label: "AI Risk Insurance", href: buildHash("evidence"), screens: ["evidence"] },
+        { id: "risk", label: "Risk Dashboard", href: buildHash("findings"), screens: ["findings", "drift", "register"], count: findingCount + driftCount, icon: "risk" },
+        { id: "controls", label: "Controls & Safeguards", href: buildHash("controls"), screens: ["controls"], icon: "controls" },
+        { id: "loss", label: "Estimated Financial Loss", href: buildHash("loss"), screens: ["loss"], icon: "loss" },
+        { id: "insurance", label: "AI Risk Insurance", href: buildHash("evidence"), screens: ["evidence"], icon: "insurance" },
       ],
     },
   ];
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-paper">
-      <nav aria-label="Screens" className="no-print md:w-[240px] md:min-h-screen md:sticky md:top-0 md:self-start flex md:flex-col border-b md:border-b-0 md:border-r border-line bg-paper">
-        <div className="px-5 pt-5 pb-3 hidden md:block">
+      <nav aria-label="Screens" className="no-print md:w-[236px] md:min-h-screen md:sticky md:top-0 md:self-start flex md:flex-col border-b md:border-b-0 md:border-r border-line bg-paper">
+        <div className="px-5 pt-5 pb-4 hidden md:block">
           <a href={buildHash("overview")} className="inline-block text-navy" aria-label="Stoa">
-            <Logo height={34} />
+            <Logo height={30} />
           </a>
         </div>
-        <div className="flex md:flex-col gap-1 md:gap-4 overflow-x-auto w-full px-2 md:px-3 py-2">
+        <div className="flex md:flex-col gap-1 md:gap-5 overflow-x-auto w-full px-2 md:px-3 py-2">
           {groups.map((group) => (
             <div key={group.label} className="flex md:flex-col gap-1 shrink-0">
-              <div className="hidden md:block px-3 pt-1 pb-1 text-[10.5px] uppercase tracking-[0.14em] text-ink-muted font-semibold">{group.label}</div>
-              <ul className="m-0 p-0 list-none flex md:flex-col gap-0.5">
+              <div className="eyebrow hidden md:block px-3 pb-1.5">{group.label}</div>
+              <ul className="m-0 p-0 list-none flex md:flex-col gap-px">
                 {group.items.map((item) => {
                   const active = item.screens.includes(screen);
+                  const Glyph = Icon[item.icon];
                   return (
                     <li key={item.id}>
                       <a
                         href={item.href}
                         aria-current={active ? "page" : undefined}
-                        className={`flex items-center justify-between gap-2 rounded-md px-3 py-2 text-[14px] no-underline whitespace-nowrap ${active ? "bg-gold-100 text-navy font-medium shadow-[inset_2px_0_0_0_var(--color-gold)]" : "text-ink hover:bg-panel"}`}
+                        className={`relative flex items-center gap-2.5 rounded-md px-3 py-[7px] text-[13.5px] no-underline whitespace-nowrap ${active ? "bg-panel text-navy font-medium border border-line" : "text-ink-soft hover:text-navy hover:bg-panel/70 border border-transparent"}`}
                       >
-                        <span>{item.label}</span>
-                        {item.count !== undefined ? <span className={`text-[11px] tabular-nums rounded-full px-1.5 py-0.5 ${active ? "bg-gold/20 text-navy" : "bg-panel text-ink-muted border border-line"}`}>{item.count}</span> : null}
+                        {active ? <span aria-hidden="true" className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-full bg-gold" /> : null}
+                        <span className={active ? "text-gold" : "text-ink-muted"}><Glyph /></span>
+                        <span className="flex-1">{item.label}</span>
+                        {item.count !== undefined ? <span className="text-[11.5px] tabular-nums text-ink-muted">{item.count}</span> : null}
                       </a>
                     </li>
                   );
@@ -68,31 +72,31 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
             </div>
           ))}
         </div>
-        <div className="mt-auto px-5 py-3 text-[11px] text-ink-muted hidden md:block">Generated by Stoa {envelope.generator.version}</div>
+        <div className="mt-auto px-5 py-4 text-[11px] text-ink-muted hidden md:block border-t border-line">Generated by Stoa {envelope.generator.version}</div>
       </nav>
 
       <div className="flex-1 min-w-0">
-        <header className="bg-paper px-5 pt-4 pb-2 flex flex-wrap items-center gap-x-5 gap-y-2">
+        <header className="px-6 pt-4 pb-3 flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-line bg-paper">
           <div className="md:hidden text-navy">
-            <Logo height={26} />
+            <Logo height={24} />
           </div>
           <div className="min-w-0">
-            <div className="font-serif text-[18px] text-navy leading-tight truncate">{r.repository.name}</div>
-            <div className="caption">
-              {r.repository.git_ref ? <span className="mono">{r.repository.git_ref}</span> : "no git ref"}
-              {" · "}
-              {head ? `committed ${formatDate(head.date)}` : "commit date unavailable"}
-              {" · "}
-              {r.summary.files_scanned} files scanned
+            <div className="text-[15px] font-semibold text-navy leading-tight truncate">{r.repository.name}</div>
+            <div className="caption flex flex-wrap items-center gap-x-2">
+              {r.repository.git_ref ? <span className="mono">{r.repository.git_ref}</span> : <span>no git ref</span>}
+              <span aria-hidden="true">·</span>
+              <span>{head ? `committed ${formatDate(head.date)}` : "commit date unavailable"}</span>
+              <span aria-hidden="true">·</span>
+              <span>{r.summary.files_scanned} files scanned</span>
             </div>
           </div>
-          <div className="ml-auto flex items-center gap-3 no-print">
-            <button type="button" onClick={() => printAs("summary")} className="rounded-md border border-navy bg-navy text-white px-3 py-1.5 text-[13px] hover:bg-navy-700">
+          <div className="ml-auto flex items-center gap-2 no-print">
+            <button type="button" onClick={() => printAs("summary")} className="btn btn-primary">
               Print summary
             </button>
           </div>
         </header>
-        <main className="px-5 pb-6 pt-2 max-w-[1400px]">
+        <main className="px-6 pb-8 pt-5 max-w-[1360px]">
           <div className="screen-content">{children}</div>
           <PrintSummary />
         </main>

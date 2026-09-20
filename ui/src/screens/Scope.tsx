@@ -25,7 +25,7 @@ export function Scope() {
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-[24px] m-0">Declared Scope</h1>
+        <h1 className="m-0">Declared Scope</h1>
         <div className="caption">Facts a person wrote in stoa-declared.toml, cross-checked by the scanner. Declarations are reviewed like code.</div>
       </div>
 

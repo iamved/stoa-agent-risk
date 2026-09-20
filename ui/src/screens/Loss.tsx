@@ -17,14 +17,14 @@ export function Loss() {
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-[24px] m-0">Estimated Financial Loss</h1>
+        <h1 className="m-0">Estimated Financial Loss</h1>
         <div className="caption">Every figure here was declared by a person in stoa-declared.toml. Stoa checks whether the code enforces it; it does not model or price a loss.</div>
       </div>
 
       <div className="mt-4 grid gap-3 grid-cols-2 md:grid-cols-4">
         <div className="rounded-lg border border-navy bg-navy text-white p-4">
           <div className="text-[11px] uppercase tracking-wide text-white/70">Declared worst-case customer loss</div>
-          <div className="mt-1 font-serif text-[28px] leading-none text-gold">{t.worstCase ? fmt(t.worstCase) : "not declared"}</div>
+          <div className="mt-1 num text-[22px] leading-none text-gold">{t.worstCase ? fmt(t.worstCase) : "not declared"}</div>
           <div className="mt-2 text-[12.5px] text-white/70">sum across {t.declaredAgents} declared {t.declaredAgents === 1 ? "agent" : "agents"}</div>
         </div>
         <StatCard label="Declared daily aggregate" value={t.dailyAggregate ? fmt(t.dailyAggregate) : "not declared"} detail="sum of declared daily limits" />
@@ -33,7 +33,7 @@ export function Loss() {
       </div>
 
       <Section title="By agent" caption="Declared limits next to the money-moving tools the scanner found and whether the limit is enforced in code (DECL003) or the action can post twice (AI008).">
-        <div className="panel overflow-x-auto">
+        <div className="panel overflow-x-auto" tabIndex={0}>
           <table className="tbl">
             <thead><tr><th>Agent</th><th>Money-moving tools</th><th>Max per action</th><th>Daily aggregate</th><th>Worst-case customer loss</th><th>Enforcement</th><th>Exposure</th></tr></thead>
             <tbody>

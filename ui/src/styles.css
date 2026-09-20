@@ -1,39 +1,38 @@
 @import "tailwindcss";
+@import "./fonts.css";
 
-/* Brand: navy structure, gold accent only (active nav, key figures, focus).
-   Severity and exposure colors are distinct from the brand and every use
-   pairs the color with a label or glyph. Free system font stacks; no
-   network fonts. */
+/* Design tokens. Ground and ink follow stoa.insure; one gold accent, spent
+   on active state, focus, and a single headline figure per page. Semantic
+   colors (severity, exposure) are separate from the accent. */
 @theme {
-  /* Tokens follow stoa.insure: warm off-white ground, white panels, navy ink,
-     one gold accent. Navy tiles carry the single "outcome" figure on a page. */
   --color-navy: #0e1c36;
   --color-navy-700: #182a3e;
   --color-navy-100: #e6e9f0;
   --color-gold: #b98a2f;
   --color-gold-100: #f6efdf;
   --color-ink: #182a3e;
+  --color-ink-soft: #3f4f62;
   --color-ink-muted: #57697c;
   --color-paper: #faf9f5;
   --color-panel: #ffffff;
-  --color-line: #dcd9cf;
+  --color-line: #e3e0d6;
+  --color-line-strong: #cfcbbf;
 
   --color-sev-critical: #b42318;
-  --color-sev-critical-bg: #fde8e8;
+  --color-sev-critical-bg: #fcefee;
   --color-sev-high: #b54708;
-  --color-sev-high-bg: #fdf0e0;
+  --color-sev-high-bg: #fdf3e8;
   --color-sev-medium: #755906;
-  --color-sev-medium-bg: #fef7dc;
+  --color-sev-medium-bg: #fbf6e6;
   --color-sev-low: #465063;
-  --color-sev-low-bg: #eef2f6;
+  --color-sev-low-bg: #f0f2f5;
   --color-sev-info: #1d4ed8;
-  --color-sev-info-bg: #e8f0fe;
+  --color-sev-info-bg: #edf2fd;
   --color-ok: #2f6f4f;
-  --color-ok-bg: #e7f3ec;
+  --color-ok-bg: #eaf4ee;
 
-  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --font-sans: "Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
 html {
@@ -45,12 +44,12 @@ body {
   background: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-sans);
-  font-size: 14px;
-  line-height: 1.45;
+  font-size: 13.5px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv05", "ss01";
 }
 
-/* The page body never scrolls sideways; wide tables scroll inside their own panel. */
 main {
   min-width: 0;
   overflow-x: clip;
@@ -60,15 +59,37 @@ main {
 }
 
 h1, h2, h3 {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.012em;
   color: var(--color-navy);
+  text-wrap: balance;
+}
+h1 {
+  font-size: 20px;
+  line-height: 1.25;
+}
+h2 {
+  font-size: 15px;
+  line-height: 1.3;
+}
+h3 {
+  font-size: 13.5px;
+  line-height: 1.35;
 }
 
 code, pre, .mono {
   font-family: var(--font-mono);
-  font-size: 12.5px;
+  font-size: 12px;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
 
 :focus-visible {
@@ -79,7 +100,15 @@ code, pre, .mono {
 .panel {
   background: var(--color-panel);
   border: 1px solid var(--color-line);
-  border-radius: 8px;
+  border-radius: 6px;
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
 }
 
 .caption {
@@ -90,46 +119,126 @@ code, pre, .mono {
 .link {
   color: var(--color-navy);
   text-decoration: underline;
-  text-decoration-color: var(--color-gold);
+  text-decoration-color: var(--color-line-strong);
   text-underline-offset: 3px;
 }
 .link:hover {
-  text-decoration-thickness: 2px;
+  text-decoration-color: var(--color-gold);
 }
+
+/* Status chips: a dot plus a label, never color alone. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--color-line);
+  border-radius: 4px;
+  padding: 1px 7px 1px 6px;
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
+  color: var(--color-ink-soft);
+  background: var(--color-panel);
+}
+.chip::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+  flex: none;
+}
+.chip-plain::before {
+  display: none;
+}
+.chip-critical { color: var(--color-sev-critical); background: var(--color-sev-critical-bg); border-color: color-mix(in srgb, var(--color-sev-critical) 30%, transparent); }
+.chip-high { color: var(--color-sev-high); background: var(--color-sev-high-bg); border-color: color-mix(in srgb, var(--color-sev-high) 30%, transparent); }
+.chip-medium { color: var(--color-sev-medium); background: var(--color-sev-medium-bg); border-color: color-mix(in srgb, var(--color-sev-medium) 30%, transparent); }
+.chip-low { color: var(--color-sev-low); background: var(--color-sev-low-bg); }
+.chip-info { color: var(--color-sev-info); background: var(--color-sev-info-bg); border-color: color-mix(in srgb, var(--color-sev-info) 30%, transparent); }
+.chip-ok { color: var(--color-ok); background: var(--color-ok-bg); border-color: color-mix(in srgb, var(--color-ok) 30%, transparent); }
+.chip-muted { color: var(--color-ink-muted); background: var(--color-paper); }
+.chip-dashed { border-style: dashed; }
+.chip-gold { color: var(--color-navy); background: var(--color-gold-100); border-color: color-mix(in srgb, var(--color-gold) 50%, transparent); }
+.chip-navy { color: #fff; background: var(--color-navy); border-color: var(--color-navy); }
 
 .tbl {
   width: 100%;
   border-collapse: collapse;
+  font-size: 13px;
 }
 .tbl th {
   text-align: left;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   color: var(--color-ink-muted);
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--color-line);
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--color-line-strong);
   background: var(--color-panel);
   position: sticky;
   top: 0;
+  white-space: nowrap;
 }
 .tbl td {
-  padding: 8px 10px;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--color-line);
   vertical-align: top;
+}
+.tbl tr:last-child td {
+  border-bottom: 0;
 }
 .tbl tr[data-clickable="true"] {
   cursor: pointer;
 }
 .tbl tr[data-clickable="true"]:hover td {
-  background: var(--color-gold-100);
+  background: var(--color-paper);
 }
 
-/* Print. Two renderings of one document, selected by <html data-print>:
-   "summary": the one-page digest (.print-summary) from any screen.
-   "pack":    the evidence pack (.print-pack, on the Evidence screen).
-   Without a mode, the current screen prints as it is. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--color-line-strong);
+  border-radius: 6px;
+  background: var(--color-panel);
+  color: var(--color-ink);
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+}
+.btn:hover {
+  background: var(--color-paper);
+}
+.btn-primary {
+  background: var(--color-navy);
+  border-color: var(--color-navy);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: var(--color-navy-700);
+}
+.btn-sm {
+  padding: 4px 9px;
+  font-size: 12.5px;
+}
+
+.field {
+  border: 1px solid var(--color-line-strong);
+  border-radius: 6px;
+  background: var(--color-panel);
+  color: var(--color-ink);
+  padding: 5px 9px;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+/* Print: two renderings of one document, selected by <html data-print>. */
 .print-summary,
 .print-pack {
   display: none;

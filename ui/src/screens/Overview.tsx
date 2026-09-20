@@ -16,7 +16,7 @@ export function Overview() {
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-[24px] m-0">Overview</h1>
+        <h1 className="m-0">Overview</h1>
         <div className="caption">Exposure is what the code makes possible, not what has happened. Every level below is decomposable.</div>
       </div>
 
@@ -53,7 +53,7 @@ export function Overview() {
       <Section title="Where the exposure sits" caption="Eight dimensions, four categories. Click a dimension to see which agents produce its level.">
         {elevated.length ? (
           <p className="m-0 mb-3 text-[13.5px]">
-            <span className="font-serif text-gold text-[22px] align-middle mr-2">{elevated.length}</span>
+            <span className="num text-navy text-[20px] align-middle mr-2">{elevated.length}</span>
             {elevated.length === 1 ? "agent carries" : "agents carry"} elevated exposure:{" "}
             {elevated.map(({ agent, entries }, i) => (
               <span key={agent.id}>

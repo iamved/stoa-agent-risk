@@ -21,7 +21,7 @@ export function Controls() {
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-[24px] m-0">Controls & Safeguards</h1>
+        <h1 className="m-0">Controls & Safeguards</h1>
         <div className="caption">A control is credited when the scanner observes it in code or infrastructure. Observed is not verified; none observed is not absent.</div>
       </div>
 
@@ -48,7 +48,7 @@ export function Controls() {
       </Section>
 
       <Section title="By agent" caption="Observed controls and tool guards per agent.">
-        <div className="panel overflow-x-auto">
+        <div className="panel overflow-x-auto" tabIndex={0}>
           <table className="tbl">
             <thead><tr><th>Agent</th><th>Controls observed</th><th>Tool guards</th></tr></thead>
             <tbody>

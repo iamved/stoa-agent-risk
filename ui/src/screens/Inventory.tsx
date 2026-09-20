@@ -36,7 +36,7 @@ export function Inventory() {
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-[24px] m-0">AI inventory</h1>
+        <h1 className="m-0">AI inventory</h1>
         <div className="flex items-center gap-2 no-print" role="tablist" aria-label="View">
           {(["table", "graph"] as const).map((v) => (
             <a key={v} role="tab" aria-selected={view === v} href={buildHash("inventory", null, (() => { const n = new URLSearchParams(route.query); if (v === "graph") n.set("view", "graph"); else n.delete("view"); return n; })())} className={`rounded border px-3 py-1 text-[13px] no-underline ${view === v ? "border-navy bg-navy text-white" : "border-line bg-panel text-ink"}`}>
@@ -108,7 +108,7 @@ function AgentsTable({ agents, query, onQuery, onOpen, sort, onSort }: { agents:
           <input type="checkbox" checked={query.get("authority") === "1"} onChange={(e) => onQuery({ authority: e.target.checked ? "1" : null })} />
           Financial or write authority only
         </label>
-        <input value={query.get("q") ?? ""} onChange={(e) => onQuery({ q: e.target.value || null })} placeholder="filter by name, path, capability" className="rounded border border-line bg-panel px-2 py-1 w-64" aria-label="Filter agents" />
+        <input value={query.get("q") ?? ""} onChange={(e) => onQuery({ q: e.target.value || null })} placeholder="filter by name, path, capability" className="field" aria-label="Filter agents" />
         <span className="caption">{sorted.length} of {agents.length}</span>
       </div>
       <DataTable rows={sorted} columns={columns} rowKey={(a) => a.id} onRowClick={onOpen} sort={sort} onSort={onSort} ariaLabel="Agents" height={520} />
@@ -130,7 +130,7 @@ function ToolsTable({ rows, onOpen, sort, onSort }: { rows: ToolRow[]; onOpen: (
 
 function NameTable({ rows, label, onOpen }: { rows: NameRow[]; label: string; onOpen: (a: Agent) => void }) {
   return (
-    <div className="panel overflow-x-auto">
+    <div className="panel overflow-x-auto" tabIndex={0}>
       <table className="tbl">
         <thead><tr><th>{label}</th><th>Used by</th></tr></thead>
         <tbody>
@@ -157,7 +157,7 @@ export function DeclarationsTable({ agents, onOpen }: { agents: Agent[]; onOpen:
           {r.governance ? <div><span className="caption">Governance: </span>{Object.entries(r.governance).map(([k, v]) => `${k}=${typeof v === "object" && v !== null ? JSON.stringify(v) : String(v)}`).join(" · ")}</div> : null}
         </div>
       ) : null}
-      <div className="panel overflow-x-auto">
+      <div className="panel overflow-x-auto" tabIndex={0}>
         <table className="tbl">
           <thead><tr><th>Agent</th><th>Owner</th><th>Declared autonomy</th><th>Inferred</th><th>Status</th><th>Contradictions</th></tr></thead>
           <tbody>

@@ -20,7 +20,7 @@ export function Drift() {
     return (
       <div>
         <RiskTabs current="drift" />
-        <h1 className="text-[24px] m-0 mb-4">Drift</h1>
+        <h1 className="m-0 mb-4">Drift</h1>
         <EmptyState title="No baseline in this scan">
           <p className="m-0">Drift compares two registries produced by the same Stoa version and reports what changed in each agent's reach: capabilities, integrations, providers, findings, and dimension exposure.</p>
           <p className="mt-2 mb-0">Inside a repository, run <code>stoa scan . --diff-against origin/main</code> so the base ref is rescanned with the current scanner. From saved registries, run <code>stoa dashboard stoa-registry.json --baseline previous-registry.json</code>.</p>
@@ -40,20 +40,20 @@ export function Drift() {
     <div>
       <RiskTabs current="drift" />
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-[24px] m-0">Drift</h1>
+        <h1 className="m-0">Drift</h1>
         <div className="caption">Call sites added or removed in code, never runtime behavior. Both sides scanned by Stoa {diff.scanner_version}.</div>
       </div>
 
       <div className="mt-4 panel p-4 grid gap-3 md:grid-cols-[1fr_auto_1fr] items-center">
         <div>
           <div className="caption uppercase tracking-wide text-[11px]">Baseline</div>
-          <div className="font-serif text-[18px] text-navy">{base?.git_ref ?? diff.base.commit ?? "unknown ref"}</div>
+          <div className="text-[16px] font-semibold text-navy">{base?.git_ref ?? diff.base.commit ?? "unknown ref"}</div>
           <div className="caption">{base?.head_commit ? `committed ${formatDate(base.head_commit.date)}` : "commit date unavailable"}{base?.name ? ` · ${base.name}` : ""}</div>
         </div>
-        <div className="text-gold font-serif text-[24px] text-center" aria-hidden="true">→</div>
+        <div className="text-gold text-[20px] text-center" aria-hidden="true">→</div>
         <div>
           <div className="caption uppercase tracking-wide text-[11px]">Current</div>
-          <div className="font-serif text-[18px] text-navy">{r.repository.git_ref ?? diff.head.commit ?? "working tree"}</div>
+          <div className="text-[16px] font-semibold text-navy">{r.repository.git_ref ?? diff.head.commit ?? "working tree"}</div>
           <div className="caption">{head ? `committed ${formatDate(head.date)}` : "commit date unavailable"} · {r.repository.name}</div>
         </div>
       </div>
