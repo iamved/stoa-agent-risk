@@ -7,7 +7,7 @@ import { Chips } from "../components/KeyValue";
 import { Section } from "../components/Section";
 import { STATUS_LABEL, STATUS_ORDER, areaSummaries, controlsByAgent, packetTotals, type AreaSummary, type Status } from "../data/evidence";
 import { changes } from "../data/drift";
-import { agentLabel, dimensionMatrix, formatDate, pluralize } from "../data/selectors";
+import { agentLabel, dimensionMatrix, formatDate, initials, pluralize } from "../data/selectors";
 import type { AssessmentField, AssessmentIdentity, AssessmentSource } from "../data/types";
 import { EVENTS, indicate, money as fmtMoney } from "../data/lossModel";
 import { agentToModel, candidateAgents, intakeFromEnvelope } from "../data/lossInputs";
@@ -399,7 +399,7 @@ function EvidencePack() {
                 const mismatch = Boolean(c?.declaredAutonomy && c?.inferredAutonomy && c.declaredAutonomy !== c.inferredAutonomy);
                 return (
                   <tr key={ag.id}>
-                    <td className="font-medium">{agentLabel(ag)}<div className="caption mono">{ag.path}</div></td>
+                    <td><span className="flex items-center gap-2.5"><span className="avatar" aria-hidden="true">{initials(agentLabel(ag))}</span><span className="font-medium">{agentLabel(ag)}<div className="caption mono font-normal">{ag.path}</div></span></span></td>
                     <td><Chips items={ag.capabilities.map((x) => ({ label: x, hot: highImpact.has(x) }))} empty="none observed" /></td>
                     <td><Chips items={ag.integrations.map((x) => ({ label: x, hot: sensitive.has(x) }))} empty="none observed" /></td>
                     <td className={mismatch ? "text-sev-high font-medium" : ""}>{c?.declaredAutonomy ?? "not declared"} / {c?.inferredAutonomy ?? "indeterminate"}</td>

@@ -6,7 +6,7 @@ import { Pill, SeverityBadge } from "../components/Badge";
 import { DataTable, sortRows, type Column, type SortState } from "../components/DataTable";
 import { FindingDrawer } from "../components/FindingDrawer";
 import { EMPTY_FILTERS, applyFilters, defaultOrder, filtersFromQuery, filtersToQuery, isFiltered, sortFromQuery, type FindingFilters } from "../data/filters";
-import { RISK_LABEL, RISK_LEVELS, RISK_SEVERITIES, SEVERITY_RANK, activeFindings, countByLevel, agentLabel, allFindings, findingByFingerprint, findingTag, frameworkClasses, tagLabel, type FindingRef } from "../data/selectors";
+import { RISK_LABEL, RISK_LEVELS, RISK_SEVERITIES, SEVERITY_RANK, activeFindings, countByLevel, initials, agentLabel, allFindings, findingByFingerprint, findingTag, frameworkClasses, tagLabel, type FindingRef } from "../data/selectors";
 import type { Severity } from "../data/types";
 
 export function Findings() {
@@ -21,7 +21,7 @@ export function Findings() {
     { id: "severity", header: "Risk", width: "100px", cell: (r) => <SeverityBadge severity={r.finding.severity} />, sortValue: (r) => SEVERITY_RANK[r.finding.severity] },
     { id: "rule", header: "Rule", width: "90px", cell: (r) => <span className="mono">{r.finding.rule_id}</span>, sortValue: (r) => r.finding.rule_id },
     { id: "title", header: "Title", width: "minmax(220px, 2fr)", cell: (r) => <span className="line-clamp-2">{r.finding.title}{r.finding.is_new ? <Pill tone="gold">new</Pill> : null}{r.finding.suppressed ? <Pill>suppressed</Pill> : null}</span>, sortValue: (r) => r.finding.title },
-    { id: "agent", header: "Agent", width: "minmax(120px, 1fr)", cell: (r) => (r.agent ? <span className="truncate block">{agentLabel(r.agent)}{r.agents.length > 1 ? <span className="caption"> +{r.agents.length - 1}</span> : null}</span> : <span className="caption">repository</span>), sortValue: (r) => (r.agent ? agentLabel(r.agent) : "") },
+    { id: "agent", header: "Agent", width: "minmax(150px, 1fr)", cell: (r) => (r.agent ? <span className="flex items-center gap-2 min-w-0"><span className="avatar" aria-hidden="true">{initials(agentLabel(r.agent))}</span><span className="truncate">{agentLabel(r.agent)}{r.agents.length > 1 ? <span className="caption"> +{r.agents.length - 1}</span> : null}</span></span> : <span className="caption">repository</span>), sortValue: (r) => (r.agent ? agentLabel(r.agent) : "") },
     { id: "location", header: "Location", width: "minmax(160px, 1.4fr)", cell: (r) => <span className="mono truncate block" title={`${r.finding.path}:${r.finding.line}`}>{r.finding.path}:{r.finding.line}</span>, sortValue: (r) => `${r.finding.path}:${String(r.finding.line).padStart(6, "0")}` },
     { id: "class", header: framework === "owasp" ? "OWASP" : framework === "eu" ? "EU AI Act" : "Class", width: "90px", cell: (r) => { const t = findingTag(r.finding, framework); return t ? <Pill title={tagLabel(t, framework)}>{t}</Pill> : <span className="caption">–</span>; }, sortValue: (r) => findingTag(r.finding, framework) },
   ], [framework]);
@@ -76,7 +76,7 @@ export function Findings() {
         </div>
       </div>
 
-      <div className="mt-4 panel p-3 flex flex-wrap items-end gap-3 text-[13px] no-print">
+      <div className="mt-4 panel p-3 flex flex-wrap items-end gap-3 text-[13px] no-print sticky top-2 z-20">
         <label className="flex flex-col gap-1">
           <span className="caption">Search</span>
           <input value={draft ?? filters.q} onChange={(e) => setDraft(e.target.value)} onBlur={() => { if (draft !== null) { update({ ...filters, q: draft }); setDraft(null); } }} onKeyDown={(e) => { if (e.key === "Enter" && draft !== null) { update({ ...filters, q: draft }); setDraft(null); } }} placeholder="rule, title, path, snippet" className="field" />

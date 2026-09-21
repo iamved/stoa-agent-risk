@@ -25,6 +25,18 @@ export const Icon = {
   insurance: () => (
     <svg {...base}><path d="M4 12a8 8 0 0 1 16 0z" /><path d="M12 12v6a2 2 0 0 0 4 0" /><path d="M12 3v1" /></svg>
   ),
+  flag: () => (
+    <svg {...base}><path d="M5 21V4" /><path d="M5 4h11l-2 4 2 4H5" /></svg>
+  ),
+  clock: () => (
+    <svg {...base}><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></svg>
+  ),
+  check: () => (
+    <svg {...base}><circle cx="12" cy="12" r="8.5" /><path d="M8.5 12.5l2.5 2.5 4.5-5" /></svg>
+  ),
+  users: () => (
+    <svg {...base}><circle cx="9" cy="8" r="3" /><path d="M3.5 19a5.5 5.5 0 0 1 11 0" /><path d="M16 4.5a3 3 0 0 1 0 6" /><path d="M17.5 13.5a5 5 0 0 1 3 4.5" /></svg>
+  ),
 };
 
 export type IconName = keyof typeof Icon;

@@ -38,13 +38,14 @@ export function DataTable<Row>({ rows, columns, rowKey, onRowClick, sort, onSort
     estimateSize: () => 44,
     overscan: 12,
   });
-  const template = columns.map((c) => c.width).join(" ");
+  const clickableRows = Boolean(onRowClick);
+  const template = columns.map((c) => c.width).join(" ") + (clickableRows ? " 28px" : "");
   const items = virtualizer.getVirtualItems();
 
   return (
     <div className="panel overflow-hidden">
       <div ref={parent} style={{ height, overflow: "auto" }} role="table" aria-label={ariaLabel} aria-rowcount={rows.length}>
-        <div role="row" className="grid sticky top-0 z-10 bg-panel border-b border-line" style={{ gridTemplateColumns: template, minWidth: "720px" }}>
+        <div role="row" className="grid sticky top-0 z-10 bg-panel border-b border-line-strong" style={{ gridTemplateColumns: template, minWidth: "720px" }}>
           {columns.map((c) => {
             const sortable = Boolean(c.sortValue && onSort);
             const active = sort?.column === c.id;
@@ -61,6 +62,7 @@ export function DataTable<Row>({ rows, columns, rowKey, onRowClick, sort, onSort
               </div>
             );
           })}
+          {clickableRows ? <div role="columnheader" aria-hidden="true" /> : null}
         </div>
         {rows.length === 0 ? (
           <div className="p-6 caption text-center">{emptyText}</div>
@@ -85,7 +87,7 @@ export function DataTable<Row>({ rows, columns, rowKey, onRowClick, sort, onSort
                       onRowClick?.(row);
                     }
                   } : undefined}
-                  className={`grid items-start border-b border-line text-[13px] ${clickable ? "cursor-pointer hover:bg-gold-100 focus-visible:bg-gold-100" : ""}`}
+                  className={`group grid items-start border-b border-line/70 text-[13px] ${clickable ? "cursor-pointer hover:bg-paper focus-visible:bg-paper" : ""}`}
                   style={{ gridTemplateColumns: template, position: "absolute", top: 0, left: 0, width: "100%", transform: `translateY(${item.start}px)` }}
                 >
                   {columns.map((c) => (
@@ -93,6 +95,7 @@ export function DataTable<Row>({ rows, columns, rowKey, onRowClick, sort, onSort
                       {c.cell(row)}
                     </div>
                   ))}
+                  {clickableRows ? <div role="cell" aria-hidden="true" className="py-2 pr-2 text-right text-ink-muted opacity-0 group-hover:opacity-100">›</div> : null}
                 </div>
               );
             })}

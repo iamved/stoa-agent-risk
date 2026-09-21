@@ -8,6 +8,7 @@ import { Section } from "../components/Section";
 import { CATS, DIMS, EVENTS, STATUS_LABEL, catName, indicate, money, pct, whatIfs, type Comparable, type GapStatus, type Indication, type Intake, type ModelAgent, type Policy, type WhatIf } from "../data/lossModel";
 import { agentToModel, candidateAgents, intakeFromEnvelope, intakeToToml } from "../data/lossInputs";
 import { lossRows, money as declaredMoney } from "../data/loss";
+import { initials } from "../data/selectors";
 import type { Exposure } from "../data/types";
 
 const GAP_CHIP: Record<GapStatus, string> = { unprotected: "chip-critical", excluded: "chip-critical", shortfall: "chip-medium", ok: "chip-ok", minor: "chip-muted" };
@@ -193,17 +194,17 @@ function Outlook({ r, levers, intake, model }: { r: Indication; levers: WhatIf[]
         <LossCurve r={r} coverage={intake.existing_coverage} />
       </figure>
 
-      <div className="mt-3 grid grid-cols-2 md:grid-cols-4 panel divide-x divide-line">
+      <div className="mt-3 grid gap-3 grid-cols-2 md:grid-cols-4">
         {([["Average year", S.eal, "expected annual loss"], ["1 in 20 year", S.pLow, "a rough year"], ["1 in 100 year", S.pMid, "a bad year"], ["1 in 250 year", S.pHigh, "a severe year"]] as const).map(([n, v, d], i) => (
-          <div key={n} className={`px-4 py-3.5 ${i === 2 ? "bg-gold-100/60" : ""}`}>
-            <div className="text-[12.5px] font-medium">{n}</div>
-            <div className="num text-[26px] text-navy leading-tight">{money(v)}</div>
+          <div key={n} className={`panel px-4 py-3.5 ${i === 2 ? "ring-2 ring-gold/60" : ""}`}>
+            <div className="text-[12.5px] text-ink-muted">{n}</div>
+            <div className="num text-[26px] text-navy leading-tight mt-1">{money(v)}</div>
             <div className="caption">{d}</div>
           </div>
         ))}
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-x-10 gap-y-2 rounded-md bg-gold-100/60 px-5 py-3.5">
+      <div className="mt-3 flex flex-wrap gap-x-10 gap-y-2 rounded-xl bg-gold-100/70 px-5 py-4">
         <div className="grid"><span className="caption">Suggested coverage limit</span><b className="text-[18px] font-semibold text-navy">{money(L.lean)} to {money(L.conservative)}</b></div>
         <div className="grid"><span className="caption">Most common choice</span><b className="text-[18px] font-semibold text-navy">{money(L.standard)}</b></div>
         <div className="grid"><span className="caption">Suggested retention</span><b className="text-[18px] font-semibold text-navy">{money(r.retention)}</b></div>
@@ -277,7 +278,7 @@ function DeclaredLimits() {
           <tbody>
             {rows.length === 0 ? <tr><td colSpan={7} className="caption text-center">No agent with money authority or a declared economic limit in this scan.</td></tr> : rows.map((r) => (
               <tr key={r.agent.id}>
-                <td><a href={buildHash("inventory", r.agent.id)} className="link font-medium">{r.name}</a><div className="caption mono">{r.agent.path}</div></td>
+                <td><span className="flex items-center gap-2.5"><span className="avatar" aria-hidden="true">{initials(r.name)}</span><span><a href={buildHash("inventory", r.agent.id)} className="link font-medium">{r.name}</a><div className="caption mono">{r.agent.path}</div></span></span></td>
                 <td><Chips items={r.moneyTools.map((n) => ({ label: n, hot: true }))} empty={r.authority ? "capability only" : "none observed"} tone="mono" /></td>
                 <td className="tabular-nums">{declaredMoney(r.maxPerAction)}</td>
                 <td className="tabular-nums">{declaredMoney(r.dailyAggregate)}</td>

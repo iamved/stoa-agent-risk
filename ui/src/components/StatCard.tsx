@@ -1,20 +1,19 @@
 import type { ReactNode } from "react";
+import { Icon, type IconName } from "./Icons";
 
-/** A flat figure tile: label, one number, one line of context. */
-export function StatCard({ label, value, detail, href, tone = "neutral" }: { label: string; value: ReactNode; detail?: ReactNode; href?: string; tone?: "neutral" | "gold" | "warn" }) {
-  const valueClass = tone === "gold" ? "text-gold" : tone === "warn" ? "text-sev-high" : "text-navy";
+/** A headline figure: optional icon, label, one number, one line of context. Same family as KpiTile. */
+export function StatCard({ label, value, detail, href, tone = "neutral", icon }: { label: string; value: ReactNode; detail?: ReactNode; href?: string; tone?: "neutral" | "gold" | "warn"; icon?: IconName }) {
+  const valueClass = tone === "gold" ? "text-gold-ink" : tone === "warn" ? "text-sev-high" : "text-navy";
+  const Glyph = icon ? Icon[icon] : null;
   const body = (
-    <div className="panel px-4 py-3.5 h-full flex flex-col gap-1">
-      <div className="text-[12px] text-ink-muted leading-snug">{label}</div>
-      <div className={`num text-[24px] leading-none mt-0.5 ${valueClass}`}>{value}</div>
-      {detail ? <div className="caption leading-snug mt-1">{detail}</div> : null}
+    <div className="panel p-4 h-full flex gap-3.5">
+      {Glyph ? <span className="kpi-icon" aria-hidden="true"><Glyph /></span> : null}
+      <div className="min-w-0 flex-1">
+        <div className="text-[12.5px] text-ink-muted leading-snug">{label}</div>
+        <div className={`num text-[26px] leading-none mt-1 ${valueClass}`}>{value}</div>
+        {detail ? <div className="caption leading-snug mt-1.5">{detail}</div> : null}
+      </div>
     </div>
   );
-  return href ? (
-    <a href={href} className="block rounded-md no-underline hover:[&>div]:border-line-strong">
-      {body}
-    </a>
-  ) : (
-    body
-  );
+  return href ? <a href={href} className="block rounded-xl no-underline">{body}</a> : body;
 }

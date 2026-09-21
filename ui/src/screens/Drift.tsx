@@ -6,7 +6,7 @@ import { EmptyState } from "../components/EmptyState";
 import { Section } from "../components/Section";
 import { StatCard } from "../components/StatCard";
 import { changes, groupChanges, type Change } from "../data/drift";
-import { formatDate, pluralize } from "../data/selectors";
+import { formatDate, initials, pluralize } from "../data/selectors";
 import type { DriftSeverity } from "../data/types";
 
 const DRIFT_BADGE: Record<DriftSeverity, "critical" | "high" | "medium" | "info"> = { high: "high", medium: "medium", low: "info", info: "info" };
@@ -59,9 +59,9 @@ export function Drift() {
       </div>
 
       <div className="mt-4 grid gap-3 grid-cols-3">
-        <StatCard label="Needs review" value={review.length} detail="unapproved authority increases" tone={review.length ? "warn" : "neutral"} />
-        <StatCard label="Agents changed" value={s.agents_changed + s.agents_added + s.agents_removed} detail={`${s.agents_added} added · ${s.agents_removed} removed`} />
-        <StatCard label="New critical and high findings" value={s.findings_delta.new_critical + s.findings_delta.new_high} detail={`${s.findings_delta.resolved} resolved`} />
+        <StatCard icon="flag" label="Needs review" value={review.length} detail="unapproved authority increases" tone={review.length ? "warn" : "neutral"} />
+        <StatCard icon="inventory" label="Agents changed" value={s.agents_changed + s.agents_added + s.agents_removed} detail={`${s.agents_added} added · ${s.agents_removed} removed`} />
+        <StatCard icon="risk" label="New high-risk findings" value={s.findings_delta.new_critical + s.findings_delta.new_high} detail={`${s.findings_delta.resolved} resolved`} />
       </div>
 
       {review.length ? (
@@ -112,7 +112,7 @@ function ChangeRow({ change, emphasize }: { change: Change; emphasize?: boolean 
     <li className={`p-3 grid gap-x-3 gap-y-1 md:grid-cols-[minmax(150px,1fr)_minmax(180px,1.4fr)_minmax(160px,1.2fr)_auto] items-start text-[13px] ${emphasize ? "border-l-2 border-sev-high" : ""}`}>
       <div>
         <div className="caption text-[11px] uppercase tracking-wide">{change.population ? (change.kind === "agent_added" ? "New agent" : "Removed agent") : "Agent"}</div>
-        {agentExists ? <a href={buildHash("inventory", change.agentId)} className="link font-medium">{change.agentName}</a> : <span className="font-medium">{change.agentName}</span>}
+        <span className="flex items-center gap-2"><span className="avatar" aria-hidden="true">{initials(change.agentName)}</span>{agentExists ? <a href={buildHash("inventory", change.agentId)} className="link font-medium">{change.agentName}</a> : <span className="font-medium">{change.agentName}</span>}</span>
         <div className="caption mono truncate">{change.agentPath}</div>
       </div>
       <div>

@@ -7,7 +7,7 @@ import { DataTable, sortRows, type Column, type SortState } from "../components/
 import { GraphView } from "../components/GraphView";
 import { Chips } from "../components/KeyValue";
 import { agentFindingCount, agentSource, categories, codeAgents, contradictions, declaredAgents, filterAgents, iacAgents, integrationRows, providerRows, toolRows, worstExposure, type CategoryId, type NameRow, type ToolRow } from "../data/inventory";
-import { EXPOSURE_RANK, agentById, agentLabel, hasAuthority } from "../data/selectors";
+import { EXPOSURE_RANK, agentById, agentLabel, hasAuthority, initials } from "../data/selectors";
 import type { Agent } from "../data/types";
 
 export function Inventory() {
@@ -91,7 +91,7 @@ function AgentsTable({ agents, query, onQuery, onOpen, sort, onSort }: { agents:
   const { envelope } = useApp();
   const rows = filterAgents(envelope, agents, query);
   const columns = useMemo<Column<Agent>[]>(() => [
-    { id: "name", header: "Name", width: "minmax(160px, 1.4fr)", cell: (a) => <span className="font-medium">{agentLabel(a)}{hasAuthority(envelope, a) ? <span className="caption"> · authority</span> : null}</span>, sortValue: (a) => agentLabel(a) },
+    { id: "name", header: "Name", width: "minmax(180px, 1.4fr)", cell: (a) => <span className="flex items-center gap-2.5 min-w-0"><span className="avatar" aria-hidden="true">{initials(agentLabel(a))}</span><span className="min-w-0"><span className="block font-medium truncate">{agentLabel(a)}</span>{hasAuthority(envelope, a) ? <span className="caption">moves money or writes</span> : null}</span></span>, sortValue: (a) => agentLabel(a) },
     { id: "type", header: "Type", width: "minmax(120px, 1fr)", cell: (a) => <span className="truncate block">{agentSource(a)}</span>, sortValue: (a) => agentSource(a) },
     { id: "location", header: "Location", width: "minmax(180px, 1.5fr)", cell: (a) => <span className="mono truncate block" title={a.path}>{a.path}</span>, sortValue: (a) => a.path },
     { id: "autonomy", header: "Autonomy", width: "150px", cell: (a) => <span className="text-[12.5px]">{a.autonomy_level?.level ?? "indeterminate"}</span>, sortValue: (a) => a.autonomy_level?.level ?? "" },
@@ -102,7 +102,7 @@ function AgentsTable({ agents, query, onQuery, onOpen, sort, onSort }: { agents:
   const sorted = sortRows(rows, columns, sort ?? { column: "exposure", dir: "desc" });
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-3 mb-3 text-[13px] no-print">
+      <div className="panel px-3 py-2.5 flex flex-wrap items-center gap-3 mb-3 text-[13px] no-print sticky top-2 z-20">
         <label className="flex items-center gap-1.5">
           <input type="checkbox" checked={query.get("authority") === "1"} onChange={(e) => onQuery({ authority: e.target.checked ? "1" : null })} />
           Can move money or write to systems

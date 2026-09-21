@@ -5,7 +5,7 @@ import { Chips } from "../components/KeyValue";
 import { Section } from "../components/Section";
 import { StatCard } from "../components/StatCard";
 import { agentControlRows, controlLabel, coverage, gapGroups } from "../data/controls";
-import { agentLabel, pluralize } from "../data/selectors";
+import { agentLabel, initials, pluralize } from "../data/selectors";
 
 /** Safeguards the scanner saw, and where it looked for one and found none. */
 export function Controls() {
@@ -26,20 +26,20 @@ export function Controls() {
       </div>
 
       <div className="mt-4 grid gap-3 grid-cols-3">
-        <StatCard label="Agents with human approval" value={`${withApproval} / ${rows.length}`} tone={withApproval < rows.length ? "warn" : "neutral"} />
-        <StatCard label="Missing controls" value={gapCount} detail="review prompts, not proven weaknesses" href={buildHash("findings", null, { rule: "CTRL" })} tone={gapCount ? "warn" : "neutral"} />
-        <StatCard label="Money tools without a guard" value={unguarded + retries} detail={retries ? `${retries} can post twice on retry` : undefined} tone={unguarded + retries ? "warn" : "neutral"} />
+        <StatCard icon="check" label="Agents with human approval" value={`${withApproval} / ${rows.length}`} tone={withApproval < rows.length ? "warn" : "neutral"} />
+        <StatCard icon="controls" label="Missing controls" value={gapCount} detail="review prompts, not proven weaknesses" href={buildHash("findings", null, { rule: "CTRL" })} tone={gapCount ? "warn" : "neutral"} />
+        <StatCard icon="loss" label="Money tools without a guard" value={unguarded + retries} detail={retries ? `${retries} can post twice on retry` : undefined} tone={unguarded + retries ? "warn" : "neutral"} />
       </div>
 
       <Section title="Which safeguards were seen" caption="Agents showing each safeguard.">
-        <div className="panel p-3 grid gap-2 md:grid-cols-2">
+        <div className="panel divide-y divide-line/70">
           {cov.map((c) => {
             const pct = c.total ? Math.round((c.agents / c.total) * 100) : 0;
             return (
-              <div key={c.id} className="grid grid-cols-[minmax(140px,1fr)_2fr_60px] items-center gap-3 text-[13px]">
-                <span>{c.label}</span>
-                <span className="h-2 rounded-full bg-paper border border-line overflow-hidden" aria-hidden="true"><span className="block h-full bg-gold" style={{ width: `${pct}%` }} /></span>
-                <span className="tabular-nums caption text-right">{c.agents} / {c.total}</span>
+              <div key={c.id} className="grid grid-cols-[minmax(150px,200px)_1fr_64px] items-center gap-4 px-5 py-2.5 text-[13px]">
+                <span className="font-medium text-navy">{c.label}</span>
+                <span className="h-3 rounded-sm bg-paper overflow-hidden" aria-hidden="true"><span className={`block h-full ${pct ? "bg-ok" : ""}`} style={{ width: `${pct}%` }} /></span>
+                <span className="num text-[14px] text-navy text-right">{c.agents} / {c.total}</span>
               </div>
             );
           })}
@@ -53,7 +53,7 @@ export function Controls() {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.agent.id}>
-                  <td><a href={buildHash("inventory", r.agent.id)} className="link font-medium">{r.name}</a><div className="caption mono">{r.agent.path}</div></td>
+                  <td><span className="flex items-center gap-2.5"><span className="avatar" aria-hidden="true">{initials(r.name)}</span><span><a href={buildHash("inventory", r.agent.id)} className="link font-medium">{r.name}</a><div className="caption mono">{r.agent.path}</div></span></span></td>
                   <td><Chips items={r.observed.map((c) => ({ label: controlLabel(c) }))} empty="none observed" /></td>
                   <td className="caption">
                     {(r.agent.tools ?? []).length === 0 ? "no tools bound" : `${r.toolGuards} of ${(r.agent.tools ?? []).length} tools guarded`}

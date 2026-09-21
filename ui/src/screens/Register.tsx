@@ -8,7 +8,7 @@ import { Chips, KeyValue } from "../components/KeyValue";
 import { Section } from "../components/Section";
 import { StatCard } from "../components/StatCard";
 import { STATUSES, TREATMENTS, declaredOf, isDeclaredEqual, reviewDue, riskName, summarize, toToml, type Declared } from "../data/register";
-import { formatDate } from "../data/selectors";
+import { formatDate, initials } from "../data/selectors";
 import type { RegisterRow } from "../data/types";
 
 export function Register() {
@@ -28,9 +28,9 @@ export function Register() {
       </div>
 
       <div className="mt-4 grid gap-3 grid-cols-3">
-        <StatCard label="Risks" value={s.rows} detail={`${s.declared} with a treatment`} />
-        <StatCard label="No owner or treatment yet" value={s.byTreatment.undeclared} tone={s.byTreatment.undeclared ? "warn" : "neutral"} />
-        <StatCard label="Marked for insurance transfer" value={s.byTreatment.transfer} href={s.byTreatment.transfer ? buildHash("evidence") : undefined} />
+        <StatCard icon="risk" label="Risks" value={s.rows} detail={`${s.declared} with a treatment`} />
+        <StatCard icon="users" label="No owner or treatment yet" value={s.byTreatment.undeclared} tone={s.byTreatment.undeclared ? "warn" : "neutral"} />
+        <StatCard icon="insurance" label="Marked for insurance transfer" value={s.byTreatment.transfer} href={s.byTreatment.transfer ? buildHash("evidence") : undefined} />
       </div>
 
       <Section title="Register" caption="Inherent is before controls are credited; residual is after.">
@@ -49,8 +49,7 @@ export function Register() {
                 return (
                   <tr key={row.risk_id} data-clickable="true" tabIndex={0} onClick={() => navigate("register", row.risk_id)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate("register", row.risk_id); } }}>
                     <td>
-                      <div className="font-medium">{row.dimension_name}</div>
-                      <div className="caption">{row.agent_name ?? row.agent_id}{row.unmatched ? " · unmatched" : ""}</div>
+                      <div className="flex items-center gap-2.5"><span className="avatar" aria-hidden="true">{initials(row.agent_name ?? row.agent_id)}</span><span><span className="block font-medium">{row.dimension_name}</span><span className="caption">{row.agent_name ?? row.agent_id}{row.unmatched ? " · unmatched" : ""}</span></span></div>
                     </td>
                     <td>{row.inherent ? <ExposureBadge exposure={row.inherent.level} /> : <span className="caption">–</span>}</td>
                     <td>{row.residual ? <ExposureBadge exposure={row.residual.level} /> : <span className="caption">–</span>}</td>
