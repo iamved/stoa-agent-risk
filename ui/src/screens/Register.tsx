@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { AgentMark } from "../components/AgentMark";
 import { useApp } from "../app/context";
 import { RiskTabs } from "../components/RiskTabs";
 import { buildHash, navigate, useRoute } from "../app/router";
@@ -8,7 +9,7 @@ import { Chips, KeyValue } from "../components/KeyValue";
 import { Section } from "../components/Section";
 import { StatCard } from "../components/StatCard";
 import { STATUSES, TREATMENTS, declaredOf, isDeclaredEqual, reviewDue, riskName, summarize, toToml, type Declared } from "../data/register";
-import { formatDate, initials } from "../data/selectors";
+import { formatDate } from "../data/selectors";
 import type { RegisterRow } from "../data/types";
 
 export function Register() {
@@ -49,7 +50,7 @@ export function Register() {
                 return (
                   <tr key={row.risk_id} data-clickable="true" tabIndex={0} onClick={() => navigate("register", row.risk_id)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate("register", row.risk_id); } }}>
                     <td>
-                      <div className="flex items-center gap-2.5"><span className="avatar" aria-hidden="true">{initials(row.agent_name ?? row.agent_id)}</span><span><span className="block font-medium">{row.dimension_name}</span><span className="caption">{row.agent_name ?? row.agent_id}{row.unmatched ? " · unmatched" : ""}</span></span></div>
+                      <div className="flex items-center gap-2.5"><AgentMark /><span><span className="block font-medium">{row.dimension_name}</span><span className="caption">{row.agent_name ?? row.agent_id}{row.unmatched ? " · unmatched" : ""}</span></span></div>
                     </td>
                     <td>{row.inherent ? <ExposureBadge exposure={row.inherent.level} /> : <span className="caption">–</span>}</td>
                     <td>{row.residual ? <ExposureBadge exposure={row.residual.level} /> : <span className="caption">–</span>}</td>

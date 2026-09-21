@@ -90,3 +90,20 @@ describe.each(FIXTURES)("%s", (name) => {
     expect(card.decided + card.awaiting).toBe(card.risks);
   });
 });
+
+describe("the modeled loss is one figure everywhere", () => {
+  it("the Overview's bad year and average year are the Financial Exposure screen's", async () => {
+    const { costOutlook, LOSS_SEED } = await import("../src/data/overview");
+    const { agentToModel, candidateAgents, intakeFromEnvelope } = await import("../src/data/lossInputs");
+    const { EVENTS, indicate } = await import("../src/data/lossModel");
+    const env = load("meridian-pay");
+    const { intake, monthlyVolume } = intakeFromEnvelope(env);
+    const { model } = agentToModel(env, candidateAgents(env)[0]!, monthlyVolume);
+    // What the detail screen runs: the full simulation with the bootstrap.
+    const detail = indicate(EVENTS, model, intake, LOSS_SEED);
+    const overview = costOutlook(env)!;
+    expect(overview.badYear).toBe(detail.summary.pMid);
+    expect(overview.averageYear).toBe(detail.summary.eal);
+    expect(overview.agent).toBe(model.name);
+  }, 60_000);
+});

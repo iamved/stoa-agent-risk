@@ -215,8 +215,8 @@ export function DeclarationsTable({ agents, onOpen }: { agents: Agent[]; onOpen:
                 <tr key={a.id} data-clickable="true" onClick={() => onOpen(a)} tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter") onOpen(a); }}>
                   <td className="font-medium">{agentLabel(a)}</td>
                   <td>{d.owner || <span className="caption">not declared</span>}</td>
-                  <td>{d.autonomy_intent ?? <span className="caption">not declared</span>}</td>
-                  <td className={mismatch ? "text-sev-high font-medium" : ""}>{inferred}</td>
+                  <td title={d.autonomy_intent ?? undefined}>{d.autonomy_intent ? autonomyLabel(d.autonomy_intent) : <span className="caption">not declared</span>}</td>
+                  <td className={mismatch ? "text-sev-high font-medium" : ""} title={inferred}>{autonomyLabel(inferred)}</td>
                   <td>{d.production_status ?? <span className="caption">not declared</span>}</td>
                   <td>{n ? <Pill tone="warn">{n}</Pill> : <span className="caption">0</span>}</td>
                 </tr>

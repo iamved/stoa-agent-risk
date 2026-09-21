@@ -35,11 +35,16 @@ export function LossCurve({ r, coverage }: { r: Indication; coverage: Policy[] }
       {coverage.map((pol, i) => (pol.limit > 1e4 ? (
         <g key={i}>
           <line x1={X(pol.limit)} x2={X(pol.limit)} y1={T} y2={H - B} stroke={pol.ai_exclusion ? "var(--color-sev-critical)" : "var(--color-ok)"} strokeWidth="1.5" strokeDasharray="5 4" />
+          <title>From your declared insurance details. Not a reviewed policy.</title>
           <text x={X(pol.limit) + 5} y={T + 12} fontSize="11.5" fill="var(--color-ink-muted)">{POLICY_NAME[pol.type]} {money(pol.limit)}{pol.ai_exclusion ? ", AI excluded" : ""}</text>
+          <g transform={`translate(${X(pol.limit) + 5}, ${T + 19})`}>
+            <rect width="54" height="16" rx="8" fill="var(--color-paper)" stroke="var(--color-line-strong)" />
+            <text x="27" y="11.5" fontSize="10.5" textAnchor="middle" fill="var(--color-ink-muted)">declared</text>
+          </g>
         </g>
       ) : null))}
       <text x={(X(r.limits.lean) + X(r.limits.conservative)) / 2} y={H - B - 8} fontSize="12.5" fontWeight="600" textAnchor="middle" fill="var(--color-gold-ink)">suggested coverage</text>
-      <text x={(L + W - R) / 2} y={H - 6} fontSize="12" textAnchor="middle" fill="var(--color-ink-muted)">Insurable loss in one year</text>
+      <text x={(L + W - R) / 2} y={H - 6} fontSize="12" textAnchor="middle" fill="var(--color-ink-muted)">Insurable loss in one year, US dollars</text>
     </svg>
   );
 }

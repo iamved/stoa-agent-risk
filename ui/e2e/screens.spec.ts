@@ -137,13 +137,15 @@ test.describe("insurance and print", () => {
   test("shows the pre-filled assessment with sources and the schedule", async ({ page }) => {
     await page.goto(fileUrl("meridian-pay", "#/evidence"));
     await expect(page.getByRole("heading", { name: "AI Risk Insurance" })).toBeVisible();
-    await expect(page.getByText("pre-filled", { exact: false }).first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: "9 of 23 answers came from your code" })).toBeVisible();
+    await expect(page.getByText("8 need your confirmation. 6 are agreed with the carrier later.")).toBeVisible();
     await expect(page.getByText("1. General information")).toBeVisible();
     await expect(page.getByText("Insurance requirements (schedule)")).toBeVisible();
     await expect(page.getByText("Policy limit (aggregate)")).toBeVisible();
     await expect(page.getByText("5. Declaration")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Print assessment (PDF)" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Print and sign" })).toBeVisible();
+    await page.getByRole("button", { name: "Export" }).click();
+    await expect(page.getByRole("menuitem")).toHaveText(["Print assessment (PDF)", "Print summary", "Download JSON", "Copy JSON"]);
+    await page.keyboard.press("Escape");
     await expect(page.getByRole("link", { name: "Schedule a call" })).toHaveAttribute("href", "https://stoa.insure");
     await page.getByText("Show the evidence pack").click();
     await expect(page.getByRole("heading", { name: "What the agents can do" })).toBeVisible();
@@ -152,10 +154,10 @@ test.describe("insurance and print", () => {
   test("the assessment is editable and produces the config snippet", async ({ page }) => {
     await page.goto(fileUrl("meridian-pay", "#/evidence"));
     await expect(page.locator(".assessment")).toContainText("Meridian Pay");
-    await page.getByRole("button", { name: "Edit assessment" }).click();
+    await page.getByRole("button", { name: "Review 8 unconfirmed fields" }).click();
     await page.getByLabel("Applicant company").fill("Meridian Pay Ltd");
     await page.getByLabel("Policy limit (aggregate)").fill("US$ 5,000,000");
-    await page.getByRole("button", { name: "Done editing" }).click();
+    await page.getByRole("button", { name: "Stop editing" }).click();
     await expect(page.locator(".assessment")).toContainText("Meridian Pay Ltd");
     await expect(page.locator(".assessment")).toContainText("US$ 5,000,000");
     const snippet = await page.getByLabel("Underwriting config snippet").inputValue();
@@ -231,11 +233,11 @@ test.describe("estate and risk model screens", () => {
     await expect(page.getByText("Kill switch").first()).toBeVisible();
     await expect(page.getByText("Pinned model")).toHaveCount(0);
     await page.goto(fileUrl("meridian-pay", "#/loss"));
-    await expect(page.getByRole("heading", { name: "Estimated Financial Loss" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Financial Exposure", level: 1 })).toBeVisible();
     await expect(page.getByText("500 USD").first()).toBeVisible({ timeout: 30_000 });
     await page.goto(fileUrl("meridian-pay", "#/risk"));
     await expect(page.getByRole("tab", { name: /Findings/ })).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByRole("navigation", { name: "Screens" })).toContainText("Insurance");
+    await expect(page.getByRole("navigation", { name: "Screens" })).toContainText("AI Risk Insurance");
     await expect(page.getByRole("navigation", { name: "Screens" })).not.toContainText("Declared Scope");
   });
 });
@@ -281,5 +283,66 @@ test.describe("a customer's first scan", () => {
     await expect(page.getByRole("button", { name: "Print and sign" })).toHaveCount(0);
     await expect(page.getByText("Policy limit", { exact: false })).toHaveCount(0);
     await expect(page.getByTestId("scope-strip")).toContainText("1 file. Static scan of code and configuration.");
+  });
+});
+
+test.describe("insurance page: one checklist, one primary button", () => {
+  test("no step is checked while its fields are unconfirmed, and the button follows the next step", async ({ page }) => {
+    await page.goto(fileUrl("meridian-pay", "#/evidence"));
+    const view = page.locator("main .screen-content");
+    await expect(view.locator(".btn-primary")).toHaveCount(1);
+    await expect(view.locator(".btn-primary")).toHaveText("Review 8 unconfirmed fields");
+    const steps = view.getByRole("listitem").filter({ hasText: /Answers pre-filled|Confirm identity|Sign the declaration|Submit through Stoa/ });
+    await expect(steps).toHaveCount(4);
+    await expect(steps.nth(0)).toContainText("(complete)");
+    await expect(steps.nth(1)).not.toContainText("(complete)");
+    await expect(steps.nth(1)).toHaveAttribute("aria-current", "step");
+    await expect(steps.nth(3)).toContainText("Your Stoa advisor sends the signed assessment and evidence pack to the carrier.");
+
+    await view.locator(".btn-primary").click();
+    await page.getByRole("button", { name: "I have reviewed these fields" }).click();
+    await expect(steps.nth(1)).toContainText("(complete)");
+    await expect(steps.nth(2)).toHaveAttribute("aria-current", "step");
+    await expect(view.locator(".btn-primary")).toHaveCount(1);
+    await expect(view.locator(".btn-primary")).toHaveText("Print and sign");
+  });
+
+  test("the carrier sentence is said once, and the old wording is gone", async ({ page }) => {
+    await page.goto(fileUrl("meridian-pay", "#/evidence"));
+    const view = page.locator("main .screen-content");
+    await expect(view.getByText("Stoa prepares the evidence. Munich Re prices and issues.")).toHaveCount(1);
+    await expect(view.getByText(/prices? and issues?/)).toHaveCount(1);
+    // The heading word is gone. ("Update / rollback readiness" is a question on the carrier's form and stays.)
+    await expect(view.getByText("Readiness", { exact: true })).toHaveCount(0);
+    for (const gone of ["% pre-filled", "your Munich Re aiSure contact", "Send the signed PDF"]) await expect(view.getByText(gone, { exact: false })).toHaveCount(0);
+    await expect(view.getByText(".stoa/underwriting.toml", { exact: false })).toHaveCount(0);
+    // Three provenance chips, plus terms settled with the carrier later.
+    const chips = await view.locator(".assessment .chip").allTextContents();
+    // The legend lists all four; no other provenance label exists anywhere on the form.
+    expect([...new Set(chips)].sort()).toEqual(["Agreed with the carrier later", "From your code", "Needs your input", "You told us"]);
+  });
+});
+
+test.describe("financial exposure explains itself", () => {
+  test("what drives the estimate, by source, with declared inputs marked", async ({ page }) => {
+    await page.goto(fileUrl("meridian-pay", "#/loss"));
+    const drivers = page.getByRole("region", { name: "What drives this estimate" });
+    await expect(drivers).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByRole("heading", { name: /A bad year could cost \$[\d.]+M/ })).toBeVisible();
+    await expect(page.getByText("Modeled", { exact: true })).toBeVisible();
+    await expect(drivers).toContainText("From the scan");
+    await expect(drivers).toContainText("Declared by you");
+    await expect(drivers).toContainText("From Stoa's loss data");
+    await expect(drivers.getByText("declared", { exact: true })).toBeVisible();
+    await expect(drivers).toContainText("$40M revenue");
+    await expect(drivers).toContainText("Data Leakage is the largest driver");
+    await expect(drivers).toContainText("Driven by your business profile and data handled, not by scan findings.");
+    const curve = page.getByRole("img", { name: /Chance of exceeding a given loss/ });
+    await expect(curve).toContainText("Insurable loss in one year, US dollars");
+    await expect(curve).toContainText("declared");
+    // The bad year here is the bad year on the Overview.
+    const here = (await page.getByRole("heading", { name: /A bad year could cost/ }).textContent())!.match(/\$[\d.]+[kM]/)![0];
+    await page.goto(fileUrl("meridian-pay", "#/overview"));
+    await expect(page.getByRole("region", { name: "Where you stand" })).toContainText(`Modeled loss in a bad year is ${here}.`, { timeout: 60_000 });
   });
 });

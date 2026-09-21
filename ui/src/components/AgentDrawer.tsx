@@ -111,7 +111,7 @@ export function AgentDrawer({ agent, onClose }: { agent: Agent | null; onClose: 
               { k: "Purpose", v: declared.purpose || "not declared" },
               { k: "Users", v: declared.users ?? "not declared" },
               { k: "Production status", v: declared.production_status ?? "not declared" },
-              { k: "Autonomy", v: <span>declared <strong>{declared.autonomy_intent ?? "not declared"}</strong> · inferred <strong>{inferred ?? "indeterminate"}</strong>{autonomyMismatch ? " · contradiction" : ""}</span>, flag: autonomyMismatch },
+              { k: "Autonomy", v: <span>declared <strong title={declared.autonomy_intent ?? undefined}>{declared.autonomy_intent ? autonomyLabel(declared.autonomy_intent) : "not declared"}</strong> · inferred <strong title={inferred ?? "indeterminate"}>{autonomyLabel(inferred)}</strong>{autonomyMismatch ? " · these disagree" : ""}</span>, flag: autonomyMismatch },
               { k: "Data classes", v: <Chips items={declared.data_classes.map((d) => ({ label: d }))} empty="not declared" /> },
               { k: "Max per action", v: money(declared.economic_authority?.max_per_action) },
               { k: "Daily aggregate", v: money(declared.economic_authority?.daily_aggregate) },

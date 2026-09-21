@@ -100,6 +100,9 @@ export interface CostOutlook {
   confidence: "high" | "medium" | "low";
 }
 
+/** One seed everywhere the loss model runs, so every screen reports the same simulation. */
+export const LOSS_SEED = 42;
+
 const POLICY_LABEL: Record<string, string> = { cyber: "cyber", tech_eo: "tech E&O", crime: "crime" };
 
 /**
@@ -107,16 +110,19 @@ const POLICY_LABEL: Record<string, string> = { cyber: "cyber", tech_eo: "tech E&
  * revenue and records the figure would be the model's, not theirs, and the
  * Overview is not the place to explain that.
  */
-export function costOutlook(env: Envelope, years = 20000): CostOutlook | null {
+export function costOutlook(env: Envelope, years?: number): CostOutlook | null {
   const { intake, monthlyVolume, declared } = intakeFromEnvelope(env);
   const agent = candidateAgents(env)[0];
   if (!declared || !agent) return null;
   const { model } = agentToModel(env, agent, monthlyVolume);
-  const r = indicate(EVENTS, model, intake, 42, {}, { years, noBoot: true });
+  // The same seed and the same number of simulated years as the Financial Exposure screen, so the two
+  // show the same figure. Skipping the bootstrap changes the confidence band only, not the summary.
+  // `years` exists for tests, which do not need the full run.
+  const r = indicate(EVENTS, model, intake, LOSS_SEED, {}, { years, noBoot: true });
   const policies = intake.existing_coverage;
   return {
     agent: model.name,
-    badYear: r.summary.p99,
+    badYear: r.summary.pMid,
     averageYear: r.summary.eal,
     covered: policies.filter((p) => !p.ai_exclusion).reduce((n, p) => n + p.limit, 0),
     excluding: policies.filter((p) => p.ai_exclusion).map((p) => POLICY_LABEL[p.type] ?? p.type),

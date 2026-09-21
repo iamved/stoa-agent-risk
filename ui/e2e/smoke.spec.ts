@@ -92,6 +92,30 @@ test.describe("dashboard over file://", () => {
     });
   }
 
+  test("rendered copy: no em dash, no bare guard, no zero-finding dimension called Low, on any screen", async ({ page }) => {
+    for (const fixture of ["meridian-pay", "first-run"]) {
+      for (const route of ROUTES) {
+        await page.goto(fileUrl(fixture, route));
+        await expect(page.locator("#root")).not.toBeEmpty();
+        if (route === "#/loss") await page.getByText("Simulating", { exact: false }).waitFor({ state: "detached", timeout: 60_000 }).catch(() => {});
+        // Code snippets are evidence, quoted as written, so they are left out.
+        // Visible text of the live page (innerText skips hidden nodes and the embedded data block).
+        const text = await page.evaluate(() => {
+          document.querySelectorAll<HTMLElement>("pre, code, textarea, .mono").forEach((el) => { el.style.display = "none"; });
+          return document.body.innerText;
+        });
+        expect(text.includes("\u2014"), `${fixture} ${route} has an em dash`).toBe(false);
+        expect(/\bguards?\b/i.test(text), `${fixture} ${route} says guard`).toBe(false);
+      }
+      await page.goto(fileUrl(fixture, "#/findings"));
+      const rows = page.getByRole("table", { name: "Findings by dimension" }).getByRole("row");
+      for (const row of await rows.all()) {
+        const cells = await row.getByRole("cell").allTextContents();
+        if (cells.length === 4 && cells[2]!.trim() === "0") expect(cells[3], cells[0]).not.toMatch(/^(Low|None observed)$/);
+      }
+    }
+  });
+
   test("large fixture loads", async ({ page }) => {
     await page.goto(fileUrl("large"));
     await expect(page.locator("#root")).not.toBeEmpty();

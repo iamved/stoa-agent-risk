@@ -1,18 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
+import { AgentMark } from "../components/AgentMark";
 import { useApp } from "../app/context";
 import { buildHash, useRoute } from "../app/router";
 import { ExposureBadge, Pill } from "../components/Badge";
 import { Chips } from "../components/KeyValue";
 import { LossCurve } from "../components/LossCurve";
 import { Section } from "../components/Section";
-import { CATS, DIMS, EVENTS, STATUS_LABEL, catName, indicate, money, pct, whatIfs, type Comparable, type GapStatus, type Indication, type Intake, type ModelAgent, type Policy, type WhatIf } from "../data/lossModel";
+import { CATS, EVENTS, STATUS_LABEL, catName, indicate, money, pct, whatIfs, type Comparable, type GapStatus, type Indication, type Intake, type ModelAgent, type Policy, type WhatIf } from "../data/lossModel";
 import { agentToModel, candidateAgents, intakeFromEnvelope, intakeToToml } from "../data/lossInputs";
 import { lossRows, money as declaredMoney } from "../data/loss";
-import { initials } from "../data/selectors";
+import { uniqueAgentOf } from "../data/agents";
+import { LOSS_SEED } from "../data/overview";
+import { activeFindings, dimensionName } from "../data/selectors";
+import type { MappingNote } from "../data/lossInputs";
 import type { Exposure } from "../data/types";
 
 const GAP_CHIP: Record<GapStatus, string> = { unprotected: "chip-critical", excluded: "chip-critical", shortfall: "chip-medium", ok: "chip-ok", minor: "chip-muted" };
-const SEED = 42;
+const SEED = LOSS_SEED;
 
 /** The AI loss outlook for one scanned agent, plus the declared limits the scan checks. */
 export function Loss() {
@@ -51,31 +55,39 @@ export function Loss() {
   if (!agent || !model || !mapped) {
     return (
       <div>
-        <h1 className="m-0">Estimated Financial Loss</h1>
+        <h1 className="m-0">Financial Exposure</h1>
         <p className="caption">No agent in this scan has a dimension assessment, so there is nothing to model.</p>
         <DeclaredLimits />
       </div>
     );
   }
   const c = model.capabilities;
-  const deployment = [model.name, intake.sector + (intake.regulated ? ", regulated" : ""), money(intake.revenue) + " revenue", intake.jurisdictions.join(" and "), c.financial_authority.enabled ? "moves money, up to " + money(c.financial_authority.max_per_action_usd) + " per action" : "cannot move money", c.human_in_loop === "none" ? "no human review" : "human review: " + c.human_in_loop.replace(/_/g, " ")].join("; ");
+  const deployment = [
+    intake.sector + (intake.regulated ? ", regulated" : ""),
+    money(intake.revenue) + " revenue",
+    intake.jurisdictions.join(" and "),
+    c.financial_authority.enabled ? "moves money, up to " + money(c.financial_authority.max_per_action_usd) + " per action" : "cannot move money",
+    c.human_in_loop === "none" ? "no human review detected" : "human review: " + c.human_in_loop.replace(/_/g, " "),
+  ].filter(Boolean);
+  const owner = uniqueAgentOf(envelope, agent.id);
 
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="m-0">Estimated Financial Loss</h1>
+        <h1 className="m-0">Financial Exposure</h1>
         <div className="caption">An indication for a broker conversation. Not a quote.</div>
       </div>
 
       <div className="mt-4 flex flex-wrap items-end justify-between gap-4 pb-3 border-b border-line">
         <div className="max-w-[75ch]">
           <div className="caption">Deployment assessed</div>
-          <div className="text-[13.5px] font-medium">{deployment}</div>
+          <div className="text-[13.5px] font-medium text-navy">{owner?.name ?? model.name}</div>
+          <Chips items={deployment.map((label) => ({ label }))} />
         </div>
         <label className="flex flex-col gap-1 text-[12.5px] min-w-[260px] no-print">
           <span className="caption">Agent</span>
           <select value={agent.id} onChange={(e) => { setAgentId(e.target.value); setOverrides({}); }} className="field" aria-label="Agent to model">
-            {agents.map((a) => <option key={a.id} value={a.id}>{a.display_name || a.name}</option>)}
+            {agents.map((a) => { const u = uniqueAgentOf(envelope, a.id); const info = u?.info.find((i) => i.agent_id === a.id); return <option key={a.id} value={a.id}>{u && u.records.length > 1 ? `${u.name} (${info?.label ?? a.display_name})` : a.display_name || a.name}</option>; })}
           </select>
         </label>
       </div>
@@ -158,7 +170,7 @@ export function Loss() {
       {!result ? (
         <div className="mt-6 panel p-6 caption" aria-live="polite">Simulating 100,000 years of losses for this deployment…</div>
       ) : (
-        <Outlook r={result.r} levers={result.levers} intake={intake} model={model} />
+        <Outlook r={result.r} levers={result.levers} intake={intake} model={model} notes={mapped.notes} declared={initial.declared} agentId={agent.id} />
       )}
 
       <DeclaredLimits />
@@ -179,7 +191,8 @@ function Check({ label, checked, onChange }: { label: string; checked: boolean; 
   return <label className="flex items-center gap-2"><input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />{label}</label>;
 }
 
-function Outlook({ r, levers, intake, model }: { r: Indication; levers: WhatIf[]; intake: Intake; model: ModelAgent }) {
+function Outlook({ r, levers, intake, model, notes, declared, agentId }: { r: Indication; levers: WhatIf[]; intake: Intake; model: ModelAgent; notes: MappingNote[]; declared: boolean; agentId: string }) {
+  const { envelope } = useApp();
   const S = r.summary, L = r.limits;
   const ranked = S.perCat.slice().sort((a, b) => b.tailShare - a.tailShare);
   const gap = (k: string) => r.gaps.find((g) => g.key === k)!;
@@ -187,10 +200,15 @@ function Outlook({ r, levers, intake, model }: { r: Indication; levers: WhatIf[]
   const major = ranked.filter((c) => gap(c.key).status !== "minor"), minor = ranked.filter((c) => gap(c.key).status === "minor");
   return (
     <div className="mt-6">
-      <h2 className="m-0 text-[26px] leading-tight tracking-tight">A bad year could cost {money(S.pMid)}</h2>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <h2 className="m-0 text-[26px] leading-tight tracking-tight">A bad year could cost {money(S.pMid)}</h2>
+        <span className="chip chip-muted" title="A simulation from your inputs and public loss data. Not a quote, and not an observed loss.">Modeled</span>
+      </div>
       <p className="mt-2 mb-5 max-w-[68ch] text-[14.5px]">That is the insurable loss this AI deployment could cause in a year seen once in a hundred. An average year costs about <strong>{money(S.eal)}</strong>. {catName(top.key)} accounts for {pct(top.tailShare)} of the bad-year figure.</p>
 
-      <figure className="m-0 panel p-3 overflow-x-auto" tabIndex={0}>
+      <Drivers r={r} intake={intake} notes={notes} declared={declared} top={top.key} agentId={agentId} />
+
+      <figure className="m-0 mt-4 panel p-3 overflow-x-auto" tabIndex={0}>
         <LossCurve r={r} coverage={intake.existing_coverage} />
       </figure>
 
@@ -243,7 +261,7 @@ function Outlook({ r, levers, intake, model }: { r: Indication; levers: WhatIf[]
         <details className="mt-3">
           <summary className="cursor-pointer caption">Model parameters for this run</summary>
           <table className="tbl mt-2 max-w-[900px]"><thead><tr><th>Category</th><th>Events per year</th><th>Frequency drivers</th><th>Severity drivers</th></tr></thead><tbody>
-            {CATS.map((cat) => <tr key={cat.key}><td>{cat.name}<div className="caption">{cat.dims.map((d) => DIMS.find((x) => x[0] === d)?.[1] ?? d).join(", ")}</div></td><td className="tabular-nums">{r.frequency[cat.key]!.lambda.toFixed(3)}</td><td className="caption">{r.frequency[cat.key]!.mods.join("; ")}</td><td className="caption">n = {r.severity[cat.key]!.n}, credibility {r.severity[cat.key]!.Z.toFixed(2)}; {r.severity[cat.key]!.mods.join("; ")}</td></tr>)}
+            {CATS.map((cat) => <tr key={cat.key}><td>{cat.name}<div className="caption">{cat.dims.map((d) => dimensionName(envelope, d.replace(/_/g, "-"))).join(", ")}</div></td><td className="tabular-nums">{r.frequency[cat.key]!.lambda.toFixed(3)}</td><td className="caption">{r.frequency[cat.key]!.mods.join("; ")}</td><td className="caption">n = {r.severity[cat.key]!.n}, credibility {r.severity[cat.key]!.Z.toFixed(2)}; {r.severity[cat.key]!.mods.join("; ")}</td></tr>)}
           </tbody></table>
           <p className="caption mt-2 mb-0">Scores used: {Object.entries(model.dimension_scores).map(([k, v]) => `${k.replace(/_/g, " ")} ${v}`).join(" · ")}.</p>
         </details>
@@ -252,10 +270,52 @@ function Outlook({ r, levers, intake, model }: { r: Indication; levers: WhatIf[]
   );
 }
 
+/** What the estimate rests on, by where each input came from. */
+function Drivers({ r, intake, notes, declared, top, agentId }: { r: Indication; intake: Intake; notes: MappingNote[]; declared: boolean; top: string; agentId: string }) {
+  const { envelope } = useApp();
+  const isDeclared = (n: MappingNote) => /^declared /.test(n.from);
+  const isAssumed = (n: MappingNote) => /assumed|model default/.test(n.from);
+  const fromScan = notes.filter((n) => !isDeclared(n) && !isAssumed(n) && n.input !== "Scan scores");
+  const fromYou = notes.filter(isDeclared);
+  const assumed = notes.filter(isAssumed);
+  const cover = intake.existing_coverage.map((p) => `${p.type === "tech_eo" ? "tech E&O" : p.type} ${money(p.limit)}${p.ai_exclusion ? ", AI excluded" : ""}`);
+  const business = [`${money(intake.revenue)} revenue`, intake.sector, intake.jurisdictions.join(" and "), intake.regulated ? "regulated" : "not regulated", `${money(intake.records).replace("$", "")} records`, ...cover];
+  // Does the biggest driver rest on anything the scan found? Its loss category maps to dimensions; look for findings there on this agent.
+  const category = CATS.find((c) => c.key === top);
+  const owner = uniqueAgentOf(envelope, agentId);
+  const dims = new Set((category?.dims ?? []).map((d) => d.replace(/_/g, "-")));
+  const backing = activeFindings(envelope).filter((f) => (!owner || f.uniqueAgents.includes(owner)) && (f.finding.dimensions ?? []).some((d) => dims.has(d))).length;
+  const share = r.summary.perCat.find((c) => c.key === top)?.tailShare ?? 0;
+  return (
+    <section className="panel px-5 py-4 mt-1" aria-labelledby="drivers-title">
+      <h3 id="drivers-title" className="m-0 text-[15px]">What drives this estimate</h3>
+      <dl className="mt-3 mb-0 grid gap-x-8 gap-y-3 md:grid-cols-3 text-[13px]">
+        <div>
+          <dt className="eyebrow">From the scan</dt>
+          <dd className="m-0 mt-1.5"><ul className="m-0 p-0 list-none flex flex-col gap-1">{fromScan.map((n) => <li key={n.input}>{n.input}: <strong className="font-medium text-navy">{n.input === "Human review" && n.value === "none" ? "none detected" : n.value}</strong></li>)}<li>Exposure scores in all eight dimensions</li></ul></dd>
+        </div>
+        <div>
+          <dt className="eyebrow flex items-center gap-1.5">Declared by you {declared ? <span className="chip chip-muted normal-case tracking-normal" title="From your declared business details. Not verified by the scan.">declared</span> : null}</dt>
+          <dd className="m-0 mt-1.5">
+            {declared ? <Chips items={business.map((label) => ({ label }))} /> : <span className="caption">Nothing declared yet, so revenue, sector and records are placeholders. Adjust the inputs above.</span>}
+            {fromYou.length ? <ul className="m-0 mt-2 p-0 list-none flex flex-col gap-1">{fromYou.map((n) => <li key={n.input}>{n.input}: <strong className="font-medium text-navy">{n.value}</strong></li>)}</ul> : null}
+            {assumed.length ? <p className="caption mt-2 mb-0">Assumed, because not declared: {assumed.map((n) => `${n.input.toLowerCase()} (${n.value})`).join(", ")}.</p> : null}
+          </dd>
+        </div>
+        <div>
+          <dt className="eyebrow">From Stoa's loss data</dt>
+          <dd className="m-0 mt-1.5">{r.dataset.events} public AI and automation loss events, scaled to a company your size. Assumptions version <span className="mono">{r.assumptions_version}</span>, not yet actuarially reviewed.</dd>
+        </div>
+      </dl>
+      {category && backing === 0 ? <p className="mt-3 mb-0 pt-3 border-t border-line text-[13px]"><strong className="font-medium text-navy">{category.name}</strong> is the largest driver at {pct(share)} of a bad year. Driven by your business profile and data handled, not by scan findings.</p> : null}
+    </section>
+  );
+}
+
 function CaseCard({ c }: { c: Comparable }) {
   const loss = c.raw ? money(c.raw) : c.nearMiss ? "Near miss" : c.status === "pending" || c.status === "appealed" ? "Still in court" : "Not disclosed";
   return (
-    <article className="panel border-l-2 border-l-gold px-4 py-3">
+    <article className="panel px-4 py-3">
       <div className="flex justify-between items-baseline"><span className="text-[17px] font-semibold text-navy">{loss}</span><span className="caption">{c.year}</span></div>
       <h4 className="m-0 mt-1 text-[13.5px] font-medium leading-snug">{c.title}</h4>
       <div className="text-[12.5px]">{c.org}{c.analog ? " (automation analog)" : ""}</div>
@@ -278,8 +338,8 @@ function DeclaredLimits() {
           <tbody>
             {rows.length === 0 ? <tr><td colSpan={7} className="caption text-center">No agent with money authority or a declared economic limit in this scan.</td></tr> : rows.map((r) => (
               <tr key={r.agent.id}>
-                <td><span className="flex items-center gap-2.5"><span className="avatar" aria-hidden="true">{initials(r.name)}</span><span><a href={buildHash("inventory", r.agent.id)} className="link font-medium">{r.name}</a><div className="caption mono">{r.agent.path}</div></span></span></td>
-                <td><Chips items={r.moneyTools.map((n) => ({ label: n, hot: true }))} empty={r.authority ? "capability only" : "none observed"} tone="mono" /></td>
+                <td><span className="flex items-center gap-2.5"><AgentMark /><span><a href={buildHash("inventory", r.agent.id)} className="link font-medium">{r.name}</a><div className="caption mono">{r.agent.path}</div></span></span></td>
+                <td><Chips items={r.moneyTools.map((n) => ({ label: n, hot: true }))} empty={r.authority ? "capability only" : "none detected"} tone="mono" /></td>
                 <td className="tabular-nums">{declaredMoney(r.maxPerAction)}</td>
                 <td className="tabular-nums">{declaredMoney(r.dailyAggregate)}</td>
                 <td className="tabular-nums">{declaredMoney(r.worstCase)}</td>

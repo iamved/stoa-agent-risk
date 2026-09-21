@@ -144,9 +144,110 @@ do that) keeps its level.
 | 3.6 applicability per safeguard | derivable for human approval only | other rows keep "of N agents" |
 | 1.4 "Verified" | no runtime or attestation source | never rendered |
 
+## What changed and what was skipped
+
+Written after the work, against the regenerated meridian-pay demo.
+
+### Differences in the regenerated demo (acceptance item 11)
+
+Dimension scores, severities, the register, the assurance packet and the
+loss model's output are byte-identical to the previous build. The only
+registry difference is the new `declared.same_as` key on one agent, which
+`tests/test_dashboard_identity.py` shows moves no finding and no score. What
+differs is how records are counted:
+
+| Figure | Before | After | Why |
+| --- | --- | --- | --- |
+| Agents | 11 | 5, with 11 discovered records | identity resolution |
+| Agents with payment capability | 3 | 2 | account actions in code and on AWS is one agent |
+| Tools | 19 | 13 | a tool seen in an agent's code and again in its Terraform is one tool |
+| Findings | 25 | 21, "from 25 scanner records" | `DECL001` 3 to 2, `DECL006` 7 to 4 |
+| High severity | 4 | 3 | the merged `DECL001` |
+| Medium | 9 | 6 | the merged `DECL006` |
+| New high since last scan | +2 | +1, plus "1 known finding now has a second evidence location" | one of the diff's two new records is a second location on a finding the baseline already had |
+| Agents at elevated exposure | 3 records | 2 of 5 agents | same |
+| Kill switch detected | on every record with no `CTRL007` finding, including Terraform records the rule never runs on | on 0 of 5 agents | detected only for an agent with an assessed code record on which the rule stayed silent |
+| Bad year on the Overview | $4.9M (a 20,000-year run) | $5M | now the same 100,000-year run as the Financial Exposure screen |
+
+The last row was a bug this revision introduced and then caught: the Overview
+ran a shorter simulation than the detail screen, so the two disagreed by
+about 2%. `tests/consistency.test.ts` now asserts they are the same number.
+
+### Findings from the investigation the brief asked for
+
+**The kink in the loss curve is in the model, so it is left alone.** Between
+1 in 20 and 1 in 25 the loss is exactly $2,000,000. That is the model's cap
+on Erroneous Transactions losses: declared max per action ($500) x monthly
+action volume (200,000) x `transCapShare` (0.02). That category is frequent
+(0.32 events a year), so many simulated years land exactly on the cap and the
+quantile curve goes flat, then resumes. The curve is drawn as a single path
+through the model's own quantiles; there are no two segments to join. No
+change to the model or to the plotting.
+
+**The loss model's data file renames a dimension.** `lossOutlook.data.json`
+spells it "Injection and tamper surface". The UI now shows the taxonomy's
+name there instead. The data file is untouched.
+
+**Case cards had a left gold border accent,** which the hard constraints
+forbid. Removed.
+
+### Requirements not met, and what would unblock them
+
+| Requirement | Status | What would unblock it |
+| --- | --- | --- |
+| 1.1 six unique agents | 5, by the demo's own Terraform (see above) | nothing; 5 is the right count |
+| 1.3 "Not assessed" per dimension | only for a scan with no dimension assessment at all | a list of executed rule ids in the registry |
+| 2.4 reopened finding counts | omitted | the diff tracking findings that were resolved and came back |
+| 2.4 commit and author on a change | shown when the scan ran in git; the fixture is scanned without it | nothing; works on a real repository |
+| 2.4 "wider scan scope, not a system change" | omitted | the diff recording scan scope (paths, file counts) for both sides |
+| 2.3 and 3.7 portfolio loss, "All deployments" | skipped; the largest single agent is shown and named | a portfolio simulation that models agents together. Adding up per-agent 1 in 100 years is not valid, and that would be a change to the model |
+| 3.4 Spending authority | from declared limits only, blank otherwise | nothing; the scan cannot know a business limit |
+| 3.6 applicability per safeguard | human approval only; the rest say "of N agents" | a rule per safeguard for when it is expected |
+| 1.4 "Verified" state | never rendered | a runtime or attestation source |
+
+### Calls that went beyond the letter of the brief
+
+- A new optional `same_as` key in `stoa-declared.toml`. The brief asks for
+  "an explicit link in the declaration file if one exists"; none did. It
+  feeds no rule and no score.
+- The agent filter on Findings always means the unique agent, whichever of
+  its records a link names. Otherwise the same agent's two ids gave two
+  different lists.
+- "Next action" takes the instruction sentence of a rule's remediation, not
+  its first sentence. Multi-sentence remediations explain first and instruct
+  last ("This agent was declared... Either add the missing approval control,
+  or correct the declaration."). The words are always the scanner's.
+- Scanner prose (rule messages, remediation, crosswalk sentences) carries em
+  dashes into the page, and the same text feeds the CLI, SARIF and the legacy
+  report, with 15 test files asserting on it. It is normalized where it is
+  displayed (`prose()` in `ui/src/data/labels.ts`) rather than rewritten at the
+  source. Text the dashboard authors itself was fixed at the source. A browser
+  test reads every screen's visible text and fails on an em dash.
+- The insurance checklist's "I have reviewed these fields" is remembered for
+  the session only. The page cannot write to the repository, and the
+  signature is what makes a confirmation binding. It exists so that step 2
+  can honestly become complete and hand the primary button to step 3.
+- The printed board report was brought onto the same unique agents, counts and
+  wording. It is the one export, and it had kept the old record counts.
+
+### Tests added
+
+- `tests/test_dashboard_identity.py`: explicit link, name match, unmatched
+  record, and the false-merge guards (same kind, ambiguous, generic names).
+- `ui/tests/consistency.test.ts`: severities sum to the total, records tie to
+  the registry summary, and every Overview figure equals its detail screen,
+  on all four fixtures. Plus the loss figure across screens.
+- `ui/tests/copy.test.ts`: no em dash, no bare "guard", all eight dimension
+  names unchanged.
+- Browser: the Overview's exact section list and links to all five screens;
+  one primary button on the insurance page and no step checked early; the
+  drivers block; no em dash, bare "guard", or zero-finding "Low" on any
+  rendered screen.
+
 ## Things the brief asks for that I am not doing, and why
 
-- Nothing. Items that cannot be met are in the table above.
+- Nothing is declined. Items that could not be met from the data are in
+  "Requirements not met" above, each with what would unblock it.
 
 ## Working notes
 
