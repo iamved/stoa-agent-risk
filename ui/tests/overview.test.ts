@@ -5,7 +5,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { Envelope } from "../src/data/types";
-import { attention, attentionRegisterRow, attentionStatus, costOutlook, elevatedDimensions, holdings, joinWords, moneyMovers, protection, registerCard, scanSources, sentenceText, standing, whatChanged } from "../src/data/overview";
+import { attention, attentionStatus, nextAction, otherDimensionsLine, costOutlook, elevatedDimensions, holdings, joinWords, moneyMovers, protection, registerCard, scanSources, sentenceText, standing, whatChanged } from "../src/data/overview";
 import { activeFindings } from "../src/data/selectors";
 
 const load = (name: string) => JSON.parse(readFileSync(new URL(`../fixtures/${name}.envelope.json`, import.meta.url), "utf8")) as Envelope;
@@ -78,19 +78,35 @@ describe("needs your attention", () => {
     // DECL001 fired on three records: account actions in code and on AWS (one agent), and the support agent.
     expect(first!.agents).toEqual(["account-actions", "meridian-support (Databricks)"]);
     expect(first!.findings).toBe(2);
-    expect(attentionStatus(first!)).toContain("marked for transfer to insurance");
-    expect(attentionRegisterRow(first!)?.declared?.owner ?? null).toBeNull();
+    expect(attentionStatus(first!)).toContain("1 marked for transfer");
     expect(second!.ruleId).toBe("AI008");
     expect(second!.dimension).toBe("Unreviewed high-impact action");
     expect(elevatedDimensions(demo).map((d) => d.name)).toContain(second!.dimension);
   });
 
-  it("offers a register row only where the finding feeds one", () => {
+  it("says what the register says, and nothing when it says nothing", () => {
     for (const item of attention(demo, 99)) {
-      const row = attentionRegisterRow(item);
-      if (row) expect(demo.register).toContain(row);
-      else expect(attentionStatus(item)).toBe("Open");
+      const decided = item.register.filter((row) => row.declared?.treatment).length;
+      if (decided) expect(attentionStatus(item)).toMatch(/^\d+ /);
+      else expect(attentionStatus(item)).toBe("");
+      for (const row of item.register) expect(demo.register).toContain(row);
     }
+  });
+
+  it("takes the next action from the rule's own remediation: the instruction, not the scene-setting", () => {
+    const items = attention(demo, 99);
+    for (const item of items) {
+      const action = nextAction(item);
+      expect(action.length).toBeGreaterThan(0);
+      expect(action).not.toContain("\u2014");
+      // Verbatim from the scanner's guidance, never rewritten.
+      expect((demo.rules[item.ruleId]?.remediation ?? "").replace(/\s*(?:\u2014|\s--\s)\s*/g, ": ")).toContain(action);
+    }
+    const by = (rule: string) => nextAction(items.find((i) => i.ruleId === rule)!);
+    expect(by("DECL001")).toBe("Either add the missing approval control, or correct the declaration.");
+    expect(by("DECL006")).toBe('Add an [agents."<id>"] entry, even a partial one.');
+    expect(by("CTRL007")).toMatch(/^Consider a feature-flag/);
+    expect(by("AI008")).toMatch(/^Send an idempotency key/);
   });
 });
 
@@ -137,14 +153,14 @@ describe("where you stand", () => {
 
   it("builds the demo headline from the facts above", () => {
     const t = text(demo, 4000);
-    expect(t).toContain("2 agents can move money on their own, and neither requires human approval.");
-    expect(t).toMatch(/A bad year could cost \$[\d.]+[kM], and your cyber policy excludes AI\./);
+    expect(t).toContain("2 agents can move money on their own, and no human approval was detected for either.");
+    expect(t).toMatch(/Modeled loss in a bad year is \$[\d.]+[kM]\./);
     expect(t).toContain("3 things changed since the last scan.");
   });
 
   it("leaves out every clause it has no fact for", () => {
     const t = text(firstRun);
-    expect(t).toBe("2 agents can move money on their own, and neither requires human approval.");
+    expect(t).toBe("2 agents can move money on their own, and no human approval was detected for either.");
     expect(text(empty)).toContain("No AI agents were found");
   });
 
@@ -152,10 +168,11 @@ describe("where you stand", () => {
     const one = structuredClone(firstRun);
     const keep = moneyMovers(one)[0]!.id;
     for (const a of one.registry.agents) if (a.id !== keep) { a.tools = []; a.capabilities = a.capabilities.filter((c) => c !== "payment_access"); }
-    expect(text(one)).toBe("1 agent can move money on its own, and it does not require human approval.");
+    expect(text(one)).toBe("1 agent can move money on its own, and no human approval was detected for it.");
     const none = structuredClone(one);
     for (const a of none.registry.agents) { a.tools = []; a.capabilities = []; }
-    expect(text(none)).toMatch(/^11 AI agents found, and none can move money\. 1 high-severity finding needs attention\.$/);
+    // Unique agents: a first scan with no declaration file is 7 agents from 11 records.
+    expect(text(none)).toMatch(/^7 AI agents found, and none can move money\. 1 high-severity finding needs attention\.$/);
   });
 });
 
@@ -164,7 +181,10 @@ describe("register and helpers", () => {
     const r = registerCard(demo);
     expect(r.risks + r.stale).toBe(demo.register.length);
     expect(r.decided + r.awaiting).toBe(r.risks);
-    expect(r).toMatchObject({ transfer: 1, stale: 1 });
+    expect(r.stale).toBe(1);
+    // Whatever treatments the register holds, as it holds them.
+    expect(Object.fromEntries(r.treatments)).toEqual({ transfer: 1, mitigate: 1 });
+    expect(otherDimensionsLine(demo)).toBe("The other 6 dimensions are low or show no findings.");
     expect(registerCard(empty)).toMatchObject({ risks: 0, awaiting: 0 });
   });
 

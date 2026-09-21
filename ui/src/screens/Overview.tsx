@@ -3,8 +3,9 @@ import { useApp } from "../app/context";
 import { printAs } from "../app/print";
 import { buildHash } from "../app/router";
 import { SeverityBadge } from "../components/Badge";
+import { ExposureTip } from "../components/InfoTip";
 import { money } from "../data/lossModel";
-import { attention, attentionRegisterRow, attentionStatus, costOutlook, elevatedDimensions, holdings, protection, registerCard, standing, whatChanged, type AttentionItem, type ChangeLine, type CostOutlook } from "../data/overview";
+import { attention, attentionStatus, costOutlook, elevatedDimensions, holdings, nextAction, otherDimensionsLine, protection, registerCard, standing, whatChanged, type AttentionItem, type ChangeLine, type CostOutlook } from "../data/overview";
 import { activeFindings, countByLevel, overviewDeltas, pluralize, RISK_LEVELS, type RiskLevel } from "../data/selectors";
 
 /** The loss model takes about a tenth of a second, so it runs after first paint. `undefined` is "not yet". */
@@ -23,6 +24,7 @@ export function Overview() {
   const cost = useCostOutlook();
   const hasAgents = envelope.registry.agents.length > 0;
 
+  // Scope strip (in the shell), verdict band, four tiles, two panels, three footer cards. Nothing else.
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -60,17 +62,6 @@ export function Overview() {
 function Standing({ cost }: { cost: CostOutlook | null }) {
   const { envelope } = useApp();
   const sentences = useMemo(() => standing(envelope, cost), [envelope, cost]);
-  const [copied, setCopied] = useState(false);
-  // A link only means something to someone else when the page is served; a local file's path does not travel.
-  const shareable = typeof window !== "undefined" && window.location.protocol.startsWith("http");
-  const share = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      setCopied(true);
-    } catch {
-      setCopied(false);
-    }
-  };
   return (
     <section aria-label="Where you stand" className="mt-4 rounded-xl bg-navy text-white px-6 py-5 flex flex-wrap items-center gap-x-8 gap-y-4">
       <div className="min-w-0 flex-1 basis-[36ch]">
@@ -84,9 +75,8 @@ function Standing({ cost }: { cost: CostOutlook | null }) {
           ))}
         </p>
       </div>
-      <div className="no-print flex flex-col gap-2 w-full sm:w-auto">
-        <button type="button" onClick={() => printAs("summary")} className="rounded-md px-4 py-2 text-[13px] font-semibold bg-[#d9bd7e] text-navy hover:bg-[#e3c88a] cursor-pointer border-0">Export board report</button>
-        {shareable ? <button type="button" onClick={share} className="rounded-md px-4 py-2 text-[13px] font-medium bg-transparent text-white border border-white/40 hover:bg-white/10 cursor-pointer">{copied ? "Link copied" : "Share this view"}</button> : null}
+      <div className="no-print w-full sm:w-auto">
+        <button type="button" onClick={() => printAs("summary")} className="w-full rounded-md px-4 py-2 text-[13px] font-semibold bg-[#d9bd7e] text-navy hover:bg-[#e3c88a] cursor-pointer border-0">Export board report</button>
       </div>
     </section>
   );
@@ -120,7 +110,8 @@ function HoldingsTile() {
   return (
     <Tile question="What we have" href={buildHash("inventory")} action="View agents">
       <Figure value={String(h.agents)} unit={h.agents === 1 ? "AI agent" : "AI agents"} />
-      <p className="mt-2 mb-0 text-[13px] text-ink-soft">{h.agents ? `${h.moneyMovers} can move money · ${pluralize(h.tools, "tool")} · ${pluralize(h.providers, "model provider")}` : "No agents were found in the scanned files."}</p>
+      <p className="mt-2 mb-0 text-[13px] text-ink-soft">{h.agents ? `${h.moneyMovers} with payment capability · ${pluralize(h.tools, "tool")} · ${pluralize(h.providers, "model provider")}` : "No agents were found in the scanned files."}</p>
+      {h.records !== h.agents ? <p className="caption mt-1 mb-0">{h.records} discovered records</p> : null}
       <p className="caption mt-2 mb-0">{delta === null ? "No baseline to compare against" : delta.value === 0 ? "No change since last scan" : `${delta.label} since last scan`}</p>
     </Tile>
   );
@@ -156,15 +147,15 @@ function ProtectionTile() {
       {p.moneyMovers ? (
         <>
           <Figure value={`${p.approved} of ${p.moneyMovers}`} unit="" tone={exposed ? "warn" : "neutral"} />
-          <p className="mt-1 mb-0 text-[13.5px] text-ink-soft">money-moving {p.moneyMovers === 1 ? "agent requires" : "agents require"} human approval</p>
+          <p className="mt-1 mb-0 text-[13.5px] text-ink-soft">Human approval detected on {p.approved} of {pluralize(p.moneyMovers, "agent")} that can move money</p>
         </>
       ) : (
         <>
           <Figure value="0" unit="agents can move money" />
-          <p className="mt-1 mb-0 text-[13.5px] text-ink-soft">No payment tools or payment access were found.</p>
+          <p className="mt-1 mb-0 text-[13.5px] text-ink-soft">No payment tools or payment access were detected.</p>
         </>
       )}
-      {p.moneyTools ? <p className="mt-2 mb-0 text-[13px] text-ink-soft">{p.moneyToolsWithoutGuardrail} of {pluralize(p.moneyTools, "tool")} that can move money {p.moneyToolsWithoutGuardrail === 1 ? "has" : "have"} no guardrail detected{p.doublePost ? ` · ${p.doublePost} can post a payment twice` : ""}</p> : null}
+      {p.moneyTools ? <p className="mt-2 mb-0 text-[13px] text-ink-soft">{p.moneyToolsWithoutGuardrail} of {pluralize(p.moneyTools, "tool")} that can move money {p.moneyToolsWithoutGuardrail === 1 ? "has" : "have"} no guardrail detected</p> : null}
     </Tile>
   );
 }
@@ -179,14 +170,15 @@ function CostTile({ cost }: { cost: CostOutlook | null | undefined }) {
       ) : cost ? (
         <>
           <Figure value={money(cost.badYear)} unit="in a bad year" />
-          <p className="mt-2 mb-0 text-[13px] text-ink-soft">1 year in 100 · an average year costs about {money(cost.averageYear)}</p>
-          <p className="caption mt-1 mb-0">Modelled for {cost.agent}, {cost.confidence} confidence. An indication, not a quote.</p>
-          <p className={`mt-2 mb-0 text-[12px] ${cost.policies && cost.covered === 0 ? "text-sev-high font-medium" : "text-ink-muted"}`}>{cost.policies ? `AI losses covered today: ${money(cost.covered)}` : "No existing policies declared"}</p>
+          <p className="mt-2 mb-0 text-[13px] text-ink-soft">Modeled. An average year is about {money(cost.averageYear)}.</p>
+          {/* The model runs per agent and a 1 in 100 year does not add across agents, so this is the largest one, named. */}
+          <p className="caption mt-1 mb-0">1 year in 100, for {cost.agent}, the agent with the largest figure.</p>
+          {cost.excluding.length ? <p className="mt-2 mb-0 text-[12.5px] text-ink-soft flex flex-wrap items-center gap-1.5">Declared cover for AI losses: <strong className={cost.covered === 0 ? "text-sev-high" : "text-navy"}>{money(cost.covered)}</strong><span className="chip chip-muted" title="From your declared insurance details. Not a reviewed policy.">declared</span></p> : null}
         </>
       ) : (
         <>
           <div className="text-[20px] leading-tight text-navy font-medium">Not estimated yet</div>
-          <p className="mt-2 mb-0 text-[13px] text-ink-soft">{hasAgents ? "A figure needs your revenue, sector and records held. Add an [intake] table to .stoa/underwriting.toml, or try your numbers on the next screen." : "There are no agents to model."}</p>
+          <p className="mt-2 mb-0 text-[13px] text-ink-soft">{hasAgents ? "A modeled figure needs your revenue, sector and records held. You can try your numbers on the next screen." : "There are no agents to model."}</p>
         </>
       )}
     </Tile>
@@ -216,20 +208,15 @@ function Attention() {
 }
 
 function AttentionRow({ item }: { item: AttentionItem }) {
-  const row = attentionRegisterRow(item);
-  const owner = row?.declared?.owner;
   const who = item.agents.length === 0 ? "Repository" : item.agents.length === 1 ? item.agents[0]! : pluralize(item.agents.length, "agent");
+  const action = nextAction(item);
   return (
-    <li className="grid grid-cols-[64px_minmax(0,1fr)] sm:grid-cols-[64px_minmax(0,1fr)_auto] gap-x-3 gap-y-2 items-center px-5 py-3">
-      <span><SeverityBadge severity={item.severity} /></span>
+    <li className="grid grid-cols-[72px_minmax(0,1fr)] gap-x-3 items-start px-5 py-3">
+      <span className="pt-0.5"><SeverityBadge severity={item.severity} /></span>
       <div className="min-w-0">
         <a href={buildHash("findings", item.fingerprint)} className="block text-[14px] font-medium leading-snug text-navy no-underline hover:underline">{item.title}</a>
         <div className="caption mt-0.5" title={item.agents.join(", ")}>{[who, item.dimension, attentionStatus(item)].filter(Boolean).join(" · ")}</div>
-      </div>
-      <div className="col-start-2 sm:col-start-3">
-        {row && !owner ? <a href={buildHash("register", row.risk_id)} className="btn btn-sm no-underline">Assign owner</a>
-          : row ? <a href={buildHash("register", row.risk_id)} className="btn btn-sm no-underline" title={owner}>Owner assigned</a>
-          : <a href={buildHash("findings", item.fingerprint)} className="btn btn-sm no-underline">View evidence</a>}
+        {action ? <div className="text-[12.5px] text-ink-soft mt-1"><span className="font-medium text-navy">Next action.</span> {action}</div> : null}
       </div>
     </li>
   );
@@ -286,16 +273,17 @@ function Changed() {
 function ElevatedCard() {
   const { envelope } = useApp();
   const dims = elevatedDimensions(envelope);
+  const others = otherDimensionsLine(envelope);
   return (
-    <section className="panel p-5" aria-labelledby="elevated-title">
-      <h2 id="elevated-title" className="m-0">Where exposure is elevated</h2>
+    <section className="panel p-5 flex flex-col" aria-labelledby="elevated-title">
+      <div className="flex items-center gap-1.5"><h2 id="elevated-title" className="m-0">Where exposure is elevated</h2><ExposureTip align="left" /></div>
       {!dims.length ? <p className="caption mt-2 mb-0">No dimension is at elevated exposure in this scan.</p> : (
         <ul className="mt-3 mb-0 p-0 list-none space-y-3">
           {dims.map((d) => (
             <li key={d.id} className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-x-3 items-center">
               <a href={buildHash("findings", null, { dimension: d.id })} className="min-w-0 no-underline text-ink hover:underline">
                 <span className="block text-[13.5px] font-medium text-navy leading-snug">{d.name}</span>
-                <span className="caption block mt-0.5">{d.definition}.</span>
+                <span className="caption block mt-0.5">{d.definition}</span>
               </a>
               <span className="text-[12.5px] text-ink-soft whitespace-nowrap">{pluralize(d.findings, "finding")}</span>
               <span className="chip chip-high">Elevated</span>
@@ -303,14 +291,19 @@ function ElevatedCard() {
           ))}
         </ul>
       )}
+      <div className="flex-1" />
+      <p className="caption mt-4 mb-0 pt-3 border-t border-line">{dims.length ? `${others} ` : ""}A finding can affect more than one dimension. <a href={buildHash("findings")} className="link">See all {envelope.taxonomy.dimensions.length}</a></p>
     </section>
   );
 }
 
+const TREATMENT_WORD: Record<string, string> = { transfer: "marked for transfer", mitigate: "being mitigated", accept: "accepted", avoid: "being avoided" };
+
 function RegisterCardPanel() {
   const { envelope } = useApp();
   const r = registerCard(envelope);
-  const parts = [r.transfer ? `${r.transfer} marked for transfer` : "", r.decided - r.transfer > 0 ? `${r.decided - r.transfer} with another decision` : "", r.awaiting ? `${r.awaiting} awaiting a decision to fix, accept or transfer` : ""].filter(Boolean);
+  // Whatever treatments the register holds, as it holds them. No owners, dates or overdue counts: Stoa has no such workflow.
+  const parts = [...r.treatments.map(([t, n]) => `${n} ${TREATMENT_WORD[t] ?? t}`), r.awaiting ? `${r.awaiting} with no treatment recorded` : ""].filter(Boolean);
   return (
     <section className="panel p-5 flex flex-col" aria-labelledby="register-title">
       <h2 id="register-title" className="m-0">Risk register</h2>
@@ -319,7 +312,6 @@ function RegisterCardPanel() {
         <span className="text-[13.5px] text-ink-soft">{r.risks === 1 ? "risk recorded" : "risks recorded"}</span>
       </div>
       <p className="mt-2 mb-0 text-[13px] text-ink-soft flex-1">{r.risks ? parts.join(" · ") : "The scan reported no risks above low exposure."}</p>
-      {r.due ? <p className="mt-2 mb-0 text-[12px] text-sev-high font-medium">{pluralize(r.due, "review")} overdue</p> : null}
       {r.stale ? <p className="caption mt-2 mb-0">{pluralize(r.stale, "declared risk")} no longer {r.stale === 1 ? "matches" : "match"} the scan.</p> : null}
       <a href={buildHash("register")} className="mt-4 pt-3 border-t border-line text-[13px] font-medium text-navy no-underline hover:underline">Open the register <span aria-hidden="true">→</span></a>
     </section>
@@ -330,14 +322,14 @@ function AssessmentCard() {
   const { envelope } = useApp();
   const c = envelope.assessment.counts;
   const segments: { key: string; n: number; className: string; label: string }[] = [
-    { key: "code", n: c.prefilled, className: "bg-ok", label: "From your code" },
+    { key: "code", n: c.prefilled, className: "bg-navy", label: "From your code" },
     { key: "you", n: c.to_confirm, className: "bg-gold", label: "Needs you" },
     { key: "carrier", n: c.indicative, className: "bg-line-strong", label: "Agreed with the carrier later" },
   ];
   return (
     <section className="panel p-5 flex flex-col md:col-span-2 xl:col-span-1" aria-labelledby="assessment-title">
       <h2 id="assessment-title" className="m-0">Insurance assessment</h2>
-      <p className="mt-3 mb-0 text-[13.5px] text-ink-soft"><strong className="text-navy font-semibold">{c.prefilled} of {c.total}</strong> answers came from your code. <strong className="text-navy font-semibold">{c.to_confirm}</strong> need you.</p>
+      <p className="mt-3 mb-0 text-[13.5px] text-ink-soft"><strong className="text-navy font-semibold">{c.prefilled} of {c.total}</strong> answers came from your code. <strong className="text-navy font-semibold">{c.to_confirm}</strong> need your confirmation.</p>
       <div className="mt-3 flex gap-1" role="img" aria-label={segments.map((s) => `${s.n} ${s.label.toLowerCase()}`).join(", ")}>
         {segments.filter((s) => s.n > 0).map((s) => <span key={s.key} className={`h-1.5 rounded-full ${s.className}`} style={{ flexGrow: s.n, flexBasis: 0 }} />)}
       </div>

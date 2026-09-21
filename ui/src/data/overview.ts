@@ -6,12 +6,13 @@
  * and the screen says so instead of filling the gap.
  */
 import type { Envelope, RegisterRow, Severity } from "./types";
-import { canMoveMoney, providersOf, toolsOf, uniqueAgents, type UniqueAgent } from "./agents";
+import { canMoveMoney, exposureOf, providersOf, toolsOf, uniqueAgentOf, uniqueAgents, type UniqueAgent } from "./agents";
 import { safeguardRows } from "./controls";
 import { agentToModel, candidateAgents, intakeFromEnvelope } from "./lossInputs";
 import { EVENTS, indicate, money } from "./lossModel";
+import { dimensionSubtitle, prose } from "./labels";
 import { summarize as summarizeRegister } from "./register";
-import { SEVERITY_RANK, activeFindings, agentLabel, countByLevel, elevatedAgents, findingTitle, findingsByDimension, isNewFinding, newFingerprints, overviewDeltas, pluralize, riskLevel, type FindingRef, type RiskLevel } from "./selectors";
+import { SEVERITY_RANK, activeFindings, agentLabel, countByLevel, findingTitle, findingsByDimension, isNewFinding, newFingerprints, overviewDeltas, pluralize, riskLevel, type FindingRef, type RiskLevel } from "./selectors";
 
 // --- what we have ---------------------------------------------------------------
 
@@ -178,19 +179,29 @@ export function attention(env: Envelope, n = 4): AttentionItem[] {
   return items.slice(0, n);
 }
 
-/** "Open", or what has been decided for the risks this item feeds. */
+/** What the register says about the risks this item feeds, e.g. "1 marked for transfer". Empty when it says nothing. */
 export function attentionStatus(item: AttentionItem): string {
   const declared = item.register.filter((row) => row.declared?.treatment);
-  if (!declared.length) return "Open";
+  if (!declared.length) return "";
   const counts = new Map<string, number>();
   for (const row of declared) counts.set(row.declared!.treatment!, (counts.get(row.declared!.treatment!) ?? 0) + 1);
-  const phrase: Record<string, string> = { transfer: "marked for transfer to insurance", mitigate: "being fixed", accept: "accepted", avoid: "being removed" };
+  const phrase: Record<string, string> = { transfer: "marked for transfer", mitigate: "being mitigated", accept: "accepted", avoid: "being avoided" };
   return [...counts].map(([t, c]) => `${c} ${phrase[t] ?? t}`).join(" · ");
 }
 
-/** The register row to send someone to for this item: the first with no owner, else the first. */
-export function attentionRegisterRow(item: AttentionItem): RegisterRow | null {
-  return item.register.find((row) => !row.declared?.owner) ?? item.register[0] ?? null;
+/** Sentences that set the scene rather than say what to do. */
+const CONTEXT_OPENER = /^(this|these|an?|the|traces|reported|observability|stoa-declared\.toml)\b/i;
+
+/**
+ * One sentence of the rule's remediation guidance, in the scanner's words. A
+ * one-sentence remediation is already an instruction. A longer one explains
+ * first and instructs last, so this takes the last sentence that is not
+ * scene-setting.
+ */
+export function nextAction(item: AttentionItem): string {
+  const sentences = prose(item.remediation).split(/(?<=[.!?])\s+(?=[A-Z[])/).map((x) => x.trim()).filter(Boolean);
+  if (!sentences.length) return "";
+  return [...sentences].reverse().find((x) => !CONTEXT_OPENER.test(x)) ?? sentences[sentences.length - 1]!;
 }
 
 // --- what changed -------------------------------------------------------------------------
@@ -214,19 +225,21 @@ export function whatChanged(env: Envelope): ChangeLine[] | null {
   const lines: ChangeLine[] = [];
 
   const gained = diff.agents.changed.flatMap((c) => c.capabilities.added.filter((x) => x.high_impact ?? highImpact.has(x.id)).map((x) => ({ change: c, capability: x.id })));
-  const authority = deltas.authority?.value ?? 0;
+  // Counted in unique agents: a capability gained by an agent's code and by its Terraform is one agent gaining it.
+  const gainers = new Set(gained.map((g) => uniqueAgentOf(env, g.change.agent_id)?.id ?? g.change.agent_id));
+  const authority = gainers.size || (deltas.authority?.value ?? 0);
   if (authority > 0) {
     const money = gained.some((g) => g.capability === "payment_access");
     const first = gained[0];
     let detail = "";
     if (first) {
       const agent = env.registry.agents.find((a) => a.id === first.change.agent_id);
-      const name = agent ? agentLabel(agent) : first.change.name;
+      const name = uniqueAgentOf(env, first.change.agent_id)?.name ?? (agent ? agentLabel(agent) : first.change.name);
       detail = `${name} gained ${CAPABILITY_PHRASE[first.capability] ?? first.capability.replace(/_/g, " ")}`;
       // Commit and author exist only when the scan ran inside git.
       if (agent?.last_commit) detail += ` in ${agent.last_commit.hash.slice(0, 7)}`;
       if (agent?.last_touched_by) detail += `, last changed by ${agent.last_touched_by}`;
-      detail += gained.length > 1 ? `, and ${pluralize(gained.length - 1, "other change")} like it.` : ".";
+      detail += gained.length > 1 ? `, and ${pluralize(gained.length - 1, "other capability change")}.` : ".";
     }
     lines.push({ direction: "up", title: `${count(authority)} more ${authority === 1 ? "agent" : "agents"} can now ${money ? "move money" : "change systems"}.`, detail });
   } else {
@@ -253,15 +266,17 @@ export function whatChanged(env: Envelope): ChangeLine[] | null {
     lines.push({ direction: "same", title: "No new high-severity findings.", detail: "None resolved either." });
   }
 
-  const risen = deltas.elevated?.value ?? 0;
-  const elevatedNow = elevatedAgents(env).length;
-  lines.push(risen > 0
-    ? { direction: "up", title: `${count(risen)} more ${risen === 1 ? "agent" : "agents"} at elevated exposure.`, detail: `${elevatedNow} of ${env.registry.agents.length} agents are now elevated.` }
-    : { direction: "same", title: "No agent rose to elevated exposure.", detail: `${elevatedNow} of ${env.registry.agents.length} agents are elevated.` });
+  const risers = new Set(diff.agents.changed.filter((c) => c.dimension_delta.some((d) => d.direction === "increased" && d.to === "elevated")).map((c) => uniqueAgentOf(env, c.agent_id)?.id ?? c.agent_id));
+  const agents = uniqueAgents(env);
+  const elevatedNow = agents.filter((u) => exposureOf(u) === "elevated").length;
+  lines.push(risers.size > 0
+    ? { direction: "up", title: `${count(risers.size)} more ${risers.size === 1 ? "agent" : "agents"} at elevated exposure.`, detail: `${elevatedNow} of ${pluralize(agents.length, "agent")} ${elevatedNow === 1 ? "is" : "are"} now elevated.` }
+    : { direction: "same", title: "No agent rose to elevated exposure.", detail: `${elevatedNow} of ${pluralize(agents.length, "agent")} ${elevatedNow === 1 ? "is" : "are"} elevated.` });
 
+  // The diff counts scanned records, so that is what this line says.
   const { agents_added: added, agents_removed: removed } = diff.summary;
   lines.push(added || removed
-    ? { direction: added > removed ? "up" : removed > added ? "down" : "same", title: `${pluralize(added, "agent")} added, ${removed} removed.`, detail: "See the change log for which." }
+    ? { direction: added > removed ? "up" : removed > added ? "down" : "same", title: `${pluralize(added, "discovered record")} added, ${removed} removed.`, detail: "The change log shows which agents they belong to." }
     : { direction: "same", title: "No agents added or removed.", detail: "" });
   return lines;
 }
@@ -275,10 +290,20 @@ export interface ElevatedDimension {
   findings: number;
 }
 
+/** "The other 6 dimensions are low or show no findings." Says moderate when one is. */
+export function otherDimensionsLine(env: Envelope): string {
+  const bars = findingsByDimension(env);
+  const others = bars.filter((b) => b.maxExposure !== "elevated");
+  if (!others.length) return "";
+  const moderate = others.some((b) => b.maxExposure === "moderate");
+  const noun = others.length === 1 ? "dimension is" : "dimensions are";
+  return `The other ${others.length} ${noun} ${moderate ? "moderate or lower" : "low or show no findings"}.`;
+}
+
 export function elevatedDimensions(env: Envelope): ElevatedDimension[] {
   return findingsByDimension(env)
     .filter((bar) => bar.maxExposure === "elevated")
-    .map((bar) => ({ id: bar.dimension.id, name: bar.dimension.name, definition: bar.dimension.definition, findings: bar.total }));
+    .map((bar) => ({ id: bar.dimension.id, name: bar.dimension.name, definition: dimensionSubtitle(bar.dimension.id, bar.dimension.definition), findings: bar.total }));
 }
 
 // --- register and assessment -------------------------------------------------------------------
@@ -286,19 +311,23 @@ export function elevatedDimensions(env: Envelope): ElevatedDimension[] {
 export interface RegisterCard {
   /** Risks the scan reports. A declared risk the scan no longer finds is counted in `stale`, not here. */
   risks: number;
-  transfer: number;
+  /** Count per treatment value the register holds, in the order first seen, e.g. [["transfer", 1], ["mitigate", 1]]. */
+  treatments: [string, number][];
   decided: number;
+  /** Risks with no treatment recorded yet. */
   awaiting: number;
-  due: number;
   stale: number;
 }
 
 export function registerCard(env: Envelope): RegisterCard {
-  const s = summarizeRegister(env);
   const scanned = env.register.filter((row) => !row.unmatched);
-  const awaiting = scanned.filter((row) => !row.declared?.treatment).length;
-  const transfer = scanned.filter((row) => row.declared?.treatment === "transfer").length;
-  return { risks: scanned.length, transfer, decided: scanned.length - awaiting, awaiting, due: s.due, stale: s.unmatched };
+  const counts = new Map<string, number>();
+  for (const row of scanned) {
+    const t = row.declared?.treatment;
+    if (t) counts.set(t, (counts.get(t) ?? 0) + 1);
+  }
+  const decided = [...counts.values()].reduce((a, b) => a + b, 0);
+  return { risks: scanned.length, treatments: [...counts], decided, awaiting: scanned.length - decided, stale: summarizeRegister(env).unmatched };
 }
 
 // --- where you stand ----------------------------------------------------------------------------
@@ -315,23 +344,21 @@ export function sentenceText(sentence: Sentence): string {
  * with no fact behind it is left out rather than softened.
  */
 export function standing(env: Envelope, cost: CostOutlook | null): Sentence[] {
-  const agents = env.registry.agents.length;
+  const agents = uniqueAgents(env).length;
   if (agents === 0) return [["No AI agents were found in this scan, so there is nothing to report on yet."]];
   const out: Sentence[] = [];
   const p = protection(env);
   if (p.moneyMovers > 0) {
-    const approval = p.approved === 0 ? (p.moneyMovers === 1 ? "and it does not require human approval" : p.moneyMovers === 2 ? "and neither requires human approval" : "and none requires human approval")
-      : p.approved === p.moneyMovers ? (p.moneyMovers === 1 ? "and it requires human approval" : "and all require human approval")
-      : `and ${p.approved} of them ${p.approved === 1 ? "requires" : "require"} human approval`;
+    // A detection result, not a claim about the business process: "was detected", never "has".
+    const approval = p.approved === 0 ? `and no human approval was detected for ${p.moneyMovers === 1 ? "it" : p.moneyMovers === 2 ? "either" : "any of them"}`
+      : p.approved === p.moneyMovers ? `and human approval was detected for ${p.moneyMovers === 1 ? "it" : p.moneyMovers === 2 ? "both" : "all of them"}`
+      : `and human approval was detected for ${p.approved} of them`;
     out.push([`${pluralize(p.moneyMovers, "agent")} can move money on ${p.moneyMovers === 1 ? "its" : "their"} own, ${approval}.`]);
   } else {
     const high = countByLevel(activeFindings(env)).high;
     out.push([`${pluralize(agents, "AI agent")} found, and none can move money. ${high ? `${pluralize(high, "high-severity finding")} ${high === 1 ? "needs" : "need"} attention.` : "No high-severity findings."}`]);
   }
-  if (cost) {
-    const gap = cost.policies > 0 && cost.covered === 0 && cost.excluding.length ? `, and your ${joinWords(cost.excluding)} ${cost.excluding.length === 1 ? "policy excludes" : "policies exclude"} AI` : "";
-    out.push(["A bad year could cost ", { strong: money(cost.badYear) }, `${gap}.`]);
-  }
+  if (cost) out.push(["Modeled loss in a bad year is ", { strong: money(cost.badYear) }, "."]);
   const changed = (whatChanged(env) ?? []).filter((line) => line.direction === "up").length;
   if (changed) out.push([`${pluralize(changed, "thing")} changed since the last scan.`]);
   return out;

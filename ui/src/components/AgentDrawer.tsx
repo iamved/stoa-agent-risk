@@ -167,7 +167,7 @@ export function AgentDrawer({ agent, onClose }: { agent: Agent | null; onClose: 
 function Section({ title, hint, children }: { title: string; hint?: React.ReactNode; children: React.ReactNode }) {
   return (
     <section className="mt-5">
-      <h3 className="text-[14px] m-0 mb-1.5 flex items-center gap-1.5">{title}{hint}</h3>
+      <div className="flex items-center gap-1.5 mb-1.5"><h3 className="text-[14px] m-0">{title}</h3>{hint}</div>
       <div className="text-[13px]">{children}</div>
     </section>
   );
