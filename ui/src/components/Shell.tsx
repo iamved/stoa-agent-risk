@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useApp } from "../app/context";
 import { buildHash, type ScreenId } from "../app/router";
+import { uniqueAgents } from "../data/agents";
 import { scanSources } from "../data/overview";
 import { activeFindings, countByLevel, formatDate, pluralize } from "../data/selectors";
 import { Icon, type IconName } from "./Icons";
@@ -16,7 +17,7 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
   const { envelope } = useApp();
   const r = envelope.registry;
   const head = r.repository.head_commit;
-  const high = countByLevel(activeFindings(r)).high;
+  const high = countByLevel(activeFindings(envelope)).high;
   const sources = scanSources(envelope);
 
   const groups: NavGroup[] = [
@@ -25,13 +26,13 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
       showLabel: false,
       items: [
         { id: "overview", label: "Overview", href: buildHash("overview"), screens: ["overview"], icon: "overview" },
-        { id: "inventory", label: "Agents", href: buildHash("inventory"), screens: ["inventory"], count: r.agents.length, icon: "inventory" },
+        { id: "inventory", label: "Agent Inventory", href: buildHash("inventory"), screens: ["inventory"], count: uniqueAgents(envelope).length, icon: "inventory" },
         // Declared Scope stays reachable at #/scope but is hidden from the sidebar for now.
         // The badge is the number that needs someone: high-severity findings, not the size of the list.
         { id: "risk", label: "Findings", href: buildHash("findings"), screens: ["findings", "drift", "register"], alert: high ? `${high} high` : undefined, icon: "risk" },
-        { id: "controls", label: "Safeguards", href: buildHash("controls"), screens: ["controls"], icon: "controls" },
+        { id: "controls", label: "Controls & Safeguards", href: buildHash("controls"), screens: ["controls"], icon: "controls" },
         { id: "loss", label: "Financial Exposure", href: buildHash("loss"), screens: ["loss"], icon: "loss" },
-        { id: "insurance", label: "Insurance", href: buildHash("evidence"), screens: ["evidence"], icon: "insurance" },
+        { id: "insurance", label: "AI Risk Insurance", href: buildHash("evidence"), screens: ["evidence"], icon: "insurance" },
       ],
     },
   ];
@@ -76,22 +77,22 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
       </nav>
 
       <div className="flex-1 min-w-0">
-        <header className="px-6 pt-4 pb-3 flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-line bg-paper">
-          <div className="md:hidden text-navy">
-            <Logo height={24} />
-          </div>
-          <div className="min-w-0">
-            <div className="text-[15px] font-semibold text-navy leading-tight truncate">{r.repository.name}</div>
-            <div className="caption flex flex-wrap items-center gap-x-2">
-              <span>{head ? `committed ${formatDate(head.date)}` : "commit date unavailable"}</span>
-              <span aria-hidden="true">·</span>
-              {sources.length ? <><span>{sources.join(", ")}</span><span aria-hidden="true">·</span></> : null}
-              <span>{pluralize(r.summary.files_scanned, "file")} scanned</span>
+        <header className="px-6 pt-4 pb-3 border-b border-line bg-paper">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <div className="md:hidden text-navy">
+              <Logo height={24} />
+            </div>
+            <div className="min-w-0 text-[15px] font-semibold text-navy leading-tight truncate">{r.repository.name}</div>
+            <div className="ml-auto flex items-center gap-2 no-print">
+              <UserMenu />
             </div>
           </div>
-          <div className="ml-auto flex items-center gap-2 no-print">
-            <UserMenu />
-          </div>
+          {/* The scope strip: what was looked at, and what a static scan cannot see. Said once, on every screen. */}
+          <p className="caption m-0 mt-1.5 max-w-[120ch]" data-testid="scope-strip">
+            {[head ? `Commit of ${formatDate(head.date)}` : "", sources.join(", "), pluralize(r.summary.files_scanned, "file")].filter(Boolean).join(" · ")}
+            {". "}
+            Static scan of code and configuration. Controls outside the scanned sources are not visible.
+          </p>
         </header>
         <ScanSourceBanner />
         <main className="px-6 pb-8 pt-5 max-w-[1360px]">

@@ -1,8 +1,10 @@
 /** Inventory categories derived from what the registry actually holds. */
 import type { Agent, Envelope, Exposure, ToolRecord } from "./types";
+import { capabilitiesOf, declaredOf, definedIn, integrationsOf, uniqueAgents, type UniqueAgent } from "./agents";
+import { amountLabel, businessCapabilities, type CapabilityId } from "./labels";
 import { EXPOSURE_RANK, agentLabel, activeFindings, hasAuthority } from "./selectors";
 
-export type CategoryId = "agents_code" | "agents_iac" | "tools" | "providers" | "integrations" | "declarations";
+export type CategoryId = "agents" | "agents_code" | "agents_iac" | "tools" | "providers" | "integrations" | "declarations";
 
 export interface Category {
   id: CategoryId;
@@ -69,6 +71,8 @@ export function declaredAgents(env: Envelope): Agent[] {
 
 export function categories(env: Envelope): Category[] {
   return [
+    // Unique agents first; the two record views below show where each was found.
+    { id: "agents", label: "Agents", count: uniqueAgents(env).length },
     { id: "agents_code", label: "Agents in code", count: codeAgents(env).length },
     { id: "agents_iac", label: "Agents in infrastructure", count: iacAgents(env).length },
     { id: "tools", label: "Tools", count: toolRows(env).length },
@@ -92,11 +96,11 @@ export function agentSource(agent: Agent): string {
 }
 
 export function agentFindingCount(env: Envelope, agent: Agent): number {
-  return activeFindings(env.registry).filter((r) => r.agents.some((a) => a.id === agent.id)).length;
+  return activeFindings(env).filter((r) => r.agents.some((a) => a.id === agent.id)).length;
 }
 
 export function contradictions(env: Envelope, agent: Agent) {
-  return activeFindings(env.registry).filter((r) => r.finding.rule_id.startsWith("DECL") && r.agents.some((a) => a.id === agent.id));
+  return activeFindings(env).filter((r) => r.finding.rule_id.startsWith("DECL") && r.agents.some((a) => a.id === agent.id));
 }
 
 export function filterAgents(env: Envelope, agents: Agent[], query: URLSearchParams): Agent[] {
@@ -104,5 +108,31 @@ export function filterAgents(env: Envelope, agents: Agent[], query: URLSearchPar
   if (query.get("authority") === "1") out = out.filter((a) => hasAuthority(env, a));
   const q = (query.get("q") ?? "").trim().toLowerCase();
   if (q) out = out.filter((a) => `${agentLabel(a)} ${a.path} ${a.symbol} ${a.frameworks.join(" ")} ${a.capabilities.join(" ")}`.toLowerCase().includes(q));
+  return out;
+}
+
+// --- unique agents -----------------------------------------------------------------
+
+export function agentCapabilities(agent: UniqueAgent): CapabilityId[] {
+  return businessCapabilities(capabilitiesOf(agent), integrationsOf(agent));
+}
+
+/** Findings as shown (merged) that touch any record of this agent. */
+export function uniqueAgentFindingCount(env: Envelope, agent: UniqueAgent): number {
+  return activeFindings(env).filter((r) => r.uniqueAgents.includes(agent)).length;
+}
+
+/** "up to $500 per action", from the declared limit. Empty when nothing is declared: the scan cannot know it. */
+export function spendingAuthority(agent: UniqueAgent): string {
+  const limit = declaredOf(agent)?.economic_authority?.max_per_action;
+  return limit ? `up to ${amountLabel(limit)} per action` : "";
+}
+
+/** `capability` holds the selected capability ids, comma separated; an agent must have all of them. */
+export function filterUniqueAgents(agents: UniqueAgent[], query: URLSearchParams): UniqueAgent[] {
+  const wanted = (query.get("capability") ?? "").split(",").filter(Boolean);
+  let out = wanted.length ? agents.filter((a) => wanted.every((c) => agentCapabilities(a).includes(c as CapabilityId))) : agents;
+  const q = (query.get("q") ?? "").trim().toLowerCase();
+  if (q) out = out.filter((a) => `${a.name} ${definedIn(a)} ${a.records.map((r) => `${agentLabel(r)} ${r.path} ${r.symbol}`).join(" ")}`.toLowerCase().includes(q));
   return out;
 }

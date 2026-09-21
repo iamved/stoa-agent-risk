@@ -21,6 +21,7 @@ from ..dimensions import TaxonomyError, load_taxonomy
 from ..graph_model import build_graph, overlay_runtime, to_json_dict
 from ..rules import HIGH_IMPACT_CAPABILITIES, RULES, SENSITIVE_INTEGRATIONS
 from ..underwriting import build_assessment, derive_from_registry
+from .identity import resolve_agents
 from .register import build_register
 
 ENVELOPE_SCHEMA = "stoa-dashboard/1.0"
@@ -138,6 +139,9 @@ def build_envelope(
         "baseline": _baseline_block(baseline) if baseline is not None and diff is not None else None,
         "history": list(history or []),
         "register": build_register(registry),
+        # Records grouped into unique agents (identity.py): one deployed agent
+        # is often a code record plus one or more infrastructure records.
+        "unique_agents": resolve_agents(registry),
         # The same architecture graph the legacy report draws (graph_model),
         # so the Inventory graph tab reuses that model rather than rebuilding it.
         "graph": to_json_dict(graph),

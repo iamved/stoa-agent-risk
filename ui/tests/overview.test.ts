@@ -16,22 +16,26 @@ const empty = load("no-agents");
 describe("what we have and whether it is protected", () => {
   it("counts what the registry holds", () => {
     const h = holdings(demo);
-    expect(h).toEqual({ agents: demo.registry.agents.length, moneyMovers: 3, tools: 19, providers: 4 });
-    expect(moneyMovers(demo).every((a) => (a.tools ?? []).some((t) => t.money_action) || a.capabilities.includes("payment_access"))).toBe(true);
+    // 5 agents seen as 11 records; account actions in code and on AWS is one money mover, not two.
+    expect(h).toEqual({ agents: 5, records: demo.registry.agents.length, moneyMovers: 2, tools: 13, providers: 4 });
+    expect(moneyMovers(demo).every((u) => u.records.some((a) => (a.tools ?? []).some((t) => t.money_action) || a.capabilities.includes("payment_access")))).toBe(true);
     expect(scanSources(demo)).toEqual(["application code", "AWS and Databricks definitions"]);
-    expect(holdings(empty)).toEqual({ agents: 0, moneyMovers: 0, tools: 0, providers: 0 });
+    expect(holdings(empty)).toEqual({ agents: 0, records: 0, moneyMovers: 0, tools: 0, providers: 0 });
     expect(scanSources(empty)).toEqual([]);
   });
 
   it("reports approval only where the scanner observed it", () => {
     const p = protection(demo);
-    expect(p).toMatchObject({ moneyMovers: 3, approved: 0, tools: 19, doublePost: 1 });
-    expect(p.unguardedTools).toBe(demo.registry.agents.flatMap((a) => a.tools ?? []).filter((t) => t.guards.length === 0).length);
-    // An approval control observed on a money mover is credited.
+    expect(p).toMatchObject({ moneyMovers: 2, approved: 0, moneyTools: 8, moneyToolsWithoutGuardrail: 8, doublePost: 1 });
+    // Human approval detected on any record of a money mover is credited to that agent.
     const credited = structuredClone(demo);
     const mover = moneyMovers(credited)[0]!;
-    mover.dimension_assessment!.dimensions[0]!.controls_observed.push("approval");
+    mover.records[0]!.dimension_assessment!.dimensions[0]!.controls_observed.push("approval");
     expect(protection(credited).approved).toBe(1);
+    // A guardrail detected on a money tool, in either record, counts.
+    const guarded = structuredClone(demo);
+    moneyMovers(guarded)[0]!.records.flatMap((a) => a.tools ?? []).find((t) => t.money_action)!.guards.push("approval_check");
+    expect(protection(guarded).moneyToolsWithoutGuardrail).toBe(7);
   });
 });
 
@@ -61,7 +65,7 @@ describe("needs your attention", () => {
   it("shows each problem once, highest severity first", () => {
     const items = attention(demo, 99);
     expect(new Set(items.map((i) => i.ruleId)).size).toBe(items.length);
-    expect(items.reduce((n, i) => n + i.findings, 0)).toBe(activeFindings(demo.registry).length);
+    expect(items.reduce((n, i) => n + i.findings, 0)).toBe(activeFindings(demo).length);
     const rank = { critical: 4, high: 3, medium: 2, low: 1, info: 0 };
     for (let i = 1; i < items.length; i++) expect(rank[items[i - 1]!.severity]).toBeGreaterThanOrEqual(rank[items[i]!.severity]);
     expect(attention(demo)).toHaveLength(4);
@@ -71,7 +75,9 @@ describe("needs your attention", () => {
   it("names the elevated dimension and the register decision", () => {
     const [first, second] = attention(demo);
     expect(first!.title).toBe("Declared autonomy does not match what the code does.");
-    expect(first!.agents).toHaveLength(3);
+    // DECL001 fired on three records: account actions in code and on AWS (one agent), and the support agent.
+    expect(first!.agents).toEqual(["account-actions", "meridian-support (Databricks)"]);
+    expect(first!.findings).toBe(2);
     expect(attentionStatus(first!)).toContain("marked for transfer to insurance");
     expect(attentionRegisterRow(first!)?.declared?.owner ?? null).toBeNull();
     expect(second!.ruleId).toBe("AI008");
@@ -101,7 +107,9 @@ describe("what changed", () => {
     expect(lines[0]!.detail).toContain("gained payment access");
     // The fixture was scanned without git: no commit or author is invented.
     expect(lines[0]!.detail).not.toMatch(/ in [0-9a-f]{7}|changed by/);
-    expect(lines[1]!.title).toBe("2 new high-severity findings.");
+    // The diff reports two new records. One is a new finding; the other is a second location on a known one.
+    expect(lines[1]!.title).toBe("1 new high-severity finding.");
+    expect(lines[1]!.detail).toContain("1 known high-severity finding now has a second evidence location.");
     expect(lines[3]!.title).toBe("No agents added or removed.");
     const joined = lines.map((l) => `${l.title} ${l.detail}`).join(" ");
     expect(joined).not.toMatch(/follow from|because|caused/i);
@@ -129,14 +137,14 @@ describe("where you stand", () => {
 
   it("builds the demo headline from the facts above", () => {
     const t = text(demo, 4000);
-    expect(t).toContain("3 agents can move money on their own, and none requires human approval.");
+    expect(t).toContain("2 agents can move money on their own, and neither requires human approval.");
     expect(t).toMatch(/A bad year could cost \$[\d.]+[kM], and your cyber policy excludes AI\./);
     expect(t).toContain("3 things changed since the last scan.");
   });
 
   it("leaves out every clause it has no fact for", () => {
     const t = text(firstRun);
-    expect(t).toBe("3 agents can move money on their own, and none requires human approval.");
+    expect(t).toBe("2 agents can move money on their own, and neither requires human approval.");
     expect(text(empty)).toContain("No AI agents were found");
   });
 

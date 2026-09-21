@@ -7,9 +7,37 @@ import { buildHash, parseHash } from "../src/app/router";
 const env = JSON.parse(readFileSync(new URL("../fixtures/meridian-pay.envelope.json", import.meta.url), "utf8")) as Envelope;
 
 describe("selectors copy scanner numbers without recomputing", () => {
-  it("counts findings exactly as the registry summary does", () => {
-    const counts = countBySeverity(activeFindings(env.registry));
-    expect(counts).toEqual(env.registry.summary.findings);
+  it("the scanner records behind the findings tie to the registry summary exactly", () => {
+    // Findings are shown merged; the records they are made of are the scanner's, untouched.
+    const records = activeFindings(env).flatMap((r) => r.evidence);
+    const bySeverity = { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
+    for (const f of records) bySeverity[f.severity] += 1;
+    expect(bySeverity).toEqual(env.registry.summary.findings);
+    expect(new Set(records.map((f) => f.fingerprint)).size).toBe(records.length);
+  });
+
+  it("the same rule on two records of one agent is one finding with two locations", () => {
+    const active = activeFindings(env);
+    const counts = countBySeverity(active);
+    expect(counts).toEqual({ critical: 2, high: 1, medium: 6, low: 4, info: 8 });
+    const merged = active.filter((r) => r.evidence.length > 1);
+    expect(merged.map((r) => r.finding.rule_id).sort()).toEqual(["DECL001", "DECL006", "DECL006", "DECL006"]);
+    for (const ref of merged) {
+      expect(ref.uniqueAgents).toHaveLength(1);
+      expect(new Set(ref.evidence.map((f) => f.rule_id)).size).toBe(1);
+      // One location per scanned record of that agent: its code and its infrastructure.
+      expect(new Set(ref.evidence.map((f) => f.path)).size).toBe(ref.evidence.length);
+      expect(ref.evidence[0]).toBe(ref.finding);
+    }
+    // A link made to either location still opens the finding.
+    const both = merged[0]!;
+    for (const f of both.evidence) expect(findingByFingerprint(env, f.fingerprint)).toBe(both);
+  });
+
+  it("nothing merges without an identity block", () => {
+    const old = { ...env, unique_agents: undefined };
+    expect(activeFindings(old).every((r) => r.evidence.length === 1)).toBe(true);
+    expect(countBySeverity(activeFindings(old))).toEqual(env.registry.summary.findings);
   });
 
   it("matrix cells mirror dimension_summary", () => {
@@ -28,7 +56,8 @@ describe("selectors copy scanner numbers without recomputing", () => {
 
   it("stats and authority follow the scanner vocabulary", () => {
     const s = stats(env);
-    expect(s.agents).toBe(env.registry.agents.length);
+    expect(s.agents).toBe(5);
+    expect(s.records).toBe(env.registry.agents.length);
     expect(s.authorityAgents).toBeGreaterThan(0);
     expect(s.drift?.changed).toBe(env.diff!.summary.agents_changed);
     const withPayment = env.registry.agents.find((a) => a.capabilities.includes("payment_access"))!;
@@ -41,7 +70,7 @@ describe("selectors copy scanner numbers without recomputing", () => {
     const rules = risks.map((r) => r.ref.finding.rule_id);
     expect(new Set(rules).size).toBe(rules.length);
     for (const r of risks) {
-      expect(findingByFingerprint(env.registry, r.ref.finding.fingerprint)).not.toBeNull();
+      expect(findingByFingerprint(env, r.ref.finding.fingerprint)).not.toBeNull();
       expect(r.soWhat.length).toBeGreaterThan(10);
     }
     expect(risks[0]!.ref.finding.severity).toBe("critical");

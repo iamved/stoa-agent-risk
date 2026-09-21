@@ -20,7 +20,10 @@ export const Icon = {
     <svg {...base}><path d="M12 3l8 3v6c0 4.5-3.5 8-8 9-4.5-1-8-4.5-8-9V6z" /><path d="M9 12l2 2 4-4" /></svg>
   ),
   loss: () => (
-    <svg {...base}><path d="M3 10l9-7 9 7" /><path d="M5 9v11h14V9" /><path d="M10 20v-6h4v6" /></svg>
+    <svg {...base}><rect x="2.5" y="6" width="19" height="12" rx="2" /><circle cx="12" cy="12" r="2.75" /><path d="M6 9.5v5M18 9.5v5" /></svg>
+  ),
+  agent: () => (
+    <svg {...base}><rect x="5" y="8" width="14" height="11" rx="2.5" /><path d="M12 8V4.5" /><circle cx="12" cy="3.5" r="1" /><path d="M9.5 13v1.5M14.5 13v1.5" /></svg>
   ),
   insurance: () => (
     <svg {...base}><path d="M4 12a8 8 0 0 1 16 0z" /><path d="M12 12v6a2 2 0 0 0 4 0" /><path d="M12 3v1" /></svg>

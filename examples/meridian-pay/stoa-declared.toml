@@ -37,6 +37,9 @@ data_classes = ["personal", "financial"]
 
 [agents."f18cfdb42fdb"]      # databricks/agents/support_agent.py :: agent
 name = "meridian-support (Databricks)"
+# Both serving endpoints in databricks/infra/main.tf serve this agent
+# (prod.agents.meridian_support). Names cannot show that, so it is declared.
+same_as = ["3af3aebaa6f7", "6142266e32cb"]
 owner = "digital-servicing@meridian.example"
 purpose = "Support agent on Databricks Mosaic AI Agent Framework"
 users = "customers"

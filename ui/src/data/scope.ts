@@ -95,7 +95,7 @@ const num = (v: string): number | null => { const n = Number(v.replace(/[,\s]/g,
 
 /** stoa-declared.toml, complete: business, agents, governance, evidence, and the register rows already in the registry. */
 export function toDeclaredToml(s: ScopeState, register: { risk_id: string; owner: string; treatment: string | null; rationale: string; review_by?: string; status?: string }[]): string {
-  const out: string[] = ["# stoa-declared.toml — declared facts, cross-checked by the scanner. Generated from the dashboard's Declared Scope.", "version = 1", ""];
+  const out: string[] = ["# stoa-declared.toml: declared facts, cross-checked by the scanner. Generated from the dashboard's Declared Scope.", "version = 1", ""];
   const biz: string[] = [];
   if (s.org.industries.trim()) biz.push(`industries = ${arr(s.org.industries)}`);
   if (s.org.regulated_activities.trim()) biz.push(`regulated_activities = ${arr(s.org.regulated_activities)}`);
@@ -149,7 +149,7 @@ export function toDeclaredToml(s: ScopeState, register: { risk_id: string; owner
 
 /** .stoa/underwriting.toml: identity, intake, existing policies; performance rows carried from the assessment. */
 export function toUnderwritingToml(s: ScopeState, performance: { metric: string; value: string; cadence: string }[]): string {
-  const out: string[] = ["# .stoa/underwriting.toml — applicant identity and business context. Generated from the dashboard's Declared Scope.", "", "[identity]"];
+  const out: string[] = ["# .stoa/underwriting.toml: applicant identity and business context. Generated from the dashboard's Declared Scope.", "", "[identity]"];
   for (const key of ["company", "contact_name", "contact_title", "contact_email", "address", "home_state", "model_name", "model_version", "deployment", "currency"] as const) {
     if (s.identity[key].trim()) out.push(`${key.padEnd(14)} = ${q(s.identity[key].trim())}`);
   }

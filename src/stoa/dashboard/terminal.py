@@ -75,8 +75,13 @@ def render_overview(envelope: dict, dashboard_path: str | None = None, *,
         ref = repository.get("git_ref")
         lines.append(f"{repository.get('name') or 'repository'}" + (f" @ {ref}" if ref else "")
                      + f"  ({_plural(summary.get('files_scanned', 0), 'file')} scanned)")
-        high_confidence = sum(1 for a in agents if a.get("confidence") == "high")
-        lines.append(f"  Agents    {len(agents)} ({high_confidence} high confidence)")
+        # Unique agents, as the dashboard counts them; the records are what the scanner found.
+        unique = envelope.get("unique_agents")
+        if unique is not None and len(unique) != len(agents):
+            lines.append(f"  Agents    {len(unique)}, from {_plural(len(agents), 'discovered record')}")
+        else:
+            high_confidence = sum(1 for a in agents if a.get("confidence") == "high")
+            lines.append(f"  Agents    {len(agents)} ({high_confidence} high confidence)")
         lines.append(f"  Findings  {_severity_line(summary.get('findings') or {})}"
                      + (f"  ({summary['suppressed_findings']} suppressed)" if summary.get("suppressed_findings") else ""))
 

@@ -4,6 +4,8 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 export interface Column<Row> {
   id: string;
   header: string;
+  /** An explanation shown beside the header, e.g. how a scale is derived. */
+  hint?: ReactNode;
   /** CSS width, e.g. "120px" or "2fr". */
   width: string;
   cell: (row: Row) => ReactNode;
@@ -50,15 +52,16 @@ export function DataTable<Row>({ rows, columns, rowKey, onRowClick, sort, onSort
             const sortable = Boolean(c.sortValue && onSort);
             const active = sort?.column === c.id;
             return (
-              <div key={c.id} role="columnheader" aria-sort={active ? (sort?.dir === "asc" ? "ascending" : "descending") : undefined} className={`px-2.5 py-2 text-[11px] uppercase tracking-wide text-ink-muted font-semibold ${c.align === "right" ? "text-right" : ""}`}>
+              <div key={c.id} role="columnheader" aria-sort={active ? (sort?.dir === "asc" ? "ascending" : "descending") : undefined} className={`px-2.5 py-2 text-[11px] uppercase tracking-wide text-ink-muted font-semibold flex items-center gap-1.5 ${c.align === "right" ? "justify-end" : ""}`}>
                 {sortable ? (
                   <button type="button" onClick={() => onSort?.(c.id)} className={`inline-flex items-center gap-1 uppercase ${active ? "text-navy" : ""}`}>
                     {c.header}
                     <span aria-hidden="true" className="text-[9px]">{active ? (sort?.dir === "asc" ? "▲" : "▼") : "↕"}</span>
                   </button>
                 ) : (
-                  c.header
+                  <span>{c.header}</span>
                 )}
+                {c.hint}
               </div>
             );
           })}

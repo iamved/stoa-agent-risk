@@ -5,34 +5,40 @@
  * business context, no agents), the function returns null or an empty list
  * and the screen says so instead of filling the gap.
  */
-import type { Agent, Envelope, RegisterRow, Severity } from "./types";
-import { agentControlRows } from "./controls";
+import type { Envelope, RegisterRow, Severity } from "./types";
+import { canMoveMoney, providersOf, toolsOf, uniqueAgents, type UniqueAgent } from "./agents";
+import { safeguardRows } from "./controls";
 import { agentToModel, candidateAgents, intakeFromEnvelope } from "./lossInputs";
 import { EVENTS, indicate, money } from "./lossModel";
 import { summarize as summarizeRegister } from "./register";
-import { SEVERITY_RANK, activeFindings, agentLabel, countByLevel, elevatedAgents, findingsByDimension, overviewDeltas, pluralize, riskLevel, type FindingRef, type RiskLevel } from "./selectors";
+import { SEVERITY_RANK, activeFindings, agentLabel, countByLevel, elevatedAgents, findingTitle, findingsByDimension, isNewFinding, newFingerprints, overviewDeltas, pluralize, riskLevel, type FindingRef, type RiskLevel } from "./selectors";
 
 // --- what we have ---------------------------------------------------------------
 
-/** Agents that can move money: a money-moving tool, or the payment capability. */
-export function moneyMovers(env: Envelope): Agent[] {
-  return env.registry.agents.filter((a) => (a.tools ?? []).some((t) => t.money_action) || a.capabilities.includes("payment_access"));
+/** Unique agents that can move money: a money-moving tool, or the payment capability, on any of their records. */
+export function moneyMovers(env: Envelope): UniqueAgent[] {
+  return uniqueAgents(env).filter(canMoveMoney);
 }
 
 export interface Holdings {
+  /** Unique agents. */
   agents: number;
+  /** Scanned records behind them. */
+  records: number;
   moneyMovers: number;
   tools: number;
   providers: number;
 }
 
 export function holdings(env: Envelope): Holdings {
-  const agents = env.registry.agents;
+  const agents = uniqueAgents(env);
   return {
     agents: agents.length,
+    records: env.registry.agents.length,
     moneyMovers: moneyMovers(env).length,
-    tools: agents.reduce((n, a) => n + (a.tools ?? []).length, 0),
-    providers: new Set(agents.flatMap((a) => a.providers)).size,
+    // A tool seen in an agent's code and again in its infrastructure is one tool.
+    tools: agents.reduce((n, a) => n + toolsOf(a).length, 0),
+    providers: new Set(agents.flatMap(providersOf)).size,
   };
 }
 
@@ -56,24 +62,25 @@ export function joinWords(items: string[]): string {
 
 export interface Protection {
   moneyMovers: number;
-  /** Money movers on which the scanner observed an approval control. */
+  /** Money movers on which the scanner detected human approval. */
   approved: number;
-  tools: number;
-  unguardedTools: number;
+  /** Tools that can move money, and how many of them have no guardrail detected. */
+  moneyTools: number;
+  moneyToolsWithoutGuardrail: number;
   /** Findings of a money action that can repeat on retry (AI008). */
   doublePost: number;
 }
 
+/** The same rows the Controls & Safeguards screen shows, so the two cannot disagree. */
 export function protection(env: Envelope): Protection {
-  const movers = new Set(moneyMovers(env).map((a) => a.id));
-  const rows = agentControlRows(env).filter((r) => movers.has(r.agent.id));
-  const tools = env.registry.agents.flatMap((a) => a.tools ?? []);
+  const movers = new Set(moneyMovers(env));
+  const rows = safeguardRows(env);
   return {
     moneyMovers: movers.size,
-    approved: rows.filter((r) => r.observed.includes("approval")).length,
-    tools: tools.length,
-    unguardedTools: tools.filter((t) => t.guards.length === 0).length,
-    doublePost: activeFindings(env.registry).filter((r) => r.finding.rule_id === "AI008").length,
+    approved: rows.filter((r) => movers.has(r.agent) && r.states["approval"] === "detected").length,
+    moneyTools: rows.reduce((n, r) => n + r.moneyTools, 0),
+    moneyToolsWithoutGuardrail: rows.reduce((n, r) => n + r.moneyToolsWithoutGuardrail, 0),
+    doublePost: activeFindings(env).filter((r) => r.finding.rule_id === "AI008").length,
   };
 }
 
@@ -132,12 +139,14 @@ export interface AttentionItem {
   fingerprint: string;
   /** Register rows these findings contribute to. */
   register: RegisterRow[];
+  /** The rule's remediation guidance, as the scanner wrote it. */
+  remediation: string;
 }
 
 /** Active findings, one item per rule, so the same problem on several agents is read once. Highest severity first. */
 export function attention(env: Envelope, n = 4): AttentionItem[] {
   const groups = new Map<string, FindingRef[]>();
-  for (const ref of activeFindings(env.registry)) {
+  for (const ref of activeFindings(env)) {
     const list = groups.get(ref.finding.rule_id);
     if (list) list.push(ref);
     else groups.set(ref.finding.rule_id, [ref]);
@@ -148,7 +157,7 @@ export function attention(env: Envelope, n = 4): AttentionItem[] {
   for (const [ruleId, refs] of groups) {
     refs.sort((a, b) => SEVERITY_RANK[b.finding.severity] - SEVERITY_RANK[a.finding.severity] || a.finding.path.localeCompare(b.finding.path) || a.finding.line - b.finding.line);
     const first = refs[0]!.finding;
-    const fingerprints = new Set(refs.map((r) => r.finding.fingerprint));
+    const fingerprints = new Set(refs.flatMap((r) => r.evidence.map((f) => f.fingerprint)));
     // A finding can sit in several dimensions; name the one that is elevated, since that is why it matters.
     const dimensionIds = [...new Set(refs.flatMap((r) => r.finding.dimensions ?? []))];
     const dimensionId = dimensionIds.find((id) => elevatedIds.has(id)) ?? dimensionIds[0];
@@ -157,11 +166,12 @@ export function attention(env: Envelope, n = 4): AttentionItem[] {
       severity: first.severity,
       level: riskLevel(first.severity),
       title: first.crosswalk?.so_what || env.rules[ruleId]?.crosswalk?.so_what || first.title,
-      agents: [...new Set(refs.flatMap((r) => r.agents.map(agentLabel)))].sort(),
+      agents: [...new Set(refs.flatMap((r) => r.uniqueAgents.map((u) => u.name)))].sort(),
       dimension: dimensionId ? dimensionNames.get(dimensionId) ?? null : null,
       findings: refs.length,
       fingerprint: first.fingerprint,
       register: env.register.filter((row) => row.contributing_findings.some((fp) => fingerprints.has(fp))),
+      remediation: env.rules[ruleId]?.remediation || first.remediation || "",
     });
   }
   items.sort((a, b) => SEVERITY_RANK[b.severity] - SEVERITY_RANK[a.severity] || b.findings - a.findings || a.ruleId.localeCompare(b.ruleId));
@@ -223,12 +233,22 @@ export function whatChanged(env: Envelope): ChangeLine[] | null {
     lines.push({ direction: "same", title: "No agent gained new reach.", detail: "No new money or system access." });
   }
 
+  // Findings as shown. A known finding that gained a location (the same rule now also fires on the
+  // agent's other record) is said as that, not counted as new.
   const fd = diff.summary.findings_delta;
-  const newHigh = fd.new_critical + fd.new_high;
-  if (newHigh > 0 || fd.resolved > 0) {
-    const rules = [...new Set(diff.agents.changed.flatMap((c) => c.findings_delta.new.filter((f) => f.severity === "critical" || f.severity === "high").map((f) => env.rules[f.rule_id]?.title ?? f.rule_id)))];
-    const detail = [rules.length ? `${joinWords(rules.slice(0, 2))}${rules.length > 2 ? ", and more" : ""}.` : "", fd.resolved ? `${pluralize(fd.resolved, "finding")} resolved.` : ""].filter(Boolean).join(" ");
-    lines.push({ direction: newHigh > 0 ? "up" : "down", title: newHigh > 0 ? `${newHigh} new high-severity ${newHigh === 1 ? "finding" : "findings"}.` : `${pluralize(fd.resolved, "finding")} resolved.`, detail });
+  const fresh = newFingerprints(env);
+  const highNow = activeFindings(env).filter((r) => riskLevel(r.finding.severity) === "high");
+  const newHighRefs = highNow.filter((r) => isNewFinding(r, fresh));
+  const widened = highNow.filter((r) => !isNewFinding(r, fresh) && r.evidence.some((f) => fresh.has(f.fingerprint)));
+  const newHigh = newHighRefs.length;
+  if (newHigh > 0 || widened.length > 0 || fd.resolved > 0) {
+    const titles = [...new Set(newHighRefs.map((r) => findingTitle(env, r.finding)))];
+    const detail = [
+      titles.length ? `${titles[0]}${titles.length > 1 ? ` And ${pluralize(titles.length - 1, "other")}.` : ""}` : "",
+      widened.length ? `${pluralize(widened.length, "known high-severity finding")} now ${widened.length === 1 ? "has" : "have"} a second evidence location.` : "",
+      fd.resolved ? `${pluralize(fd.resolved, "finding")} resolved.` : "",
+    ].filter(Boolean).join(" ");
+    lines.push({ direction: newHigh > 0 || widened.length > 0 ? "up" : "down", title: newHigh > 0 ? `${newHigh} new high-severity ${newHigh === 1 ? "finding" : "findings"}.` : widened.length ? "No new high-severity findings." : `${pluralize(fd.resolved, "finding")} resolved.`, detail });
   } else {
     lines.push({ direction: "same", title: "No new high-severity findings.", detail: "None resolved either." });
   }
@@ -305,7 +325,7 @@ export function standing(env: Envelope, cost: CostOutlook | null): Sentence[] {
       : `and ${p.approved} of them ${p.approved === 1 ? "requires" : "require"} human approval`;
     out.push([`${pluralize(p.moneyMovers, "agent")} can move money on ${p.moneyMovers === 1 ? "its" : "their"} own, ${approval}.`]);
   } else {
-    const high = countByLevel(activeFindings(env.registry)).high;
+    const high = countByLevel(activeFindings(env)).high;
     out.push([`${pluralize(agents, "AI agent")} found, and none can move money. ${high ? `${pluralize(high, "high-severity finding")} ${high === 1 ? "needs" : "need"} attention.` : "No high-severity findings."}`]);
   }
   if (cost) {

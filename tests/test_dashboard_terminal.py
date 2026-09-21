@@ -22,6 +22,7 @@ def test_overview_reports_the_registrys_own_numbers():
     counts = env["registry"]["summary"]["findings"]
     assert f"{counts['critical']} critical, {counts['high']} high" in text
     assert "meridian-pay @ e4f5a6b" in text
+    assert "Agents    5, from 11 discovered records" in text
     assert "Drift     vs a1b2c3d: 1 agent changed; unapproved drift up to high" in text
     # Only dimensions above low are listed, elevated first.
     exposure = text.split("Exposure above low")[1].split("Top findings")[0]

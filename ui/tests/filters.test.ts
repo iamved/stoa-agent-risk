@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { uniqueAgentOf } from "../src/data/agents";
 import { describe, expect, it } from "vitest";
 import type { Envelope } from "../src/data/types";
 import { EMPTY_FILTERS, applyFilters, filtersFromQuery, filtersToQuery, sortFromQuery } from "../src/data/filters";
@@ -19,10 +20,11 @@ describe("finding filters round-trip through the URL", () => {
   });
 
   it("filters by severity, dimension, class, agent, rule and text", () => {
-    const all = allFindings(env.registry);
+    const all = allFindings(env);
     expect(applyFilters(env, EMPTY_FILTERS, "owasp").length).toBe(all.length);
     const crit = applyFilters(env, { ...EMPTY_FILTERS, severity: ["critical"] }, "owasp");
-    expect(crit.length).toBe(env.registry.summary.findings.critical);
+    expect(crit.length).toBe(all.filter((r) => !r.finding.suppressed && r.finding.severity === "critical").length);
+    expect(crit.reduce((n, r) => n + r.evidence.length, 0)).toBe(env.registry.summary.findings.critical);
     const dim = applyFilters(env, { ...EMPTY_FILTERS, dimension: "mandate-overreach" }, "owasp");
     expect(dim.every((r) => r.finding.dimensions?.includes("mandate-overreach"))).toBe(true);
     const cls = applyFilters(env, { ...EMPTY_FILTERS, cls: "LLM06" }, "owasp");
@@ -30,10 +32,16 @@ describe("finding filters round-trip through the URL", () => {
     expect(cls.every((r) => r.finding.crosswalk?.owasp_llm_2025 === "LLM06")).toBe(true);
     const agent = env.registry.agents.find((a) => a.findings.length > 0)!;
     const byAgent = applyFilters(env, { ...EMPTY_FILTERS, agent: agent.id }, "owasp");
-    expect(byAgent.every((r) => r.agents.some((a) => a.id === agent.id))).toBe(true);
+    // The filter means the whole agent: the same findings whichever of its records the link names.
+    const whole = uniqueAgentOf(env, agent.id)!;
+    expect(whole.records.length).toBeGreaterThan(1);
+    expect(byAgent.length).toBeGreaterThan(0);
+    expect(byAgent.every((r) => r.uniqueAgents.includes(whole))).toBe(true);
+    for (const record of whole.records) expect(applyFilters(env, { ...EMPTY_FILTERS, agent: record.id }, "owasp")).toEqual(byAgent);
+    expect(applyFilters(env, { ...EMPTY_FILTERS, agent: "no-such-agent" }, "owasp")).toEqual([]);
     expect(applyFilters(env, { ...EMPTY_FILTERS, rule: "DECL" }, "owasp").every((r) => r.finding.rule_id.startsWith("DECL"))).toBe(true);
     expect(applyFilters(env, { ...EMPTY_FILTERS, q: "idempotency" }, "owasp").some((r) => r.finding.rule_id === "AI008")).toBe(true);
-    expect(applyFilters(env, { ...EMPTY_FILTERS, status: "suppressed" }, "owasp").length).toBe(all.length - activeFindings(env.registry).length);
+    expect(applyFilters(env, { ...EMPTY_FILTERS, status: "suppressed" }, "owasp").length).toBe(all.length - activeFindings(env).length);
   });
 });
 
@@ -45,7 +53,9 @@ describe("inventory categories come from the registry", () => {
     expect(tools.some((t) => t.tool.money_action)).toBe(true);
     expect(new Set(tools.map((t) => t.key)).size).toBe(tools.length);
     const cats = categories(env);
-    expect(cats.map((c) => c.id)).toEqual(["agents_code", "agents_iac", "tools", "providers", "integrations", "declarations"]);
+    expect(cats.map((c) => c.id)).toEqual(["agents", "agents_code", "agents_iac", "tools", "providers", "integrations", "declarations"]);
+    expect(cats[0]!.count).toBe(5);
+    expect(cats[1]!.count + cats[2]!.count).toBe(11);
     expect(cats.find((c) => c.id === "declarations")?.count).toBe(env.registry.agents.filter((a) => a.declared).length);
     expect(integrationRows(env).every((r) => r.agents.length > 0)).toBe(true);
   });

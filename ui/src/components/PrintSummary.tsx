@@ -16,7 +16,7 @@ export function PrintSummary() {
   const risks = topRisks(envelope, 5);
   const fixes = fixFirst(envelope).slice(0, 5);
   const head = r.repository.head_commit;
-  const levels = countByLevel(activeFindings(r));
+  const levels = countByLevel(activeFindings(envelope));
   const activeTotal = RISK_LEVELS.reduce((n, l) => n + levels[l], 0);
 
   return (

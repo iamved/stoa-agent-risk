@@ -10,6 +10,7 @@ import { STATUS_LABEL, STATUS_ORDER, areaSummaries, controlsByAgent, packetTotal
 import { changes } from "../data/drift";
 import { agentLabel, dimensionMatrix, formatDate, initials, pluralize } from "../data/selectors";
 import type { AssessmentField, AssessmentIdentity, AssessmentSource } from "../data/types";
+import { prose } from "../data/labels";
 import { EVENTS, indicate, money as fmtMoney } from "../data/lossModel";
 import { agentToModel, candidateAgents, intakeFromEnvelope } from "../data/lossInputs";
 
@@ -34,7 +35,7 @@ function tomlString(value: string): string {
 
 /** The .stoa/underwriting.toml that reproduces the edited form on the next scan. */
 function toToml(identity: AssessmentIdentity, performance: PerfRow[], schedule: Record<string, string>, carrier: string, product: string): string {
-  const lines: string[] = ["# .stoa/underwriting.toml — applicant identity, measured figures, and agreed schedule terms.", "", "[identity]"];
+  const lines: string[] = ["# .stoa/underwriting.toml: applicant identity, measured figures, and agreed schedule terms.", "", "[identity]"];
   for (const f of IDENTITY_FIELDS) lines.push(`${f.key.padEnd(14)} = ${tomlString(identity[f.key])}`);
   for (const row of performance) {
     if (!row.metric.trim()) continue;
@@ -251,7 +252,7 @@ function Assessment() {
         <div className="panel max-w-[880px] mx-auto px-8 py-7 assessment">
           <div className="flex items-end justify-between gap-4 border-b-2 border-navy pb-3">
             <div>
-              <div className="text-[18px] font-semibold text-navy">{product}™ — {a.template}</div>
+              <div className="text-[18px] font-semibold text-navy">{product}™ · {a.template}</div>
               <div className="caption mt-0.5">Pre-filled by Stoa from a static scan of <strong>{a.repository}</strong>{head ? `, committed ${formatDate(head.date)}` : ""}. Technical fields are populated from scan evidence; the applicant confirms identity and supplies performance figures before submission.</div>
             </div>
             <div className="hidden md:flex flex-col gap-1 text-[11px] caption whitespace-nowrap no-print">
@@ -330,7 +331,7 @@ function Assessment() {
           <h3 className="mt-6 mb-2 text-navy border-b border-line pb-1.5">5. Declaration</h3>
           <p className="m-0 text-[13px] leading-relaxed">{a.declaration}</p>
           <div className="grid md:grid-cols-2 gap-10 mt-8">
-            <div><div className="border-b border-ink h-9" /><div className="caption mt-1">Signature — {[identity.contact_name, identity.contact_title].filter(Boolean).join(", ") || "Authorized signatory"}</div></div>
+            <div><div className="border-b border-ink h-9" /><div className="caption mt-1">Signature: {[identity.contact_name, identity.contact_title].filter(Boolean).join(", ") || "Authorized signatory"}</div></div>
             <div><div className="border-b border-ink h-9" /><div className="caption mt-1">Date</div></div>
           </div>
           <p className="caption italic mt-6 mb-0 text-[11.5px]">Form modeled on the {product}™ {a.template} template. Identity and model-performance figures are to be confirmed by the applicant before submission. Stoa prepares evidence; carriers price and issue.</p>
@@ -383,7 +384,7 @@ function FieldRow({ field }: { field: AssessmentField }) {
       <span className="caption">{field.label}</span>
       <span className="min-w-0 break-words">
         {field.value}
-        {field.note ? <span className="caption"> — {field.note}</span> : null}
+        {field.note ? <span className="caption"> · {prose(field.note)}</span> : null}
       </span>
       <span className="no-print"><SourceChip source={field.source} /></span>
     </div>

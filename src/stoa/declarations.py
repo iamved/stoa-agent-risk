@@ -50,7 +50,7 @@ SOCIETAL_RISK_FLAGS = ("critical_infrastructure", "biosecurity_adjacent", "mass_
 
 _KNOWN_AGENT_KEYS = {
     "name", "owner", "purpose", "users", "geography", "production_status",
-    "autonomy_intent", "data_classes", "economic_authority",
+    "autonomy_intent", "data_classes", "economic_authority", "same_as",
 }
 _KNOWN_BUSINESS_KEYS = {
     "industries", "regulated_activities", "max_customer_dependency", "societal_risk_flags",
@@ -80,6 +80,10 @@ class AgentDeclaration:
     autonomy_intent: str | None = None
     data_classes: list[str] = field(default_factory=list)
     economic_authority: EconomicAuthority | None = None
+    # Other scanned agent ids that are this same agent seen again (its
+    # infrastructure definition, a second endpoint). Read only by the
+    # dashboard's identity resolution; feeds no rule and no score.
+    same_as: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -285,6 +289,7 @@ def generate_stub(agents: list[dict]) -> str:
             f"# production_status = \"production\"  # {'|'.join(PRODUCTION_STATUSES)}",
             f"# autonomy_intent = \"human_approved\"  # {'|'.join(AUTONOMY_INTENTS)}",
             f"# data_classes = []  # {'|'.join(DATA_CLASSES)}",
+            '# same_as = []  # ids of other scanned records that are this same agent',
             "#",
             f'# [agents."{agent_id}".economic_authority]',
             '# max_per_action = {amount = 0, currency = "USD"}',
@@ -347,6 +352,9 @@ def agent_declaration_to_dict(decl: AgentDeclaration) -> dict:
                 "worst_case_customer_loss": decl.economic_authority.worst_case_customer_loss,
             }.items() if v is not None
         }
+    # Emitted only when set, so registries that never use it are unchanged.
+    if decl.same_as:
+        record["same_as"] = list(decl.same_as)
     return record
 
 
@@ -456,6 +464,13 @@ def _parse_agent_declaration(
         )
         data_classes = [c for c in data_classes if c in DATA_CLASSES]
 
+    same_as = raw.get("same_as", []) or []
+    if not isinstance(same_as, list) or not all(isinstance(x, str) for x in same_as):
+        warnings.append(
+            f"{path}: agents.{agent_id!r}.same_as must be a list of agent ids — ignored"
+        )
+        same_as = []
+
     economic_authority = None
     raw_econ = raw.get("economic_authority")
     if raw_econ is not None:
@@ -494,5 +509,6 @@ def _parse_agent_declaration(
         autonomy_intent=autonomy_intent,
         data_classes=data_classes,
         economic_authority=economic_authority,
+        same_as=[x for x in same_as if x != agent_id],
     )
     return decl, warnings

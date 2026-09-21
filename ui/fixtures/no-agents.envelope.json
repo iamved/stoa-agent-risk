@@ -168,6 +168,7 @@
   "baseline": null,
   "history": [],
   "register": [],
+  "unique_agents": [],
   "graph": {
     "nodes": [],
     "edges": []
@@ -624,14 +625,14 @@
       },
       {
         "key": "sublimit_own_losses",
-        "label": "Sublimit — own financial losses",
+        "label": "Sublimit: own financial losses",
         "value": "US$ 10,000,000",
         "source": "indicative",
         "note": ""
       },
       {
         "key": "sublimit_consequential",
-        "label": "Sublimit — consequential financial expenses",
+        "label": "Sublimit: consequential financial expenses",
         "value": "US$ 10,000,000",
         "source": "indicative",
         "note": ""

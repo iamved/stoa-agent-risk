@@ -35,7 +35,10 @@ test.describe("accessibility", () => {
 
   test("no serious violations with a finding drawer open", async ({ page }) => {
     await page.goto(pathToFileURL(dashboardPath("meridian-pay")).href + "#/findings");
-    await page.getByRole("table", { name: "Findings" }).getByRole("row").nth(1).click();
+    // Row 1 is a rule that fired on several agents: it opens its list. Row 2 is then one finding.
+    const table = page.getByRole("table", { name: "Findings", exact: true });
+    await table.getByRole("row").nth(1).click();
+    await table.getByRole("row").nth(2).click();
     await expect(page.getByRole("dialog")).toBeVisible();
     const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
     const serious = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
@@ -44,8 +47,11 @@ test.describe("accessibility", () => {
 
   test("keyboard: a table row opens on Enter and Escape closes the drawer", async ({ page }) => {
     await page.goto(pathToFileURL(dashboardPath("meridian-pay")).href + "#/findings");
-    const row = page.getByRole("table", { name: "Findings" }).getByRole("row").nth(1);
-    await row.focus();
+    const table = page.getByRole("table", { name: "Findings", exact: true });
+    // Enter on a rule that fired more than once opens its findings; Enter on a finding opens the drawer.
+    await table.getByRole("row").nth(1).focus();
+    await page.keyboard.press("Enter");
+    await table.getByRole("row").nth(2).focus();
     await page.keyboard.press("Enter");
     await expect(page.getByRole("dialog")).toBeVisible();
     await page.keyboard.press("Escape");

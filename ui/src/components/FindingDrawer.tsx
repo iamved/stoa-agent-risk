@@ -4,7 +4,8 @@ import { ConfidenceBadge, Pill, SeverityBadge } from "./Badge";
 import { Drawer } from "./Drawer";
 import { Chips, KeyValue } from "./KeyValue";
 import { Snippet } from "./Snippet";
-import { agentLabel, dimensionName, tagLabel, type FindingRef } from "../data/selectors";
+import { agentLabel, dimensionName, findingTitle, pluralize, tagLabel, type FindingRef } from "../data/selectors";
+import { prose } from "../data/labels";
 import { euArticleDescription, euArticleName, owaspDescription, owaspName } from "../data/frameworks";
 
 /** What this check does / Why it matters / How to fix, plus the evidence. */
@@ -17,7 +18,7 @@ export function FindingDrawer({ ref, onClose, backQuery }: { ref: FindingRef | n
   const tag = framework === "owasp" ? cw?.owasp_llm_2025 : framework === "eu" ? cw?.eu_ai_act : "";
 
   return (
-    <Drawer open title={`${f.rule_id} · ${f.title}`} onClose={onClose}>
+    <Drawer open title={findingTitle(envelope, f)} onClose={onClose}>
       <div className="flex flex-wrap items-center gap-1.5 mb-4">
         <SeverityBadge severity={f.severity} />
         <ConfidenceBadge confidence={f.confidence} />
@@ -29,20 +30,31 @@ export function FindingDrawer({ ref, onClose, backQuery }: { ref: FindingRef | n
 
       <KeyValue
         rows={[
-          { k: "Affected asset", v: ref.agents.length ? ref.agents.map((a, i) => (
-            <span key={a.id}>
-              <a href={buildHash("inventory", a.id, backQuery)} className="link">{agentLabel(a)}</a>
-              {i < ref.agents.length - 1 ? ", " : ""}
+          { k: "Rule", v: <span><span className="mono">{f.rule_id}</span> {prose(f.title)}</span> },
+          { k: "Affected agent", v: ref.uniqueAgents.length ? ref.uniqueAgents.map((u, i) => (
+            <span key={u.id}>
+              <a href={buildHash("inventory", u.records[0]!.id, backQuery)} className="link">{u.name}</a>
+              {i < ref.uniqueAgents.length - 1 ? ", " : ""}
             </span>
-          )) : "repository (not attached to an agent)" },
-          { k: "Location", v: <span className="mono">{f.path}:{f.line}{f.column ? `:${f.column}` : ""}</span> },
+          )) : "Repository (not attached to an agent)" },
+          { k: ref.evidence.length > 1 ? "Evidence locations" : "Location", v: (
+            <span className="flex flex-col gap-0.5">
+              {ref.evidence.map((e) => {
+                const record = ref.agents.find((a) => a.findings.some((x) => x.fingerprint === e.fingerprint));
+                return <span key={e.fingerprint}><span className="mono">{e.path}:{e.line}{e.column ? `:${e.column}` : ""}</span>{ref.evidence.length > 1 && record ? <span className="caption"> · {agentLabel(record)}</span> : null}</span>;
+              })}
+            </span>
+          ) },
           { k: "Dimensions", v: <Chips items={(f.dimensions ?? []).map((d) => ({ label: dimensionName(envelope, d) }))} /> },
         ]}
       />
 
-      <div className="mt-4">
-        <Snippet text={f.snippet} label="Evidence" />
-      </div>
+      {ref.evidence.length > 1 ? <p className="caption mt-3 mb-0">The same rule fired on {pluralize(ref.evidence.length, "scanned record")} of this agent. It is one finding; each record is evidence for it.</p> : null}
+      {ref.evidence.map((e, i) => (
+        <div className="mt-4" key={e.fingerprint}>
+          <Snippet text={e.snippet} label={ref.evidence.length > 1 ? `Evidence ${i + 1} of ${ref.evidence.length} · ${e.path}:${e.line}` : "Evidence"} />
+        </div>
+      ))}
 
       {f.flow && f.flow.length ? (
         <div className="mt-4">
@@ -59,12 +71,12 @@ export function FindingDrawer({ ref, onClose, backQuery }: { ref: FindingRef | n
       ) : null}
 
       <Doc title="What this check does">
-        {rule ? <p className="m-0">{rule.title}.{rule.gateable ? " Can fail a build at high confidence." : ""}</p> : <p className="m-0 caption">Rule metadata not available.</p>}
-        {f.message ? <p className="m-0 mt-2">{f.message}</p> : null}
+        {rule ? <p className="m-0">{prose(rule.title)}.{rule.gateable ? " Can fail a build at high confidence." : ""}</p> : <p className="m-0 caption">Rule metadata not available.</p>}
+        {f.message ? <p className="m-0 mt-2">{prose(f.message)}</p> : null}
       </Doc>
 
       <Doc title="Why it matters">
-        <p className="m-0">{cw?.so_what ?? f.title}</p>
+        <p className="m-0">{findingTitle(envelope, f)}</p>
         {cw ? (
           <dl className="m-0 mt-3 grid gap-2 text-[12.5px]">
             {cw.owasp_llm_2025 ? (
@@ -86,7 +98,7 @@ export function FindingDrawer({ ref, onClose, backQuery }: { ref: FindingRef | n
       </Doc>
 
       <Doc title="How to fix">
-        <p className="m-0">{f.remediation}</p>
+        <p className="m-0">{prose(f.remediation)}</p>
       </Doc>
 
       {f.declared_ref || (f.suppressed && f.suppression_reason) ? (

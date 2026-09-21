@@ -25,7 +25,7 @@ export interface LossRow {
 }
 
 export function lossRows(env: Envelope): LossRow[] {
-  const active = activeFindings(env.registry);
+  const active = activeFindings(env);
   return env.registry.agents
     .map((agent) => {
       const ea = agent.declared?.economic_authority;

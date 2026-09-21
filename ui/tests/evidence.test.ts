@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { Envelope } from "../src/data/types";
 import { areaSummaries, controlsByAgent, fixFirst, packetTotals } from "../src/data/evidence";
+import { activeFindings, countBySeverity } from "../src/data/selectors";
 
 const env = JSON.parse(readFileSync(new URL("../fixtures/meridian-pay.envelope.json", import.meta.url), "utf8")) as Envelope;
 
@@ -11,7 +12,8 @@ describe("evidence views", () => {
     expect(fixes.length).toBeGreaterThan(0);
     expect(fixes[0]!.severity).toBe("critical");
     const total = fixes.reduce((n, f) => n + f.refs.length, 0);
-    expect(total).toBe(env.registry.summary.findings.critical + env.registry.summary.findings.high);
+    const shown = countBySeverity(activeFindings(env));
+    expect(total).toBe(shown.critical + shown.high);
     expect(new Set(fixes.map((f) => `${f.rule_id}::${f.remediation}`)).size).toBe(fixes.length);
   });
 

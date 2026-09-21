@@ -2511,6 +2511,10 @@
         "data_classes": [
           "personal",
           "financial"
+        ],
+        "same_as": [
+          "3af3aebaa6f7",
+          "6142266e32cb"
         ]
       },
       "autonomy_level": {

@@ -13,14 +13,18 @@ function envelope(name: string) {
 
 test.describe("findings", () => {
   test("URL filters drive the table and survive reload", async ({ page }) => {
-    const env = envelope("meridian-pay");
+    // The demo's three critical records are two findings: account actions was seen in code and on AWS.
     await page.goto(fileUrl("meridian-pay", "#/findings?severity=critical"));
-    const table = page.getByRole("table", { name: "Findings" });
-    await expect(table).toHaveAttribute("aria-rowcount", String(env.registry.summary.findings.critical));
+    await expect(page.getByText("2 of 21 shown (filtered)")).toBeVisible();
+    const table = page.getByRole("table", { name: "Findings", exact: true });
+    await expect(table).toHaveAttribute("aria-rowcount", "1");
     await page.getByRole("button", { name: /^High\s+\d+$/ }).click();
     await expect.poll(() => page.evaluate(() => window.location.hash)).toContain("severity=critical%2Chigh");
     await page.reload();
-    await expect(table).toHaveAttribute("aria-rowcount", String(env.registry.summary.findings.critical + env.registry.summary.findings.high));
+    await expect(page.getByText("3 of 21 shown (filtered)")).toBeVisible();
+    await expect(table).toHaveAttribute("aria-rowcount", "2");
+    // The High filter button carries the same count the caption reports.
+    await expect(page.getByRole("button", { name: /^High\s+3$/ })).toBeVisible();
   });
 
   test("a deep link opens the finding drawer with What / Why / Fix", async ({ page }) => {
@@ -47,18 +51,20 @@ test.describe("findings", () => {
     await page.goto(fileUrl("hostile", `#/findings/${finding.fingerprint}`));
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
-    await expect(dialog.locator("pre")).toContainText("</script><script>alert(1)</script>");
+    await expect(dialog.locator("pre").first()).toContainText("</script><script>alert(1)</script>");
     expect(dialogs).toEqual([]);
   });
 
   test("5,000 findings stay virtualized", async ({ page }) => {
     await page.goto(fileUrl("large", "#/findings"));
-    const table = page.getByRole("table", { name: "Findings" });
-    await expect(table).toHaveAttribute("aria-rowcount", "5000");
+    const table = page.getByRole("table", { name: "Findings", exact: true });
+    // Collapsed, the table is one row per rule. Opened, it is every finding, and must still render a window.
+    await page.getByRole("button", { name: "Expand all" }).click();
+    await expect.poll(async () => Number(await table.getAttribute("aria-rowcount"))).toBeGreaterThan(2000);
     const rendered = await table.getByRole("row").count();
     expect(rendered).toBeLessThan(120);
     await table.evaluate((el) => { el.scrollTop = 100000; });
-    await expect.poll(async () => Number(await table.getByRole("row").last().getAttribute("aria-rowindex"))).toBeGreaterThan(2000);
+    await expect.poll(async () => Number(await table.getByRole("row").last().getAttribute("aria-rowindex"))).toBeGreaterThan(1500);
   });
 });
 
@@ -274,6 +280,6 @@ test.describe("a customer's first scan", () => {
     await expect(page.getByRole("heading", { name: "No agents to assess" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Print and sign" })).toHaveCount(0);
     await expect(page.getByText("Policy limit", { exact: false })).toHaveCount(0);
-    await expect(page.getByText("1 file scanned").first()).toBeVisible();
+    await expect(page.getByTestId("scope-strip")).toContainText("1 file. Static scan of code and configuration.");
   });
 });

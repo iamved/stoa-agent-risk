@@ -130,7 +130,7 @@ const LEVEL_BAR: Record<RiskLevel, string> = { high: "bg-sev-high", medium: "bg-
 
 function FindingsTile() {
   const { envelope } = useApp();
-  const counts = countByLevel(activeFindings(envelope.registry));
+  const counts = countByLevel(activeFindings(envelope));
   const total = counts.high + counts.medium + counts.low;
   const delta = overviewDeltas(envelope).findings;
   return (
@@ -164,7 +164,7 @@ function ProtectionTile() {
           <p className="mt-1 mb-0 text-[13.5px] text-ink-soft">No payment tools or payment access were found.</p>
         </>
       )}
-      {p.tools ? <p className="mt-2 mb-0 text-[13px] text-ink-soft">{p.unguardedTools} of {pluralize(p.tools, "tool")} {p.unguardedTools === 1 ? "has" : "have"} no safeguard{p.doublePost ? ` · ${p.doublePost} can post a payment twice` : ""}</p> : null}
+      {p.moneyTools ? <p className="mt-2 mb-0 text-[13px] text-ink-soft">{p.moneyToolsWithoutGuardrail} of {pluralize(p.moneyTools, "tool")} that can move money {p.moneyToolsWithoutGuardrail === 1 ? "has" : "have"} no guardrail detected{p.doublePost ? ` · ${p.doublePost} can post a payment twice` : ""}</p> : null}
     </Tile>
   );
 }
@@ -198,7 +198,7 @@ function CostTile({ cost }: { cost: CostOutlook | null | undefined }) {
 function Attention() {
   const { envelope } = useApp();
   const items = useMemo(() => attention(envelope), [envelope]);
-  const total = activeFindings(envelope.registry).length;
+  const total = activeFindings(envelope).length;
   return (
     <section className="panel" aria-labelledby="attention-title">
       <div className="px-5 pt-4 pb-3">

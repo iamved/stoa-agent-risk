@@ -3042,6 +3042,145 @@
       "unmatched": false
     }
   ],
+  "unique_agents": [
+    {
+      "id": "9299e5cfdb41",
+      "name": "meridian-account-actions",
+      "records": [
+        {
+          "agent_id": "b8f0111742fc",
+          "kind": "code",
+          "platform": null,
+          "label": "Defined in code",
+          "path": "code/agents/account_actions_agent.py",
+          "symbol": "graph"
+        },
+        {
+          "agent_id": "9299e5cfdb41",
+          "kind": "infrastructure",
+          "platform": "bedrock",
+          "label": "Deployed on AWS",
+          "path": "aws/agents.tf",
+          "symbol": "aws_bedrockagent_agent.account_actions"
+        }
+      ],
+      "linked_by": "name"
+    },
+    {
+      "id": "2f7906aae143",
+      "name": "meridian-escalation",
+      "records": [
+        {
+          "agent_id": "a24a49aaf9ec",
+          "kind": "code",
+          "platform": null,
+          "label": "Defined in code",
+          "path": "code/agents/escalation_agent.py",
+          "symbol": "graph"
+        },
+        {
+          "agent_id": "2f7906aae143",
+          "kind": "infrastructure",
+          "platform": "bedrock",
+          "label": "Deployed on AWS",
+          "path": "aws/agents.tf",
+          "symbol": "aws_bedrockagent_agent.escalation"
+        }
+      ],
+      "linked_by": "name"
+    },
+    {
+      "id": "2237fe0c16d2",
+      "name": "meridian-front",
+      "records": [
+        {
+          "agent_id": "2a61ffb1db0d",
+          "kind": "code",
+          "platform": null,
+          "label": "Defined in code",
+          "path": "code/agents/front_agent.py",
+          "symbol": "graph"
+        },
+        {
+          "agent_id": "2237fe0c16d2",
+          "kind": "infrastructure",
+          "platform": "bedrock",
+          "label": "Deployed on AWS",
+          "path": "aws/agents.tf",
+          "symbol": "aws_bedrockagent_agent.front"
+        }
+      ],
+      "linked_by": "name"
+    },
+    {
+      "id": "0d380d199726",
+      "name": "meridian-knowledge",
+      "records": [
+        {
+          "agent_id": "0d380d199726",
+          "kind": "code",
+          "platform": null,
+          "label": "Defined in code",
+          "path": "code/agents/knowledge_agent.py",
+          "symbol": "graph"
+        },
+        {
+          "agent_id": "62007a57a832",
+          "kind": "infrastructure",
+          "platform": "bedrock",
+          "label": "Deployed on AWS",
+          "path": "aws/agents.tf",
+          "symbol": "aws_bedrockagent_agent.knowledge"
+        }
+      ],
+      "linked_by": "name"
+    },
+    {
+      "id": "3af3aebaa6f7",
+      "name": "meridian-support-chat",
+      "records": [
+        {
+          "agent_id": "3af3aebaa6f7",
+          "kind": "infrastructure",
+          "platform": "databricks",
+          "label": "Deployed on Databricks",
+          "path": "databricks/infra/main.tf",
+          "symbol": "databricks_model_serving.support_chat"
+        }
+      ],
+      "linked_by": null
+    },
+    {
+      "id": "6142266e32cb",
+      "name": "meridian-support-ivr",
+      "records": [
+        {
+          "agent_id": "6142266e32cb",
+          "kind": "infrastructure",
+          "platform": "databricks",
+          "label": "Deployed on Databricks",
+          "path": "databricks/infra/main.tf",
+          "symbol": "databricks_model_serving.support_ivr"
+        }
+      ],
+      "linked_by": null
+    },
+    {
+      "id": "f18cfdb42fdb",
+      "name": "support_agent·agent",
+      "records": [
+        {
+          "agent_id": "f18cfdb42fdb",
+          "kind": "code",
+          "platform": null,
+          "label": "Defined in code",
+          "path": "databricks/agents/support_agent.py",
+          "symbol": "agent"
+        }
+      ],
+      "linked_by": null
+    }
+  ],
   "graph": {
     "nodes": [
       {
@@ -6844,14 +6983,14 @@
       },
       {
         "key": "sublimit_own_losses",
-        "label": "Sublimit — own financial losses",
+        "label": "Sublimit: own financial losses",
         "value": "US$ 10,000,000",
         "source": "indicative",
         "note": ""
       },
       {
         "key": "sublimit_consequential",
-        "label": "Sublimit — consequential financial expenses",
+        "label": "Sublimit: consequential financial expenses",
         "value": "US$ 10,000,000",
         "source": "indicative",
         "note": ""

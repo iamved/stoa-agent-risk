@@ -4,7 +4,7 @@
  * scores anything; it groups and counts.
  */
 import type { AssuranceArea, AssurancePacket, AssuranceRow, Envelope, Finding, Severity } from "./types";
-import { SEVERITY_RANK, activeFindings, agentLabel, type FindingRef } from "./selectors";
+import { SEVERITY_RANK, activeFindings, agentLabel, findingTitle, type FindingRef } from "./selectors";
 
 export interface FixItem {
   rule_id: string;
@@ -19,13 +19,13 @@ export interface FixItem {
 /** Critical and high findings merged by rule and fix, worst first: the shortest path that clears them. */
 export function fixFirst(env: Envelope, minSeverity: Severity = "high"): FixItem[] {
   const byKey = new Map<string, FixItem>();
-  for (const ref of activeFindings(env.registry)) {
+  for (const ref of activeFindings(env)) {
     const f = ref.finding;
     if (SEVERITY_RANK[f.severity] < SEVERITY_RANK[minSeverity]) continue;
     const key = `${f.rule_id}::${f.remediation}`;
     let item = byKey.get(key);
     if (!item) {
-      item = { rule_id: f.rule_id, title: f.title, severity: f.severity, remediation: f.remediation, soWhat: f.crosswalk?.so_what ?? f.title, refs: [], owners: [] };
+      item = { rule_id: f.rule_id, title: findingTitle(env, f), severity: f.severity, remediation: f.remediation, soWhat: findingTitle(env, f), refs: [], owners: [] };
       byKey.set(key, item);
     }
     item.refs.push(ref);
