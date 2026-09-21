@@ -1,22 +1,23 @@
 import type { ReactNode } from "react";
 import { useApp } from "../app/context";
 import { buildHash, type ScreenId } from "../app/router";
-import { activeFindings, formatDate, pluralize } from "../data/selectors";
+import { scanSources } from "../data/overview";
+import { activeFindings, countByLevel, formatDate, pluralize } from "../data/selectors";
 import { Icon, type IconName } from "./Icons";
 import { Logo } from "./Logo";
 import { ScanSourceBanner } from "./OpenScan";
 import { PrintSummary } from "./PrintSummary";
 import { UserMenu } from "./UserMenu";
 
-type NavItem = { id: string; label: string; href: string; screens: ScreenId[]; count?: number; icon: IconName };
+type NavItem = { id: string; label: string; href: string; screens: ScreenId[]; count?: number; alert?: string; icon: IconName };
 type NavGroup = { label: string; showLabel: boolean; items: NavItem[] };
 
 export function Shell({ screen, children }: { screen: ScreenId; children: ReactNode }) {
   const { envelope } = useApp();
   const r = envelope.registry;
   const head = r.repository.head_commit;
-  const findingCount = activeFindings(r).length;
-  const driftCount = envelope.diff ? envelope.diff.summary.agents_changed + envelope.diff.summary.agents_added + envelope.diff.summary.agents_removed : 0;
+  const high = countByLevel(activeFindings(r)).high;
+  const sources = scanSources(envelope);
 
   const groups: NavGroup[] = [
     {
@@ -24,12 +25,13 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
       showLabel: false,
       items: [
         { id: "overview", label: "Overview", href: buildHash("overview"), screens: ["overview"], icon: "overview" },
-        { id: "inventory", label: "Agent Inventory", href: buildHash("inventory"), screens: ["inventory"], count: r.agents.length, icon: "inventory" },
+        { id: "inventory", label: "Agents", href: buildHash("inventory"), screens: ["inventory"], count: r.agents.length, icon: "inventory" },
         // Declared Scope stays reachable at #/scope but is hidden from the sidebar for now.
-        { id: "risk", label: "Risk Dashboard", href: buildHash("findings"), screens: ["findings", "drift", "register"], count: findingCount + driftCount, icon: "risk" },
-        { id: "controls", label: "Controls & Safeguards", href: buildHash("controls"), screens: ["controls"], icon: "controls" },
-        { id: "loss", label: "Estimated Financial Loss", href: buildHash("loss"), screens: ["loss"], icon: "loss" },
-        { id: "insurance", label: "AI Risk Insurance", href: buildHash("evidence"), screens: ["evidence"], icon: "insurance" },
+        // The badge is the number that needs someone: high-severity findings, not the size of the list.
+        { id: "risk", label: "Findings", href: buildHash("findings"), screens: ["findings", "drift", "register"], alert: high ? `${high} high` : undefined, icon: "risk" },
+        { id: "controls", label: "Safeguards", href: buildHash("controls"), screens: ["controls"], icon: "controls" },
+        { id: "loss", label: "Financial Exposure", href: buildHash("loss"), screens: ["loss"], icon: "loss" },
+        { id: "insurance", label: "Insurance", href: buildHash("evidence"), screens: ["evidence"], icon: "insurance" },
       ],
     },
   ];
@@ -61,6 +63,7 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
                         <span className={active ? "text-gold" : "text-ink-muted"}><Glyph /></span>
                         <span className="flex-1">{item.label}</span>
                         {item.count !== undefined ? <span className="text-[11.5px] tabular-nums text-ink-muted">{item.count}</span> : null}
+                        {item.alert ? <span className="chip chip-high text-[10.5px] py-0">{item.alert}</span> : null}
                       </a>
                     </li>
                   );
@@ -82,6 +85,7 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
             <div className="caption flex flex-wrap items-center gap-x-2">
               <span>{head ? `committed ${formatDate(head.date)}` : "commit date unavailable"}</span>
               <span aria-hidden="true">·</span>
+              {sources.length ? <><span>{sources.join(", ")}</span><span aria-hidden="true">·</span></> : null}
               <span>{pluralize(r.summary.files_scanned, "file")} scanned</span>
             </div>
           </div>

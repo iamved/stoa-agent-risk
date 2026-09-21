@@ -229,7 +229,7 @@ test.describe("estate and risk model screens", () => {
     await expect(page.getByText("500 USD").first()).toBeVisible({ timeout: 30_000 });
     await page.goto(fileUrl("meridian-pay", "#/risk"));
     await expect(page.getByRole("tab", { name: /Findings/ })).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByRole("navigation", { name: "Screens" })).toContainText("AI Risk Insurance");
+    await expect(page.getByRole("navigation", { name: "Screens" })).toContainText("Insurance");
     await expect(page.getByRole("navigation", { name: "Screens" })).not.toContainText("Declared Scope");
   });
 });
