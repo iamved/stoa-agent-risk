@@ -16,6 +16,23 @@ test.describe("accessibility", () => {
     });
   }
 
+  test("no serious violations on the demo banner, an opened scan, and a refused file", async ({ page }) => {
+    const check = async () => {
+      const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+      const serious = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+      expect(serious.map((v) => `${v.id}: ${v.help} (${v.nodes.length})`)).toEqual([]);
+    };
+    await page.goto(pathToFileURL(dashboardPath("demo")).href);
+    await expect(page.getByText("Demo data for a fictional company")).toBeVisible();
+    await check();
+    await page.locator('input[type="file"]').first().setInputFiles(dashboardPath("meridian-pay").replace("meridian-pay.html", "first-run.json"));
+    await expect(page.getByText("Nothing was uploaded", { exact: false })).toBeVisible();
+    await check();
+    await page.locator('input[type="file"]').first().setInputFiles(dashboardPath("hostile").replace("hostile.html", "../../fixtures/meridian-pay.baseline.json"));
+    await expect(page.getByRole("alert")).toBeVisible();
+    await check();
+  });
+
   test("no serious violations with a finding drawer open", async ({ page }) => {
     await page.goto(pathToFileURL(dashboardPath("meridian-pay")).href + "#/findings");
     await page.getByRole("table", { name: "Findings" }).getByRole("row").nth(1).click();

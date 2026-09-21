@@ -248,3 +248,32 @@ test.describe("reviewer", () => {
     await expect(page.getByRole("button", { name: /Reviewing as Risk officer/ })).toBeVisible();
   });
 });
+
+test.describe("a customer's first scan", () => {
+  test("the assessment only answers what the scan evidences", async ({ page }) => {
+    await page.goto(fileUrl("first-run", "#/evidence"));
+    // A lone scan cannot show drift is tracked: the answer is left to confirm.
+    const drift = page.getByText("Drift mitigation", { exact: true }).locator("xpath=ancestor::*[contains(., 'To be confirmed')][1]");
+    await expect(drift).toContainText("no baseline or scan history yet");
+    await expect(page.getByText("in CI", { exact: false })).toHaveCount(0);
+    // Nothing from a demo applicant leaks into a customer's form. (The agents
+    // are named meridian-* because the fixture scans that example's code.)
+    for (const leaked of ["Meridian Pay", "Priya", "meridian.example", "Harbour Street", "XYZ Fin", "Jordan Rivera", "fraud-triage"]) {
+      await expect(page.getByText(leaked, { exact: false })).toHaveCount(0);
+    }
+    await expect(page.getByText("Acme Support").first()).toBeVisible();
+  });
+
+  test("the demo, which has a baseline, still shows drift as tracked", async ({ page }) => {
+    await page.goto(fileUrl("meridian-pay", "#/evidence"));
+    await expect(page.getByText("capability drift tracked via stoa diff")).toBeVisible();
+  });
+
+  test("with no agents there is no form to sign", async ({ page }) => {
+    await page.goto(fileUrl("no-agents", "#/evidence"));
+    await expect(page.getByRole("heading", { name: "No agents to assess" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Print and sign" })).toHaveCount(0);
+    await expect(page.getByText("Policy limit", { exact: false })).toHaveCount(0);
+    await expect(page.getByText("1 file scanned").first()).toBeVisible();
+  });
+});

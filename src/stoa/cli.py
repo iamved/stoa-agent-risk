@@ -66,6 +66,9 @@ def build_parser() -> argparse.ArgumentParser:
                       help="Self-contained dashboard path (default: stoa-dashboard.html)")
     scan.add_argument("--no-dashboard", action="store_true",
                       help="Do not write the dashboard")
+    scan.add_argument("--dashboard-json", metavar="PATH", default=None,
+                      help="Also write the dashboard's data as JSON, to open in a dashboard "
+                           "page you already have (it is read in the browser, never uploaded)")
     scan.add_argument("--open", action="store_true",
                       help="Open the dashboard in the default browser after the scan")
     scan.add_argument("--no-history", action="store_true",
@@ -138,6 +141,13 @@ def build_parser() -> argparse.ArgumentParser:
     dashboard.add_argument("--root", metavar="DIR", default=".",
                            help="Repository root holding .stoa/history/ (default: .)")
     dashboard.add_argument("--out", metavar="PATH", default="stoa-dashboard.html")
+    dashboard.add_argument("--json-out", metavar="PATH", default=None,
+                           help="Also write the dashboard's data as JSON, to open in a dashboard "
+                                "page you already have (it is read in the browser, never uploaded)")
+    dashboard.add_argument("--summary", action="store_true",
+                           help="Print the scan at a glance in the terminal as well")
+    dashboard.add_argument("--demo", action="store_true",
+                           help="Mark the page as demo data; it then offers to open a real scan")
     dashboard.add_argument("--open", action="store_true", help="Open in the default browser")
     dashboard.add_argument("--config", metavar="PATH", default=None)
     dashboard.add_argument("--taxonomy", metavar="PATH", default=None)
@@ -146,10 +156,12 @@ def build_parser() -> argparse.ArgumentParser:
                                 "(default: <root>/.stoa/underwriting.toml if present)")
 
     init = subparsers.add_parser("init", help="Generate integration files")
-    init.add_argument("target", choices=["github", "declarations", "runtime"],
+    init.add_argument("target", choices=["github", "declarations", "runtime", "underwriting"],
                       help="Integration to initialize. 'declarations' requires a prior "
                            "`stoa scan` — it stubs out stoa-declared.toml with real agent ids. "
-                           "'runtime' scaffolds [runtime] config + an instrumentation example.")
+                           "'runtime' scaffolds [runtime] config + an instrumentation example. "
+                           "'underwriting' scaffolds .stoa/underwriting.toml, the business facts "
+                           "behind the dashboard's insurance assessment and loss outlook.")
     init.add_argument("--force", action="store_true",
                       help="Overwrite existing files")
     init.add_argument("--registry", metavar="PATH", default="stoa-registry.json",
@@ -326,6 +338,9 @@ def _run_scan_command(args: argparse.Namespace) -> int:
     if args.quiet and args.verbose:
         print("stoa: --quiet and --verbose are mutually exclusive", file=sys.stderr)
         return EXIT_USAGE
+    if args.dashboard_json and args.no_dashboard:
+        print("stoa: --dashboard-json needs the dashboard; drop --no-dashboard", file=sys.stderr)
+        return EXIT_USAGE
 
     fail_on = args.fail_on
     if args.strict:
@@ -387,6 +402,7 @@ def _run_scan_command(args: argparse.Namespace) -> int:
         emit_annotations(result, sys.stdout)
 
     dashboard_path = None
+    envelope = None
     base_doc = None
     base_doc_resolved = False
     if not args.no_dashboard and config.dashboard_enabled:
@@ -395,7 +411,7 @@ def _run_scan_command(args: argparse.Namespace) -> int:
         if args.diff_against:
             base_doc = _scan_ref_registry(Path(args.path), args.diff_against, config)
             base_doc_resolved = True
-        dashboard_path = _write_scan_dashboard(
+        dashboard_path, envelope = _write_scan_dashboard(
             result, config, args, document, base_doc, root.resolve(),
         )
 
@@ -413,6 +429,11 @@ def _run_scan_command(args: argparse.Namespace) -> int:
     tripped = gate_findings(result, config)
     if not args.quiet:
         _print_scan_summary(result, args, json_path, html_path, dashboard_path)
+        if envelope is not None:
+            from .dashboard.terminal import render_overview
+            overview = render_overview(envelope, header=False, next_steps=not args.github_annotations)
+            if overview:
+                print("\n" + overview, end="")
     if dashboard_path is not None and args.open:
         _open_in_browser(dashboard_path)
     if tripped:
@@ -436,9 +457,11 @@ def _run_scan_command(args: argparse.Namespace) -> int:
 
 
 def _write_scan_dashboard(result, config, args, document, base_doc, root: Path):
-    """Write stoa-dashboard.html next to the registry; never fails the scan."""
+    """Write stoa-dashboard.html next to the registry; never fails the scan.
+
+    Returns ``(path, envelope)``; the path is None when the template is absent."""
     from .dashboard import build_envelope, load_history, record_history
-    from .dashboard.inject import write_dashboard
+    from .dashboard.inject import write_dashboard, write_dashboard_json
     from .dashboard.template import DashboardTemplateMissing
 
     diff = None
@@ -453,13 +476,15 @@ def _write_scan_dashboard(result, config, args, document, base_doc, root: Path):
         underwriting=_load_underwriting(root, args.underwriting_config),
         taxonomy_path=config.dimensions_taxonomy, crosswalk_path=config.crosswalk_path,
     )
+    if args.dashboard_json:
+        write_dashboard_json(envelope, Path(args.dashboard_json))
     path = Path(args.dashboard)
     try:
         write_dashboard(envelope, path)
     except DashboardTemplateMissing as exc:
         print(f"stoa: warning: dashboard skipped: {exc}", file=sys.stderr)
-        return None
-    return path
+        return None, envelope
+    return path, envelope
 
 
 def _load_underwriting(root: Path, explicit: str | None) -> dict | None:
@@ -487,7 +512,7 @@ def _open_in_browser(path: Path) -> None:
 def _run_dashboard_command(args: argparse.Namespace) -> int:
     """`stoa dashboard REGISTRY`: build the dashboard from an existing registry."""
     from .dashboard import build_envelope, load_history
-    from .dashboard.inject import is_envelope, write_dashboard
+    from .dashboard.inject import is_envelope, write_dashboard, write_dashboard_json
     from .dashboard.template import DashboardTemplateMissing
 
     input_path = Path(args.input)
@@ -531,6 +556,14 @@ def _run_dashboard_command(args: argparse.Namespace) -> int:
             crosswalk_path=config.crosswalk_path,
         )
 
+    if args.demo:
+        envelope = {**envelope, "demo": True}
+    if args.summary:
+        from .dashboard.terminal import render_overview
+        print(render_overview(envelope), end="")
+    if args.json_out:
+        write_dashboard_json(envelope, Path(args.json_out))
+        print(f"stoa: wrote {args.json_out}")
     out = Path(args.out)
     try:
         write_dashboard(envelope, out)
@@ -807,6 +840,22 @@ def _run_init_declarations(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _run_init_underwriting(args: argparse.Namespace) -> int:
+    target = Path(".stoa") / "underwriting.toml"
+    if target.exists() and not args.force:
+        print(f"skipped:     {target} (already exists; use --force to overwrite)")
+        return EXIT_OK
+    existed = target.exists()
+    content = (resources.files("stoa") / "templates" / "underwriting.toml").read_text(encoding="utf-8")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(content, encoding="utf-8")
+    print(f"{'overwritten:' if existed else 'created:    '} {target}")
+    print("\nEvery field is commented out, so nothing changes until you fill it in. "
+          "The next `stoa scan` picks the file up automatically. It is embedded in "
+          "stoa-dashboard.html, so keep it to facts you would share with a broker.")
+    return EXIT_OK
+
+
 def _print_scan_summary(
     result: ScanResult, args: argparse.Namespace, json_path: Path, html_path: Path,
     dashboard_path: Path | None = None,
@@ -850,6 +899,8 @@ def _run_init_command(args: argparse.Namespace) -> int:
         return _run_init_declarations(args)
     if args.target == "runtime":
         return _run_init_runtime(args)
+    if args.target == "underwriting":
+        return _run_init_underwriting(args)
     created: list[str] = []
     skipped: list[str] = []
     overwritten: list[str] = []

@@ -1,11 +1,20 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import type { Envelope } from "../data/types";
 import type { FrameworkId } from "../data/frameworks";
+import type { SchemaProblem } from "../data/schema";
 
 export { FRAMEWORKS } from "../data/frameworks";
 export type { FrameworkId } from "../data/frameworks";
 
-interface AppState {
+/** Opening a scan from the viewer's disk. `opened` is that file's name, or null for the embedded scan. */
+export interface ScanSource {
+  opened: string | null;
+  openScan: (file: File) => void;
+  openError: SchemaProblem | null;
+  clearOpenError: () => void;
+}
+
+interface AppState extends ScanSource {
   envelope: Envelope;
   framework: FrameworkId;
   setFramework: (id: FrameworkId) => void;
@@ -28,10 +37,11 @@ function writePref(id: FrameworkId): void {
   }
 }
 
-export function AppProvider({ envelope, children }: { envelope: Envelope; children: ReactNode }) {
+export function AppProvider({ envelope, source, children }: { envelope: Envelope; source: ScanSource; children: ReactNode }) {
   const [framework, setFrameworkState] = useState<FrameworkId>(readPref);
   const value = useMemo<AppState>(
     () => ({
+      ...source,
       envelope,
       framework,
       setFramework: (id) => {
@@ -39,7 +49,7 @@ export function AppProvider({ envelope, children }: { envelope: Envelope; childr
         setFrameworkState(id);
       },
     }),
-    [envelope, framework],
+    [envelope, framework, source],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

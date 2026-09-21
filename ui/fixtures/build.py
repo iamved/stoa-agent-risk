@@ -14,6 +14,10 @@ Outputs (all deterministic):
 * hostile.envelope.json       — head envelope with script-breaking strings
                                 planted in every user-derived field class
 * large.envelope.json         — head envelope inflated to 5,000 findings
+* first-run.envelope.json     — what a customer's first `stoa scan` gives: no
+                                stoa-declared.toml, no .stoa/underwriting.toml,
+                                no baseline, no history
+* no-agents.envelope.json     — a scan that finds no agent candidates at all
 """
 
 from __future__ import annotations
@@ -91,12 +95,28 @@ def _scan(root: Path) -> dict:
     return document
 
 
-def _stamp(registry: dict, which: str) -> dict:
+def _stamp(registry: dict, which: str, name: str = "meridian-pay") -> dict:
     hash_, date, ref = COMMITS[which]
     registry["repository"]["git_ref"] = hash_
     registry["repository"]["head_commit"] = {"hash": hash_, "date": date}
-    registry["repository"]["name"] = "meridian-pay"
+    registry["repository"]["name"] = name
     return registry
+
+
+def _first_run(tmp: Path) -> Path:
+    """The example as a customer first meets it: code only, nothing declared."""
+    root = tmp / "first-run"
+    shutil.copytree(EXAMPLE, root)
+    (root / "stoa-declared.toml").unlink()
+    shutil.rmtree(root / ".stoa")
+    return root
+
+
+def _no_agents(tmp: Path) -> Path:
+    root = tmp / "no-agents"
+    root.mkdir()
+    (root / "app.py").write_text("def add(a: int, b: int) -> int:\n    return a + b\n")
+    return root
 
 
 def _variant(tmp: Path, name: str, *, drop_tools: list[str], max_per_action: int | None) -> Path:
@@ -133,6 +153,10 @@ def build(out: Path = OUT) -> None:
         middle = _stamp(_scan(middle_root), "middle")
         head = _stamp(_scan(head_root), "head")
         underwriting = _load_underwriting(head_root, None)
+        first_run_root = _first_run(tmp)
+        first_run = _stamp(_scan(first_run_root), "head", "acme-support")
+        first_run_underwriting = _load_underwriting(first_run_root, None)
+        no_agents = _stamp(_scan(_no_agents(tmp)), "head", "acme-billing")
 
     diff = diff_registries(baseline, head)
     history = [entry_from_registry(r) for r in (baseline, middle, head)]
@@ -142,6 +166,8 @@ def build(out: Path = OUT) -> None:
     _write(out, "meridian-pay.envelope.json", envelope)
     _write(out, "hostile.envelope.json", _hostile(envelope))
     _write(out, "large.envelope.json", _large(envelope, 5000))
+    _write(out, "first-run.envelope.json", build_envelope(first_run, underwriting=first_run_underwriting))
+    _write(out, "no-agents.envelope.json", build_envelope(no_agents))
 
 
 def _hostile(envelope: dict) -> dict:

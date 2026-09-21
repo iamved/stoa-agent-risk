@@ -24,6 +24,11 @@ include_extensions = [
 ignore_paths = [
 ]
 
+# The name reports and the dashboard carry. Defaults to the origin remote's
+# name, then the directory; set it when scanning one service of a monorepo.
+# [repository]
+# name = "payments-service"
+
 # Override default severities per rule, e.g.:
 # [severity]
 # NET001 = "info"

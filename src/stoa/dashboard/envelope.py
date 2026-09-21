@@ -125,6 +125,9 @@ def build_envelope(
     assurance = build_assurance_packet(
         registry, git_sha=head.get("hash"), scan_timestamp=head.get("date"),
     )
+    # Reach is compared between scans only with a baseline diff or a history
+    # of earlier scans; the assessment claims drift mitigation on that alone.
+    drift_tracked = diff is not None or len(history or []) >= 2
     return {
         "schema": ENVELOPE_SCHEMA,
         "generator": {"name": "stoa", "version": __version__},
@@ -139,7 +142,7 @@ def build_envelope(
         # so the Inventory graph tab reuses that model rather than rebuilding it.
         "graph": to_json_dict(graph),
         "assurance": assurance,
-        "underwriting": derive_from_registry(registry),
+        "underwriting": derive_from_registry(registry, drift_tracked),
         # The pre-filled AI Model Risk Assessment (same facts as
         # `stoa export --underwriting`). `underwriting` may carry the
         # applicant's identity, performance metrics, and declared schedule.
@@ -148,6 +151,7 @@ def build_envelope(
             identity=(underwriting or {}).get("identity"),
             metrics=(underwriting or {}).get("metrics"),
             schedule=(underwriting or {}).get("schedule"),
+            drift_tracked=drift_tracked,
         ),
         # Business context for the loss outlook (revenue, sector, records,
         # existing policies). None without an [intake] block; the page then

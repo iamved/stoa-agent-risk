@@ -218,3 +218,48 @@ def test_scan_without_template_warns_and_still_succeeds(monkeypatch, tmp_path, c
     assert "dashboard skipped" in captured.err
     assert not (repo / "d.html").exists()
     assert "Reports: r.html, r.json" in captured.out
+
+
+# --- the dashboard's data as a file, for a page to open from disk -------------
+
+
+def test_dashboard_json_out_is_the_redacted_envelope_and_needs_no_template(monkeypatch, tmp_path, capsys):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv(TEMPLATE_ENV, str(tmp_path / "absent.html"))
+    env = _envelope()
+    env["registry"]["warnings"].append(f"leaked {fake_openai_key()}")
+    (tmp_path / "in.json").write_text(json.dumps(env), encoding="utf-8")
+    # No template in this checkout: the HTML fails cleanly, the JSON is still written.
+    assert main(["dashboard", "in.json", "--json-out", "data.json"]) == 3
+    written = (tmp_path / "data.json").read_text(encoding="utf-8")
+    assert fake_openai_key() not in written
+    data = json.loads(written)
+    assert data["schema"] == "stoa-dashboard/1.0" and "demo" not in data
+    assert data["registry"]["repository"]["name"] == "meridian-pay"
+
+
+def test_demo_flag_marks_the_page_and_nothing_else_does(fake_template, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    fixture = str(FIXTURES / "meridian-pay.envelope.json")
+    assert main(["dashboard", fixture, "--demo", "--out", "demo.html"]) == 0
+    assert main(["dashboard", fixture, "--out", "plain.html"]) == 0
+    assert '"demo":true' in (tmp_path / "demo.html").read_text(encoding="utf-8")
+    assert '"demo"' not in (tmp_path / "plain.html").read_text(encoding="utf-8")
+
+
+def test_scan_writes_dashboard_json(fake_template, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    example = str(REPO_ROOT / "examples" / "sparkwing")
+    assert main(["scan", example, "--no-git", "--quiet", "--dashboard-json", "data.json"]) in (0, 1)
+    data = json.loads((tmp_path / "data.json").read_text(encoding="utf-8"))
+    assert data["schema"] == "stoa-dashboard/1.0"
+    # A customer's scan is never marked as demo data.
+    assert "demo" not in data
+
+
+def test_dashboard_json_with_no_dashboard_is_a_usage_error(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    example = str(REPO_ROOT / "examples" / "sparkwing")
+    assert main(["scan", example, "--no-git", "--no-dashboard", "--dashboard-json", "data.json"]) == 2
+    assert "--dashboard-json" in capsys.readouterr().err
+    assert not (tmp_path / "data.json").exists()

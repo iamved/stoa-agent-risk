@@ -308,3 +308,73 @@ def test_export_assurance_missing_registry_is_usage_error(tmp_path, monkeypatch,
     code = main(["export", "does-not-exist.json", "--assurance"])
     assert code == 2
     assert "not found" in capsys.readouterr().err
+
+
+# --- stoa init underwriting ---------------------------------------------------
+
+
+def test_init_underwriting_scaffold_is_inert_until_filled_in(tmp_path, monkeypatch, capsys):
+    from stoa.cli import _load_underwriting
+
+    monkeypatch.chdir(tmp_path)
+    assert main(["init", "underwriting"]) == 0
+    assert "created:" in capsys.readouterr().out
+    # Every field ships commented out: the scaffold must parse, and must not
+    # put an invented company, metric or schedule into anyone's dashboard.
+    loaded = _load_underwriting(tmp_path, None)
+    assert loaded == {"identity": None, "metrics": None, "schedule": {}, "intake": None}
+
+
+def test_init_underwriting_fields_match_what_the_loaders_read():
+    """Uncommenting the scaffold must yield only keys the loaders accept."""
+    from importlib import resources
+
+    from stoa.config import tomllib
+    from stoa.underwriting import _IDENTITY_KEYS, _INTAKE_KEYS, _SCHEDULE_KEYS
+
+    text = (resources.files("stoa") / "templates" / "underwriting.toml").read_text(encoding="utf-8")
+    live = "\n".join(
+        line[2:] if line.startswith("# ") and ("=" in line or line.startswith("# [")) else ""
+        for line in text.splitlines()
+    )
+    data = tomllib.loads(live)
+    assert set(data["identity"]) == set(_IDENTITY_KEYS)
+    assert set(data["schedule"]) == set(_SCHEDULE_KEYS)
+    assert set(data["intake"]) - {"existing_coverage"} == set(_INTAKE_KEYS)
+    assert set(data["intake"]["existing_coverage"][0]) == {"type", "limit", "ai_exclusion"}
+    assert set(data["performance"][0]) == {"metric", "value", "cadence"}
+
+
+def test_init_underwriting_protects_existing_file(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    target = tmp_path / ".stoa" / "underwriting.toml"
+    target.parent.mkdir()
+    target.write_text('[identity]\ncompany = "Real Co"\n', encoding="utf-8")
+    assert main(["init", "underwriting"]) == 0
+    assert "skipped:" in capsys.readouterr().out
+    assert "Real Co" in target.read_text(encoding="utf-8")
+    assert main(["init", "underwriting", "--force"]) == 0
+    assert "overwritten:" in capsys.readouterr().out
+    assert "Real Co" not in target.read_text(encoding="utf-8")
+
+
+# --- [repository] name ----------------------------------------------------------
+
+
+def test_repository_name_override(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    config = tmp_path / "stoa.toml"
+    config.write_text('[repository]\nname = "payments-service"\n', encoding="utf-8")
+    main(["scan", str(EXAMPLE_REPO), "--no-git", "--config", str(config),
+          "--no-dashboard", "--json", "reg.json", "--html", "out.html", "--quiet"])
+    registry = json.loads((tmp_path / "reg.json").read_text(encoding="utf-8"))
+    assert registry["repository"]["name"] == "payments-service"
+
+
+def test_repository_name_must_be_a_non_empty_string(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    config = tmp_path / "stoa.toml"
+    config.write_text('[repository]\nname = "  "\n', encoding="utf-8")
+    code = main(["scan", str(EXAMPLE_REPO), "--no-git", "--config", str(config), "--no-dashboard"])
+    assert code == 2
+    assert "[repository] name" in capsys.readouterr().err

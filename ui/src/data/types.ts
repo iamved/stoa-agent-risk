@@ -503,6 +503,8 @@ export interface IntakeBlock {
 
 export interface Envelope {
   schema: string;
+  /** Set by `stoa dashboard --demo`: the page says so and offers to open a real scan. */
+  demo?: boolean;
   generator: { name: string; version: string };
   registry: Registry;
   diff: DiffDocument | null;

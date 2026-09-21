@@ -93,8 +93,26 @@ browser test fails on any network request.
 
 ```bash
 stoa dashboard stoa-registry.json --baseline previous-registry.json --open
+stoa dashboard stoa-registry.json --summary   # the scan at a glance, in the terminal
 stoa scan . --no-dashboard          # registry and legacy report only
 ```
+
+`stoa scan` also prints the scan at a glance: dimensions above low exposure,
+the top findings, and what to set up next. `--quiet` suppresses it.
+
+To look at your scan in a dashboard page you already have open, such as the
+[hosted demo](https://stoa-agent-risk.dev/dashboard), write the data out and
+open it there. The page reads the file in your browser; it has no way to
+upload it.
+
+```bash
+stoa scan . --dashboard-json stoa-dashboard.json
+```
+
+The scan cannot see your business. `stoa init underwriting` scaffolds
+`.stoa/underwriting.toml` for the facts the insurance assessment and loss
+outlook need: who is applying, measured model performance, revenue, sector
+and records held. Until you fill it in, those fields read "to confirm".
 
 ## GitHub Actions
 
@@ -117,6 +135,7 @@ overwrite):
 ```bash
 stoa scan [PATH]
   --dashboard PATH          dashboard (default stoa-dashboard.html); --no-dashboard to skip
+  --dashboard-json PATH     also write the dashboard's data as JSON, to open in a dashboard page
   --open                    open the dashboard in the default browser
   --no-history              do not record this scan under .stoa/history/
   --html PATH               legacy summary report (default stoa-report.html)

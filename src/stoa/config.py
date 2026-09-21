@@ -92,6 +92,9 @@ class StoaConfig:
     # [dashboard] — the self-contained dashboard written next to the registry.
     dashboard_enabled: bool = True
     dashboard_history_keep: int = 10   # entries retained under .stoa/history/
+    # [repository] name — overrides the name taken from the origin remote or
+    # the directory, for a service scanned out of a monorepo subdirectory.
+    repository_name: str | None = None
 
     def rule_enabled(self, rule_id: str) -> bool:
         return self.enabled_rules.get(rule_id, True)
@@ -202,6 +205,13 @@ def load_config(root: Path, config_path: Path | None = None) -> StoaConfig:
         if not isinstance(keep, int) or isinstance(keep, bool) or keep < 0:
             raise ConfigError("[dashboard] history_keep must be a non-negative integer")
         config.dashboard_history_keep = keep
+
+    repository = data.get("repository", {})
+    if "name" in repository:
+        name = repository["name"]
+        if not isinstance(name, str) or not name.strip():
+            raise ConfigError("[repository] name must be a non-empty string")
+        config.repository_name = name.strip()
 
     runtime = data.get("runtime", {})
     if runtime:

@@ -11,7 +11,7 @@
       "version": "0.7.4"
     },
     "repository": {
-      "name": "meridian-pay",
+      "name": "acme-support",
       "root": ".",
       "git_ref": "e4f5a6b",
       "base_ref": null,
@@ -26,9 +26,9 @@
       "high_confidence_candidates": 8,
       "integrations": 3,
       "findings": {
-        "critical": 3,
+        "critical": 0,
         "high": 1,
-        "medium": 9,
+        "medium": 0,
         "low": 4,
         "info": 8
       },
@@ -103,40 +103,8 @@
         "last_touched_by": null,
         "last_commit": null,
         "codeowners": [],
-        "findings": [
-          {
-            "fingerprint": "8c5349504645220c",
-            "rule_id": "DECL001",
-            "title": "Declared autonomy contradicts inferred autonomy",
-            "category": "contradiction",
-            "severity": "critical",
-            "confidence": "high",
-            "path": "aws/agents.tf",
-            "line": 30,
-            "column": 1,
-            "snippet": "autonomy_intent='human_approved' vs inferred='unrestricted_autonomous'",
-            "remediation": "This agent was declared recommend-only or human-approved, but the scanner found a side-effecting path with no correlated approval gate. Either add the missing approval control, or correct the declaration.",
-            "suppressed": false,
-            "suppression_reason": null,
-            "is_new": false,
-            "dimensions": [
-              "mandate-overreach",
-              "unreviewed-high-impact-action"
-            ],
-            "message": "Agent `aws_bedrockagent_agent.account_actions` is declared `human_approved`, but the scanner inferred `unrestricted_autonomous` from a side-effecting path with no correlated approval gate. Either the declaration is stale, or the approval control is missing.",
-            "declared_ref": {
-              "path": "stoa-declared.toml",
-              "key": "agents.\"9299e5cfdb41\".autonomy_intent"
-            },
-            "crosswalk": {
-              "owasp_llm_2025": "LLM06",
-              "eu_ai_act": "Art. 14",
-              "relation": "exposure",
-              "so_what": "Declared autonomy does not match what the code does."
-            }
-          }
-        ],
-        "highest_severity": "critical",
+        "findings": [],
+        "highest_severity": null,
         "dimension_assessment": {
           "taxonomy": {
             "id": "stoa-aiuc-8",
@@ -147,18 +115,16 @@
               "id": "mandate-overreach",
               "group": "B",
               "assessability": "strong",
-              "exposure": "elevated",
-              "score": 76,
-              "score_before_controls": 76,
-              "contributing_findings": [
-                "8c5349504645220c"
-              ],
+              "exposure": "moderate",
+              "score": 36,
+              "score_before_controls": 36,
+              "contributing_findings": [],
               "contributing_capabilities": [
                 "database_write",
                 "email_send"
               ],
               "controls_observed": [],
-              "statement": "1 finding(s) and 2 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+              "statement": "0 finding(s) and 2 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
             },
             {
               "id": "boundary-leakage",
@@ -176,18 +142,16 @@
               "id": "unreviewed-high-impact-action",
               "group": "C",
               "assessability": "strong",
-              "exposure": "elevated",
-              "score": 76,
-              "score_before_controls": 76,
-              "contributing_findings": [
-                "8c5349504645220c"
-              ],
+              "exposure": "moderate",
+              "score": 36,
+              "score_before_controls": 36,
+              "contributing_findings": [],
               "contributing_capabilities": [
                 "database_write",
                 "email_send"
               ],
               "controls_observed": [],
-              "statement": "1 finding(s) and 2 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+              "statement": "0 finding(s) and 2 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
             },
             {
               "id": "output-fidelity",
@@ -251,19 +215,6 @@
               "controls_observed": [],
               "statement": "No exposure observed in scanned files."
             }
-          ]
-        },
-        "declared": {
-          "name": "meridian-account-actions",
-          "owner": "digital-servicing@meridian.example",
-          "purpose": "Account actions on Bedrock",
-          "users": "customers",
-          "geography": [],
-          "production_status": "production",
-          "autonomy_intent": "human_approved",
-          "data_classes": [
-            "personal",
-            "financial"
           ]
         },
         "autonomy_level": {
@@ -467,39 +418,8 @@
         "last_touched_by": null,
         "last_commit": null,
         "codeowners": [],
-        "findings": [
-          {
-            "fingerprint": "fcd727c03ca82d60",
-            "rule_id": "DECL006",
-            "title": "Scanned agent has no declaration entry",
-            "category": "contradiction",
-            "severity": "medium",
-            "confidence": "high",
-            "path": "aws/agents.tf",
-            "line": 24,
-            "column": 1,
-            "snippet": "no declaration entry for `aws_bedrockagent_agent.escalation`",
-            "remediation": "stoa-declared.toml exists but doesn't mention this agent. Add an [agents.\"<id>\"] entry, even a partial one.",
-            "suppressed": false,
-            "suppression_reason": null,
-            "is_new": false,
-            "dimensions": [
-              "control-coverage-gap"
-            ],
-            "message": "stoa-declared.toml exists but has no [agents.\"2f7906aae143\"] entry for `aws_bedrockagent_agent.escalation`.",
-            "declared_ref": {
-              "path": "stoa-declared.toml",
-              "key": "agents.\"2f7906aae143\""
-            },
-            "crosswalk": {
-              "owasp_llm_2025": null,
-              "eu_ai_act": "Art. 11",
-              "relation": "exposure",
-              "so_what": "The agent is not declared at all."
-            }
-          }
-        ],
-        "highest_severity": "medium",
+        "findings": [],
+        "highest_severity": null,
         "dimension_assessment": {
           "taxonomy": {
             "id": "stoa-aiuc-8",
@@ -596,15 +516,13 @@
               "id": "control-coverage-gap",
               "group": "B",
               "assessability": "partial",
-              "exposure": "low",
-              "score": 12,
-              "score_before_controls": 12,
-              "contributing_findings": [
-                "fcd727c03ca82d60"
-              ],
+              "exposure": "none-observed",
+              "score": 0,
+              "score_before_controls": 0,
+              "contributing_findings": [],
               "contributing_capabilities": [],
               "controls_observed": [],
-              "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+              "statement": "No exposure observed in scanned files."
             }
           ]
         },
@@ -662,39 +580,8 @@
         "last_touched_by": null,
         "last_commit": null,
         "codeowners": [],
-        "findings": [
-          {
-            "fingerprint": "a62c7e34462e12df",
-            "rule_id": "DECL006",
-            "title": "Scanned agent has no declaration entry",
-            "category": "contradiction",
-            "severity": "medium",
-            "confidence": "high",
-            "path": "aws/agents.tf",
-            "line": 1,
-            "column": 1,
-            "snippet": "no declaration entry for `aws_bedrockagent_agent.front`",
-            "remediation": "stoa-declared.toml exists but doesn't mention this agent. Add an [agents.\"<id>\"] entry, even a partial one.",
-            "suppressed": false,
-            "suppression_reason": null,
-            "is_new": false,
-            "dimensions": [
-              "control-coverage-gap"
-            ],
-            "message": "stoa-declared.toml exists but has no [agents.\"2237fe0c16d2\"] entry for `aws_bedrockagent_agent.front`.",
-            "declared_ref": {
-              "path": "stoa-declared.toml",
-              "key": "agents.\"2237fe0c16d2\""
-            },
-            "crosswalk": {
-              "owasp_llm_2025": null,
-              "eu_ai_act": "Art. 11",
-              "relation": "exposure",
-              "so_what": "The agent is not declared at all."
-            }
-          }
-        ],
-        "highest_severity": "medium",
+        "findings": [],
+        "highest_severity": null,
         "dimension_assessment": {
           "taxonomy": {
             "id": "stoa-aiuc-8",
@@ -795,10 +682,8 @@
               "assessability": "partial",
               "exposure": "none-observed",
               "score": 0,
-              "score_before_controls": 12,
-              "contributing_findings": [
-                "a62c7e34462e12df"
-              ],
+              "score_before_controls": 0,
+              "contributing_findings": [],
               "contributing_capabilities": [],
               "controls_observed": [
                 "validation"
@@ -863,39 +748,8 @@
         "last_touched_by": null,
         "last_commit": null,
         "codeowners": [],
-        "findings": [
-          {
-            "fingerprint": "ae36794fd240d96e",
-            "rule_id": "DECL006",
-            "title": "Scanned agent has no declaration entry",
-            "category": "contradiction",
-            "severity": "medium",
-            "confidence": "high",
-            "path": "aws/agents.tf",
-            "line": 18,
-            "column": 1,
-            "snippet": "no declaration entry for `aws_bedrockagent_agent.knowledge`",
-            "remediation": "stoa-declared.toml exists but doesn't mention this agent. Add an [agents.\"<id>\"] entry, even a partial one.",
-            "suppressed": false,
-            "suppression_reason": null,
-            "is_new": false,
-            "dimensions": [
-              "control-coverage-gap"
-            ],
-            "message": "stoa-declared.toml exists but has no [agents.\"62007a57a832\"] entry for `aws_bedrockagent_agent.knowledge`.",
-            "declared_ref": {
-              "path": "stoa-declared.toml",
-              "key": "agents.\"62007a57a832\""
-            },
-            "crosswalk": {
-              "owasp_llm_2025": null,
-              "eu_ai_act": "Art. 11",
-              "relation": "exposure",
-              "so_what": "The agent is not declared at all."
-            }
-          }
-        ],
-        "highest_severity": "medium",
+        "findings": [],
+        "highest_severity": null,
         "dimension_assessment": {
           "taxonomy": {
             "id": "stoa-aiuc-8",
@@ -994,15 +848,13 @@
               "id": "control-coverage-gap",
               "group": "B",
               "assessability": "partial",
-              "exposure": "low",
-              "score": 12,
-              "score_before_controls": 12,
-              "contributing_findings": [
-                "ae36794fd240d96e"
-              ],
+              "exposure": "none-observed",
+              "score": 0,
+              "score_before_controls": 0,
+              "contributing_findings": [],
               "contributing_capabilities": [],
               "controls_observed": [],
-              "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+              "statement": "No exposure observed in scanned files."
             }
           ]
         },
@@ -1130,37 +982,6 @@
             }
           },
           {
-            "fingerprint": "a2f94531c7770b68",
-            "rule_id": "DECL001",
-            "title": "Declared autonomy contradicts inferred autonomy",
-            "category": "contradiction",
-            "severity": "critical",
-            "confidence": "high",
-            "path": "code/tools/account_tools.py",
-            "line": 17,
-            "column": 1,
-            "snippet": "autonomy_intent='human_approved' vs inferred='unrestricted_autonomous'",
-            "remediation": "This agent was declared recommend-only or human-approved, but the scanner found a side-effecting path with no correlated approval gate. Either add the missing approval control, or correct the declaration.",
-            "suppressed": false,
-            "suppression_reason": null,
-            "is_new": false,
-            "dimensions": [
-              "mandate-overreach",
-              "unreviewed-high-impact-action"
-            ],
-            "message": "Agent `graph` is declared `human_approved`, but the scanner inferred `unrestricted_autonomous` from a side-effecting path with no correlated approval gate. Either the declaration is stale, or the approval control is missing.",
-            "declared_ref": {
-              "path": "stoa-declared.toml",
-              "key": "agents.\"b8f0111742fc\".autonomy_intent"
-            },
-            "crosswalk": {
-              "owasp_llm_2025": "LLM06",
-              "eu_ai_act": "Art. 14",
-              "relation": "exposure",
-              "so_what": "Declared autonomy does not match what the code does."
-            }
-          },
-          {
             "fingerprint": "9d9a33f2fd7ff254",
             "rule_id": "CTRL004",
             "title": "Observability construct not observed for agent tool execution",
@@ -1217,39 +1038,9 @@
               "relation": "exposure",
               "so_what": "No kill-switch signal was observed to halt the agent mid-run."
             }
-          },
-          {
-            "fingerprint": "1b5760feca23bde6",
-            "rule_id": "DECL005",
-            "title": "Production agent has no observability observed",
-            "category": "contradiction",
-            "severity": "medium",
-            "confidence": "high",
-            "path": "code/agents/account_actions_agent.py",
-            "line": 21,
-            "column": 1,
-            "snippet": "production_status=production for `graph`, CTRL004 fired",
-            "remediation": "This agent is declared production_status = \"production\", but no observability construct was observed (CTRL004). Add logging or tracing before relying on this in production.",
-            "suppressed": false,
-            "suppression_reason": null,
-            "is_new": false,
-            "dimensions": [
-              "control-coverage-gap"
-            ],
-            "message": "Agent `graph` is declared production, but no observability construct was observed (CTRL004).",
-            "declared_ref": {
-              "path": "stoa-declared.toml",
-              "key": "agents.\"b8f0111742fc\".production_status"
-            },
-            "crosswalk": {
-              "owasp_llm_2025": "LLM10",
-              "eu_ai_act": "Art. 12",
-              "relation": "exposure",
-              "so_what": "The agent runs in production with no observability observed."
-            }
           }
         ],
-        "highest_severity": "critical",
+        "highest_severity": "high",
         "dimension_assessment": {
           "taxonomy": {
             "id": "stoa-aiuc-8",
@@ -1260,17 +1051,15 @@
               "id": "mandate-overreach",
               "group": "B",
               "assessability": "strong",
-              "exposure": "elevated",
-              "score": 58,
-              "score_before_controls": 58,
-              "contributing_findings": [
-                "a2f94531c7770b68"
-              ],
+              "exposure": "low",
+              "score": 18,
+              "score_before_controls": 18,
+              "contributing_findings": [],
               "contributing_capabilities": [
                 "payment_access"
               ],
               "controls_observed": [],
-              "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+              "statement": "0 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
             },
             {
               "id": "boundary-leakage",
@@ -1288,12 +1077,11 @@
               "id": "unreviewed-high-impact-action",
               "group": "C",
               "assessability": "strong",
-              "exposure": "moderate",
-              "score": 53,
-              "score_before_controls": 73,
+              "exposure": "low",
+              "score": 13,
+              "score_before_controls": 33,
               "contributing_findings": [
-                "AI008-c0e7b0d45a69",
-                "a2f94531c7770b68"
+                "AI008-c0e7b0d45a69"
               ],
               "contributing_capabilities": [
                 "payment_access"
@@ -1301,7 +1089,7 @@
               "controls_observed": [
                 "authentication"
               ],
-              "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; 1 mitigating control(s) observed."
+              "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; 1 mitigating control(s) observed."
             },
             {
               "id": "output-fidelity",
@@ -1367,9 +1155,8 @@
               "assessability": "partial",
               "exposure": "none-observed",
               "score": 0,
-              "score_before_controls": 28,
+              "score_before_controls": 16,
               "contributing_findings": [
-                "1b5760feca23bde6",
                 "77d4c36eaa0b4850",
                 "AI008-c0e7b0d45a69",
                 "CTRL004-9d9a33f2fd7f"
@@ -1382,33 +1169,6 @@
               "statement": "No exposure observed; controls observed: authentication, validation."
             }
           ]
-        },
-        "declared": {
-          "name": "account-actions",
-          "owner": "digital-servicing@meridian.example",
-          "purpose": "Issues refunds, waives fees, updates contact details, reissues cards",
-          "users": "customers",
-          "geography": [],
-          "production_status": "production",
-          "autonomy_intent": "human_approved",
-          "data_classes": [
-            "personal",
-            "financial"
-          ],
-          "economic_authority": {
-            "max_per_action": {
-              "amount": 500,
-              "currency": "USD"
-            },
-            "daily_aggregate": {
-              "amount": 25000,
-              "currency": "USD"
-            },
-            "worst_case_customer_loss": {
-              "amount": 250000,
-              "currency": "USD"
-            }
-          }
         },
         "autonomy_level": {
           "level": "unrestricted_autonomous",
@@ -1712,39 +1472,9 @@
               "relation": "exposure",
               "so_what": "No kill-switch signal was observed to halt the agent mid-run."
             }
-          },
-          {
-            "fingerprint": "3d972dea9961b5e1",
-            "rule_id": "DECL006",
-            "title": "Scanned agent has no declaration entry",
-            "category": "contradiction",
-            "severity": "medium",
-            "confidence": "high",
-            "path": "code/agents/escalation_agent.py",
-            "line": 13,
-            "column": 1,
-            "snippet": "no declaration entry for `graph`",
-            "remediation": "stoa-declared.toml exists but doesn't mention this agent. Add an [agents.\"<id>\"] entry, even a partial one.",
-            "suppressed": false,
-            "suppression_reason": null,
-            "is_new": false,
-            "dimensions": [
-              "control-coverage-gap"
-            ],
-            "message": "stoa-declared.toml exists but has no [agents.\"a24a49aaf9ec\"] entry for `graph`.",
-            "declared_ref": {
-              "path": "stoa-declared.toml",
-              "key": "agents.\"a24a49aaf9ec\""
-            },
-            "crosswalk": {
-              "owasp_llm_2025": null,
-              "eu_ai_act": "Art. 11",
-              "relation": "exposure",
-              "so_what": "The agent is not declared at all."
-            }
           }
         ],
-        "highest_severity": "medium",
+        "highest_severity": "low",
         "dimension_assessment": {
           "taxonomy": {
             "id": "stoa-aiuc-8",
@@ -1848,15 +1578,14 @@
               "group": "B",
               "assessability": "partial",
               "exposure": "low",
-              "score": 13,
-              "score_before_controls": 13,
+              "score": 1,
+              "score_before_controls": 1,
               "contributing_findings": [
-                "3d972dea9961b5e1",
                 "7f49f045b1421c52"
               ],
               "contributing_capabilities": [],
               "controls_observed": [],
-              "statement": "2 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+              "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
             }
           ]
         },
@@ -1962,39 +1691,9 @@
               "relation": "exposure",
               "so_what": "No kill-switch signal was observed to halt the agent mid-run."
             }
-          },
-          {
-            "fingerprint": "1b89568505354454",
-            "rule_id": "DECL006",
-            "title": "Scanned agent has no declaration entry",
-            "category": "contradiction",
-            "severity": "medium",
-            "confidence": "high",
-            "path": "code/agents/front_agent.py",
-            "line": 24,
-            "column": 1,
-            "snippet": "no declaration entry for `graph`",
-            "remediation": "stoa-declared.toml exists but doesn't mention this agent. Add an [agents.\"<id>\"] entry, even a partial one.",
-            "suppressed": false,
-            "suppression_reason": null,
-            "is_new": false,
-            "dimensions": [
-              "control-coverage-gap"
-            ],
-            "message": "stoa-declared.toml exists but has no [agents.\"2a61ffb1db0d\"] entry for `graph`.",
-            "declared_ref": {
-              "path": "stoa-declared.toml",
-              "key": "agents.\"2a61ffb1db0d\""
-            },
-            "crosswalk": {
-              "owasp_llm_2025": null,
-              "eu_ai_act": "Art. 11",
-              "relation": "exposure",
-              "so_what": "The agent is not declared at all."
-            }
           }
         ],
-        "highest_severity": "medium",
+        "highest_severity": "low",
         "dimension_assessment": {
           "taxonomy": {
             "id": "stoa-aiuc-8",
@@ -2103,9 +1802,8 @@
               "assessability": "partial",
               "exposure": "none-observed",
               "score": 0,
-              "score_before_controls": 13,
+              "score_before_controls": 1,
               "contributing_findings": [
-                "1b89568505354454",
                 "d373f238bf601384"
               ],
               "contributing_capabilities": [],
@@ -2243,39 +1941,9 @@
               "relation": "exposure",
               "so_what": "No kill-switch signal was observed to halt the agent mid-run."
             }
-          },
-          {
-            "fingerprint": "7b594b7fb163b884",
-            "rule_id": "DECL006",
-            "title": "Scanned agent has no declaration entry",
-            "category": "contradiction",
-            "severity": "medium",
-            "confidence": "high",
-            "path": "code/agents/knowledge_agent.py",
-            "line": 14,
-            "column": 1,
-            "snippet": "no declaration entry for `graph`",
-            "remediation": "stoa-declared.toml exists but doesn't mention this agent. Add an [agents.\"<id>\"] entry, even a partial one.",
-            "suppressed": false,
-            "suppression_reason": null,
-            "is_new": false,
-            "dimensions": [
-              "control-coverage-gap"
-            ],
-            "message": "stoa-declared.toml exists but has no [agents.\"0d380d199726\"] entry for `graph`.",
-            "declared_ref": {
-              "path": "stoa-declared.toml",
-              "key": "agents.\"0d380d199726\""
-            },
-            "crosswalk": {
-              "owasp_llm_2025": null,
-              "eu_ai_act": "Art. 11",
-              "relation": "exposure",
-              "so_what": "The agent is not declared at all."
-            }
           }
         ],
-        "highest_severity": "medium",
+        "highest_severity": "low",
         "dimension_assessment": {
           "taxonomy": {
             "id": "stoa-aiuc-8",
@@ -2379,15 +2047,14 @@
               "group": "B",
               "assessability": "partial",
               "exposure": "low",
-              "score": 13,
-              "score_before_controls": 13,
+              "score": 1,
+              "score_before_controls": 1,
               "contributing_findings": [
-                "0410b64895326df5",
-                "7b594b7fb163b884"
+                "0410b64895326df5"
               ],
               "contributing_capabilities": [],
               "controls_observed": [],
-              "statement": "2 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+              "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
             }
           ]
         },
@@ -2449,37 +2116,6 @@
         "last_commit": null,
         "codeowners": [],
         "findings": [
-          {
-            "fingerprint": "63f34061611d296e",
-            "rule_id": "DECL001",
-            "title": "Declared autonomy contradicts inferred autonomy",
-            "category": "contradiction",
-            "severity": "critical",
-            "confidence": "high",
-            "path": "databricks/agents/support_agent.py",
-            "line": 8,
-            "column": 1,
-            "snippet": "autonomy_intent='human_approved' vs inferred='unrestricted_autonomous'",
-            "remediation": "This agent was declared recommend-only or human-approved, but the scanner found a side-effecting path with no correlated approval gate. Either add the missing approval control, or correct the declaration.",
-            "suppressed": false,
-            "suppression_reason": null,
-            "is_new": false,
-            "dimensions": [
-              "mandate-overreach",
-              "unreviewed-high-impact-action"
-            ],
-            "message": "Agent `agent` is declared `human_approved`, but the scanner inferred `unrestricted_autonomous` from a side-effecting path with no correlated approval gate. Either the declaration is stale, or the approval control is missing.",
-            "declared_ref": {
-              "path": "stoa-declared.toml",
-              "key": "agents.\"f18cfdb42fdb\".autonomy_intent"
-            },
-            "crosswalk": {
-              "owasp_llm_2025": "LLM06",
-              "eu_ai_act": "Art. 14",
-              "relation": "exposure",
-              "so_what": "Declared autonomy does not match what the code does."
-            }
-          },
           {
             "fingerprint": "a7b54d2969fae20a",
             "rule_id": "AI003",
@@ -2570,39 +2206,9 @@
               "relation": "exposure",
               "so_what": "No kill-switch signal was observed to halt the agent mid-run."
             }
-          },
-          {
-            "fingerprint": "d0e8de5e1857a9c4",
-            "rule_id": "DECL005",
-            "title": "Production agent has no observability observed",
-            "category": "contradiction",
-            "severity": "medium",
-            "confidence": "high",
-            "path": "databricks/agents/support_agent.py",
-            "line": 11,
-            "column": 1,
-            "snippet": "production_status=production for `agent`, CTRL004 fired",
-            "remediation": "This agent is declared production_status = \"production\", but no observability construct was observed (CTRL004). Add logging or tracing before relying on this in production.",
-            "suppressed": false,
-            "suppression_reason": null,
-            "is_new": false,
-            "dimensions": [
-              "control-coverage-gap"
-            ],
-            "message": "Agent `agent` is declared production, but no observability construct was observed (CTRL004).",
-            "declared_ref": {
-              "path": "stoa-declared.toml",
-              "key": "agents.\"f18cfdb42fdb\".production_status"
-            },
-            "crosswalk": {
-              "owasp_llm_2025": "LLM10",
-              "eu_ai_act": "Art. 12",
-              "relation": "exposure",
-              "so_what": "The agent runs in production with no observability observed."
-            }
           }
         ],
-        "highest_severity": "critical",
+        "highest_severity": "info",
         "dimension_assessment": {
           "taxonomy": {
             "id": "stoa-aiuc-8",
@@ -2613,18 +2219,17 @@
               "id": "mandate-overreach",
               "group": "B",
               "assessability": "strong",
-              "exposure": "elevated",
-              "score": 59,
-              "score_before_controls": 59,
+              "exposure": "low",
+              "score": 19,
+              "score_before_controls": 19,
               "contributing_findings": [
-                "63f34061611d296e",
                 "AI003-a7b54d2969fa"
               ],
               "contributing_capabilities": [
                 "payment_access"
               ],
               "controls_observed": [],
-              "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+              "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
             },
             {
               "id": "boundary-leakage",
@@ -2642,18 +2247,17 @@
               "id": "unreviewed-high-impact-action",
               "group": "C",
               "assessability": "strong",
-              "exposure": "elevated",
-              "score": 59,
-              "score_before_controls": 59,
+              "exposure": "low",
+              "score": 19,
+              "score_before_controls": 19,
               "contributing_findings": [
-                "63f34061611d296e",
                 "AI003-a7b54d2969fa"
               ],
               "contributing_capabilities": [
                 "payment_access"
               ],
               "controls_observed": [],
-              "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+              "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
             },
             {
               "id": "output-fidelity",
@@ -2710,30 +2314,16 @@
               "group": "B",
               "assessability": "partial",
               "exposure": "low",
-              "score": 13,
-              "score_before_controls": 13,
+              "score": 1,
+              "score_before_controls": 1,
               "contributing_findings": [
                 "CTRL004-6551846329bb",
-                "d0e8de5e1857a9c4",
                 "e3117cb28c88af28"
               ],
               "contributing_capabilities": [],
               "controls_observed": [],
-              "statement": "3 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+              "statement": "2 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
             }
-          ]
-        },
-        "declared": {
-          "name": "meridian-support (Databricks)",
-          "owner": "digital-servicing@meridian.example",
-          "purpose": "Support agent on Databricks Mosaic AI Agent Framework",
-          "users": "customers",
-          "geography": [],
-          "production_status": "production",
-          "autonomy_intent": "human_approved",
-          "data_classes": [
-            "personal",
-            "financial"
           ]
         },
         "autonomy_level": {
@@ -3039,19 +2629,6 @@
             }
           ]
         },
-        "declared": {
-          "name": "meridian-support-chat",
-          "owner": "digital-servicing@meridian.example",
-          "purpose": "Support agent on Databricks",
-          "users": "customers",
-          "geography": [],
-          "production_status": "production",
-          "autonomy_intent": "human_approved",
-          "data_classes": [
-            "personal",
-            "financial"
-          ]
-        },
         "autonomy_level": {
           "level": "recommend_only",
           "signals": [],
@@ -3101,39 +2678,8 @@
         "last_touched_by": null,
         "last_commit": null,
         "codeowners": [],
-        "findings": [
-          {
-            "fingerprint": "3c2deeda81af8d23",
-            "rule_id": "DECL006",
-            "title": "Scanned agent has no declaration entry",
-            "category": "contradiction",
-            "severity": "medium",
-            "confidence": "high",
-            "path": "databricks/infra/main.tf",
-            "line": 13,
-            "column": 1,
-            "snippet": "no declaration entry for `databricks_model_serving.support_ivr`",
-            "remediation": "stoa-declared.toml exists but doesn't mention this agent. Add an [agents.\"<id>\"] entry, even a partial one.",
-            "suppressed": false,
-            "suppression_reason": null,
-            "is_new": false,
-            "dimensions": [
-              "control-coverage-gap"
-            ],
-            "message": "stoa-declared.toml exists but has no [agents.\"6142266e32cb\"] entry for `databricks_model_serving.support_ivr`.",
-            "declared_ref": {
-              "path": "stoa-declared.toml",
-              "key": "agents.\"6142266e32cb\""
-            },
-            "crosswalk": {
-              "owasp_llm_2025": null,
-              "eu_ai_act": "Art. 11",
-              "relation": "exposure",
-              "so_what": "The agent is not declared at all."
-            }
-          }
-        ],
-        "highest_severity": "medium",
+        "findings": [],
+        "highest_severity": null,
         "dimension_assessment": {
           "taxonomy": {
             "id": "stoa-aiuc-8",
@@ -3232,15 +2778,13 @@
               "id": "control-coverage-gap",
               "group": "B",
               "assessability": "partial",
-              "exposure": "low",
-              "score": 12,
-              "score_before_controls": 12,
-              "contributing_findings": [
-                "3c2deeda81af8d23"
-              ],
+              "exposure": "none-observed",
+              "score": 0,
+              "score_before_controls": 0,
+              "contributing_findings": [],
               "contributing_capabilities": [],
               "controls_observed": [],
-              "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+              "statement": "No exposure observed in scanned files."
             }
           ]
         },
@@ -3291,43 +2835,10 @@
           "relation": "exposure",
           "so_what": "A retried money action with no idempotency key can post twice, and each attempt stays under the per-call limit."
         }
-      },
-      {
-        "fingerprint": "a2f94531c7770b68",
-        "rule_id": "DECL001",
-        "title": "Declared autonomy contradicts inferred autonomy",
-        "category": "contradiction",
-        "severity": "critical",
-        "confidence": "high",
-        "path": "code/tools/account_tools.py",
-        "line": 17,
-        "column": 1,
-        "snippet": "autonomy_intent='human_approved' vs inferred='unrestricted_autonomous'",
-        "remediation": "This agent was declared recommend-only or human-approved, but the scanner found a side-effecting path with no correlated approval gate. Either add the missing approval control, or correct the declaration.",
-        "suppressed": false,
-        "suppression_reason": null,
-        "is_new": false,
-        "dimensions": [
-          "mandate-overreach",
-          "unreviewed-high-impact-action"
-        ],
-        "message": "Agent `graph` is declared `human_approved`, but the scanner inferred `unrestricted_autonomous` from a side-effecting path with no correlated approval gate. Either the declaration is stale, or the approval control is missing.",
-        "declared_ref": {
-          "path": "stoa-declared.toml",
-          "key": "agents.\"b8f0111742fc\".autonomy_intent"
-        },
-        "crosswalk": {
-          "owasp_llm_2025": "LLM06",
-          "eu_ai_act": "Art. 14",
-          "relation": "exposure",
-          "so_what": "Declared autonomy does not match what the code does."
-        }
       }
     ],
     "skipped_files": [],
-    "warnings": [
-      "stoa-declared.toml: risk_register entry 'boundary-leakage/000000000000' names an agent id not found in this scan"
-    ],
+    "warnings": [],
     "dimension_summary": {
       "taxonomy": {
         "id": "stoa-aiuc-8",
@@ -3339,9 +2850,9 @@
           "name": "Mandate overreach",
           "group": "B",
           "assessability": "strong",
-          "max_exposure": "elevated",
-          "agents_elevated": 3,
-          "agents_moderate": 0,
+          "max_exposure": "moderate",
+          "agents_elevated": 0,
+          "agents_moderate": 1,
           "crosswalk": {
             "owasp_llm_2025": [
               "LLM06"
@@ -3369,8 +2880,8 @@
           "name": "Unreviewed high-impact action",
           "group": "C",
           "assessability": "strong",
-          "max_exposure": "elevated",
-          "agents_elevated": 2,
+          "max_exposure": "moderate",
+          "agents_elevated": 0,
           "agents_moderate": 1,
           "crosswalk": {
             "owasp_llm_2025": [
@@ -3452,11 +2963,9 @@
           "agents_moderate": 0,
           "crosswalk": {
             "owasp_llm_2025": [
-              "LLM06",
-              "LLM10"
+              "LLM06"
             ],
             "eu_ai_act": [
-              "Art. 11",
               "Art. 12",
               "Art. 14",
               "Art. 9"
@@ -3465,40 +2974,6 @@
         }
       ]
     },
-    "business": {
-      "industries": [
-        "financial_services"
-      ],
-      "regulated_activities": [
-        "payments",
-        "consumer_banking"
-      ],
-      "max_customer_dependency": "high"
-    },
-    "risk_register": [
-      {
-        "risk_id": "unreviewed-high-impact-action/b8f0111742fc",
-        "owner": "digital-servicing@meridian.example",
-        "treatment": "mitigate",
-        "rationale": "Dual approval on issue_refund and change_payout_account being added in Q4",
-        "review_by": "2026-12-01",
-        "status": "in_progress"
-      },
-      {
-        "risk_id": "mandate-overreach/f18cfdb42fdb",
-        "owner": "platform-risk@meridian.example",
-        "treatment": "transfer",
-        "rationale": "Covered under the AI liability submission; evidence pack prepared from this scan",
-        "review_by": "2026-11-15",
-        "status": "open"
-      },
-      {
-        "risk_id": "boundary-leakage/000000000000",
-        "owner": "someone@meridian.example",
-        "treatment": "accept",
-        "rationale": "Stale: this agent was removed two releases ago"
-      }
-    ],
     "crosswalk": {
       "id": "stoa-crosswalk-1",
       "version": "1.0",
@@ -3506,326 +2981,9 @@
       "eu_ai_act_reference": "Regulation (EU) 2024/1689 (EU AI Act)"
     }
   },
-  "diff": {
-    "schema": "stoa-diff/1.0",
-    "scanner_version": "0.7.4",
-    "base": {
-      "registry_schema": "1.8",
-      "commit": "a1b2c3d",
-      "ref": null
-    },
-    "head": {
-      "registry_schema": "1.8",
-      "commit": "e4f5a6b",
-      "ref": "HEAD"
-    },
-    "summary": {
-      "agents_added": 0,
-      "agents_removed": 0,
-      "agents_changed": 1,
-      "escalations": {
-        "high": 1,
-        "medium": 0,
-        "low": 0
-      },
-      "reductions": 0,
-      "findings_delta": {
-        "new_critical": 1,
-        "new_high": 1,
-        "resolved": 0
-      },
-      "max_drift_severity": "high",
-      "unapproved_max_drift_severity": "high",
-      "approvals_applied": 0
-    },
-    "agents": {
-      "added": [],
-      "removed": [],
-      "changed": [
-        {
-          "agent_id": "b8f0111742fc",
-          "name": "graph",
-          "path": "code/agents/account_actions_agent.py",
-          "confidence": {
-            "base": "high",
-            "head": "high"
-          },
-          "capabilities": {
-            "added": [
-              {
-                "id": "payment_access",
-                "high_impact": true,
-                "drift_severity": "high",
-                "approved": false
-              }
-            ],
-            "removed": []
-          },
-          "integrations": {
-            "added": [],
-            "removed": []
-          },
-          "providers": {
-            "added": [],
-            "removed": []
-          },
-          "findings_delta": {
-            "new": [
-              {
-                "fingerprint": "c0e7b0d45a6967b7",
-                "rule_id": "AI008",
-                "severity": "high",
-                "line": 17
-              },
-              {
-                "fingerprint": "a2f94531c7770b68",
-                "rule_id": "DECL001",
-                "severity": "critical",
-                "line": 17
-              }
-            ],
-            "resolved": []
-          },
-          "dimension_delta": [
-            {
-              "id": "mandate-overreach",
-              "from": "none-observed",
-              "to": "elevated",
-              "direction": "increased"
-            },
-            {
-              "id": "unreviewed-high-impact-action",
-              "from": "none-observed",
-              "to": "moderate",
-              "direction": "increased"
-            }
-          ],
-          "drift_severity": "high"
-        }
-      ]
-    },
-    "approvals": {
-      "applied": [],
-      "stale": [],
-      "file": null
-    }
-  },
-  "baseline": {
-    "name": "meridian-pay",
-    "git_ref": "a1b2c3d",
-    "head_commit": {
-      "hash": "a1b2c3d",
-      "date": "2026-07-21T09:12:44+00:00"
-    },
-    "scanner_version": "0.7.4",
-    "schema_version": "1.8"
-  },
-  "history": [
-    {
-      "schema": "stoa-history-entry/1.0",
-      "git_ref": "a1b2c3d",
-      "head_commit": {
-        "hash": "a1b2c3d",
-        "date": "2026-07-21T09:12:44+00:00"
-      },
-      "scanner_version": "0.7.4",
-      "registry_schema_version": "1.8",
-      "agent_candidates": 11,
-      "findings": {
-        "critical": 2,
-        "high": 0,
-        "medium": 9,
-        "low": 4,
-        "info": 8
-      },
-      "dimensions": [
-        {
-          "id": "mandate-overreach",
-          "max_exposure": "elevated",
-          "agents_elevated": 2,
-          "agents_moderate": 0
-        },
-        {
-          "id": "boundary-leakage",
-          "max_exposure": "low",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        },
-        {
-          "id": "unreviewed-high-impact-action",
-          "max_exposure": "elevated",
-          "agents_elevated": 2,
-          "agents_moderate": 0
-        },
-        {
-          "id": "output-fidelity",
-          "max_exposure": "none-observed",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        },
-        {
-          "id": "injection-tamper-surface",
-          "max_exposure": "low",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        },
-        {
-          "id": "conduct-variability",
-          "max_exposure": "low",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        },
-        {
-          "id": "dependency-drift",
-          "max_exposure": "low",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        },
-        {
-          "id": "control-coverage-gap",
-          "max_exposure": "low",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        }
-      ]
-    },
-    {
-      "schema": "stoa-history-entry/1.0",
-      "git_ref": "b7c8d9e",
-      "head_commit": {
-        "hash": "b7c8d9e",
-        "date": "2026-08-18T14:03:10+00:00"
-      },
-      "scanner_version": "0.7.4",
-      "registry_schema_version": "1.8",
-      "agent_candidates": 11,
-      "findings": {
-        "critical": 3,
-        "high": 1,
-        "medium": 9,
-        "low": 4,
-        "info": 8
-      },
-      "dimensions": [
-        {
-          "id": "mandate-overreach",
-          "max_exposure": "elevated",
-          "agents_elevated": 3,
-          "agents_moderate": 0
-        },
-        {
-          "id": "boundary-leakage",
-          "max_exposure": "low",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        },
-        {
-          "id": "unreviewed-high-impact-action",
-          "max_exposure": "elevated",
-          "agents_elevated": 2,
-          "agents_moderate": 1
-        },
-        {
-          "id": "output-fidelity",
-          "max_exposure": "none-observed",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        },
-        {
-          "id": "injection-tamper-surface",
-          "max_exposure": "low",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        },
-        {
-          "id": "conduct-variability",
-          "max_exposure": "low",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        },
-        {
-          "id": "dependency-drift",
-          "max_exposure": "low",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        },
-        {
-          "id": "control-coverage-gap",
-          "max_exposure": "low",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        }
-      ]
-    },
-    {
-      "schema": "stoa-history-entry/1.0",
-      "git_ref": "e4f5a6b",
-      "head_commit": {
-        "hash": "e4f5a6b",
-        "date": "2026-09-15T16:45:02+00:00"
-      },
-      "scanner_version": "0.7.4",
-      "registry_schema_version": "1.8",
-      "agent_candidates": 11,
-      "findings": {
-        "critical": 3,
-        "high": 1,
-        "medium": 9,
-        "low": 4,
-        "info": 8
-      },
-      "dimensions": [
-        {
-          "id": "mandate-overreach",
-          "max_exposure": "elevated",
-          "agents_elevated": 3,
-          "agents_moderate": 0
-        },
-        {
-          "id": "boundary-leakage",
-          "max_exposure": "low",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        },
-        {
-          "id": "unreviewed-high-impact-action",
-          "max_exposure": "elevated",
-          "agents_elevated": 2,
-          "agents_moderate": 1
-        },
-        {
-          "id": "output-fidelity",
-          "max_exposure": "none-observed",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        },
-        {
-          "id": "injection-tamper-surface",
-          "max_exposure": "low",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        },
-        {
-          "id": "conduct-variability",
-          "max_exposure": "low",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        },
-        {
-          "id": "dependency-drift",
-          "max_exposure": "low",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        },
-        {
-          "id": "control-coverage-gap",
-          "max_exposure": "low",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        }
-      ]
-    }
-  ],
+  "diff": null,
+  "baseline": null,
+  "history": [],
   "register": [
     {
       "risk_id": "mandate-overreach/9299e5cfdb41",
@@ -3838,89 +2996,21 @@
       "agent_name": "meridian-account-actions",
       "agent_path": "aws/agents.tf",
       "inherent": {
-        "score": 76,
-        "level": "elevated"
+        "score": 36,
+        "level": "moderate"
       },
       "residual": {
-        "score": 76,
-        "level": "elevated"
+        "score": 36,
+        "level": "moderate"
       },
       "controls_observed": [],
-      "contributing_findings": [
-        "8c5349504645220c"
-      ],
+      "contributing_findings": [],
       "contributing_capabilities": [
         "database_write",
         "email_send"
       ],
-      "statement": "1 finding(s) and 2 capability signal(s) contribute exposure; no mitigating control observed in scanned files.",
+      "statement": "0 finding(s) and 2 capability signal(s) contribute exposure; no mitigating control observed in scanned files.",
       "declared": null,
-      "unmatched": false
-    },
-    {
-      "risk_id": "mandate-overreach/b8f0111742fc",
-      "source": "scanned",
-      "dimension_id": "mandate-overreach",
-      "dimension_name": "Mandate overreach",
-      "group": "B",
-      "assessability": "strong",
-      "agent_id": "b8f0111742fc",
-      "agent_name": "account_actions_agent·graph",
-      "agent_path": "code/agents/account_actions_agent.py",
-      "inherent": {
-        "score": 58,
-        "level": "elevated"
-      },
-      "residual": {
-        "score": 58,
-        "level": "elevated"
-      },
-      "controls_observed": [],
-      "contributing_findings": [
-        "a2f94531c7770b68"
-      ],
-      "contributing_capabilities": [
-        "payment_access"
-      ],
-      "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files.",
-      "declared": null,
-      "unmatched": false
-    },
-    {
-      "risk_id": "mandate-overreach/f18cfdb42fdb",
-      "source": "scanned",
-      "dimension_id": "mandate-overreach",
-      "dimension_name": "Mandate overreach",
-      "group": "B",
-      "assessability": "strong",
-      "agent_id": "f18cfdb42fdb",
-      "agent_name": "support_agent·agent",
-      "agent_path": "databricks/agents/support_agent.py",
-      "inherent": {
-        "score": 59,
-        "level": "elevated"
-      },
-      "residual": {
-        "score": 59,
-        "level": "elevated"
-      },
-      "controls_observed": [],
-      "contributing_findings": [
-        "63f34061611d296e",
-        "AI003-a7b54d2969fa"
-      ],
-      "contributing_capabilities": [
-        "payment_access"
-      ],
-      "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files.",
-      "declared": {
-        "risk_id": "mandate-overreach/f18cfdb42fdb",
-        "owner": "platform-risk@meridian.example",
-        "treatment": "transfer",
-        "rationale": "Covered under the AI liability submission; evidence pack prepared from this scan",
-        "review_by": "2026-11-15",
-        "status": "open"
-      },
       "unmatched": false
     },
     {
@@ -3934,117 +3024,22 @@
       "agent_name": "meridian-account-actions",
       "agent_path": "aws/agents.tf",
       "inherent": {
-        "score": 76,
-        "level": "elevated"
+        "score": 36,
+        "level": "moderate"
       },
       "residual": {
-        "score": 76,
-        "level": "elevated"
+        "score": 36,
+        "level": "moderate"
       },
       "controls_observed": [],
-      "contributing_findings": [
-        "8c5349504645220c"
-      ],
+      "contributing_findings": [],
       "contributing_capabilities": [
         "database_write",
         "email_send"
       ],
-      "statement": "1 finding(s) and 2 capability signal(s) contribute exposure; no mitigating control observed in scanned files.",
+      "statement": "0 finding(s) and 2 capability signal(s) contribute exposure; no mitigating control observed in scanned files.",
       "declared": null,
       "unmatched": false
-    },
-    {
-      "risk_id": "unreviewed-high-impact-action/f18cfdb42fdb",
-      "source": "scanned",
-      "dimension_id": "unreviewed-high-impact-action",
-      "dimension_name": "Unreviewed high-impact action",
-      "group": "C",
-      "assessability": "strong",
-      "agent_id": "f18cfdb42fdb",
-      "agent_name": "support_agent·agent",
-      "agent_path": "databricks/agents/support_agent.py",
-      "inherent": {
-        "score": 59,
-        "level": "elevated"
-      },
-      "residual": {
-        "score": 59,
-        "level": "elevated"
-      },
-      "controls_observed": [],
-      "contributing_findings": [
-        "63f34061611d296e",
-        "AI003-a7b54d2969fa"
-      ],
-      "contributing_capabilities": [
-        "payment_access"
-      ],
-      "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files.",
-      "declared": null,
-      "unmatched": false
-    },
-    {
-      "risk_id": "unreviewed-high-impact-action/b8f0111742fc",
-      "source": "scanned",
-      "dimension_id": "unreviewed-high-impact-action",
-      "dimension_name": "Unreviewed high-impact action",
-      "group": "C",
-      "assessability": "strong",
-      "agent_id": "b8f0111742fc",
-      "agent_name": "account_actions_agent·graph",
-      "agent_path": "code/agents/account_actions_agent.py",
-      "inherent": {
-        "score": 73,
-        "level": "elevated"
-      },
-      "residual": {
-        "score": 53,
-        "level": "moderate"
-      },
-      "controls_observed": [
-        "authentication"
-      ],
-      "contributing_findings": [
-        "AI008-c0e7b0d45a69",
-        "a2f94531c7770b68"
-      ],
-      "contributing_capabilities": [
-        "payment_access"
-      ],
-      "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; 1 mitigating control(s) observed.",
-      "declared": {
-        "risk_id": "unreviewed-high-impact-action/b8f0111742fc",
-        "owner": "digital-servicing@meridian.example",
-        "treatment": "mitigate",
-        "rationale": "Dual approval on issue_refund and change_payout_account being added in Q4",
-        "review_by": "2026-12-01",
-        "status": "in_progress"
-      },
-      "unmatched": false
-    },
-    {
-      "risk_id": "boundary-leakage/000000000000",
-      "source": "declared",
-      "dimension_id": "boundary-leakage",
-      "dimension_name": "Boundary leakage",
-      "group": "",
-      "assessability": "",
-      "agent_id": "000000000000",
-      "agent_name": null,
-      "agent_path": null,
-      "inherent": null,
-      "residual": null,
-      "controls_observed": [],
-      "contributing_findings": [],
-      "contributing_capabilities": [],
-      "statement": "Declared, but no scored exposure at moderate or above matches this risk id in the current scan.",
-      "declared": {
-        "risk_id": "boundary-leakage/000000000000",
-        "owner": "someone@meridian.example",
-        "treatment": "accept",
-        "rationale": "Stale: this agent was removed two releases ago"
-      },
-      "unmatched": true
     }
   ],
   "graph": {
@@ -4061,9 +3056,9 @@
           "injection-tamper-surface": 0,
           "conduct-variability": 0,
           "dependency-drift": 10,
-          "control-coverage-gap": 13
+          "control-coverage-gap": 1
         },
-        "display_severity": "medium",
+        "display_severity": "low",
         "path": "code/agents/knowledge_agent.py",
         "symbol": "graph",
         "autonomy_level": "recommend_only",
@@ -4081,13 +3076,6 @@
             "path": "code/agents/knowledge_agent.py",
             "line": 14,
             "message": "No kill-switch signal observed on the agent's entry path (code/agents/knowledge_agent.py:14). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
-          },
-          {
-            "rule_id": "DECL006",
-            "severity": "medium",
-            "path": "code/agents/knowledge_agent.py",
-            "line": 14,
-            "message": "stoa-declared.toml exists but has no [agents.\"0d380d199726\"] entry for `graph`."
           }
         ]
       },
@@ -4105,19 +3093,11 @@
           "dependency-drift": 8,
           "control-coverage-gap": 0
         },
-        "display_severity": "medium",
+        "display_severity": null,
         "path": "aws/agents.tf",
         "symbol": "aws_bedrockagent_agent.front",
         "autonomy_level": "recommend_only",
-        "findings": [
-          {
-            "rule_id": "DECL006",
-            "severity": "medium",
-            "path": "aws/agents.tf",
-            "line": 1,
-            "message": "stoa-declared.toml exists but has no [agents.\"2237fe0c16d2\"] entry for `aws_bedrockagent_agent.front`."
-          }
-        ]
+        "findings": []
       },
       {
         "id": "2a61ffb1db0d",
@@ -4133,7 +3113,7 @@
           "dependency-drift": 10,
           "control-coverage-gap": 0
         },
-        "display_severity": "medium",
+        "display_severity": "low",
         "path": "code/agents/front_agent.py",
         "symbol": "graph",
         "autonomy_level": "recommend_only",
@@ -4151,13 +3131,6 @@
             "path": "code/agents/front_agent.py",
             "line": 24,
             "message": "No kill-switch signal observed on the agent's entry path (code/agents/front_agent.py:24). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
-          },
-          {
-            "rule_id": "DECL006",
-            "severity": "medium",
-            "path": "code/agents/front_agent.py",
-            "line": 24,
-            "message": "stoa-declared.toml exists but has no [agents.\"2a61ffb1db0d\"] entry for `graph`."
           }
         ]
       },
@@ -4173,21 +3146,13 @@
           "injection-tamper-surface": 0,
           "conduct-variability": 0,
           "dependency-drift": 8,
-          "control-coverage-gap": 12
+          "control-coverage-gap": 0
         },
-        "display_severity": "medium",
+        "display_severity": null,
         "path": "aws/agents.tf",
         "symbol": "aws_bedrockagent_agent.escalation",
         "autonomy_level": "recommend_only",
-        "findings": [
-          {
-            "rule_id": "DECL006",
-            "severity": "medium",
-            "path": "aws/agents.tf",
-            "line": 24,
-            "message": "stoa-declared.toml exists but has no [agents.\"2f7906aae143\"] entry for `aws_bedrockagent_agent.escalation`."
-          }
-        ]
+        "findings": []
       },
       {
         "id": "3af3aebaa6f7",
@@ -4221,21 +3186,13 @@
           "injection-tamper-surface": 0,
           "conduct-variability": 0,
           "dependency-drift": 0,
-          "control-coverage-gap": 12
+          "control-coverage-gap": 0
         },
-        "display_severity": "medium",
+        "display_severity": null,
         "path": "databricks/infra/main.tf",
         "symbol": "databricks_model_serving.support_ivr",
         "autonomy_level": "recommend_only",
-        "findings": [
-          {
-            "rule_id": "DECL006",
-            "severity": "medium",
-            "path": "databricks/infra/main.tf",
-            "line": 13,
-            "message": "stoa-declared.toml exists but has no [agents.\"6142266e32cb\"] entry for `databricks_model_serving.support_ivr`."
-          }
-        ]
+        "findings": []
       },
       {
         "id": "62007a57a832",
@@ -4249,49 +3206,33 @@
           "injection-tamper-surface": 18,
           "conduct-variability": 0,
           "dependency-drift": 8,
-          "control-coverage-gap": 12
+          "control-coverage-gap": 0
         },
-        "display_severity": "medium",
+        "display_severity": null,
         "path": "aws/agents.tf",
         "symbol": "aws_bedrockagent_agent.knowledge",
         "autonomy_level": "recommend_only",
-        "findings": [
-          {
-            "rule_id": "DECL006",
-            "severity": "medium",
-            "path": "aws/agents.tf",
-            "line": 18,
-            "message": "stoa-declared.toml exists but has no [agents.\"62007a57a832\"] entry for `aws_bedrockagent_agent.knowledge`."
-          }
-        ]
+        "findings": []
       },
       {
         "id": "9299e5cfdb41",
         "type": "agent",
         "label": "meridian-account-actions",
         "dimension_scores": {
-          "mandate-overreach": 76,
+          "mandate-overreach": 36,
           "boundary-leakage": 0,
-          "unreviewed-high-impact-action": 76,
+          "unreviewed-high-impact-action": 36,
           "output-fidelity": 0,
           "injection-tamper-surface": 0,
           "conduct-variability": 0,
           "dependency-drift": 8,
           "control-coverage-gap": 0
         },
-        "display_severity": "critical",
+        "display_severity": null,
         "path": "aws/agents.tf",
         "symbol": "aws_bedrockagent_agent.account_actions",
         "autonomy_level": "unrestricted_autonomous",
-        "findings": [
-          {
-            "rule_id": "DECL001",
-            "severity": "critical",
-            "path": "aws/agents.tf",
-            "line": 30,
-            "message": "Agent `aws_bedrockagent_agent.account_actions` is declared `human_approved`, but the scanner inferred `unrestricted_autonomous` from a side-effecting path with no correlated approval gate. Either the declaration is stale, or the approval control is missing."
-          }
-        ]
+        "findings": []
       },
       {
         "id": "a24a49aaf9ec",
@@ -4305,9 +3246,9 @@
           "injection-tamper-surface": 0,
           "conduct-variability": 2,
           "dependency-drift": 10,
-          "control-coverage-gap": 13
+          "control-coverage-gap": 1
         },
-        "display_severity": "medium",
+        "display_severity": "low",
         "path": "code/agents/escalation_agent.py",
         "symbol": "graph",
         "autonomy_level": "recommend_only",
@@ -4325,13 +3266,6 @@
             "path": "code/agents/escalation_agent.py",
             "line": 13,
             "message": "No kill-switch signal observed on the agent's entry path (code/agents/escalation_agent.py:13). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
-          },
-          {
-            "rule_id": "DECL006",
-            "severity": "medium",
-            "path": "code/agents/escalation_agent.py",
-            "line": 13,
-            "message": "stoa-declared.toml exists but has no [agents.\"a24a49aaf9ec\"] entry for `graph`."
           }
         ]
       },
@@ -4340,16 +3274,16 @@
         "type": "agent",
         "label": "graph",
         "dimension_scores": {
-          "mandate-overreach": 58,
+          "mandate-overreach": 18,
           "boundary-leakage": 0,
-          "unreviewed-high-impact-action": 53,
+          "unreviewed-high-impact-action": 13,
           "output-fidelity": 0,
           "injection-tamper-surface": 0,
           "conduct-variability": 0,
           "dependency-drift": 10,
           "control-coverage-gap": 0
         },
-        "display_severity": "critical",
+        "display_severity": "high",
         "path": "code/agents/account_actions_agent.py",
         "symbol": "graph",
         "autonomy_level": "unrestricted_autonomous",
@@ -4369,13 +3303,6 @@
             "message": "`issue_refund` posts a money action and is retried on failure (retry (via _post_refund)); no idempotency key or dedupe check was observed. A timeout after the upstream commits will post it again, and each attempt is checked against the per-call limit on its own."
           },
           {
-            "rule_id": "DECL001",
-            "severity": "critical",
-            "path": "code/tools/account_tools.py",
-            "line": 17,
-            "message": "Agent `graph` is declared `human_approved`, but the scanner inferred `unrestricted_autonomous` from a side-effecting path with no correlated approval gate. Either the declaration is stale, or the approval control is missing."
-          },
-          {
             "rule_id": "CTRL004",
             "severity": "info",
             "path": "code/agents/account_actions_agent.py",
@@ -4388,13 +3315,6 @@
             "path": "code/agents/account_actions_agent.py",
             "line": 21,
             "message": "No kill-switch signal observed on the agent's entry path (code/agents/account_actions_agent.py:21). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
-          },
-          {
-            "rule_id": "DECL005",
-            "severity": "medium",
-            "path": "code/agents/account_actions_agent.py",
-            "line": 21,
-            "message": "Agent `graph` is declared production, but no observability construct was observed (CTRL004)."
           }
         ]
       },
@@ -4403,27 +3323,20 @@
         "type": "agent",
         "label": "agent",
         "dimension_scores": {
-          "mandate-overreach": 59,
+          "mandate-overreach": 19,
           "boundary-leakage": 0,
-          "unreviewed-high-impact-action": 59,
+          "unreviewed-high-impact-action": 19,
           "output-fidelity": 0,
           "injection-tamper-surface": 0,
           "conduct-variability": 0,
           "dependency-drift": 8,
-          "control-coverage-gap": 13
+          "control-coverage-gap": 1
         },
-        "display_severity": "critical",
+        "display_severity": "info",
         "path": "databricks/agents/support_agent.py",
         "symbol": "agent",
         "autonomy_level": "unrestricted_autonomous",
         "findings": [
-          {
-            "rule_id": "DECL001",
-            "severity": "critical",
-            "path": "databricks/agents/support_agent.py",
-            "line": 8,
-            "message": "Agent `agent` is declared `human_approved`, but the scanner inferred `unrestricted_autonomous` from a side-effecting path with no correlated approval gate. Either the declaration is stale, or the approval control is missing."
-          },
           {
             "rule_id": "AI003",
             "severity": "info",
@@ -4444,13 +3357,6 @@
             "path": "databricks/agents/support_agent.py",
             "line": 11,
             "message": "No kill-switch signal observed on the agent's entry path (databricks/agents/support_agent.py:11). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only."
-          },
-          {
-            "rule_id": "DECL005",
-            "severity": "medium",
-            "path": "databricks/agents/support_agent.py",
-            "line": 11,
-            "message": "Agent `agent` is declared production, but no observability construct was observed (CTRL004)."
           }
         ]
       },
@@ -4912,179 +3818,22 @@
   "assurance": {
     "schema": "assurance-packet/1.2",
     "header": {
-      "repository": "meridian-pay",
+      "repository": "acme-support",
       "git_sha": "e4f5a6b",
       "scan_timestamp": "2026-09-15T16:45:02+00:00",
       "stoa_version": "0.7.4",
       "registry_schema_version": "1.8",
       "agent_count": 11,
       "findings_by_severity": {
-        "critical": 3,
+        "critical": 0,
         "high": 1,
-        "medium": 9,
+        "medium": 0,
         "low": 4,
         "info": 8
       },
-      "contradiction_count": 13
+      "contradiction_count": 0
     },
-    "contradictions": [
-      {
-        "rule_id": "DECL001",
-        "severity": "critical",
-        "title": "Declared autonomy contradicts inferred autonomy",
-        "path": "aws/agents.tf",
-        "line": 30,
-        "declared_ref": {
-          "path": "stoa-declared.toml",
-          "key": "agents.\"9299e5cfdb41\".autonomy_intent"
-        },
-        "message": "Agent `aws_bedrockagent_agent.account_actions` is declared `human_approved`, but the scanner inferred `unrestricted_autonomous` from a side-effecting path with no correlated approval gate. Either the declaration is stale, or the approval control is missing."
-      },
-      {
-        "rule_id": "DECL001",
-        "severity": "critical",
-        "title": "Declared autonomy contradicts inferred autonomy",
-        "path": "code/tools/account_tools.py",
-        "line": 17,
-        "declared_ref": {
-          "path": "stoa-declared.toml",
-          "key": "agents.\"b8f0111742fc\".autonomy_intent"
-        },
-        "message": "Agent `graph` is declared `human_approved`, but the scanner inferred `unrestricted_autonomous` from a side-effecting path with no correlated approval gate. Either the declaration is stale, or the approval control is missing."
-      },
-      {
-        "rule_id": "DECL001",
-        "severity": "critical",
-        "title": "Declared autonomy contradicts inferred autonomy",
-        "path": "code/tools/account_tools.py",
-        "line": 17,
-        "declared_ref": {
-          "path": "stoa-declared.toml",
-          "key": "agents.\"b8f0111742fc\".autonomy_intent"
-        },
-        "message": "Agent `graph` is declared `human_approved`, but the scanner inferred `unrestricted_autonomous` from a side-effecting path with no correlated approval gate. Either the declaration is stale, or the approval control is missing."
-      },
-      {
-        "rule_id": "DECL001",
-        "severity": "critical",
-        "title": "Declared autonomy contradicts inferred autonomy",
-        "path": "databricks/agents/support_agent.py",
-        "line": 8,
-        "declared_ref": {
-          "path": "stoa-declared.toml",
-          "key": "agents.\"f18cfdb42fdb\".autonomy_intent"
-        },
-        "message": "Agent `agent` is declared `human_approved`, but the scanner inferred `unrestricted_autonomous` from a side-effecting path with no correlated approval gate. Either the declaration is stale, or the approval control is missing."
-      },
-      {
-        "rule_id": "DECL005",
-        "severity": "medium",
-        "title": "Production agent has no observability observed",
-        "path": "code/agents/account_actions_agent.py",
-        "line": 21,
-        "declared_ref": {
-          "path": "stoa-declared.toml",
-          "key": "agents.\"b8f0111742fc\".production_status"
-        },
-        "message": "Agent `graph` is declared production, but no observability construct was observed (CTRL004)."
-      },
-      {
-        "rule_id": "DECL005",
-        "severity": "medium",
-        "title": "Production agent has no observability observed",
-        "path": "databricks/agents/support_agent.py",
-        "line": 11,
-        "declared_ref": {
-          "path": "stoa-declared.toml",
-          "key": "agents.\"f18cfdb42fdb\".production_status"
-        },
-        "message": "Agent `agent` is declared production, but no observability construct was observed (CTRL004)."
-      },
-      {
-        "rule_id": "DECL006",
-        "severity": "medium",
-        "title": "Scanned agent has no declaration entry",
-        "path": "aws/agents.tf",
-        "line": 1,
-        "declared_ref": {
-          "path": "stoa-declared.toml",
-          "key": "agents.\"2237fe0c16d2\""
-        },
-        "message": "stoa-declared.toml exists but has no [agents.\"2237fe0c16d2\"] entry for `aws_bedrockagent_agent.front`."
-      },
-      {
-        "rule_id": "DECL006",
-        "severity": "medium",
-        "title": "Scanned agent has no declaration entry",
-        "path": "aws/agents.tf",
-        "line": 18,
-        "declared_ref": {
-          "path": "stoa-declared.toml",
-          "key": "agents.\"62007a57a832\""
-        },
-        "message": "stoa-declared.toml exists but has no [agents.\"62007a57a832\"] entry for `aws_bedrockagent_agent.knowledge`."
-      },
-      {
-        "rule_id": "DECL006",
-        "severity": "medium",
-        "title": "Scanned agent has no declaration entry",
-        "path": "aws/agents.tf",
-        "line": 24,
-        "declared_ref": {
-          "path": "stoa-declared.toml",
-          "key": "agents.\"2f7906aae143\""
-        },
-        "message": "stoa-declared.toml exists but has no [agents.\"2f7906aae143\"] entry for `aws_bedrockagent_agent.escalation`."
-      },
-      {
-        "rule_id": "DECL006",
-        "severity": "medium",
-        "title": "Scanned agent has no declaration entry",
-        "path": "code/agents/escalation_agent.py",
-        "line": 13,
-        "declared_ref": {
-          "path": "stoa-declared.toml",
-          "key": "agents.\"a24a49aaf9ec\""
-        },
-        "message": "stoa-declared.toml exists but has no [agents.\"a24a49aaf9ec\"] entry for `graph`."
-      },
-      {
-        "rule_id": "DECL006",
-        "severity": "medium",
-        "title": "Scanned agent has no declaration entry",
-        "path": "code/agents/front_agent.py",
-        "line": 24,
-        "declared_ref": {
-          "path": "stoa-declared.toml",
-          "key": "agents.\"2a61ffb1db0d\""
-        },
-        "message": "stoa-declared.toml exists but has no [agents.\"2a61ffb1db0d\"] entry for `graph`."
-      },
-      {
-        "rule_id": "DECL006",
-        "severity": "medium",
-        "title": "Scanned agent has no declaration entry",
-        "path": "code/agents/knowledge_agent.py",
-        "line": 14,
-        "declared_ref": {
-          "path": "stoa-declared.toml",
-          "key": "agents.\"0d380d199726\""
-        },
-        "message": "stoa-declared.toml exists but has no [agents.\"0d380d199726\"] entry for `graph`."
-      },
-      {
-        "rule_id": "DECL006",
-        "severity": "medium",
-        "title": "Scanned agent has no declaration entry",
-        "path": "databricks/infra/main.tf",
-        "line": 13,
-        "declared_ref": {
-          "path": "stoa-declared.toml",
-          "key": "agents.\"6142266e32cb\""
-        },
-        "message": "stoa-declared.toml exists but has no [agents.\"6142266e32cb\"] entry for `databricks_model_serving.support_ivr`."
-      }
-    ],
+    "contradictions": [],
     "areas": {
       "ai_inventory": {
         "group": "index",
@@ -5118,27 +3867,18 @@
               },
               "owner": {
                 "field": "owner",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"9299e5cfdb41\".owner"
-                }
+                "status": "not_provided",
+                "evidence": null
               },
               "purpose": {
                 "field": "purpose",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"9299e5cfdb41\".purpose"
-                }
+                "status": "not_provided",
+                "evidence": null
               },
               "users": {
                 "field": "users",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"9299e5cfdb41\".users"
-                }
+                "status": "not_provided",
+                "evidence": null
               },
               "geography": {
                 "field": "geography",
@@ -5147,11 +3887,8 @@
               },
               "production_status": {
                 "field": "production_status",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"9299e5cfdb41\".production_status"
-                }
+                "status": "not_provided",
+                "evidence": null
               }
             }
           },
@@ -5338,27 +4075,18 @@
               },
               "owner": {
                 "field": "owner",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"b8f0111742fc\".owner"
-                }
+                "status": "not_provided",
+                "evidence": null
               },
               "purpose": {
                 "field": "purpose",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"b8f0111742fc\".purpose"
-                }
+                "status": "not_provided",
+                "evidence": null
               },
               "users": {
                 "field": "users",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"b8f0111742fc\".users"
-                }
+                "status": "not_provided",
+                "evidence": null
               },
               "geography": {
                 "field": "geography",
@@ -5367,11 +4095,8 @@
               },
               "production_status": {
                 "field": "production_status",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"b8f0111742fc\".production_status"
-                }
+                "status": "not_provided",
+                "evidence": null
               }
             }
           },
@@ -5558,27 +4283,18 @@
               },
               "owner": {
                 "field": "owner",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"f18cfdb42fdb\".owner"
-                }
+                "status": "not_provided",
+                "evidence": null
               },
               "purpose": {
                 "field": "purpose",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"f18cfdb42fdb\".purpose"
-                }
+                "status": "not_provided",
+                "evidence": null
               },
               "users": {
                 "field": "users",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"f18cfdb42fdb\".users"
-                }
+                "status": "not_provided",
+                "evidence": null
               },
               "geography": {
                 "field": "geography",
@@ -5587,11 +4303,8 @@
               },
               "production_status": {
                 "field": "production_status",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"f18cfdb42fdb\".production_status"
-                }
+                "status": "not_provided",
+                "evidence": null
               }
             }
           },
@@ -5619,27 +4332,18 @@
               },
               "owner": {
                 "field": "owner",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"3af3aebaa6f7\".owner"
-                }
+                "status": "not_provided",
+                "evidence": null
               },
               "purpose": {
                 "field": "purpose",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"3af3aebaa6f7\".purpose"
-                }
+                "status": "not_provided",
+                "evidence": null
               },
               "users": {
                 "field": "users",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"3af3aebaa6f7\".users"
-                }
+                "status": "not_provided",
+                "evidence": null
               },
               "geography": {
                 "field": "geography",
@@ -5648,11 +4352,8 @@
               },
               "production_status": {
                 "field": "production_status",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"3af3aebaa6f7\".production_status"
-                }
+                "status": "not_provided",
+                "evidence": null
               }
             }
           },
@@ -5730,11 +4431,8 @@
             "fields": {
               "declared_data_classes": {
                 "field": "data_classes",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"9299e5cfdb41\".data_classes"
-                }
+                "status": "not_provided",
+                "evidence": null
               },
               "scanned_authentication_evidence": {
                 "field": "scanned_authentication_evidence",
@@ -5797,11 +4495,8 @@
             "fields": {
               "declared_data_classes": {
                 "field": "data_classes",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"b8f0111742fc\".data_classes"
-                }
+                "status": "not_provided",
+                "evidence": null
               },
               "scanned_authentication_evidence": {
                 "field": "scanned_authentication_evidence",
@@ -5864,11 +4559,8 @@
             "fields": {
               "declared_data_classes": {
                 "field": "data_classes",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"f18cfdb42fdb\".data_classes"
-                }
+                "status": "not_provided",
+                "evidence": null
               },
               "scanned_authentication_evidence": {
                 "field": "scanned_authentication_evidence",
@@ -5883,11 +4575,8 @@
             "fields": {
               "declared_data_classes": {
                 "field": "data_classes",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"3af3aebaa6f7\".data_classes"
-                }
+                "status": "not_provided",
+                "evidence": null
               },
               "scanned_authentication_evidence": {
                 "field": "scanned_authentication_evidence",
@@ -7073,11 +5762,8 @@
               },
               "declared_intent": {
                 "field": "autonomy_intent",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"9299e5cfdb41\".autonomy_intent"
-                }
+                "status": "not_provided",
+                "evidence": null
               }
             }
           },
@@ -7178,11 +5864,8 @@
               },
               "declared_intent": {
                 "field": "autonomy_intent",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"b8f0111742fc\".autonomy_intent"
-                }
+                "status": "not_provided",
+                "evidence": null
               }
             }
           },
@@ -7283,11 +5966,8 @@
               },
               "declared_intent": {
                 "field": "autonomy_intent",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"f18cfdb42fdb\".autonomy_intent"
-                }
+                "status": "not_provided",
+                "evidence": null
               }
             }
           },
@@ -7305,11 +5985,8 @@
               },
               "declared_intent": {
                 "field": "autonomy_intent",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"3af3aebaa6f7\".autonomy_intent"
-                }
+                "status": "not_provided",
+                "evidence": null
               }
             }
           },
@@ -7897,27 +6574,18 @@
         "rows": [
           {
             "field": "industries",
-            "status": "declared",
-            "evidence": {
-              "path": "stoa-declared.toml",
-              "key": "business.industries"
-            }
+            "status": "not_provided",
+            "evidence": null
           },
           {
             "field": "regulated_activities",
-            "status": "declared",
-            "evidence": {
-              "path": "stoa-declared.toml",
-              "key": "business.regulated_activities"
-            }
+            "status": "not_provided",
+            "evidence": null
           },
           {
             "field": "max_customer_dependency",
-            "status": "declared",
-            "evidence": {
-              "path": "stoa-declared.toml",
-              "key": "business.max_customer_dependency"
-            }
+            "status": "not_provided",
+            "evidence": null
           },
           {
             "field": "revenue",
@@ -7940,22 +6608,7 @@
         "group": "G",
         "area_name": "Economic authority",
         "layers": "declared + scanned (enforcement check)",
-        "agents": [
-          {
-            "agent_id": "b8f0111742fc",
-            "name": "graph",
-            "fields": {
-              "economic_authority": {
-                "field": "economic_authority",
-                "status": "declared",
-                "evidence": {
-                  "path": "stoa-declared.toml",
-                  "key": "agents.\"b8f0111742fc\".economic_authority"
-                }
-              }
-            }
-          }
-        ]
+        "agents": []
       },
       "claims_evidence": {
         "group": "G",
@@ -7975,36 +6628,33 @@
   },
   "underwriting": {
     "agent_count": 11,
-    "critical_count": 4,
+    "critical_count": 0,
     "robustness": false,
     "code_quality": true,
     "monitoring": false,
-    "drift": true,
-    "has_declarations": true,
+    "drift": null,
+    "has_declarations": false,
     "econ_findings": [],
-    "elevated_dims": [
-      "Mandate overreach",
-      "Unreviewed high-impact action"
-    ],
-    "limit": "US$ 25,000,000",
-    "deductible": "US$ 100,000",
+    "elevated_dims": [],
+    "limit": "US$ 10,000,000",
+    "deductible": "US$ 50,000",
     "trigger": "Unexpected High Number of Errors above the Exhibit B threshold in the covered model's decisions"
   },
   "assessment": {
     "template": "aiSure AI Model Risk Assessment",
     "identity": {
-      "company": "Meridian Pay",
-      "contact_name": "Priya Natarajan",
-      "contact_title": "Chief Risk Officer",
-      "contact_email": "risk@meridian.example",
-      "address": "88 Harbour Street, Level 12, Sydney NSW 2000",
-      "home_state": "New South Wales",
-      "model_name": "Meridian support agent (refunds, fee waivers, account actions)",
-      "model_version": "2026.9",
-      "deployment": "Production (customer-facing support, chat and IVR)",
+      "company": "Acme Support",
+      "contact_name": "",
+      "contact_title": "",
+      "contact_email": "",
+      "address": "",
+      "home_state": "",
+      "model_name": "Acme Support AI agents",
+      "model_version": "e4f5a6b",
+      "deployment": "To be confirmed",
       "currency": "USD"
     },
-    "identity_source": "applicant",
+    "identity_source": "sample",
     "carrier": "Munich Re",
     "product": "aiSure",
     "advisor": {
@@ -8012,7 +6662,7 @@
       "email": "",
       "submit_email": ""
     },
-    "repository": "meridian-pay",
+    "repository": "acme-support",
     "sections": [
       {
         "id": "general",
@@ -8021,50 +6671,50 @@
           {
             "key": "company",
             "label": "Applicant company",
-            "value": "Meridian Pay",
-            "source": "applicant",
+            "value": "Acme Support",
+            "source": "sample",
             "note": ""
           },
           {
             "key": "address",
             "label": "Address",
-            "value": "88 Harbour Street, Level 12, Sydney NSW 2000",
-            "source": "applicant",
+            "value": "To be confirmed",
+            "source": "sample",
             "note": ""
           },
           {
             "key": "contact",
             "label": "Contact",
-            "value": "Priya Natarajan, Chief Risk Officer",
-            "source": "applicant",
+            "value": "To be confirmed",
+            "source": "sample",
             "note": ""
           },
           {
             "key": "contact_email",
             "label": "Contact email",
-            "value": "risk@meridian.example",
-            "source": "applicant",
+            "value": "To be confirmed",
+            "source": "sample",
             "note": ""
           },
           {
             "key": "home_state",
             "label": "Home state",
-            "value": "New South Wales",
-            "source": "applicant",
+            "value": "To be confirmed",
+            "source": "sample",
             "note": ""
           },
           {
             "key": "model",
             "label": "Covered model",
-            "value": "Meridian support agent (refunds, fee waivers, account actions) (v2026.9)",
-            "source": "applicant",
+            "value": "Acme Support AI agents (ve4f5a6b)",
+            "source": "sample",
             "note": ""
           },
           {
             "key": "deployment",
             "label": "Deployment",
-            "value": "Production (customer-facing support, chat and IVR)",
-            "source": "applicant",
+            "value": "To be confirmed",
+            "source": "sample",
             "note": ""
           }
         ]
@@ -8097,7 +6747,7 @@
           {
             "key": "critical",
             "label": "Critical findings at development time",
-            "value": "4",
+            "value": "0",
             "source": "scan",
             "note": ""
           }
@@ -8117,15 +6767,15 @@
           {
             "key": "drift",
             "label": "Drift mitigation",
-            "value": "Yes",
-            "source": "scan",
-            "note": "capability drift tracked via stoa diff"
+            "value": "To be confirmed",
+            "source": "sample",
+            "note": "no baseline or scan history yet; scan with --diff-against, or scan again after the next change"
           },
           {
             "key": "rollback",
             "label": "Update / rollback readiness",
-            "value": "Declared in stoa-declared.toml",
-            "source": "declared",
+            "value": "Not declared",
+            "source": "sample",
             "note": ""
           }
         ]
@@ -8133,42 +6783,48 @@
     ],
     "performance": [
       {
-        "metric": "Refund decision accuracy",
-        "value": "96.8%",
+        "metric": "Ground-truth accuracy",
+        "value": "97.4%",
         "cadence": "Monthly, held-out labeled set",
-        "source": "applicant"
+        "source": "sample"
       },
       {
-        "metric": "Duplicate-refund rate",
-        "value": "0.04%",
-        "cadence": "Weekly",
-        "source": "applicant"
+        "metric": "False-positive rate",
+        "value": "1.8%",
+        "cadence": "Monthly",
+        "source": "sample"
       },
       {
-        "metric": "Escalation rate to human agent",
-        "value": "11.2%",
-        "cadence": "Weekly",
-        "source": "applicant"
+        "metric": "False-negative rate",
+        "value": "0.9%",
+        "cadence": "Monthly",
+        "source": "sample"
+      },
+      {
+        "metric": "Population stability index (PSI)",
+        "value": "0.06",
+        "cadence": "Weekly drift monitor",
+        "source": "sample"
       },
       {
         "metric": "Decision latency (p95)",
-        "value": "1.9 s",
+        "value": "420 ms",
         "cadence": "Continuous",
-        "source": "applicant"
+        "source": "sample"
       },
       {
         "metric": "Human-review override rate",
-        "value": "2.7%",
+        "value": "3.1%",
         "cadence": "Monthly",
-        "source": "applicant"
+        "source": "sample"
       }
     ],
-    "performance_source": "applicant",
+    "performance_source": "sample",
     "schedule": [
       {
         "key": "elevated_dims",
         "label": "Elevated-exposure dimensions",
-        "value": "Mandate overreach, Unreviewed high-impact action",
+        "value": "none at elevated",
         "source": "scan",
         "note": ""
       },
@@ -8182,14 +6838,14 @@
       {
         "key": "policy_limit",
         "label": "Policy limit (aggregate)",
-        "value": "US$ 25,000,000",
+        "value": "US$ 10,000,000",
         "source": "indicative",
         "note": ""
       },
       {
         "key": "sublimit_own_losses",
         "label": "Sublimit — own financial losses",
-        "value": "US$ 25,000,000",
+        "value": "US$ 10,000,000",
         "source": "indicative",
         "note": ""
       },
@@ -8203,7 +6859,7 @@
       {
         "key": "aggregate_deductible",
         "label": "Aggregate deductible",
-        "value": "US$ 100,000",
+        "value": "US$ 50,000",
         "source": "indicative",
         "note": ""
       },
@@ -8225,57 +6881,36 @@
         "key": "currency",
         "label": "Currency",
         "value": "USD",
-        "source": "applicant",
+        "source": "sample",
         "note": ""
       }
     ],
     "schedule_source": "indicative",
     "declaration": "The undersigned confirms that, to the best of their knowledge, the information furnished in this assessment is true and correct in all material respects and no material fact has been knowingly withheld.",
-    "signatory": "Priya Natarajan, Chief Risk Officer",
+    "signatory": "Authorized signatory",
     "counts": {
-      "prefilled": 9,
-      "to_confirm": 8,
+      "prefilled": 7,
+      "to_confirm": 10,
       "indicative": 6,
-      "performance_rows": 5,
+      "performance_rows": 6,
       "total": 23
     },
     "derived": {
       "agent_count": 11,
-      "critical_count": 4,
+      "critical_count": 0,
       "robustness": false,
       "code_quality": true,
       "monitoring": false,
-      "drift": true,
-      "has_declarations": true,
+      "drift": null,
+      "has_declarations": false,
       "econ_findings": [],
-      "elevated_dims": [
-        "Mandate overreach",
-        "Unreviewed high-impact action"
-      ],
-      "limit": "US$ 25,000,000",
-      "deductible": "US$ 100,000",
+      "elevated_dims": [],
+      "limit": "US$ 10,000,000",
+      "deductible": "US$ 50,000",
       "trigger": "Unexpected High Number of Errors above the Exhibit B threshold in the covered model's decisions"
     }
   },
-  "intake": {
-    "revenue": 40000000,
-    "sector": "fintech",
-    "jurisdictions": [
-      "AU",
-      "US"
-    ],
-    "records": 1500000,
-    "regulated": true,
-    "minors": false,
-    "monthly_action_volume": 200000,
-    "existing_coverage": [
-      {
-        "type": "cyber",
-        "limit": 5000000.0,
-        "ai_exclusion": true
-      }
-    ]
-  },
+  "intake": null,
   "rules": {
     "AI001": {
       "title": "Untrusted input observed flowing into prompt construction",

@@ -64,3 +64,25 @@ describe("meridian-pay fixture matches the consumed contract", () => {
     expect(envelope.assessment.counts.prefilled).toBeGreaterThan(0);
   });
 });
+
+const load = (name: string) => JSON.parse(readFileSync(new URL(`../fixtures/${name}.envelope.json`, import.meta.url), "utf8")) as Envelope;
+
+describe("first-run and no-agents fixtures", () => {
+  it("pass the schema check with every optional block absent", () => {
+    for (const name of ["first-run", "no-agents"]) {
+      const env = load(name);
+      expect(checkEnvelope(env), name).toBeNull();
+      expect(env.diff, name).toBeNull();
+      expect(env.intake, name).toBeNull();
+      expect(env.history, name).toEqual([]);
+      expect(env.assessment.identity_source, name).toBe("sample");
+    }
+  });
+
+  it("first-run has agents but nothing declared; no-agents has neither", () => {
+    const first = load("first-run");
+    expect(first.registry.agents.length).toBeGreaterThan(0);
+    expect(first.registry.agents.some((a) => a.declared)).toBe(false);
+    expect(load("no-agents").registry.agents).toEqual([]);
+  });
+});

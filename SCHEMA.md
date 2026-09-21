@@ -238,7 +238,10 @@ The dashboard's own envelope (`stoa-dashboard/1.0`) wraps the registry
 together with the `stoa-diff/1.0` document, history summaries
 (`stoa-history-entry/1.0`, under `.stoa/history/`), the assurance packet, and
 static rule and taxonomy tables. It is a separate document and is not part of
-`stoa-registry.json`.
+`stoa-registry.json`. An optional top-level `demo: true` (additive, written
+only by `stoa dashboard --demo`) marks a page as demo data. In
+`underwriting` and `assessment.derived`, `monitoring` and `drift` are
+`true`, `false`, or `null` when the scan gives no basis for an answer.
 
 ## Schema 1.7 additions (tool inventory)
 

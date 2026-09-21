@@ -7989,7 +7989,7 @@
     ],
     "limit": "US$ 25,000,000",
     "deductible": "US$ 100,000",
-    "trigger": "Unexpected High Number of Errors above the Exhibit B threshold in fraud-triage decisions"
+    "trigger": "Unexpected High Number of Errors above the Exhibit B threshold in the covered model's decisions"
   },
   "assessment": {
     "template": "aiSure AI Model Risk Assessment",
@@ -8086,7 +8086,7 @@
             "label": "Code-quality checks",
             "value": "Yes",
             "source": "scan",
-            "note": "Stoa scan run in CI with stoa diff drift gating"
+            "note": "Stoa static agent-risk scan run on this commit"
           },
           {
             "key": "inventory",
@@ -8218,7 +8218,7 @@
       {
         "key": "coverage_trigger",
         "label": "Coverage trigger",
-        "value": "Unexpected High Number of Errors above the Exhibit B threshold in fraud-triage decisions",
+        "value": "Unexpected High Number of Errors above the Exhibit B threshold in the covered model's decisions",
         "source": "indicative",
         "note": ""
       },
@@ -8255,7 +8255,7 @@
       ],
       "limit": "US$ 25,000,000",
       "deductible": "US$ 100,000",
-      "trigger": "Unexpected High Number of Errors above the Exhibit B threshold in fraud-triage decisions"
+      "trigger": "Unexpected High Number of Errors above the Exhibit B threshold in the covered model's decisions"
     }
   },
   "intake": {

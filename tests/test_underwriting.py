@@ -48,12 +48,17 @@ def test_all_five_sections_present():
         assert section in html
 
 
-def test_identity_prefilled_and_swappable():
+def test_identity_defaults_to_the_scanned_repository_never_a_fictional_applicant():
     default = render_underwriting_html(_document())
-    assert DEMO_IDENTITY["company"] in default
+    # The applicant signs this form: an unfilled identity is derived from their
+    # own repository and marked for confirmation, never an invented company.
+    assert "Meridian Ops" in default
+    assert "To be confirmed" in default
+    for invented in DEMO_IDENTITY.values():
+        if invented != "USD":
+            assert invented not in default
     custom = render_underwriting_html(_document(), identity={"company": "Acme Partner Inc"})
     assert "Acme Partner Inc" in custom
-    assert DEMO_IDENTITY["company"] not in custom
 
 
 def test_scan_sourced_fields_reflect_the_registry():
@@ -180,7 +185,7 @@ def test_report_embeds_button_blob_and_hashpinned_script():
     # </ is escaped so the inner form's <script> can't close the outer tag early
     assert "</script>" not in m.group(1) or "<\\/script>" in m.group(1)
     embedded = json.loads(m.group(1))
-    assert "aiSure" in embedded and DEMO_IDENTITY["company"] in embedded
+    assert "aiSure" in embedded and DEMO_IDENTITY["company"] not in embedded
     # the open-in-new-tab script is CSP hash-pinned
     assert f"sha256-{UNDERWRITING_SCRIPT_HASH}" in html
 
@@ -254,3 +259,44 @@ def test_cli_export_requires_a_kind(tmp_path, monkeypatch):
 def test_underwriting_deterministic():
     doc = _document()
     assert render_underwriting_html(doc) == render_underwriting_html(doc)
+
+
+# --- answers are claimed only on evidence -------------------------------------
+
+
+def _field(assessment: dict, key: str) -> dict:
+    return next(f for section in assessment["sections"] for f in section["fields"] if f["key"] == key)
+
+
+def test_drift_is_claimed_only_when_reach_is_compared_between_scans():
+    from stoa.underwriting import build_assessment
+
+    lone = _field(build_assessment(_document()), "drift")
+    assert (lone["value"], lone["source"]) == ("To be confirmed", "sample")
+    assert "--diff-against" in lone["note"]
+    tracked = _field(build_assessment(_document(), drift_tracked=True), "drift")
+    assert (tracked["value"], tracked["source"]) == ("Yes", "scan")
+
+
+def test_monitoring_is_not_claimed_for_a_scan_with_no_agents():
+    from stoa.underwriting import build_assessment, derive_from_registry
+
+    empty = {"repository": {"name": "acme-billing"}, "agents": [], "repository_findings": []}
+    assert derive_from_registry(empty)["monitoring"] is None
+    field = _field(build_assessment(empty), "monitoring")
+    assert (field["value"], field["source"]) == ("To be confirmed", "sample")
+    # With agents and no CTRL004 gap it is still answered from the scan.
+    assert _field(build_assessment(_document()), "monitoring")["source"] == "scan"
+
+
+def test_form_never_claims_the_scan_runs_in_ci():
+    from stoa.underwriting import build_assessment
+
+    assert "in CI" not in _field(build_assessment(_document()), "code_quality")["note"]
+    assert "in CI" not in render_underwriting_html(_document())
+
+
+def test_indicative_trigger_carries_no_demo_wording():
+    from stoa.underwriting import derive_from_registry
+
+    assert "fraud" not in derive_from_registry(_document())["trigger"].lower()

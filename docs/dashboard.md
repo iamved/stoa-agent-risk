@@ -134,11 +134,60 @@ stoa dashboard stoa-registry.json --baseline main.json   # drift against a saved
 stoa dashboard stoa-registry.json --out review.html --open
 ```
 
+`--summary` prints the scan at a glance in the terminal as well. It reads the
+same data as the page, reports in the scanner's own terms (severities,
+per-dimension exposure, drift severity), and needs no compiled UI.
+
 `--baseline` takes a registry produced by the **same Stoa version**; drift
 between scanner versions is rule drift, not code drift, and `stoa diff`
 refuses taxonomy mismatches for the same reason. Inside a repository,
 `stoa scan --diff-against origin/main` is the preferred route: it rescans the
 base ref with the current scanner and embeds that diff.
+
+## Opening a scan in a page you already have
+
+Any dashboard page can show a different scan: the reviewer menu has **Open a
+scan file…**, and a file dropped anywhere on the page opens too. The hosted
+demo at stoa-agent-risk.dev/dashboard says it is demo data and offers the
+same. It accepts:
+
+- the dashboard's data as JSON, from `stoa scan . --dashboard-json PATH` or
+  `stoa dashboard REGISTRY --json-out PATH`. It is redacted exactly like the
+  embedded copy.
+- a whole `stoa-dashboard.html`, from which the embedded data is lifted.
+
+A bare `stoa-registry.json` is refused with the command to run instead: the
+register, graph, assurance packet and assessment are built by the scanner,
+and the page never recomputes them.
+
+The file is read in the browser. The page's Content-Security-Policy is
+`connect-src 'none'`, so it cannot send the file anywhere, and a browser test
+fails on any network request while a scan is opened. Closing the tab forgets
+it. Because an opened file did not come straight from the scanner, its shape
+is checked before any screen reads it; a file that fails leaves the scan on
+screen unchanged.
+
+## A first scan
+
+A first `stoa scan` has no declarations, no baseline, no history and no
+business context, and every screen is tested in that state
+(`ui/fixtures/first-run.envelope.json`, and `no-agents.envelope.json` for a
+scan that finds nothing). What fills each gap:
+
+| Missing | Effect | Fix |
+| --- | --- | --- |
+| `stoa-declared.toml` | no declared-versus-scanned contradictions | `stoa init declarations` |
+| a baseline | Drift screen explains how to get one; "Drift mitigation" on the assessment reads *To be confirmed* | `stoa scan . --diff-against origin/main` |
+| `.stoa/underwriting.toml` | identity and performance read *to confirm*; the loss outlook says it runs on placeholders | `stoa init underwriting` |
+| any agents | the insurance page offers no form to sign | check `include_extensions`, `ignore_paths`, `.stoaignore` |
+
+The assessment is signed by the applicant as true, so a technical field is
+answered "from scan" only when the scan evidences it. It never claims the
+scan runs in CI, and it claims drift mitigation only with a baseline diff or
+at least two recorded scans.
+
+Scanning one service of a monorepo names the dashboard after the enclosing
+repository. Set `[repository] name` in `stoa.toml` to override it.
 
 ## What is inside the file
 

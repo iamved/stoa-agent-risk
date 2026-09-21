@@ -1,0 +1,64 @@
+# Facts about your business that a code scan cannot see. The dashboard's
+# insurance assessment and loss outlook read this file on every
+# `stoa scan` and `stoa dashboard`; `stoa export --underwriting` reads it too.
+#
+# Everything is commented out, so this file changes nothing until you fill it
+# in. Uncomment a table header together with the fields under it. Any field
+# you leave out keeps a placeholder that the dashboard labels "to confirm".
+#
+# This file ends up inside stoa-dashboard.html. Put nothing here you would
+# not share with a broker.
+
+# Who is applying. `contact_name` and `contact_title` also name the reviewer
+# shown in the dashboard's top bar.
+# [identity]
+# company        = ""
+# contact_name   = ""
+# contact_title  = ""
+# contact_email  = ""
+# address        = ""
+# home_state     = ""
+# model_name     = ""      # the AI system being insured
+# model_version  = ""
+# deployment     = ""      # e.g. "Production (customer-facing support)"
+# currency       = "USD"
+
+# Your own measured model-performance figures. Without any, the assessment
+# shows labeled sample values. Repeat the block once per metric; `cadence`
+# is optional.
+# [[performance]]
+# metric  = "Ground-truth accuracy"
+# value   = ""
+# cadence = "Monthly, held-out labeled set"
+
+# Business context for the loss outlook. Without it the outlook runs on
+# placeholder revenue, sector and record counts, and says so.
+# [intake]
+# revenue               = 0          # annual revenue, in `currency`
+# sector                = "software" # fintech | healthtech | edtech | software | retail | legal
+# jurisdictions         = ["US"]     # e.g. "US", "EU", "CA", "AU"
+# records               = 0          # personal records held
+# regulated             = false
+# minors                = false      # serves users under 18
+# monthly_action_volume = 0          # actions your agents take per month
+
+# Policies already in force. Repeat once per policy.
+# [[intake.existing_coverage]]
+# type         = "cyber"             # cyber | tech_eo | crime
+# limit        = 0
+# ai_exclusion = false               # true when the policy excludes AI losses
+
+# Terms you have actually been offered. Without this table the schedule is
+# sized from the scan and labeled "indicative".
+# [schedule]
+# carrier                = ""
+# product                = ""
+# policy_limit           = ""
+# sublimit_own_losses    = ""
+# sublimit_consequential = ""
+# aggregate_deductible   = ""
+# co_insurance           = ""
+# coverage_trigger       = ""
+# advisor_url            = ""
+# advisor_email          = ""
+# submit_email           = ""

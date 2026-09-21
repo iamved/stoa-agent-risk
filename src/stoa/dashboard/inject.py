@@ -123,5 +123,14 @@ def write_dashboard(envelope: dict, output_path: Path, template: str | None = No
     _atomic_write(Path(output_path), render_dashboard(envelope, template))
 
 
+def write_dashboard_json(envelope: dict, output_path: Path) -> None:
+    """The dashboard's data on its own, for a dashboard page to open from disk.
+
+    Redacted exactly like the embedded copy, because it is just as shareable.
+    Needs no template, so it works in a checkout that has not built the UI."""
+    text = json.dumps(redact_document(envelope), ensure_ascii=False, indent=2) + "\n"
+    _atomic_write(Path(output_path), text)
+
+
 def is_envelope(document: dict) -> bool:
     return isinstance(document.get("schema"), str) and document["schema"].startswith("stoa-dashboard/")

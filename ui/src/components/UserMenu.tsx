@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useApp } from "../app/context";
 import { buildHash } from "../app/router";
 import { printAs } from "../app/print";
+import { OpenScanButton } from "./OpenScan";
 
 /**
  * Who is reviewing this dashboard. A static file cannot authenticate anyone,
@@ -9,7 +10,7 @@ import { printAs } from "../app/print";
  * the reviewer, with the actions that used to sit in the top bar.
  */
 export function UserMenu() {
-  const { envelope } = useApp();
+  const { envelope, openScan } = useApp();
   const id = envelope.assessment.identity;
   const name = id.contact_name.trim() || "Risk officer";
   const title = id.contact_title.trim();
@@ -47,6 +48,7 @@ export function UserMenu() {
           </div>
           <button role="menuitem" type="button" onClick={() => { setOpen(false); printAs("summary"); }} className="w-full text-left rounded px-3 py-2 text-[13px] hover:bg-paper">Print summary</button>
           <a role="menuitem" href={buildHash("evidence")} onClick={() => setOpen(false)} className="block rounded px-3 py-2 text-[13px] no-underline text-ink hover:bg-paper">Open the insurance assessment</a>
+          <OpenScanButton role="menuitem" onOpen={(file) => { setOpen(false); openScan(file); }} className="w-full text-left rounded px-3 py-2 text-[13px] hover:bg-paper">Open a scan file…</OpenScanButton>
           <div className="px-3 pt-2 pb-1 caption text-[11px] border-t border-line mt-1">Identity comes from .stoa/underwriting.toml. This page does not sign anyone in.</div>
         </div>
       ) : null}

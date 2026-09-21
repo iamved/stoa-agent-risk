@@ -390,6 +390,8 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
             author, commit = attribution_cache[agent.path]
             agent.last_touched_by = author
             agent.last_commit = commit  # type: ignore[assignment]
+    if config.repository_name:
+        repo_name = config.repository_name
 
     if codeowners:
         for agent in agents:

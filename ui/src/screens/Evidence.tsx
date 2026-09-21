@@ -3,6 +3,7 @@ import { useApp } from "../app/context";
 import { buildHash } from "../app/router";
 import { printAs } from "../app/print";
 import { AssessabilityBadge, ExposureBadge, Pill, SeverityBadge } from "../components/Badge";
+import { EmptyState } from "../components/EmptyState";
 import { Chips } from "../components/KeyValue";
 import { Section } from "../components/Section";
 import { STATUS_LABEL, STATUS_ORDER, areaSummaries, controlsByAgent, packetTotals, type AreaSummary, type Status } from "../data/evidence";
@@ -84,8 +85,24 @@ function SourceChip({ source }: { source: AssessmentSource }) {
   return <span className={`chip chip-plain ${SOURCE_CLASS[source]}`}>{SOURCE_LABEL[source]}</span>;
 }
 
-/** The AI Risk Insurance page: the pre-filled assessment as it would be submitted, the schedule, and the evidence behind it. */
+/** The AI Risk Insurance page. With no agents there is nothing to insure, so no form is offered for signature. */
 export function Evidence() {
+  const { envelope } = useApp();
+  if (envelope.registry.agents.length > 0) return <Assessment />;
+  return (
+    <div>
+      <h1 className="m-0">AI Risk Insurance</h1>
+      <div className="mt-5">
+        <EmptyState title="No agents to assess">
+          This scan found no AI agents in <span className="mono">{envelope.registry.repository.name}</span>, so there is no assessment to pre-fill or sign. If you expected agents here, check <span className="mono">include_extensions</span> and <span className="mono">ignore_paths</span> in <span className="mono">stoa.toml</span>, and <span className="mono">.stoaignore</span>, then scan again.
+        </EmptyState>
+      </div>
+    </div>
+  );
+}
+
+/** The pre-filled assessment as it would be submitted, the schedule, and the evidence behind it. */
+function Assessment() {
   const { envelope } = useApp();
   const a = envelope.assessment;
   const r = envelope.registry;

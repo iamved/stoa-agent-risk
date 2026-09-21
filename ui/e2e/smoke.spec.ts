@@ -70,6 +70,28 @@ test.describe("dashboard over file://", () => {
     expect(errors).toEqual([]);
   });
 
+  // A customer's first scan has no declarations, business inputs, baseline or
+  // history, and may find no agents at all. No screen may throw or go blank.
+  for (const [fixture, repository] of [["first-run", "acme-support"], ["no-agents", "acme-billing"]] as const) {
+    test(`${fixture}: every route renders without errors`, async ({ page }) => {
+      const requests = armNetworkTrap(page);
+      const errors: string[] = [];
+      page.on("pageerror", (error) => errors.push(String(error)));
+      page.on("console", (message) => {
+        if (message.type() === "error") errors.push(`console: ${message.text()}`);
+      });
+      for (const route of ROUTES) {
+        await page.goto(fileUrl(fixture, route));
+        await expect(page.locator("#root")).not.toBeEmpty();
+        await expect(page.getByText(repository).first()).toBeVisible();
+        await expect(page.locator("main")).not.toBeEmpty();
+        await expect(page.getByText(/NaN|undefined|\[object Object\]/)).toHaveCount(0);
+      }
+      expect(requests).toEqual([]);
+      expect(errors).toEqual([]);
+    });
+  }
+
   test("large fixture loads", async ({ page }) => {
     await page.goto(fileUrl("large"));
     await expect(page.locator("#root")).not.toBeEmpty();

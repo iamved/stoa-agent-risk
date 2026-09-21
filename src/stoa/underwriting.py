@@ -32,7 +32,9 @@ class UnderwritingConfigError(Exception):
     """Invalid underwriting config file; maps to exit code 2."""
 
 
-# --- swappable demo identity (a design partner can replace this dict) --------
+# The identity keys an underwriting config may set, with example values for
+# documentation. Never rendered: an applicant who supplies no identity gets
+# `_default_identity`, derived from their own repository.
 DEMO_IDENTITY = {
     "company": "XYZ Financial Technologies",
     "contact_name": "Jordan Rivera",
@@ -174,7 +176,8 @@ def load_intake(path: Path) -> dict | None:
 
 
 def build_assessment(document: dict, identity: dict | None = None,
-                     metrics: list | None = None, schedule: dict | None = None) -> dict:
+                     metrics: list | None = None, schedule: dict | None = None,
+                     drift_tracked: bool = False) -> dict:
     """The pre-filled AI Model Risk Assessment as structured data.
 
     Every field carries a ``source``: ``scan`` (populated from registry
@@ -185,7 +188,7 @@ def build_assessment(document: dict, identity: dict | None = None,
     dashboard renders the form from this and the legacy HTML export renders
     the same facts, so the two never disagree.
     """
-    d = derive_from_registry(document)
+    d = derive_from_registry(document, drift_tracked)
     repo = (document.get("repository") or {}).get("name", "the repository")
     idn_source = "applicant" if identity else "sample"
     idn = {**_default_identity(document, repo), **(identity or {})}
@@ -212,14 +215,18 @@ def build_assessment(document: dict, identity: dict | None = None,
         f("robustness", "Robustness testing (adversarial / prompt-injection)",
           "Yes" if d["robustness"] else "No", "scan",
           "evidenced by injection/tamper findings (AI001/AI002)" if d["robustness"] else "no injection or tamper findings observed"),
-        f("code_quality", "Code-quality checks", "Yes", "scan", "Stoa scan run in CI with stoa diff drift gating"),
+        f("code_quality", "Code-quality checks", "Yes", "scan", CODE_QUALITY_NOTE),
         f("inventory", "Agent inventory scanned", f'{d["agent_count"]} agent candidate(s)', "scan"),
         f("critical", "Critical findings at development time", str(d["critical_count"]), "scan"),
     ]
     post = [
-        f("monitoring", "Post-deployment monitoring", "Yes" if d["monitoring"] else "No", "scan",
-          "observability observed (no CTRL004 gap)" if d["monitoring"] else "CTRL004 gap observed"),
-        f("drift", "Drift mitigation", "Yes", "scan", "capability drift tracked via stoa diff"),
+        (f("monitoring", "Post-deployment monitoring", "To be confirmed", "sample", MONITORING_UNKNOWN_NOTE)
+         if d["monitoring"] is None else
+         f("monitoring", "Post-deployment monitoring", "Yes" if d["monitoring"] else "No", "scan",
+           "observability observed (no CTRL004 gap)" if d["monitoring"] else "CTRL004 gap observed")),
+        (f("drift", "Drift mitigation", "Yes", "scan", "capability drift tracked via stoa diff")
+         if d["drift"] else
+         f("drift", "Drift mitigation", "To be confirmed", "sample", DRIFT_UNKNOWN_NOTE)),
         f("rollback", "Update / rollback readiness",
           "Declared in stoa-declared.toml" if d["has_declarations"] else "Not declared",
           "declared" if d["has_declarations"] else "sample"),
@@ -286,7 +293,15 @@ def build_assessment(document: dict, identity: dict | None = None,
     }
 
 
-def _bool_cell(value: bool) -> str:
+CODE_QUALITY_NOTE = "Stoa static agent-risk scan run on this commit"
+MONITORING_UNKNOWN_NOTE = "no agents detected, so there was nothing to observe"
+DRIFT_UNKNOWN_NOTE = ("no baseline or scan history yet; scan with --diff-against, "
+                      "or scan again after the next change")
+
+
+def _bool_cell(value: bool | None) -> str:
+    if value is None:
+        return "To be confirmed"
     return "Yes" if value else "No"
 
 
@@ -306,10 +321,14 @@ def _sha256_b64(text: str) -> str:
 PRINT_SCRIPT_HASH = _sha256_b64(_print_script())
 
 
-def derive_from_registry(document: dict) -> dict:
-    """Map scan evidence onto the questionnaire's technical fields. Demo: this
-    is where the scan genuinely feeds the form (no per-field provenance tags in
-    the demo view, per spec)."""
+def derive_from_registry(document: dict, drift_tracked: bool = False) -> dict:
+    """Map scan evidence onto the questionnaire's technical fields.
+
+    The applicant signs this form as true, so a field is answered only when
+    the scan evidences it. ``monitoring`` and ``drift`` are None when there is
+    nothing to base an answer on; the form then shows "To be confirmed".
+    ``drift_tracked`` is the caller's evidence that reach is compared between
+    scans: a baseline diff, or a history of earlier scans."""
     agents = document.get("agents") or []
     all_findings = (
         [f for a in agents for f in a.get("findings") or []]
@@ -320,11 +339,14 @@ def derive_from_registry(document: dict) -> dict:
 
     # Robustness testing <- injection / tamper findings (AI001/AI002)
     robustness = any(r in fired for r in ("AI001", "AI002"))
-    # Code-quality checks <- scan-in-CI + stoa diff gating (declared by using Stoa)
+    # Code-quality checks <- this scan ran. Whether it also runs in CI is not
+    # something a scan can see, so the form never claims it.
     code_quality = True
-    # Post-deployment monitoring / drift mitigation <- observability + drift
-    monitoring = "CTRL004" not in fired  # no CTRL004 gap => observability observed
-    drift = bool(document.get("runtime")) or True  # capability drift via stoa diff
+    # Post-deployment monitoring <- no CTRL004 gap, which means something only
+    # when there were agents to find a gap in.
+    monitoring = ("CTRL004" not in fired) if agents else None
+    # Drift mitigation <- reach compared between scans; unknown on a lone scan.
+    drift = True if drift_tracked else None
     # Update / rollback speed <- declarations present
     has_declarations = any(a.get("declared") for a in agents)
 
@@ -339,7 +361,7 @@ def derive_from_registry(document: dict) -> dict:
     limit = "US$ 25,000,000" if high_exposure else "US$ 10,000,000"
     deductible = "US$ 100,000" if high_exposure else "US$ 50,000"
     trigger = ("Unexpected High Number of Errors above the Exhibit B threshold "
-               "in fraud-triage decisions")
+               "in the covered model's decisions")
 
     return {
         "agent_count": len(agents),
@@ -376,15 +398,18 @@ def render_underwriting_html(
     document: dict,
     identity: dict | None = None,
     metrics: list | None = None,
+    drift_tracked: bool = False,
 ) -> str:
     """Render the pre-filled aiSure questionnaire as standalone HTML.
 
     ``metrics`` is the applicant's real performance figures (from their config);
     when None, the labeled sample is shown and the copy makes that explicit.
     """
-    idn = {**DEMO_IDENTITY, **(identity or {})}
-    d = derive_from_registry(document)
     repo = (document.get("repository") or {}).get("name", "the repository")
+    raw = {**_default_identity(document, repo), **(identity or {})}
+    contact = ", ".join(x for x in (raw["contact_name"], raw["contact_title"]) if x)
+    idn = {k: v or "To be confirmed" for k, v in raw.items()}
+    d = derive_from_registry(document, drift_tracked)
     applicant_metrics = metrics is not None
     perf_rows = metrics if applicant_metrics else SAMPLE_METRICS
 
@@ -421,25 +446,28 @@ def render_underwriting_html(
   <h2>1. General Information</h2>
   {field("Applicant company", idn["company"])}
   {field("Address", idn["address"])}
-  {field("Contact", f'{idn["contact_name"]}, {idn["contact_title"]}')}
+  {field("Contact", contact or "To be confirmed")}
   {field("Contact email", idn["contact_email"])}
   {field("Home state", idn["home_state"])}
-  {field("Covered model", f'{idn["model_name"]} (v{idn["model_version"]})')}
+  {field("Covered model", idn["model_name"] + (f' (v{raw["model_version"]})' if raw["model_version"] else ""))}
   {field("Deployment", idn["deployment"])}
 
   <h2>2. Model Development</h2>
   {field("Robustness testing (adversarial / prompt-injection)",
          _bool_cell(d["robustness"]) + " — evidenced by Stoa injection/tamper findings (AI001/AI002)")}
   {field("Code-quality checks",
-         _bool_cell(d["code_quality"]) + " — Stoa scan run in CI with stoa diff drift gating")}
+         _bool_cell(d["code_quality"]) + " — " + CODE_QUALITY_NOTE)}
   {field("Agent inventory scanned", f'{d["agent_count"]} agent candidate(s)')}
   {field("Critical findings at development time", str(d["critical_count"]))}
 
   <h2>3. Customer Onboarding &amp; Post-deployment</h2>
   {field("Post-deployment monitoring",
-         _bool_cell(d["monitoring"]) + " — observability observed (no CTRL004 gap)")}
+         _bool_cell(d["monitoring"]) + " — " + (
+             MONITORING_UNKNOWN_NOTE if d["monitoring"] is None else
+             "observability observed (no CTRL004 gap)" if d["monitoring"] else "CTRL004 gap observed"))}
   {field("Drift mitigation",
-         _bool_cell(d["drift"]) + " — capability drift tracked via stoa diff")}
+         _bool_cell(d["drift"]) + " — " + (
+             "capability drift tracked via stoa diff" if d["drift"] else DRIFT_UNKNOWN_NOTE))}
   {field("Update / rollback readiness",
          ("Declared in stoa-declared.toml" if d["has_declarations"]
           else "Not declared") )}
@@ -466,7 +494,7 @@ def render_underwriting_html(
      the information furnished in this assessment is true and correct in all
      material respects and no material fact has been knowingly withheld.</p>
   <div class="uw-sign">
-    <div><div class="uw-sigline"></div><span>Signature — {escape(idn["contact_name"])}, {escape(idn["contact_title"])}</span></div>
+    <div><div class="uw-sigline"></div><span>Signature — {escape(contact or "Authorized signatory")}</span></div>
     <div><div class="uw-sigline"></div><span>Date</span></div>
   </div>
 

@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 import { useApp } from "../app/context";
 import { buildHash, type ScreenId } from "../app/router";
-import { activeFindings, formatDate } from "../data/selectors";
+import { activeFindings, formatDate, pluralize } from "../data/selectors";
 import { Icon, type IconName } from "./Icons";
 import { Logo } from "./Logo";
+import { ScanSourceBanner } from "./OpenScan";
 import { PrintSummary } from "./PrintSummary";
 import { UserMenu } from "./UserMenu";
 
@@ -81,13 +82,14 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
             <div className="caption flex flex-wrap items-center gap-x-2">
               <span>{head ? `committed ${formatDate(head.date)}` : "commit date unavailable"}</span>
               <span aria-hidden="true">·</span>
-              <span>{r.summary.files_scanned} files scanned</span>
+              <span>{pluralize(r.summary.files_scanned, "file")} scanned</span>
             </div>
           </div>
           <div className="ml-auto flex items-center gap-2 no-print">
             <UserMenu />
           </div>
         </header>
+        <ScanSourceBanner />
         <main className="px-6 pb-8 pt-5 max-w-[1360px]">
           <div className="screen-content">{children}</div>
           <PrintSummary />
