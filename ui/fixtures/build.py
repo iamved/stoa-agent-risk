@@ -9,7 +9,12 @@ the repo root:
 Outputs (all deterministic):
 
 * meridian-pay.envelope.json  — head scan + diff against baseline + 3-entry
-                                history + declared risk register
+                                history + declared risk register. The history
+                                tells a story: in July and August the
+                                account-actions agent capped amounts in code
+                                and the support chatbot did not exist; the
+                                September push removed the cap and added the
+                                chatbot.
 * meridian-pay.baseline.json  — the baseline registry the diff was taken against
 * hostile.envelope.json       — head envelope with script-breaking strings
                                 planted in every user-derived field class
@@ -23,6 +28,7 @@ Outputs (all deterministic):
 from __future__ import annotations
 
 import copy
+import re
 import json
 import shutil
 import sys
@@ -69,7 +75,7 @@ review_by = "2026-12-01"
 status = "in_progress"
 
 [[risk_register]]
-risk_id = "mandate-overreach/f18cfdb42fdb"
+risk_id = "mandate-overreach/bc3db1f17013"
 owner = "platform-risk@meridian.example"
 treatment = "transfer"
 rationale = "Covered under the AI liability submission; evidence pack prepared from this scan"
@@ -119,31 +125,56 @@ def _no_agents(tmp: Path) -> Path:
     return root
 
 
-def _variant(tmp: Path, name: str, *, drop_tools: list[str], max_per_action: int | None) -> Path:
-    """Copy the example and shrink the account-actions agent's reach."""
+# The amount cap the earlier scans carried in code: a bounding construct the
+# scanner recognises (autonomy bounded, not unrestricted). The September push
+# removed it.
+_CAP = (
+    "MAX_PER_ACTION = {cap}  # hard cap, checked before any tool runs\n"
+    "\n"
+    "def act(state: MessagesState):\n"
+    "    amount = state.get(\"amount\", 0)\n"
+    "    if amount > MAX_PER_ACTION:\n"
+    "        return {{\"messages\": [(\"assistant\", \"Above the cap. Escalating to a person.\")]}}\n"
+)
+
+
+def _variant(tmp: Path, name: str, *, cap: int, drop_tools: list[str], max_per_action: int) -> Path:
+    """Copy the example as it stood before the September push: the support
+    chatbot does not exist, and account-actions caps amounts in code."""
     root = tmp / name
     shutil.copytree(EXAMPLE, root)
+    (root / "code" / "agents" / "support_agent.py").unlink()
     agent = root / "code" / "agents" / "account_actions_agent.py"
     text = agent.read_text()
     for tool in drop_tools:
         text = text.replace(f", {tool}", "").replace(f"{tool}, ", "")
+    text = text.replace("def act(state: MessagesState):\n", _CAP.format(cap=cap), 1)
+    assert "MAX_PER_ACTION" in text
     agent.write_text(text)
+    # On AWS the account-actions agent existed but its action group (the
+    # tools) went live in the September push: strip that resource.
+    tf = root / "aws" / "agents.tf"
+    stripped, n = re.subn(r'resource "aws_bedrockagent_agent_action_group" "account_tools" \{.*?\n\}\n', "", tf.read_text(), flags=re.S)
+    assert n == 1
+    tf.write_text(stripped)
     declared = root / "stoa-declared.toml"
-    if max_per_action is not None:
-        declared.write_text(
-            declared.read_text().replace(
-                "max_per_action = { amount = 500, currency = \"USD\" }",
-                f"max_per_action = {{ amount = {max_per_action}, currency = \"USD\" }}",
-            )
-        )
+    toml = declared.read_text().replace(
+        "max_per_action = { amount = 500, currency = \"USD\" }",
+        f"max_per_action = {{ amount = {max_per_action}, currency = \"USD\" }}",
+    )
+    # The chatbot's declaration did not exist yet either.
+    start = toml.index('[agents."bc3db1f17013"]')
+    end = toml.find("\n[", start + 1)
+    toml = toml[:start] + (toml[end + 1:] if end != -1 else "")
+    declared.write_text(toml)
     return root
 
 
 def build(out: Path = OUT) -> None:
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp = Path(tmpdir)
-        baseline_root = _variant(tmp, "baseline", drop_tools=["issue_refund", "waive_fee", "reissue_card", "change_payout_account"], max_per_action=100)
-        middle_root = _variant(tmp, "middle", drop_tools=["change_payout_account"], max_per_action=250)
+        baseline_root = _variant(tmp, "baseline", cap=100, drop_tools=["change_payout_account"], max_per_action=100)
+        middle_root = _variant(tmp, "middle", cap=250, drop_tools=[], max_per_action=250)
         head_root = tmp / "head"
         shutil.copytree(EXAMPLE, head_root)
         with open(head_root / "stoa-declared.toml", "a") as handle:

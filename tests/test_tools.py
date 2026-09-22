@@ -122,27 +122,26 @@ def test_binding_resolves_names_through_the_import_graph():
 # --- the fixture, three stacks -----------------------------------------------------------------
 
 
-def test_account_actions_agent_names_its_tools_in_every_stack():
+def test_account_actions_agent_names_its_tools_in_both_stacks_and_the_chatbot_binds_them_too():
     result, _ = _scan(MERIDIAN)
     code = _agent(result, "code/agents/account_actions_agent.py")
     aws = next(a for a in result.agents if a.symbol == "aws_bedrockagent_agent.account_actions")
-    dbx = _agent(result, "databricks/agents/support_agent.py")
+    chatbot = _agent(result, "code/agents/support_agent.py")
     expected = {"issue_refund", "waive_fee", "update_contact_info", "reissue_card", "place_travel_notice", "change_payout_account"}
-    for agent in (code, aws, dbx):
+    for agent in (code, aws, chatbot):
         assert {t["name"] for t in agent.tools} == expected, agent.path
     assert {t["kind"] for t in code.tools} == {"langchain_tool"}
     assert {t["kind"] for t in aws.tools} == {"bedrock_action_group"}
-    assert {t["kind"] for t in dbx.tools} == {"uc_function"}
+    assert {t["kind"] for t in chatbot.tools} == {"langchain_tool"}
     # reach travels from the tool to the agent
-    assert "payment_access" in code.capabilities and "payment_access" in dbx.capabilities
+    assert "payment_access" in code.capabilities and "payment_access" in chatbot.capabilities
     assert "database_write" in aws.capabilities                       # from the action group Lambda's role
     assert all("database_write" in t["capabilities"] for t in aws.tools)
-    assert "databricks" in dbx.providers                                # ChatDatabricks is a provider now
 
 
-def test_declaration_contradiction_fires_in_all_three_stacks():
+def test_declaration_contradiction_fires_in_both_stacks_and_on_the_chatbot():
     result, _ = _scan(MERIDIAN)
-    for suffix in ("code/agents/account_actions_agent.py", "databricks/agents/support_agent.py"):
+    for suffix in ("code/agents/account_actions_agent.py", "code/agents/support_agent.py"):
         agent = _agent(result, suffix)
         assert agent.autonomy_level["level"] == "unrestricted_autonomous", suffix
         assert "DECL001" in _rules(agent), suffix
@@ -194,3 +193,17 @@ def test_other_examples_agent_counts_unchanged():
                       ("support-desk", 9), ("threshold-voice", 11)):
         result, _ = _scan(REPO_ROOT / "examples" / ex)
         assert len(result.agents) == count, ex
+
+
+def test_a_tool_finding_shared_by_two_agents_is_one_finding():
+    """Two code agents bind issue_refund; AI008 on it is one finding, on both agents, counted once."""
+    result, config = _scan(MERIDIAN)
+    ai8 = [f for f in result.findings if f.rule_id == "AI008"]
+    assert len(ai8) == 1
+    doc = build_document(result, config)
+    carriers = [a["path"] for a in doc["agents"] if any(f["fingerprint"] == ai8[0].fingerprint for f in a["findings"])]
+    assert sorted(carriers) == ["code/agents/account_actions_agent.py", "code/agents/support_agent.py"]
+    assert sum(1 for f in doc["repository_findings"] if f["rule_id"] == "AI008") == 1
+    counted = sum(doc["summary"]["findings"].values())
+    distinct = len({f["fingerprint"] for a in doc["agents"] for f in a["findings"]} | {f["fingerprint"] for f in doc["repository_findings"]})
+    assert counted == distinct

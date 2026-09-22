@@ -503,6 +503,11 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
         dim_summary = dimension_summary(agents, taxonomy)
 
     agents.sort(key=lambda a: (a.path, a.symbol))
+    # A tool-level finding is emitted once per agent that binds the tool, with
+    # one fingerprint: it is one finding on one line, so it is counted once.
+    # Each agent keeps its own reference to it.
+    seen_fingerprints: set[str] = set()
+    all_findings = [f for f in all_findings if not (f.fingerprint in seen_fingerprints or seen_fingerprints.add(f.fingerprint))]
     all_findings.sort(key=lambda f: (f.path, f.line, f.rule_id, f.fingerprint))
 
     return ScanResult(

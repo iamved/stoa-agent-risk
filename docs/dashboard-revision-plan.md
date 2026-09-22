@@ -301,3 +301,31 @@ leads with the harness (langchain + langgraph) rather than the provider. The
 agent is still defined in code and deployed on two Databricks endpoints;
 changing the demo repository itself was not asked for and would change every
 count.
+
+### The demo, reworked (2026-09-22)
+
+Ved asked for two underlying changes rather than labels.
+
+**The support agent is built in code.** `examples/meridian-pay/databricks/`
+is gone. In its place `code/agents/support_agent.py` is a LangGraph support
+chatbot that binds the account tools straight to the model, with no identity
+step and no approval gate: the new customer-facing AI system, added in the
+September push. The demo is now the refund agent built two ways (code and
+AWS) plus that chatbot: 5 agents from 9 records. The `same_as` declaration
+stays as a feature (tested on its own) but the demo no longer needs it.
+
+**The history tells the story.** The two earlier scans in the demo's history
+are built from the same example with three changes: the chatbot did not
+exist, account-actions capped amounts in code (`MAX_PER_ACTION`, a bounding
+construct the scanner reads as bounded autonomy), and its AWS agent had no
+action group yet. The September push removed the cap, gave the AWS agent its
+tools, and added the chatbot. The largest single-agent modeled loss is
+$3.4M, $3.5M, $5.0M across the three scans; the Overview tile and the
+Financial Exposure chart draw that line. Nothing in the model or its inputs
+was adjusted to reach those numbers: they are what the model gives for
+those three states of the code with today's business inputs.
+
+Two things this surfaced and fixed: the scanner emitted a tool-level finding
+once per agent binding the tool, with one fingerprint, so its totals double
+counted it (now counted once, on both agents); and a finding on an agent the
+diff reports as added was not treated as new.

@@ -15,16 +15,16 @@
     }
   },
   "summary": {
-    "files_scanned": 11,
-    "agent_candidates": 11,
-    "high_confidence_candidates": 8,
-    "integrations": 3,
+    "files_scanned": 9,
+    "agent_candidates": 8,
+    "high_confidence_candidates": 5,
+    "integrations": 1,
     "findings": {
-      "critical": 2,
-      "high": 0,
-      "medium": 9,
+      "critical": 1,
+      "high": 1,
+      "medium": 7,
       "low": 4,
-      "info": 8
+      "info": 9
     },
     "new_findings": {
       "critical": 0,
@@ -57,24 +57,9 @@
           "description": "foundation model by anthropic, served inside Bedrock"
         },
         {
-          "rule_id": "IAC_TOOL_BINDING",
-          "line": 30,
-          "description": "action group 'account-tools' executes in Lambda account_tools: issue_refund, waive_fee, update_contact_info, reissue_card, place_travel_notice, change_payout_account"
-        },
-        {
           "rule_id": "IAC_IAM_POLICY",
           "line": 31,
           "description": "bedrock:InvokeModel, lambda:InvokeFunction on all resources (agent role) (in aws/iam.tf)"
-        },
-        {
-          "rule_id": "IAC_IAM_POLICY",
-          "line": 27,
-          "description": "dynamodb:* on all resources (Lambda account_tools's role) (in aws/iam.tf) — wildcard actions, broad reach"
-        },
-        {
-          "rule_id": "IAC_IAM_POLICY",
-          "line": 27,
-          "description": "secretsmanager:GetSecretValue, ses:SendEmail on all resources (Lambda account_tools's role) (in aws/iam.tf)"
         }
       ],
       "providers": [
@@ -83,13 +68,9 @@
       ],
       "frameworks": [],
       "integrations": [
-        "aws",
-        "ses"
+        "aws"
       ],
       "capabilities": [
-        "database_read",
-        "database_write",
-        "email_send",
         "tool_calling"
       ],
       "permission_tags": [],
@@ -97,40 +78,8 @@
       "last_touched_by": null,
       "last_commit": null,
       "codeowners": [],
-      "findings": [
-        {
-          "fingerprint": "8c5349504645220c",
-          "rule_id": "DECL001",
-          "title": "Declared autonomy contradicts inferred autonomy",
-          "category": "contradiction",
-          "severity": "critical",
-          "confidence": "high",
-          "path": "aws/agents.tf",
-          "line": 30,
-          "column": 1,
-          "snippet": "autonomy_intent='human_approved' vs inferred='unrestricted_autonomous'",
-          "remediation": "This agent was declared recommend-only or human-approved, but the scanner found a side-effecting path with no correlated approval gate. Either add the missing approval control, or correct the declaration.",
-          "suppressed": false,
-          "suppression_reason": null,
-          "is_new": false,
-          "dimensions": [
-            "mandate-overreach",
-            "unreviewed-high-impact-action"
-          ],
-          "message": "Agent `aws_bedrockagent_agent.account_actions` is declared `human_approved`, but the scanner inferred `unrestricted_autonomous` from a side-effecting path with no correlated approval gate. Either the declaration is stale, or the approval control is missing.",
-          "declared_ref": {
-            "path": "stoa-declared.toml",
-            "key": "agents.\"9299e5cfdb41\".autonomy_intent"
-          },
-          "crosswalk": {
-            "owasp_llm_2025": "LLM06",
-            "eu_ai_act": "Art. 14",
-            "relation": "exposure",
-            "so_what": "Declared autonomy does not match what the code does."
-          }
-        }
-      ],
-      "highest_severity": "critical",
+      "findings": [],
+      "highest_severity": null,
       "dimension_assessment": {
         "taxonomy": {
           "id": "stoa-aiuc-8",
@@ -141,18 +90,13 @@
             "id": "mandate-overreach",
             "group": "B",
             "assessability": "strong",
-            "exposure": "elevated",
-            "score": 76,
-            "score_before_controls": 76,
-            "contributing_findings": [
-              "8c5349504645220c"
-            ],
-            "contributing_capabilities": [
-              "database_write",
-              "email_send"
-            ],
+            "exposure": "none-observed",
+            "score": 0,
+            "score_before_controls": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
             "controls_observed": [],
-            "statement": "1 finding(s) and 2 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+            "statement": "No exposure observed in scanned files."
           },
           {
             "id": "boundary-leakage",
@@ -170,18 +114,13 @@
             "id": "unreviewed-high-impact-action",
             "group": "C",
             "assessability": "strong",
-            "exposure": "elevated",
-            "score": 76,
-            "score_before_controls": 76,
-            "contributing_findings": [
-              "8c5349504645220c"
-            ],
-            "contributing_capabilities": [
-              "database_write",
-              "email_send"
-            ],
+            "exposure": "none-observed",
+            "score": 0,
+            "score_before_controls": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
             "controls_observed": [],
-            "statement": "1 finding(s) and 2 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+            "statement": "No exposure observed in scanned files."
           },
           {
             "id": "output-fidelity",
@@ -261,162 +200,10 @@
         ]
       },
       "autonomy_level": {
-        "level": "unrestricted_autonomous",
-        "signals": [
-          {
-            "signal": "tool:issue_refund",
-            "path": "aws/agents.tf",
-            "line": 30
-          },
-          {
-            "signal": "tool:waive_fee",
-            "path": "aws/agents.tf",
-            "line": 30
-          },
-          {
-            "signal": "tool:update_contact_info",
-            "path": "aws/agents.tf",
-            "line": 30
-          },
-          {
-            "signal": "tool:reissue_card",
-            "path": "aws/agents.tf",
-            "line": 30
-          },
-          {
-            "signal": "tool:place_travel_notice",
-            "path": "aws/agents.tf",
-            "line": 30
-          },
-          {
-            "signal": "tool:change_payout_account",
-            "path": "aws/agents.tf",
-            "line": 30
-          },
-          {
-            "signal": "high_impact_capability",
-            "path": "aws/agents.tf",
-            "line": 30
-          }
-        ],
+        "level": "recommend_only",
+        "signals": [],
         "reason": null
       },
-      "tools": [
-        {
-          "name": "issue_refund",
-          "path": "aws/agents.tf",
-          "line": 30,
-          "kind": "bedrock_action_group",
-          "params": [],
-          "capabilities": [
-            "database_read",
-            "database_write",
-            "email_send"
-          ],
-          "integrations": [],
-          "high_impact": true,
-          "money_action": true,
-          "guards": [],
-          "retry": null,
-          "idempotency_key": false,
-          "resolved": false
-        },
-        {
-          "name": "waive_fee",
-          "path": "aws/agents.tf",
-          "line": 30,
-          "kind": "bedrock_action_group",
-          "params": [],
-          "capabilities": [
-            "database_read",
-            "database_write",
-            "email_send"
-          ],
-          "integrations": [],
-          "high_impact": true,
-          "money_action": true,
-          "guards": [],
-          "retry": null,
-          "idempotency_key": false,
-          "resolved": false
-        },
-        {
-          "name": "update_contact_info",
-          "path": "aws/agents.tf",
-          "line": 30,
-          "kind": "bedrock_action_group",
-          "params": [],
-          "capabilities": [
-            "database_read",
-            "database_write",
-            "email_send"
-          ],
-          "integrations": [],
-          "high_impact": true,
-          "money_action": false,
-          "guards": [],
-          "retry": null,
-          "idempotency_key": false,
-          "resolved": false
-        },
-        {
-          "name": "reissue_card",
-          "path": "aws/agents.tf",
-          "line": 30,
-          "kind": "bedrock_action_group",
-          "params": [],
-          "capabilities": [
-            "database_read",
-            "database_write",
-            "email_send"
-          ],
-          "integrations": [],
-          "high_impact": true,
-          "money_action": true,
-          "guards": [],
-          "retry": null,
-          "idempotency_key": false,
-          "resolved": false
-        },
-        {
-          "name": "place_travel_notice",
-          "path": "aws/agents.tf",
-          "line": 30,
-          "kind": "bedrock_action_group",
-          "params": [],
-          "capabilities": [
-            "database_read",
-            "database_write",
-            "email_send"
-          ],
-          "integrations": [],
-          "high_impact": true,
-          "money_action": false,
-          "guards": [],
-          "retry": null,
-          "idempotency_key": false,
-          "resolved": false
-        },
-        {
-          "name": "change_payout_account",
-          "path": "aws/agents.tf",
-          "line": 30,
-          "kind": "bedrock_action_group",
-          "params": [],
-          "capabilities": [
-            "database_read",
-            "database_write",
-            "email_send"
-          ],
-          "integrations": [],
-          "high_impact": true,
-          "money_action": true,
-          "guards": [],
-          "retry": null,
-          "idempotency_key": false,
-          "resolved": false
-        }
-      ],
       "source": "iac",
       "discovery_tier": "recognized",
       "platform": "bedrock"
@@ -832,7 +619,7 @@
         },
         {
           "rule_id": "IAC_KNOWLEDGE_BASE",
-          "line": 46,
+          "line": 30,
           "description": "knowledge base tickets attached"
         },
         {
@@ -1021,7 +808,7 @@
       "evidence": [
         {
           "rule_id": "AGENT_LANGGRAPH",
-          "line": 21,
+          "line": 26,
           "description": "LangGraph agent construct"
         },
         {
@@ -1043,6 +830,7 @@
       ],
       "integrations": [],
       "capabilities": [
+        "payment_access",
         "tool_calling"
       ],
       "permission_tags": [],
@@ -1086,6 +874,100 @@
           }
         },
         {
+          "fingerprint": "c0e7b0d45a6967b7",
+          "rule_id": "AI008",
+          "title": "Non-idempotent money action under retry",
+          "category": "ai-agency",
+          "severity": "high",
+          "confidence": "medium",
+          "path": "code/tools/account_tools.py",
+          "line": 17,
+          "column": 1,
+          "snippet": "def issue_refund(...)",
+          "remediation": "Send an idempotency key derived from a stable identifier (the dispute or order id), disable retries on money tools, and check limits per dispute rather than per call.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "id": "AI008-c0e7b0d45a69",
+          "canonical_name": "STOA-LLM06-NONIDEMPOTENT-RETRY",
+          "owasp": {
+            "llm_top10_v1_1": "LLM08",
+            "llm_top10_2025": "LLM06"
+          },
+          "dimensions": [
+            "control-coverage-gap",
+            "unreviewed-high-impact-action"
+          ],
+          "evidence_tags": [
+            "money_action",
+            "retry"
+          ],
+          "message": "`issue_refund` posts a money action and is retried on failure (retry (via _post_refund)); no idempotency key or dedupe check was observed. A timeout after the upstream commits will post it again, and each attempt is checked against the per-call limit on its own.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM06",
+            "eu_ai_act": "Art. 9",
+            "relation": "exposure",
+            "so_what": "A retried money action with no idempotency key can post twice, and each attempt stays under the per-call limit."
+          }
+        },
+        {
+          "fingerprint": "a2f94531c7770b68",
+          "rule_id": "DECL001",
+          "title": "Declared autonomy contradicts inferred autonomy",
+          "category": "contradiction",
+          "severity": "critical",
+          "confidence": "high",
+          "path": "code/tools/account_tools.py",
+          "line": 17,
+          "column": 1,
+          "snippet": "autonomy_intent='human_approved' vs inferred='bounded_autonomous'",
+          "remediation": "This agent was declared recommend-only or human-approved, but the scanner found a side-effecting path with no correlated approval gate. Either add the missing approval control, or correct the declaration.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "mandate-overreach",
+            "unreviewed-high-impact-action"
+          ],
+          "message": "Agent `graph` is declared `human_approved`, but the scanner inferred `bounded_autonomous` from a side-effecting path with no correlated approval gate. Either the declaration is stale, or the approval control is missing.",
+          "declared_ref": {
+            "path": "stoa-declared.toml",
+            "key": "agents.\"b8f0111742fc\".autonomy_intent"
+          },
+          "crosswalk": {
+            "owasp_llm_2025": "LLM06",
+            "eu_ai_act": "Art. 14",
+            "relation": "exposure",
+            "so_what": "Declared autonomy does not match what the code does."
+          }
+        },
+        {
+          "fingerprint": "cfbb1ba81b36c6c3",
+          "rule_id": "CTRL003",
+          "title": "Rate limiting control not observed",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "code/agents/account_actions_agent.py",
+          "line": 26,
+          "column": 1,
+          "snippet": "Rate limiting control not observed for candidate graph",
+          "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "control-coverage-gap"
+          ],
+          "message": "Rate limiting control not observed (code/agents/account_actions_agent.py:26). Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM10",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "No rate limit was observed, so repeated calls can run up cost or load."
+          }
+        },
+        {
           "fingerprint": "9d9a33f2fd7ff254",
           "rule_id": "CTRL004",
           "title": "Observability construct not observed for agent tool execution",
@@ -1093,7 +975,7 @@
           "severity": "info",
           "confidence": "low",
           "path": "code/agents/account_actions_agent.py",
-          "line": 21,
+          "line": 26,
           "column": 1,
           "snippet": "observability for candidate graph",
           "remediation": "Confirm logging or tracing covers this agent's tool execution; none was observed in this file.",
@@ -1125,7 +1007,7 @@
           "severity": "info",
           "confidence": "low",
           "path": "code/agents/account_actions_agent.py",
-          "line": 21,
+          "line": 26,
           "column": 1,
           "snippet": "No kill-switch signal observed on the agent's entry path for candidate graph",
           "remediation": "Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
@@ -1135,7 +1017,7 @@
           "dimensions": [
             "control-coverage-gap"
           ],
-          "message": "No kill-switch signal observed on the agent's entry path (code/agents/account_actions_agent.py:21). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "message": "No kill-switch signal observed on the agent's entry path (code/agents/account_actions_agent.py:26). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
           "crosswalk": {
             "owasp_llm_2025": "LLM06",
             "eu_ai_act": "Art. 14",
@@ -1151,7 +1033,7 @@
           "severity": "medium",
           "confidence": "high",
           "path": "code/agents/account_actions_agent.py",
-          "line": 21,
+          "line": 26,
           "column": 1,
           "snippet": "production_status=production for `graph`, CTRL004 fired",
           "remediation": "This agent is declared production_status = \"production\", but no observability construct was observed (CTRL004). Add logging or tracing before relying on this in production.",
@@ -1174,7 +1056,7 @@
           }
         }
       ],
-      "highest_severity": "medium",
+      "highest_severity": "critical",
       "dimension_assessment": {
         "taxonomy": {
           "id": "stoa-aiuc-8",
@@ -1185,13 +1067,17 @@
             "id": "mandate-overreach",
             "group": "B",
             "assessability": "strong",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
+            "exposure": "elevated",
+            "score": 58,
+            "score_before_controls": 58,
+            "contributing_findings": [
+              "a2f94531c7770b68"
+            ],
+            "contributing_capabilities": [
+              "payment_access"
+            ],
             "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
+            "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
             "id": "boundary-leakage",
@@ -1209,15 +1095,20 @@
             "id": "unreviewed-high-impact-action",
             "group": "C",
             "assessability": "strong",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
+            "exposure": "moderate",
+            "score": 53,
+            "score_before_controls": 73,
+            "contributing_findings": [
+              "AI008-c0e7b0d45a69",
+              "a2f94531c7770b68"
+            ],
+            "contributing_capabilities": [
+              "payment_access"
+            ],
             "controls_observed": [
               "authentication"
             ],
-            "statement": "No exposure observed; controls observed: authentication."
+            "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; 1 mitigating control(s) observed."
           },
           {
             "id": "output-fidelity",
@@ -1283,11 +1174,13 @@
             "assessability": "partial",
             "exposure": "none-observed",
             "score": 0,
-            "score_before_controls": 13,
+            "score_before_controls": 29,
             "contributing_findings": [
               "1b5760feca23bde6",
               "77d4c36eaa0b4850",
-              "CTRL004-9d9a33f2fd7f"
+              "AI008-c0e7b0d45a69",
+              "CTRL004-9d9a33f2fd7f",
+              "cfbb1ba81b36c6c3"
             ],
             "contributing_capabilities": [],
             "controls_observed": [
@@ -1326,11 +1219,92 @@
         }
       },
       "autonomy_level": {
-        "level": "recommend_only",
-        "signals": [],
+        "level": "bounded_autonomous",
+        "signals": [
+          {
+            "signal": "tool:issue_refund",
+            "path": "code/tools/account_tools.py",
+            "line": 17
+          },
+          {
+            "signal": "tool:waive_fee",
+            "path": "code/tools/account_tools.py",
+            "line": 22
+          },
+          {
+            "signal": "tool:reissue_card",
+            "path": "code/tools/account_tools.py",
+            "line": 32
+          },
+          {
+            "signal": "bounding",
+            "path": "code/agents/account_actions_agent.py",
+            "line": 22
+          }
+        ],
         "reason": null
       },
       "tools": [
+        {
+          "name": "issue_refund",
+          "path": "code/tools/account_tools.py",
+          "line": 17,
+          "kind": "langchain_tool",
+          "params": [
+            {
+              "name": "account_id",
+              "type": "str"
+            },
+            {
+              "name": "amount",
+              "type": "float"
+            },
+            {
+              "name": "dispute_id",
+              "type": "str"
+            }
+          ],
+          "capabilities": [
+            "payment_access"
+          ],
+          "integrations": [],
+          "high_impact": true,
+          "money_action": true,
+          "guards": [],
+          "retry": "retry (via _post_refund)",
+          "idempotency_key": false,
+          "resolved": true
+        },
+        {
+          "name": "waive_fee",
+          "path": "code/tools/account_tools.py",
+          "line": 22,
+          "kind": "langchain_tool",
+          "params": [
+            {
+              "name": "account_id",
+              "type": "str"
+            },
+            {
+              "name": "fee_id",
+              "type": "str"
+            },
+            {
+              "name": "amount",
+              "type": "float"
+            }
+          ],
+          "capabilities": [
+            "payment_access"
+          ],
+          "integrations": [],
+          "high_impact": true,
+          "money_action": true,
+          "guards": [],
+          "retry": null,
+          "idempotency_key": false,
+          "resolved": true
+        },
         {
           "name": "update_contact_info",
           "path": "code/tools/account_tools.py",
@@ -1358,6 +1332,28 @@
           "integrations": [],
           "high_impact": false,
           "money_action": false,
+          "guards": [],
+          "retry": null,
+          "idempotency_key": false,
+          "resolved": true
+        },
+        {
+          "name": "reissue_card",
+          "path": "code/tools/account_tools.py",
+          "line": 32,
+          "kind": "langchain_tool",
+          "params": [
+            {
+              "name": "account_id",
+              "type": "str"
+            }
+          ],
+          "capabilities": [
+            "payment_access"
+          ],
+          "integrations": [],
+          "high_impact": true,
+          "money_action": true,
           "guards": [],
           "retry": null,
           "idempotency_key": false,
@@ -1462,6 +1458,32 @@
             "eu_ai_act": "Art. 15",
             "relation": "exposure",
             "so_what": "The model reference is unpinned, so behavior can change under you silently."
+          }
+        },
+        {
+          "fingerprint": "1f626977da9d1103",
+          "rule_id": "CTRL003",
+          "title": "Rate limiting control not observed",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "code/agents/escalation_agent.py",
+          "line": 13,
+          "column": 1,
+          "snippet": "Rate limiting control not observed for candidate graph",
+          "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "control-coverage-gap"
+          ],
+          "message": "Rate limiting control not observed (code/agents/escalation_agent.py:13). Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM10",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "No rate limit was observed, so repeated calls can run up cost or load."
           }
         },
         {
@@ -1628,12 +1650,13 @@
             "score": 13,
             "score_before_controls": 13,
             "contributing_findings": [
+              "1f626977da9d1103",
               "3d972dea9961b5e1",
               "7f49f045b1421c52"
             ],
             "contributing_capabilities": [],
             "controls_observed": [],
-            "statement": "2 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+            "statement": "3 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           }
         ]
       },
@@ -1712,6 +1735,32 @@
             "eu_ai_act": "Art. 15",
             "relation": "exposure",
             "so_what": "The model reference is unpinned, so behavior can change under you silently."
+          }
+        },
+        {
+          "fingerprint": "33ec986832ba42c6",
+          "rule_id": "CTRL003",
+          "title": "Rate limiting control not observed",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "code/agents/front_agent.py",
+          "line": 24,
+          "column": 1,
+          "snippet": "Rate limiting control not observed for candidate graph",
+          "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "control-coverage-gap"
+          ],
+          "message": "Rate limiting control not observed (code/agents/front_agent.py:24). Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM10",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "No rate limit was observed, so repeated calls can run up cost or load."
           }
         },
         {
@@ -1883,6 +1932,7 @@
             "score_before_controls": 13,
             "contributing_findings": [
               "1b89568505354454",
+              "33ec986832ba42c6",
               "d373f238bf601384"
             ],
             "contributing_capabilities": [],
@@ -1993,6 +2043,32 @@
             "eu_ai_act": "Art. 15",
             "relation": "exposure",
             "so_what": "The model reference is unpinned, so behavior can change under you silently."
+          }
+        },
+        {
+          "fingerprint": "f1a760ee3ec0547f",
+          "rule_id": "CTRL003",
+          "title": "Rate limiting control not observed",
+          "category": "control",
+          "severity": "info",
+          "confidence": "low",
+          "path": "code/agents/knowledge_agent.py",
+          "line": 14,
+          "column": 1,
+          "snippet": "Rate limiting control not observed for candidate graph",
+          "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "dimensions": [
+            "control-coverage-gap"
+          ],
+          "message": "Rate limiting control not observed (code/agents/knowledge_agent.py:14). Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
+          "crosswalk": {
+            "owasp_llm_2025": "LLM10",
+            "eu_ai_act": "Art. 15",
+            "relation": "exposure",
+            "so_what": "No rate limit was observed, so repeated calls can run up cost or load."
           }
         },
         {
@@ -2160,11 +2236,12 @@
             "score_before_controls": 13,
             "contributing_findings": [
               "0410b64895326df5",
-              "7b594b7fb163b884"
+              "7b594b7fb163b884",
+              "f1a760ee3ec0547f"
             ],
             "contributing_capabilities": [],
             "controls_observed": [],
-            "statement": "2 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+            "statement": "3 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           }
         ]
       },
@@ -2173,869 +2250,78 @@
         "signals": [],
         "reason": null
       }
-    },
-    {
-      "id": "f18cfdb42fdb",
-      "name": "agent",
-      "display_name": "support_agent·agent",
-      "symbol": "agent",
-      "path": "databricks/agents/support_agent.py",
-      "language": "python",
-      "confidence": "high",
-      "detection_score": 13,
-      "evidence": [
-        {
-          "rule_id": "AGENT_LANGCHAIN",
-          "line": 11,
-          "description": "LangChain agent construct"
-        },
-        {
-          "rule_id": "AGENT_LANGGRAPH",
-          "line": 11,
-          "description": "LangGraph agent construct"
-        },
-        {
-          "rule_id": "AGENT_TOOLS",
-          "line": 8,
-          "description": "Tool or function schema"
-        },
-        {
-          "rule_id": "AGENT_PROVIDER_IMPORT",
-          "line": 4,
-          "description": "LLM provider import or reference"
-        }
-      ],
-      "providers": [
-        "databricks"
-      ],
-      "frameworks": [
-        "langchain",
-        "langgraph"
-      ],
-      "integrations": [
-        "databricks"
-      ],
-      "capabilities": [
-        "payment_access"
-      ],
-      "permission_tags": [],
-      "call_sites": {
-        "databricks": 1
-      },
-      "last_touched_by": null,
-      "last_commit": null,
-      "codeowners": [],
-      "findings": [
-        {
-          "fingerprint": "63f34061611d296e",
-          "rule_id": "DECL001",
-          "title": "Declared autonomy contradicts inferred autonomy",
-          "category": "contradiction",
-          "severity": "critical",
-          "confidence": "high",
-          "path": "databricks/agents/support_agent.py",
-          "line": 8,
-          "column": 1,
-          "snippet": "autonomy_intent='human_approved' vs inferred='unrestricted_autonomous'",
-          "remediation": "This agent was declared recommend-only or human-approved, but the scanner found a side-effecting path with no correlated approval gate. Either add the missing approval control, or correct the declaration.",
-          "suppressed": false,
-          "suppression_reason": null,
-          "is_new": false,
-          "dimensions": [
-            "mandate-overreach",
-            "unreviewed-high-impact-action"
-          ],
-          "message": "Agent `agent` is declared `human_approved`, but the scanner inferred `unrestricted_autonomous` from a side-effecting path with no correlated approval gate. Either the declaration is stale, or the approval control is missing.",
-          "declared_ref": {
-            "path": "stoa-declared.toml",
-            "key": "agents.\"f18cfdb42fdb\".autonomy_intent"
-          },
-          "crosswalk": {
-            "owasp_llm_2025": "LLM06",
-            "eu_ai_act": "Art. 14",
-            "relation": "exposure",
-            "so_what": "Declared autonomy does not match what the code does."
-          }
-        },
-        {
-          "fingerprint": "a7b54d2969fae20a",
-          "rule_id": "AI003",
-          "title": "Approval control not observed for high-impact tool capability",
-          "category": "ai-agency",
-          "severity": "info",
-          "confidence": "low",
-          "path": "databricks/agents/support_agent.py",
-          "line": 11,
-          "column": 1,
-          "snippet": "high-impact capability for candidate agent",
-          "remediation": "Confirm an approval or human-in-the-loop control gates this capability; none was observed in this file.",
-          "suppressed": false,
-          "suppression_reason": null,
-          "is_new": false,
-          "id": "AI003-a7b54d2969fa",
-          "canonical_name": "STOA-LLM08-UNOBSERVED-APPROVAL",
-          "owasp": {
-            "llm_top10_v1_1": "LLM08",
-            "llm_top10_2025": "LLM06"
-          },
-          "dimensions": [
-            "mandate-overreach",
-            "unreviewed-high-impact-action"
-          ],
-          "message": "Agent candidate `agent` binds a tool whose body contains high-impact capability call sites (payment-access). No approval construct (interrupt, confirmation guard, `requires_approval`) was observed in this file. Approval logic may exist elsewhere and would not be visible to this scan. One review prompt per candidate — this notice will not repeat.",
-          "crosswalk": {
-            "owasp_llm_2025": "LLM06",
-            "eu_ai_act": "Art. 14",
-            "relation": "exposure",
-            "so_what": "A high-impact action can fire with no human-approval step observed."
-          }
-        },
-        {
-          "fingerprint": "6551846329bb9981",
-          "rule_id": "CTRL004",
-          "title": "Observability construct not observed for agent tool execution",
-          "category": "control",
-          "severity": "info",
-          "confidence": "low",
-          "path": "databricks/agents/support_agent.py",
-          "line": 11,
-          "column": 1,
-          "snippet": "observability for candidate agent",
-          "remediation": "Confirm logging or tracing covers this agent's tool execution; none was observed in this file.",
-          "suppressed": false,
-          "suppression_reason": null,
-          "is_new": false,
-          "id": "CTRL004-6551846329bb",
-          "canonical_name": "STOA-CTRL-OBSERVABILITY",
-          "owasp": {
-            "llm_top10_v1_1": "LLM10",
-            "llm_top10_2025": "LLM10"
-          },
-          "dimensions": [
-            "control-coverage-gap"
-          ],
-          "message": "Agent candidate `agent` binds tools executing capability call sites; no logging or tracing construct was observed in this file. Observability may exist at middleware or platform level and would not be visible to this scan. One review prompt per candidate.",
-          "crosswalk": {
-            "owasp_llm_2025": null,
-            "eu_ai_act": "Art. 12",
-            "relation": "exposure",
-            "so_what": "Without logging you cannot reconstruct what the agent did."
-          }
-        },
-        {
-          "fingerprint": "e3117cb28c88af28",
-          "rule_id": "CTRL007",
-          "title": "No kill-switch signal observed on the agent's entry path",
-          "category": "control",
-          "severity": "info",
-          "confidence": "low",
-          "path": "databricks/agents/support_agent.py",
-          "line": 11,
-          "column": 1,
-          "snippet": "No kill-switch signal observed on the agent's entry path for candidate agent",
-          "remediation": "Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
-          "suppressed": false,
-          "suppression_reason": null,
-          "is_new": false,
-          "dimensions": [
-            "control-coverage-gap"
-          ],
-          "message": "No kill-switch signal observed on the agent's entry path (databricks/agents/support_agent.py:11). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
-          "crosswalk": {
-            "owasp_llm_2025": "LLM06",
-            "eu_ai_act": "Art. 14",
-            "relation": "exposure",
-            "so_what": "No kill-switch signal was observed to halt the agent mid-run."
-          }
-        },
-        {
-          "fingerprint": "d0e8de5e1857a9c4",
-          "rule_id": "DECL005",
-          "title": "Production agent has no observability observed",
-          "category": "contradiction",
-          "severity": "medium",
-          "confidence": "high",
-          "path": "databricks/agents/support_agent.py",
-          "line": 11,
-          "column": 1,
-          "snippet": "production_status=production for `agent`, CTRL004 fired",
-          "remediation": "This agent is declared production_status = \"production\", but no observability construct was observed (CTRL004). Add logging or tracing before relying on this in production.",
-          "suppressed": false,
-          "suppression_reason": null,
-          "is_new": false,
-          "dimensions": [
-            "control-coverage-gap"
-          ],
-          "message": "Agent `agent` is declared production, but no observability construct was observed (CTRL004).",
-          "declared_ref": {
-            "path": "stoa-declared.toml",
-            "key": "agents.\"f18cfdb42fdb\".production_status"
-          },
-          "crosswalk": {
-            "owasp_llm_2025": "LLM10",
-            "eu_ai_act": "Art. 12",
-            "relation": "exposure",
-            "so_what": "The agent runs in production with no observability observed."
-          }
-        }
-      ],
-      "highest_severity": "critical",
-      "dimension_assessment": {
-        "taxonomy": {
-          "id": "stoa-aiuc-8",
-          "version": "2.0"
-        },
-        "dimensions": [
-          {
-            "id": "mandate-overreach",
-            "group": "B",
-            "assessability": "strong",
-            "exposure": "elevated",
-            "score": 59,
-            "score_before_controls": 59,
-            "contributing_findings": [
-              "63f34061611d296e",
-              "AI003-a7b54d2969fa"
-            ],
-            "contributing_capabilities": [
-              "payment_access"
-            ],
-            "controls_observed": [],
-            "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
-          },
-          {
-            "id": "boundary-leakage",
-            "group": "A",
-            "assessability": "strong",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "unreviewed-high-impact-action",
-            "group": "C",
-            "assessability": "strong",
-            "exposure": "elevated",
-            "score": 59,
-            "score_before_controls": 59,
-            "contributing_findings": [
-              "63f34061611d296e",
-              "AI003-a7b54d2969fa"
-            ],
-            "contributing_capabilities": [
-              "payment_access"
-            ],
-            "controls_observed": [],
-            "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
-          },
-          {
-            "id": "output-fidelity",
-            "group": "D",
-            "assessability": "partial",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "injection-tamper-surface",
-            "group": "B",
-            "assessability": "partial",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "conduct-variability",
-            "group": "D",
-            "assessability": "proxy",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
-          },
-          {
-            "id": "dependency-drift",
-            "group": "D",
-            "assessability": "proxy",
-            "exposure": "low",
-            "score": 8,
-            "score_before_controls": 8,
-            "contributing_findings": [],
-            "contributing_capabilities": [
-              "provider:databricks"
-            ],
-            "controls_observed": [],
-            "statement": "Proxy signals only: 0 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
-          },
-          {
-            "id": "control-coverage-gap",
-            "group": "B",
-            "assessability": "partial",
-            "exposure": "low",
-            "score": 13,
-            "score_before_controls": 13,
-            "contributing_findings": [
-              "CTRL004-6551846329bb",
-              "d0e8de5e1857a9c4",
-              "e3117cb28c88af28"
-            ],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "3 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
-          }
-        ]
-      },
-      "declared": {
-        "name": "meridian-support",
-        "owner": "digital-servicing@meridian.example",
-        "purpose": "Support agent on Databricks Mosaic AI Agent Framework",
-        "users": "customers",
-        "geography": [],
-        "production_status": "production",
-        "autonomy_intent": "human_approved",
-        "data_classes": [
-          "personal",
-          "financial"
-        ],
-        "same_as": [
-          "3af3aebaa6f7",
-          "6142266e32cb"
-        ]
-      },
-      "autonomy_level": {
-        "level": "unrestricted_autonomous",
-        "signals": [
-          {
-            "signal": "tool:change_payout_account",
-            "path": "databricks/agents/support_agent.py",
-            "line": 8
-          },
-          {
-            "signal": "tool:issue_refund",
-            "path": "databricks/agents/support_agent.py",
-            "line": 8
-          },
-          {
-            "signal": "tool:reissue_card",
-            "path": "databricks/agents/support_agent.py",
-            "line": 8
-          },
-          {
-            "signal": "tool:waive_fee",
-            "path": "databricks/agents/support_agent.py",
-            "line": 8
-          },
-          {
-            "signal": "AI003",
-            "path": "databricks/agents/support_agent.py",
-            "line": 11
-          }
-        ],
-        "reason": null
-      },
-      "tools": [
-        {
-          "name": "change_payout_account",
-          "path": "databricks/agents/support_agent.py",
-          "line": 8,
-          "kind": "uc_function",
-          "params": [],
-          "capabilities": [
-            "payment_access"
-          ],
-          "integrations": [],
-          "high_impact": true,
-          "money_action": true,
-          "guards": [],
-          "retry": null,
-          "idempotency_key": false,
-          "resolved": false
-        },
-        {
-          "name": "issue_refund",
-          "path": "databricks/agents/support_agent.py",
-          "line": 8,
-          "kind": "uc_function",
-          "params": [],
-          "capabilities": [
-            "payment_access"
-          ],
-          "integrations": [],
-          "high_impact": true,
-          "money_action": true,
-          "guards": [],
-          "retry": null,
-          "idempotency_key": false,
-          "resolved": false
-        },
-        {
-          "name": "place_travel_notice",
-          "path": "databricks/agents/support_agent.py",
-          "line": 8,
-          "kind": "uc_function",
-          "params": [],
-          "capabilities": [],
-          "integrations": [],
-          "high_impact": false,
-          "money_action": false,
-          "guards": [],
-          "retry": null,
-          "idempotency_key": false,
-          "resolved": false
-        },
-        {
-          "name": "reissue_card",
-          "path": "databricks/agents/support_agent.py",
-          "line": 8,
-          "kind": "uc_function",
-          "params": [],
-          "capabilities": [
-            "payment_access"
-          ],
-          "integrations": [],
-          "high_impact": true,
-          "money_action": true,
-          "guards": [],
-          "retry": null,
-          "idempotency_key": false,
-          "resolved": false
-        },
-        {
-          "name": "update_contact_info",
-          "path": "databricks/agents/support_agent.py",
-          "line": 8,
-          "kind": "uc_function",
-          "params": [],
-          "capabilities": [],
-          "integrations": [],
-          "high_impact": false,
-          "money_action": false,
-          "guards": [],
-          "retry": null,
-          "idempotency_key": false,
-          "resolved": false
-        },
-        {
-          "name": "waive_fee",
-          "path": "databricks/agents/support_agent.py",
-          "line": 8,
-          "kind": "uc_function",
-          "params": [],
-          "capabilities": [
-            "payment_access"
-          ],
-          "integrations": [],
-          "high_impact": true,
-          "money_action": true,
-          "guards": [],
-          "retry": null,
-          "idempotency_key": false,
-          "resolved": false
-        }
-      ]
-    },
-    {
-      "id": "3af3aebaa6f7",
-      "name": "meridian-support-chat",
-      "display_name": "meridian-support-chat",
-      "symbol": "databricks_model_serving.support_chat",
-      "path": "databricks/infra/main.tf",
-      "language": "terraform",
-      "confidence": "high",
-      "detection_score": 8,
-      "evidence": [
-        {
-          "rule_id": "AGENT_IAC_SERVING_ENDPOINT",
-          "line": 3,
-          "description": "Databricks model serving endpoint 'meridian-support-chat' — a deployed agent, serving UC model prod.agents.meridian_support"
-        },
-        {
-          "rule_id": "IAC_CONTROL_GUARDRAIL",
-          "line": 3,
-          "description": "AI Gateway guardrails configured (input/output filtering)"
-        },
-        {
-          "rule_id": "IAC_CONTROL_RATE_LIMIT",
-          "line": 3,
-          "description": "AI Gateway rate limit configured"
-        },
-        {
-          "rule_id": "IAC_CONTROL_OBSERVABILITY",
-          "line": 3,
-          "description": "AI Gateway inference tables / usage tracking enabled"
-        },
-        {
-          "rule_id": "IAC_GRANT",
-          "line": 18,
-          "description": "EXECUTE, USE_SCHEMA on schema prod.tools (via support)"
-        },
-        {
-          "rule_id": "IAC_GRANT",
-          "line": 22,
-          "description": "MODIFY, SELECT, USE_CATALOG on catalog prod (via support)"
-        }
-      ],
-      "providers": [],
-      "frameworks": [],
-      "integrations": [
-        "databricks"
-      ],
-      "capabilities": [
-        "database_read",
-        "database_write"
-      ],
-      "permission_tags": [],
-      "call_sites": {},
-      "last_touched_by": null,
-      "last_commit": null,
-      "codeowners": [],
-      "findings": [],
-      "highest_severity": null,
-      "dimension_assessment": {
-        "taxonomy": {
-          "id": "stoa-aiuc-8",
-          "version": "2.0"
-        },
-        "dimensions": [
-          {
-            "id": "mandate-overreach",
-            "group": "B",
-            "assessability": "strong",
-            "exposure": "low",
-            "score": 18,
-            "score_before_controls": 18,
-            "contributing_findings": [],
-            "contributing_capabilities": [
-              "database_write"
-            ],
-            "controls_observed": [],
-            "statement": "0 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
-          },
-          {
-            "id": "boundary-leakage",
-            "group": "A",
-            "assessability": "strong",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "unreviewed-high-impact-action",
-            "group": "C",
-            "assessability": "strong",
-            "exposure": "low",
-            "score": 18,
-            "score_before_controls": 18,
-            "contributing_findings": [],
-            "contributing_capabilities": [
-              "database_write"
-            ],
-            "controls_observed": [],
-            "statement": "0 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
-          },
-          {
-            "id": "output-fidelity",
-            "group": "D",
-            "assessability": "partial",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [
-              "validation"
-            ],
-            "statement": "No exposure observed; controls observed: validation."
-          },
-          {
-            "id": "injection-tamper-surface",
-            "group": "B",
-            "assessability": "partial",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "conduct-variability",
-            "group": "D",
-            "assessability": "proxy",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
-          },
-          {
-            "id": "dependency-drift",
-            "group": "D",
-            "assessability": "proxy",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
-          },
-          {
-            "id": "control-coverage-gap",
-            "group": "B",
-            "assessability": "partial",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [
-              "observability",
-              "rate_limit",
-              "validation"
-            ],
-            "statement": "No exposure observed; controls observed: observability, rate_limit, validation."
-          }
-        ]
-      },
-      "declared": {
-        "name": "meridian-support-chat",
-        "owner": "digital-servicing@meridian.example",
-        "purpose": "Support agent on Databricks",
-        "users": "customers",
-        "geography": [],
-        "production_status": "production",
-        "autonomy_intent": "human_approved",
-        "data_classes": [
-          "personal",
-          "financial"
-        ]
-      },
-      "autonomy_level": {
-        "level": "recommend_only",
-        "signals": [],
-        "reason": null
-      },
-      "source": "iac",
-      "discovery_tier": "recognized",
-      "platform": "databricks"
-    },
-    {
-      "id": "6142266e32cb",
-      "name": "meridian-support-ivr",
-      "display_name": "meridian-support-ivr",
-      "symbol": "databricks_model_serving.support_ivr",
-      "path": "databricks/infra/main.tf",
-      "language": "terraform",
-      "confidence": "high",
-      "detection_score": 8,
-      "evidence": [
-        {
-          "rule_id": "AGENT_IAC_SERVING_ENDPOINT",
-          "line": 13,
-          "description": "Databricks model serving endpoint 'meridian-support-ivr' — a deployed agent, serving UC model prod.agents.meridian_support"
-        },
-        {
-          "rule_id": "IAC_GRANT",
-          "line": 18,
-          "description": "EXECUTE, USE_SCHEMA on schema prod.tools (via support)"
-        },
-        {
-          "rule_id": "IAC_GRANT",
-          "line": 22,
-          "description": "MODIFY, SELECT, USE_CATALOG on catalog prod (via support)"
-        }
-      ],
-      "providers": [],
-      "frameworks": [],
-      "integrations": [
-        "databricks"
-      ],
-      "capabilities": [
-        "database_read",
-        "database_write"
-      ],
-      "permission_tags": [],
-      "call_sites": {},
-      "last_touched_by": null,
-      "last_commit": null,
-      "codeowners": [],
-      "findings": [
-        {
-          "fingerprint": "3c2deeda81af8d23",
-          "rule_id": "DECL006",
-          "title": "Scanned agent has no declaration entry",
-          "category": "contradiction",
-          "severity": "medium",
-          "confidence": "high",
-          "path": "databricks/infra/main.tf",
-          "line": 13,
-          "column": 1,
-          "snippet": "no declaration entry for `databricks_model_serving.support_ivr`",
-          "remediation": "stoa-declared.toml exists but doesn't mention this agent. Add an [agents.\"<id>\"] entry, even a partial one.",
-          "suppressed": false,
-          "suppression_reason": null,
-          "is_new": false,
-          "dimensions": [
-            "control-coverage-gap"
-          ],
-          "message": "stoa-declared.toml exists but has no [agents.\"6142266e32cb\"] entry for `databricks_model_serving.support_ivr`.",
-          "declared_ref": {
-            "path": "stoa-declared.toml",
-            "key": "agents.\"6142266e32cb\""
-          },
-          "crosswalk": {
-            "owasp_llm_2025": null,
-            "eu_ai_act": "Art. 11",
-            "relation": "exposure",
-            "so_what": "The agent is not declared at all."
-          }
-        }
-      ],
-      "highest_severity": "medium",
-      "dimension_assessment": {
-        "taxonomy": {
-          "id": "stoa-aiuc-8",
-          "version": "2.0"
-        },
-        "dimensions": [
-          {
-            "id": "mandate-overreach",
-            "group": "B",
-            "assessability": "strong",
-            "exposure": "low",
-            "score": 18,
-            "score_before_controls": 18,
-            "contributing_findings": [],
-            "contributing_capabilities": [
-              "database_write"
-            ],
-            "controls_observed": [],
-            "statement": "0 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
-          },
-          {
-            "id": "boundary-leakage",
-            "group": "A",
-            "assessability": "strong",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "unreviewed-high-impact-action",
-            "group": "C",
-            "assessability": "strong",
-            "exposure": "low",
-            "score": 18,
-            "score_before_controls": 18,
-            "contributing_findings": [],
-            "contributing_capabilities": [
-              "database_write"
-            ],
-            "controls_observed": [],
-            "statement": "0 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
-          },
-          {
-            "id": "output-fidelity",
-            "group": "D",
-            "assessability": "partial",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "injection-tamper-surface",
-            "group": "B",
-            "assessability": "partial",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "conduct-variability",
-            "group": "D",
-            "assessability": "proxy",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
-          },
-          {
-            "id": "dependency-drift",
-            "group": "D",
-            "assessability": "proxy",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
-          },
-          {
-            "id": "control-coverage-gap",
-            "group": "B",
-            "assessability": "partial",
-            "exposure": "low",
-            "score": 12,
-            "score_before_controls": 12,
-            "contributing_findings": [
-              "3c2deeda81af8d23"
-            ],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
-          }
-        ]
-      },
-      "autonomy_level": {
-        "level": "recommend_only",
-        "signals": [],
-        "reason": null
-      },
-      "source": "iac",
-      "discovery_tier": "recognized",
-      "platform": "databricks"
     }
   ],
-  "repository_findings": [],
+  "repository_findings": [
+    {
+      "fingerprint": "c0e7b0d45a6967b7",
+      "rule_id": "AI008",
+      "title": "Non-idempotent money action under retry",
+      "category": "ai-agency",
+      "severity": "high",
+      "confidence": "medium",
+      "path": "code/tools/account_tools.py",
+      "line": 17,
+      "column": 1,
+      "snippet": "def issue_refund(...)",
+      "remediation": "Send an idempotency key derived from a stable identifier (the dispute or order id), disable retries on money tools, and check limits per dispute rather than per call.",
+      "suppressed": false,
+      "suppression_reason": null,
+      "is_new": false,
+      "id": "AI008-c0e7b0d45a69",
+      "canonical_name": "STOA-LLM06-NONIDEMPOTENT-RETRY",
+      "owasp": {
+        "llm_top10_v1_1": "LLM08",
+        "llm_top10_2025": "LLM06"
+      },
+      "dimensions": [
+        "control-coverage-gap",
+        "unreviewed-high-impact-action"
+      ],
+      "evidence_tags": [
+        "money_action",
+        "retry"
+      ],
+      "message": "`issue_refund` posts a money action and is retried on failure (retry (via _post_refund)); no idempotency key or dedupe check was observed. A timeout after the upstream commits will post it again, and each attempt is checked against the per-call limit on its own.",
+      "crosswalk": {
+        "owasp_llm_2025": "LLM06",
+        "eu_ai_act": "Art. 9",
+        "relation": "exposure",
+        "so_what": "A retried money action with no idempotency key can post twice, and each attempt stays under the per-call limit."
+      }
+    },
+    {
+      "fingerprint": "a2f94531c7770b68",
+      "rule_id": "DECL001",
+      "title": "Declared autonomy contradicts inferred autonomy",
+      "category": "contradiction",
+      "severity": "critical",
+      "confidence": "high",
+      "path": "code/tools/account_tools.py",
+      "line": 17,
+      "column": 1,
+      "snippet": "autonomy_intent='human_approved' vs inferred='bounded_autonomous'",
+      "remediation": "This agent was declared recommend-only or human-approved, but the scanner found a side-effecting path with no correlated approval gate. Either add the missing approval control, or correct the declaration.",
+      "suppressed": false,
+      "suppression_reason": null,
+      "is_new": false,
+      "dimensions": [
+        "mandate-overreach",
+        "unreviewed-high-impact-action"
+      ],
+      "message": "Agent `graph` is declared `human_approved`, but the scanner inferred `bounded_autonomous` from a side-effecting path with no correlated approval gate. Either the declaration is stale, or the approval control is missing.",
+      "declared_ref": {
+        "path": "stoa-declared.toml",
+        "key": "agents.\"b8f0111742fc\".autonomy_intent"
+      },
+      "crosswalk": {
+        "owasp_llm_2025": "LLM06",
+        "eu_ai_act": "Art. 14",
+        "relation": "exposure",
+        "so_what": "Declared autonomy does not match what the code does."
+      }
+    }
+  ],
   "skipped_files": [],
   "warnings": [],
   "dimension_summary": {
@@ -3050,7 +2336,7 @@
         "group": "B",
         "assessability": "strong",
         "max_exposure": "elevated",
-        "agents_elevated": 2,
+        "agents_elevated": 1,
         "agents_moderate": 0,
         "crosswalk": {
           "owasp_llm_2025": [
@@ -3079,15 +2365,16 @@
         "name": "Unreviewed high-impact action",
         "group": "C",
         "assessability": "strong",
-        "max_exposure": "elevated",
-        "agents_elevated": 2,
-        "agents_moderate": 0,
+        "max_exposure": "moderate",
+        "agents_elevated": 0,
+        "agents_moderate": 1,
         "crosswalk": {
           "owasp_llm_2025": [
             "LLM06"
           ],
           "eu_ai_act": [
-            "Art. 14"
+            "Art. 14",
+            "Art. 9"
           ]
         }
       },
@@ -3167,7 +2454,9 @@
           "eu_ai_act": [
             "Art. 11",
             "Art. 12",
-            "Art. 14"
+            "Art. 14",
+            "Art. 15",
+            "Art. 9"
           ]
         }
       }

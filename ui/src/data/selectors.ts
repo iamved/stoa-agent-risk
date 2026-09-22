@@ -180,9 +180,16 @@ export function findingByFingerprint(env: Envelope, fingerprint: string): Findin
   return allFindings(env).find((r) => r.evidence.some((f) => f.fingerprint === fingerprint)) ?? null;
 }
 
-/** Fingerprints the baseline diff reports as new. Empty without a baseline. */
+/** Fingerprints new since the baseline: those the diff lists on changed agents, and every finding of an agent the diff says was added. Empty without a baseline. */
 export function newFingerprints(env: Envelope): Set<string> {
-  return new Set((env.diff?.agents.changed ?? []).flatMap((c) => c.findings_delta.new.map((f) => f.fingerprint)));
+  const diff = env.diff;
+  if (!diff) return new Set();
+  const fresh = new Set(diff.agents.changed.flatMap((c) => c.findings_delta.new.map((f) => f.fingerprint)));
+  // A finding on an added agent is new unless a record that was already there carries the same finding (a shared tool).
+  const added = new Set(diff.agents.added.map((a) => a.agent_id));
+  const carriedBefore = new Set(env.registry.agents.filter((a) => !added.has(a.id)).flatMap((a) => a.findings.map((f) => f.fingerprint)));
+  for (const record of env.registry.agents) if (added.has(record.id)) for (const f of record.findings) if (!carriedBefore.has(f.fingerprint)) fresh.add(f.fingerprint);
+  return fresh;
 }
 
 /** New since the baseline: every piece of its evidence is new. A known finding that gained a location is not new. */

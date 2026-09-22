@@ -26,22 +26,10 @@ production_status = "production"
 autonomy_intent = "human_approved"
 data_classes = ["personal", "financial"]
 
-[agents."3af3aebaa6f7"]      # databricks chat endpoint
-name = "meridian-support-chat"
-owner = "digital-servicing@meridian.example"
-purpose = "Support agent on Databricks"
-users = "customers"
-production_status = "production"
-autonomy_intent = "human_approved"
-data_classes = ["personal", "financial"]
-
-[agents."f18cfdb42fdb"]      # databricks/agents/support_agent.py :: agent
+[agents."bc3db1f17013"]      # code/agents/support_agent.py :: support_agent
 name = "meridian-support"
-# Both serving endpoints in databricks/infra/main.tf serve this agent
-# (prod.agents.meridian_support). Names cannot show that, so it is declared.
-same_as = ["3af3aebaa6f7", "6142266e32cb"]
 owner = "digital-servicing@meridian.example"
-purpose = "Support agent on Databricks Mosaic AI Agent Framework"
+purpose = "Customer support chatbot on web chat and IVR, added September 2026"
 users = "customers"
 production_status = "production"
 autonomy_intent = "human_approved"

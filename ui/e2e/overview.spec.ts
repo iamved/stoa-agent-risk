@@ -27,23 +27,24 @@ test.describe("overview", () => {
     const verdict = page.getByRole("region", { name: "Where you stand" });
     await expect(verdict).toContainText("2 agents can move money on their own, and no human approval was detected for either.");
     await expect(verdict).toContainText(/Modeled loss in a bad year is \$[\d.]+M\./);
-    await expect(verdict).toContainText("3 things changed since the last scan.");
+    await expect(verdict).toContainText("4 things changed since the last scan.");
     await expect(verdict.getByRole("button")).toHaveText(["Export board report"]);
   });
 
   test("the four tiles answer their question with figures from the scan", async ({ page }) => {
     await page.goto(url("meridian-pay"));
     const main = page.locator("main .screen-content");
-    await expect(main.getByText("2 with payment capability · 13 tools · 4 model providers")).toBeVisible();
-    await expect(main.getByText("11 discovered records")).toBeVisible();
-    await expect(main.getByText("6 medium · 12 low · 21 in total")).toBeVisible();
+    await expect(main.getByText("2 with payment capability · 13 tools · 3 model providers")).toBeVisible();
+    await expect(main.getByText("9 discovered records")).toBeVisible();
+    await expect(main.getByText("5 medium · 17 low · 25 in total")).toBeVisible();
     await expect(main.getByText("+1 high since last scan")).toBeVisible();
     await expect(main.getByText("Human approval detected on 0 of 2 agents that can move money")).toBeVisible();
     await expect(main.getByText("8 of 8 tools that can move money have no guardrail detected")).toBeVisible();
     await expect(main.getByText(/Modeled\. An average year is about \$\d+k\./)).toBeVisible();
     // The bad-year figure is drawn over the three scans in history, ending at today's.
-    await expect(main.getByRole("img", { name: /Modeled bad-year loss over 3 scans: \$4\.9M \(21 Jul 2026\) to \$5M \(15 Sep 2026\)/ })).toBeVisible();
-    await expect(main.getByText(/Up from \$4\.9M/)).toBeVisible();
+    await expect(main.getByRole("img", { name: /Modeled bad-year loss over 3 scans: \$3\.4M \(21 Jul 2026\) to \$5M \(15 Sep 2026\)/ })).toBeVisible();
+    await expect(main.getByText(/Up from \$3\.4M/)).toBeVisible();
+    await expect(main.getByText(/meridian-support added in the last scan/)).toBeVisible();
     // Risk Mapping names the high-severity findings, in plain words.
     const mapping = main.getByRole("heading", { name: "Risk Mapping" }).locator("xpath=ancestor::section[1]");
     await expect(mapping).toContainText("Declared autonomy does not match what the code does.");
@@ -70,7 +71,7 @@ test.describe("overview", () => {
     await expect(list.getByRole("button")).toHaveCount(0);
     // No workflow UI. (A declared owner shown as a fact, from stoa-declared.toml, is allowed.)
     await expect(page.locator("main .screen-content").getByText(/assign owner|assign to|overdue|due by|due date/i)).toHaveCount(0);
-    await expect(list.getByRole("link", { name: "View all 21 findings" })).toBeVisible();
+    await expect(list.getByRole("link", { name: "View all 25 findings" })).toBeVisible();
     await rows.nth(1).getByRole("link").click();
     await expect(page.getByRole("dialog")).toBeVisible();
   });
@@ -79,12 +80,13 @@ test.describe("overview", () => {
     await page.goto(url("meridian-pay"));
     const changed = page.getByRole("region", { name: "What changed" });
     const lines = changed.getByRole("listitem");
-    await expect(lines.nth(0)).toContainText("One more agent can now move money.");
-    await expect(lines.nth(0)).toContainText("account-actions gained payment access.");
+    await expect(lines.nth(0)).toContainText("One more agent can now change systems.");
+    await expect(lines.nth(0)).toContainText("account-actions gained database write access");
     await expect(lines.nth(1)).toContainText("1 new high-severity finding.");
-    await expect(lines.nth(1)).toContainText("1 known high-severity finding now has a second evidence location.");
+    await expect(lines.nth(1)).toContainText("Declared autonomy does not match what the code does.");
     await expect(lines.nth(2)).toContainText("2 of 5 agents are now elevated.");
-    await expect(lines.nth(3)).toContainText("No agents added or removed.");
+    await expect(lines.nth(3)).toContainText("1 agent added.");
+    await expect(lines.nth(3)).toContainText("New: meridian-support.");
     await expect(changed).not.toContainText(/reopened|because|follow from/i);
     await changed.getByRole("link", { name: "Open the change log" }).click();
     await expect(page).toHaveURL(/#\/drift/);
@@ -108,9 +110,9 @@ test.describe("overview", () => {
     await expect(verdict).not.toContainText("changed since");
     await expect(page.getByText("Not estimated yet")).toBeVisible();
     await expect(page.locator("main").getByText("$", { exact: false })).toHaveCount(0);
-    // No declaration file, so nothing links the two Databricks endpoints to their code: 7 agents, 11 records.
-    await expect(page.locator("main .screen-content").getByText("11 discovered records")).toBeVisible();
-    await expect(page.getByRole("navigation", { name: "Screens" })).toContainText("Agent Inventory7");
+    // No declaration file: the four code-and-AWS pairs still match by name, the chatbot stands alone: 5 agents, 9 records.
+    await expect(page.locator("main .screen-content").getByText("9 discovered records")).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Screens" })).toContainText("Agent Inventory5");
     await expect(page.getByRole("region", { name: "What changed" })).toContainText("stoa scan . --diff-against origin/main");
   });
 
@@ -140,7 +142,7 @@ test.describe("overview", () => {
     await expect(diagram).toBeVisible();
     for (const lane of ["Request arrives", "Agent decides", "Approval gate", "Tools it can call", "What it can touch"]) await expect(diagram).toContainText(lane);
     await expect(diagram.getByRole("button")).toHaveCount(1 + 3 + 1 + 2 + 1 + 6 + 6);
-    await expect(flow).toContainText("account-actions: 6 tools, 6 of them money-moving or high impact with no guardrail detected; 3 safeguards detected; 6 findings.");
+    await expect(flow).toContainText("account-actions: 6 tools, 6 of them money-moving or high impact with no guardrail detected; 3 safeguards detected; 7 findings.");
 
     // No side panel: a selected box explains itself in one line under the diagram.
     await expect(flow.getByText("Risk intensity, by dimension")).toHaveCount(0);
@@ -162,7 +164,7 @@ test.describe("overview", () => {
   test("the flow graph follows a first scan and is absent with no agents", async ({ page }) => {
     await page.goto(url("first-run"));
     const flow = page.getByRole("region", { name: "Agent Risk Flow Graph" });
-    await expect(flow.getByRole("group", { name: "Agents" }).getByRole("button")).toHaveCount(7);
+    await expect(flow.getByRole("group", { name: "Agents" }).getByRole("button")).toHaveCount(5);
     await page.goto(url("no-agents"));
     await expect(page.getByRole("heading", { name: "Agent Risk Flow Graph" })).toHaveCount(0);
   });

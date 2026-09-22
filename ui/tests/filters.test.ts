@@ -55,7 +55,7 @@ describe("inventory categories come from the registry", () => {
     const cats = categories(env);
     expect(cats.map((c) => c.id)).toEqual(["agents", "agents_code", "agents_iac", "tools", "providers", "integrations", "declarations"]);
     expect(cats[0]!.count).toBe(5);
-    expect(cats[1]!.count + cats[2]!.count).toBe(11);
+    expect(cats[1]!.count + cats[2]!.count).toBe(9);
     expect(cats.find((c) => c.id === "declarations")?.count).toBe(env.registry.agents.filter((a) => a.declared).length);
     expect(integrationRows(env).every((r) => r.agents.length > 0)).toBe(true);
   });

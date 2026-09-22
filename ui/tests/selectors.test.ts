@@ -19,9 +19,13 @@ describe("selectors copy scanner numbers without recomputing", () => {
   it("the same rule on two records of one agent is one finding with two locations", () => {
     const active = activeFindings(env);
     const counts = countBySeverity(active);
-    expect(counts).toEqual({ critical: 2, high: 1, medium: 6, low: 4, info: 8 });
+    expect(counts).toEqual({ critical: 2, high: 1, medium: 5, low: 5, info: 12 });
     const merged = active.filter((r) => r.evidence.length > 1);
     expect(merged.map((r) => r.finding.rule_id).sort()).toEqual(["DECL001", "DECL006", "DECL006", "DECL006"]);
+    // The refund tool is bound by two agents: its AI008 is one finding, one location, two agents.
+    const shared = active.find((r) => r.finding.rule_id === "AI008")!;
+    expect(shared.evidence).toHaveLength(1);
+    expect(shared.uniqueAgents.map((u) => u.name).sort()).toEqual(["account-actions", "meridian-support"]);
     for (const ref of merged) {
       expect(ref.uniqueAgents).toHaveLength(1);
       expect(new Set(ref.evidence.map((f) => f.rule_id)).size).toBe(1);

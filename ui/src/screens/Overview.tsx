@@ -5,6 +5,7 @@ import { buildHash } from "../app/router";
 import { AgentFlow } from "../components/AgentFlow";
 import { SeverityBadge } from "../components/Badge";
 import { money } from "../data/lossModel";
+import type { TrendPoint } from "../data/lossTrend";
 import { attention, attentionStatus, costOutlook, holdings, nextAction, protection, standing, whatChanged, type AttentionItem, type ChangeLine, type CostOutlook } from "../data/overview";
 import { activeFindings, countByLevel, formatDate, overviewDeltas, pluralize, RISK_LEVELS, type RiskLevel } from "../data/selectors";
 
@@ -191,7 +192,7 @@ function CostTile({ cost }: { cost: CostOutlook | null | undefined }) {
 
 /** The bad-year figure over past scans, as a small line, ending at today's figure. One scan alone shows the figure. */
 function CostTrend({ cost }: { cost: CostOutlook }) {
-  const points = cost.trend.length ? cost.trend : [{ hash: "", ref: null, date: "", badYear: cost.badYear, averageYear: cost.averageYear }];
+  const points: TrendPoint[] = cost.trend.length ? cost.trend : [{ hash: "", ref: null, date: "", agent: cost.agent, added: [], badYear: cost.badYear, averageYear: cost.averageYear }];
   const last = points[points.length - 1]!;
   const first = points[0]!;
   if (points.length < 2) return <Figure value={money(last.badYear)} unit="in a bad year" />;
@@ -214,7 +215,7 @@ function CostTrend({ cost }: { cost: CostOutlook }) {
         <path d={path} className="fill-none stroke-navy [stroke-width:1.75] [stroke-linejoin:round] [stroke-linecap:round]" vectorEffect="non-scaling-stroke" />
         {points.map((p, i) => <circle key={p.hash || i} cx={x(i)} cy={y(p.badYear)} r={i === points.length - 1 ? 3.5 : 2} className={i === points.length - 1 ? "fill-gold" : "fill-navy"} />)}
       </svg>
-      <div className="text-[12px] mt-1"><span className={up ? "text-sev-high font-medium" : down ? "text-ok font-medium" : "text-ink-muted"}>{up ? "Up" : down ? "Down" : "Level"} from {money(first.badYear)}</span><span className="text-ink-muted"> over {pluralize(points.length, "scan")}, {formatDate(first.date)} to {formatDate(last.date)}</span></div>
+      <div className="text-[12px] mt-1"><span className={up ? "text-sev-high font-medium" : down ? "text-ok font-medium" : "text-ink-muted"}>{up ? "Up" : down ? "Down" : "Level"} from {money(first.badYear)}</span><span className="text-ink-muted"> over {pluralize(points.length, "scan")}, {formatDate(first.date)} to {formatDate(last.date)}{last.added.length ? `. ${last.added.join(", ")} added in the last scan.` : ""}</span></div>
     </div>
   );
 }

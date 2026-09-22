@@ -11,7 +11,8 @@ describe("drift grouping copies the diff", () => {
     expect(items.length).toBeGreaterThan(0);
     const first = items[0]!;
     expect(first.needsReview).toBe(true);
-    const cap = items.find((c) => c.kind === "capability_added" && c.label === "payment_access")!;
+    // The September push gave the AWS account-actions record its tools: high-impact capabilities, unapproved.
+    const cap = items.find((c) => c.kind === "capability_added" && c.label === "database_write")!;
     expect(cap.severity).toBe("high");
     expect(cap.authorityIncrease).toBe(true);
     expect(cap.approved).toBe(false);

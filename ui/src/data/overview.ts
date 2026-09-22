@@ -10,7 +10,7 @@ import { canMoveMoney, exposureOf, providersOf, toolsOf, uniqueAgentOf, uniqueAg
 import { safeguardRows } from "./controls";
 import { agentToModel, candidateAgents, intakeFromEnvelope } from "./lossInputs";
 import { EVENTS, indicate, money } from "./lossModel";
-import { lossTrend, type TrendPoint } from "./lossTrend";
+import { lossTrendMax, type TrendPoint } from "./lossTrend";
 import { PLAIN_ACTION, dimensionSubtitle, prose } from "./labels";
 import { summarize as summarizeRegister } from "./register";
 import { SEVERITY_RANK, activeFindings, agentLabel, countByLevel, findingTitle, findingsByDimension, isNewFinding, newFingerprints, overviewDeltas, pluralize, riskLevel, type FindingRef, type RiskLevel } from "./selectors";
@@ -92,7 +92,7 @@ export interface CostOutlook {
   /** The agent the figures are modelled for: the loss model runs per agent, and bad years do not add up across agents. */
   agent: string;
   agentId: string;
-  /** The same figure at each past scan, oldest first, ending at today's. Empty without history. */
+  /** The largest single-agent bad year at each past scan, oldest first, ending at today's. Empty without history. */
   trend: TrendPoint[];
   badYear: number;
   averageYear: number;
@@ -127,7 +127,7 @@ export function costOutlook(env: Envelope, years?: number): CostOutlook | null {
   return {
     agent: model.name,
     agentId: agent.id,
-    trend: lossTrend(env, agent.id, LOSS_SEED, years),
+    trend: lossTrendMax(env, LOSS_SEED, years),
     badYear: r.summary.pMid,
     averageYear: r.summary.eal,
     covered: policies.filter((p) => !p.ai_exclusion).reduce((n, p) => n + p.limit, 0),
@@ -288,9 +288,11 @@ export function whatChanged(env: Envelope): ChangeLine[] | null {
     : { direction: "same", title: "No agent rose to elevated exposure.", detail: `${elevatedNow} of ${pluralize(agents.length, "agent")} ${elevatedNow === 1 ? "is" : "are"} elevated.` });
 
   // The diff counts scanned records, so that is what this line says.
-  const { agents_added: added, agents_removed: removed } = diff.summary;
-  lines.push(added || removed
-    ? { direction: added > removed ? "up" : removed > added ? "down" : "same", title: `${pluralize(added, "discovered record")} added, ${removed} removed.`, detail: "The change log shows which agents they belong to." }
+  // Added and removed records, named as the agents they belong to.
+  const addedNames = [...new Set(diff.agents.added.map((a) => uniqueAgentOf(env, a.agent_id)?.name ?? a.name))];
+  const removedNames = [...new Set(diff.agents.removed.map((a) => a.name))];
+  lines.push(addedNames.length || removedNames.length
+    ? { direction: addedNames.length >= removedNames.length ? "up" : "down", title: `${addedNames.length ? `${pluralize(addedNames.length, "agent")} added` : ""}${addedNames.length && removedNames.length ? ", " : ""}${removedNames.length ? `${pluralize(removedNames.length, "agent")} removed` : ""}.`, detail: [addedNames.length ? `New: ${joinWords(addedNames)}.` : "", removedNames.length ? `Gone: ${joinWords(removedNames)}.` : ""].filter(Boolean).join(" ") }
     : { direction: "same", title: "No agents added or removed.", detail: "" });
   return lines;
 }

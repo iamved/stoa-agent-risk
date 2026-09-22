@@ -15,13 +15,13 @@ test.describe("findings", () => {
   test("URL filters drive the table and survive reload", async ({ page }) => {
     // The demo's three critical records are two findings: account actions was seen in code and on AWS.
     await page.goto(fileUrl("meridian-pay", "#/findings?severity=critical"));
-    await expect(page.getByText("2 of 21 shown (filtered)")).toBeVisible();
+    await expect(page.getByText("2 of 25 shown (filtered)")).toBeVisible();
     const table = page.getByRole("table", { name: "Findings", exact: true });
     await expect(table).toHaveAttribute("aria-rowcount", "1");
     await page.getByRole("button", { name: /^High\s+\d+$/ }).click();
     await expect.poll(() => page.evaluate(() => window.location.hash)).toContain("severity=critical%2Chigh");
     await page.reload();
-    await expect(page.getByText("3 of 21 shown (filtered)")).toBeVisible();
+    await expect(page.getByText("3 of 25 shown (filtered)")).toBeVisible();
     await expect(table).toHaveAttribute("aria-rowcount", "2");
     // The High filter button carries the same count the caption reports.
     await expect(page.getByRole("button", { name: /^High\s+3$/ })).toBeVisible();

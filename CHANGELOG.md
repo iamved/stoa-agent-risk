@@ -37,6 +37,17 @@ network. See [docs/dashboard.md](docs/dashboard.md).
   (`<dimension-id>/<agent-id>`), `owner`, `treatment`, `rationale`,
   `review_by`, `status`.
 
+### Changed — the demo, and a scanner count
+- The Meridian Pay example drops its Databricks stack. Its support agent is
+  now a LangGraph chatbot in code that binds the account tools directly, the
+  new customer-facing system of the September push. Its scan history shows
+  the two months before: amounts capped in code, no tools on AWS yet, no
+  chatbot. The Overview and Financial Exposure draw the largest single-agent
+  modeled loss over that history: $3.4M, $3.5M, $5.0M.
+- A finding on a tool bound by two agents was counted once per agent in the
+  registry summary, SARIF and the CLI. It is one finding, on both agents,
+  counted once.
+
 ### Changed — second review
 - Overview tiles are Agent Inventory, Risk Mapping, Protection Level and
   Estimated Failures Cost. Risk Mapping names the high-severity findings.

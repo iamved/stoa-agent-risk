@@ -7,7 +7,7 @@ import { CATS, EVENTS, STATUS_LABEL, catName, indicate, money, pct, whatIfs, typ
 import { agentToModel, candidateAgents, intakeFromEnvelope, intakeToToml } from "../data/lossInputs";
 import { uniqueAgentOf } from "../data/agents";
 import { LOSS_SEED } from "../data/overview";
-import { lossTrend } from "../data/lossTrend";
+import { lossTrendMax } from "../data/lossTrend";
 import { activeFindings, dimensionName, formatDate } from "../data/selectors";
 import type { MappingNote } from "../data/lossInputs";
 
@@ -203,7 +203,7 @@ function Outlook({ r, levers, intake, model, notes, declared, agentId }: { r: In
 
       <Drivers r={r} intake={intake} notes={notes} declared={declared} top={top.key} agentId={agentId} />
 
-      <LossOverTime agentId={agentId} />
+      <LossOverTime />
 
       <div className="mt-3 flex flex-wrap gap-x-10 gap-y-2 rounded-xl bg-gold-100/70 px-5 py-4">
         <div className="grid"><span className="caption">Suggested coverage limit</span><b className="text-[18px] font-semibold text-navy">{money(L.lean)} to {money(L.conservative)}</b></div>
@@ -331,10 +331,11 @@ export function relevantCases(cases: Comparable[], limit = 2): Comparable[] {
   return out;
 }
 
-/** The modeled bad-year loss at each past scan, with today's business inputs: the line moves only when the code did. */
-function LossOverTime({ agentId }: { agentId: string }) {
+/** The largest single-agent bad-year loss at each past scan, with today's business inputs: the line moves only when the code did. */
+function LossOverTime() {
   const { envelope } = useApp();
-  const points = useMemo(() => lossTrend(envelope, agentId, SEED), [envelope, agentId]);
+  // The largest single-agent figure at each scan: bad years do not add across agents.
+  const points = useMemo(() => lossTrendMax(envelope, SEED), [envelope]);
   if (points.length < 2) return null;
   const W = 760, H = 200, L = 64, R = 20, T = 16, B = 40;
   const values = points.map((p) => p.badYear);
@@ -353,7 +354,7 @@ function LossOverTime({ agentId }: { agentId: string }) {
         <h3 id="loss-over-time-title" className="m-0 text-[15px]">How the modeled loss has moved</h3>
         <span className="caption">{money(first.badYear)} on {formatDate(first.date)} to {money(last.badYear)} on {formatDate(last.date)}: <span className={change > 0 ? "text-sev-high" : change < 0 ? "text-ok" : ""}>{change > 0 ? "up" : change < 0 ? "down" : "level"}{change ? ` ${money(Math.abs(change))}` : ""}</span></span>
       </div>
-      <p className="caption mt-1 mb-2">Each point is a scanned commit, modeled with today's business inputs, so the line moves only when the code did. A bad year is 1 year in 100.</p>
+      <p className="caption mt-1 mb-2">Each point is a scanned commit, modeled with today's business inputs, so the line moves only when the code did. It follows whichever agent could cost the most at that scan; a bad year is 1 year in 100.</p>
       <div className="overflow-x-auto">
         <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label} className="block w-full h-auto min-w-[520px]">
           <title>{label}</title>
@@ -363,7 +364,8 @@ function LossOverTime({ agentId }: { agentId: string }) {
             <g key={p.hash}>
               <circle cx={X(p.date)} cy={Y(p.badYear)} r={i === points.length - 1 ? 5 : 3.5} className={i === points.length - 1 ? "fill-gold stroke-navy [stroke-width:1.5]" : "fill-navy"} />
               <text x={X(p.date)} y={H - B + 18} fontSize="11.5" textAnchor={i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"} className="fill-ink-muted">{formatDate(p.date)}{p.ref ? ` · ${p.ref}` : ""}</text>
-              <text x={X(p.date)} y={Y(p.badYear) - 10} fontSize="12" fontWeight="600" textAnchor={i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"} className="fill-navy">{money(p.badYear)}</text>
+              <text x={X(p.date)} y={Y(p.badYear) - 24} fontSize="12" fontWeight="600" textAnchor={i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"} className="fill-navy">{money(p.badYear)}</text>
+              <text x={X(p.date)} y={Y(p.badYear) - 10} fontSize="11" textAnchor={i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"} className="fill-ink-muted">{p.agent}{p.added.length ? ` · ${p.added.join(", ")} added` : ""}</text>
             </g>
           ))}
         </svg>

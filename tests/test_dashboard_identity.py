@@ -102,14 +102,17 @@ def test_resolution_is_deterministic_and_loses_no_record():
     assert len(ids) == len(set(ids))
 
 
-def test_the_demo_is_five_agents_and_a_first_scan_is_seven():
+def test_the_demo_is_five_agents_from_nine_records():
+    """Four agents built in code and on AWS pair by name; the support chatbot is code only."""
     demo = json.loads((FIXTURES / "meridian-pay.envelope.json").read_text())
-    assert len(demo["unique_agents"]) == 5 and len(demo["registry"]["agents"]) == 11
-    support = next(u for u in demo["unique_agents"] if u["linked_by"] == "declared")
-    assert [r["kind"] for r in support["records"]] == ["code", "infrastructure", "infrastructure"]
-    # No declaration file, so nothing says the two endpoints serve one agent.
+    assert len(demo["unique_agents"]) == 5 and len(demo["registry"]["agents"]) == 9
+    by_name = {u["name"]: u for u in demo["unique_agents"]}
+    assert [r["kind"] for r in by_name["account-actions"]["records"]] == ["code", "infrastructure"]
+    assert by_name["account-actions"]["linked_by"] == "name"
+    assert [r["kind"] for r in by_name["meridian-support"]["records"]] == ["code"]
+    # Without a declaration file the four pairs still hold, and the chatbot still stands alone.
     first_run = json.loads((FIXTURES / "first-run.envelope.json").read_text())
-    assert len(first_run["unique_agents"]) == 7
+    assert len(first_run["unique_agents"]) == 5
     assert json.loads((FIXTURES / "no-agents.envelope.json").read_text())["unique_agents"] == []
 
 
@@ -125,14 +128,16 @@ def test_same_as_feeds_no_rule_and_no_score():
         return build_document(run_scan(ScanOptions(root=root, no_git=True), config), config)
 
     with tempfile.TemporaryDirectory() as tmp:
-        linked = Path(tmp) / "linked"
-        shutil.copytree(REPO_ROOT / "examples" / "meridian-pay", linked)
         unlinked = Path(tmp) / "unlinked"
-        shutil.copytree(linked, unlinked)
-        declared = unlinked / "stoa-declared.toml"
+        shutil.copytree(REPO_ROOT / "examples" / "meridian-pay", unlinked)
+        linked = Path(tmp) / "linked"
+        shutil.copytree(unlinked, linked)
+        declared = linked / "stoa-declared.toml"
         text = declared.read_text()
+        # Declare the code account-actions agent as the same agent as its AWS record.
+        text = text.replace('name = "account-actions"\n', 'name = "account-actions"\nsame_as = ["9299e5cfdb41"]\n', 1)
         assert "same_as" in text
-        declared.write_text("\n".join(line for line in text.splitlines() if not line.startswith("same_as")))
+        declared.write_text(text)
         a, b = scan(linked), scan(unlinked)
     assert a["summary"] == b["summary"] and a["dimension_summary"] == b["dimension_summary"]
     strip = lambda doc: [{k: v for k, v in agent.items() if k != "declared"} for agent in doc["agents"]]

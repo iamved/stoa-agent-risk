@@ -72,7 +72,7 @@ describe("the demo", () => {
     expect(flow.permissions.some((t) => t.startsWith("dynamodb:*"))).toBe(true);
     expect(flow.nodes.find((n) => n.kind === "agent")!.mismatch).toBe(true);
     expect(agentWorstLevel(demo, agents[0]!)).toBe("high");
-    expect(flowCaption(flow)).toMatch(/^account-actions: 6 tools, 6 of them money-moving or high impact with no guardrail detected; 3 safeguards detected; 6 findings\./);
+    expect(flowCaption(flow)).toMatch(/^account-actions: 6 tools, 6 of them money-moving or high impact with no guardrail detected; 3 safeguards detected; 7 findings\./);
   });
 
   it("places the retry finding on the tool that is retried", () => {
@@ -80,6 +80,9 @@ describe("the demo", () => {
     const refund = flow.nodes.find((n) => n.label === "issue_refund")!;
     expect(refund.unsafeRetry).toBe(true);
     expect(refund.findings.map((r) => r.finding.rule_id)).toEqual(["AI008"]);
+    // The chatbot binds the same tool, so the same finding sits on its path too.
+    const chatbot = buildFlow(demo, flowAgents(demo).find((a) => a.name === "meridian-support")!);
+    expect(chatbot.nodes.find((n) => n.label === "issue_refund")!.findings.map((r) => r.finding.rule_id)).toEqual(["AI008"]);
     expect(laneOf("AI008")).toBe("tools");
   });
 
