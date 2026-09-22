@@ -7,7 +7,8 @@ import { CATS, EVENTS, STATUS_LABEL, catName, indicate, money, pct, whatIfs, typ
 import { agentToModel, candidateAgents, intakeFromEnvelope, intakeToToml } from "../data/lossInputs";
 import { uniqueAgentOf } from "../data/agents";
 import { LOSS_SEED } from "../data/overview";
-import { activeFindings, dimensionName } from "../data/selectors";
+import { lossTrend } from "../data/lossTrend";
+import { activeFindings, dimensionName, formatDate } from "../data/selectors";
 import type { MappingNote } from "../data/lossInputs";
 
 const GAP_CHIP: Record<GapStatus, string> = { unprotected: "chip-critical", excluded: "chip-critical", shortfall: "chip-medium", ok: "chip-ok", minor: "chip-muted" };
@@ -81,7 +82,7 @@ export function Loss() {
         <label className="flex flex-col gap-1 text-[12.5px] min-w-[260px] no-print">
           <span className="caption">Agent</span>
           <select value={agent.id} onChange={(e) => { setAgentId(e.target.value); setOverrides({}); }} className="field" aria-label="Agent to model">
-            {agents.map((a) => { const u = uniqueAgentOf(envelope, a.id); const info = u?.info.find((i) => i.agent_id === a.id); return <option key={a.id} value={a.id}>{u && u.records.length > 1 ? `${u.name} (${info?.label ?? a.display_name})` : a.display_name || a.name}</option>; })}
+            {agents.map((a) => <option key={a.id} value={a.id}>{a.display_name || a.name}</option>)}
           </select>
         </label>
       </div>
@@ -189,7 +190,9 @@ function Outlook({ r, levers, intake, model, notes, declared, agentId }: { r: In
   const ranked = S.perCat.slice().sort((a, b) => b.tailShare - a.tailShare);
   const gap = (k: string) => r.gaps.find((g) => g.key === k)!;
   const top = ranked[0]!;
-  const major = ranked.filter((c) => gap(c.key).status !== "minor"), minor = ranked.filter((c) => gap(c.key).status === "minor");
+  // Two loss types are left off this list on request; they still count in the totals above.
+  const shown = ranked.filter((c) => !HIDDEN_CATEGORIES.has(c.key));
+  const major = shown.filter((c) => gap(c.key).status !== "minor"), minor = shown.filter((c) => gap(c.key).status === "minor");
   return (
     <div className="mt-6">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -200,6 +203,8 @@ function Outlook({ r, levers, intake, model, notes, declared, agentId }: { r: In
 
       <Drivers r={r} intake={intake} notes={notes} declared={declared} top={top.key} agentId={agentId} />
 
+      <LossOverTime agentId={agentId} />
+
       <div className="mt-3 flex flex-wrap gap-x-10 gap-y-2 rounded-xl bg-gold-100/70 px-5 py-4">
         <div className="grid"><span className="caption">Suggested coverage limit</span><b className="text-[18px] font-semibold text-navy">{money(L.lean)} to {money(L.conservative)}</b></div>
         <div className="grid"><span className="caption">Most common choice</span><b className="text-[18px] font-semibold text-navy">{money(L.standard)}</b></div>
@@ -208,11 +213,11 @@ function Outlook({ r, levers, intake, model, notes, declared, agentId }: { r: In
         <a href={buildHash("evidence")} className="link self-end text-[12.5px]">Carry into the assessment schedule</a>
       </div>
 
-      <Section title="Where the loss could come from" caption="With the closest public cases from US financial services, each backed by a court, regulator or press record, scaled to your size.">
+      <Section title="Where the loss could come from" caption="With the closest public cases, US financial services first, each backed by a court, regulator or press record, scaled to your size.">
         <div className="flex flex-col divide-y divide-line">
-          {major.map((c, i) => {
+          {major.map((c) => {
             const g = gap(c.key);
-            const cases = relevantCases(r.comparables[c.key] ?? []).slice(0, i < 3 ? 3 : 2);
+            const cases = relevantCases(r.comparables[c.key] ?? []).slice(0, 2);
             return (
               <div key={c.key} className="py-5">
                 <div className="grid gap-x-8 gap-y-2 md:grid-cols-[minmax(200px,1.3fr)_auto_auto_minmax(220px,2fr)] items-start mb-3">
@@ -221,7 +226,7 @@ function Outlook({ r, levers, intake, model, notes, declared, agentId }: { r: In
                   <div className="grid"><b className="num text-[22px] text-navy leading-tight">{money(c.eal)}</b><span className="caption">average year</span></div>
                   <div><div className="h-2 rounded bg-paper border border-line overflow-hidden"><i className="block h-full bg-navy" style={{ width: `${Math.max(1, c.tailShare * 100)}%` }} /></div><span className="caption">{pct(c.tailShare)} of total bad-year loss. {g.note}</span></div>
                 </div>
-                {cases.length ? <div className="grid gap-3 md:grid-cols-3">{cases.map((k) => <CaseCard key={k.id} c={k} />)}</div> : <p className="caption m-0">No public case in US financial services fits this loss type closely enough to show.</p>}
+                {cases.length ? <div className="grid gap-3 md:grid-cols-2 max-w-[900px]">{cases.map((k) => <CaseCard key={k.id} c={k} />)}</div> : <p className="caption m-0">No public case with a court, regulator or press record fits this loss type closely enough to show.</p>}
               </div>
             );
           })}
@@ -291,19 +296,80 @@ function Drivers({ r, intake, notes, declared, top, agentId }: { r: Indication; 
 }
 
 /**
- * Cases shown as references: US financial services, backed by a court,
- * regulator or press record, and under a few hundred million dollars, so a
- * reader can check each one and none dwarfs the deployment being assessed.
- * The model's fitting still uses every event; this filters only what is shown.
+ * Cases shown as references, at most two per loss type. US financial services
+ * first; then, when that gives fewer than two, other US sectors; then other
+ * countries. Always under a few hundred million dollars, and either backed by
+ * a graded court, regulator or press record or a documented near miss with no
+ * dollar figure. The model's fitting still uses every event; this filters
+ * only what is shown.
  */
 const FINANCIAL_SECTORS = new Set(["fintech", "insurance", "banking", "payments", "lending"]);
 const CASE_CAP = 300e6;
-export function relevantCases(cases: Comparable[]): Comparable[] {
+const HIDDEN_CATEGORIES = new Set(["loss", "perf"]);
+export function relevantCases(cases: Comparable[], limit = 2): Comparable[] {
   const byId = new Map(EVENTS.map((e) => [e.id, e]));
-  return cases.filter((c) => {
+  const credible = cases.filter((c) => {
     const e = byId.get(c.id);
-    return Boolean(e && e.jur === "US" && FINANCIAL_SECTORS.has(e.sector) && c.src && (c.grade === "A" || c.grade === "B") && c.raw !== null && c.raw <= CASE_CAP);
+    if (!e) return false;
+    if (c.raw !== null && c.raw > CASE_CAP) return false;
+    const recorded = Boolean(c.src) && (c.grade === "A" || c.grade === "B");
+    const nearMiss = c.raw === null && c.nearMiss;
+    return recorded || nearMiss;
   });
+  const tiers = [
+    (id: string) => { const e = byId.get(id)!; return e.jur === "US" && FINANCIAL_SECTORS.has(e.sector); },
+    (id: string) => byId.get(id)!.jur === "US",
+    () => true,
+  ];
+  // Within a tier, a case with a recorded figure comes before a documented near miss.
+  const ordered = [...credible].sort((a, b) => Number(b.raw !== null) - Number(a.raw !== null));
+  const out: Comparable[] = [];
+  for (const tier of tiers) {
+    for (const c of ordered) if (out.length < limit && !out.includes(c) && tier(c.id)) out.push(c);
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+/** The modeled bad-year loss at each past scan, with today's business inputs: the line moves only when the code did. */
+function LossOverTime({ agentId }: { agentId: string }) {
+  const { envelope } = useApp();
+  const points = useMemo(() => lossTrend(envelope, agentId, SEED), [envelope, agentId]);
+  if (points.length < 2) return null;
+  const W = 760, H = 200, L = 64, R = 20, T = 16, B = 40;
+  const values = points.map((p) => p.badYear);
+  const top = Math.max(...values) * 1.15, bottom = Math.min(0, Math.min(...values));
+  const t0 = Date.parse(points[0]!.date), t1 = Date.parse(points[points.length - 1]!.date);
+  const X = (d: string) => L + (t1 === t0 ? 0.5 : (Date.parse(d) - t0) / (t1 - t0)) * (W - L - R);
+  const Y = (v: number) => T + (1 - (v - bottom) / Math.max(top - bottom, 1)) * (H - T - B);
+  const path = points.map((p, i) => `${i ? "L" : "M"}${X(p.date).toFixed(1)},${Y(p.badYear).toFixed(1)}`).join(" ");
+  const ticks = [0.25, 0.5, 0.75, 1].map((f) => bottom + (top - bottom) * f);
+  const first = points[0]!, last = points[points.length - 1]!;
+  const change = last.badYear - first.badYear;
+  const label = `Modeled bad-year loss over ${points.length} scans, ${formatDate(first.date)} to ${formatDate(last.date)}: ${money(first.badYear)} to ${money(last.badYear)}`;
+  return (
+    <section className="panel px-5 py-4 mt-4" aria-labelledby="loss-over-time-title">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h3 id="loss-over-time-title" className="m-0 text-[15px]">How the modeled loss has moved</h3>
+        <span className="caption">{money(first.badYear)} on {formatDate(first.date)} to {money(last.badYear)} on {formatDate(last.date)}: <span className={change > 0 ? "text-sev-high" : change < 0 ? "text-ok" : ""}>{change > 0 ? "up" : change < 0 ? "down" : "level"}{change ? ` ${money(Math.abs(change))}` : ""}</span></span>
+      </div>
+      <p className="caption mt-1 mb-2">Each point is a scanned commit, modeled with today's business inputs, so the line moves only when the code did. A bad year is 1 year in 100.</p>
+      <div className="overflow-x-auto">
+        <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label} className="block w-full h-auto min-w-[520px]">
+          <title>{label}</title>
+          {ticks.map((v) => <g key={v}><line x1={L} x2={W - R} y1={Y(v)} y2={Y(v)} className="stroke-line" /><text x={L - 8} y={Y(v) + 4} fontSize="11.5" textAnchor="end" className="fill-ink-muted">{money(v)}</text></g>)}
+          <path d={path} className="fill-none stroke-navy [stroke-width:2.2] [stroke-linejoin:round] [stroke-linecap:round]" />
+          {points.map((p, i) => (
+            <g key={p.hash}>
+              <circle cx={X(p.date)} cy={Y(p.badYear)} r={i === points.length - 1 ? 5 : 3.5} className={i === points.length - 1 ? "fill-gold stroke-navy [stroke-width:1.5]" : "fill-navy"} />
+              <text x={X(p.date)} y={H - B + 18} fontSize="11.5" textAnchor={i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"} className="fill-ink-muted">{formatDate(p.date)}{p.ref ? ` · ${p.ref}` : ""}</text>
+              <text x={X(p.date)} y={Y(p.badYear) - 10} fontSize="12" fontWeight="600" textAnchor={i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"} className="fill-navy">{money(p.badYear)}</text>
+            </g>
+          ))}
+        </svg>
+      </div>
+    </section>
+  );
 }
 
 function CaseCard({ c }: { c: Comparable }) {

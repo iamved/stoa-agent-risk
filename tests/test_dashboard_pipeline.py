@@ -197,9 +197,10 @@ def test_scan_writes_dashboard_and_history(fake_template, tmp_path, monkeypatch)
     history = list((repo / ".stoa" / "history").glob("*.json"))
     assert len(history) == 1
     entry = json.loads(history[0].read_text())
-    assert entry["schema"] == "stoa-history-entry/1.0"
+    assert entry["schema"] == "stoa-history-entry/1.1"
+    assert isinstance(entry["agents"], list)
     html = (repo / "d.html").read_text(encoding="utf-8")
-    assert '"history":[{"schema":"stoa-history-entry/1.0"' in html
+    assert '"history":[{"schema":"stoa-history-entry/1.1"' in html
 
     (repo / "d.html").unlink()
     assert main(["scan", ".", "--quiet", "--json", "r.json", "--html", "r.html",

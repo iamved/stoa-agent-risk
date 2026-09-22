@@ -29,7 +29,9 @@ describe.each(["meridian-pay", "first-run", "hostile"])("%s", (name) => {
       const flow = buildFlow(env, agent);
       const row = rows.find((r) => r.agent === agent)!;
       expect(flow.nodes.filter((n) => n.kind === "tool").map((n) => n.label)).toEqual(toolsOf(agent).map((t) => t.name));
-      for (const control of COVERAGE_CONTROLS) {
+      // The diagram draws the safeguards a risk officer asks about first; the rest are on the Controls screen.
+      const drawn = COVERAGE_CONTROLS.filter((c) => !["sandbox", "deterministic_sampling"].includes(c));
+      for (const control of drawn) {
         const node = flow.nodes.find((n) => n.control === control)!;
         expect(node, control).toBeTruthy();
         expect(node.state).toBe(row.states[control]);
@@ -54,7 +56,7 @@ describe.each(["meridian-pay", "first-run", "hostile"])("%s", (name) => {
 describe("the demo", () => {
   it("shows five agents, and account actions as one path from two records", () => {
     const agents = flowAgents(demo);
-    expect(agents.map((a) => a.name)).toEqual(["account-actions", "meridian-support (Databricks)", "meridian-front", "meridian-escalation", "meridian-knowledge"]);
+    expect(agents.map((a) => a.name)).toEqual(["account-actions", "meridian-support", "meridian-front", "meridian-escalation", "meridian-knowledge"]);
     const flow = buildFlow(demo, agents[0]!);
     expect(flow.agent.records).toHaveLength(2);
     expect(flow.nodes.filter((n) => n.kind === "tool")).toHaveLength(6);

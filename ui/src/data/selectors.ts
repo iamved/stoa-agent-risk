@@ -4,7 +4,7 @@
  * the scanner wrote. Tested in `tests/selectors.test.ts`.
  */
 import { uniqueAgentOf, uniqueAgents, type UniqueAgent } from "./agents";
-import { prose } from "./labels";
+import { PLAIN_TITLE, prose } from "./labels";
 import type {
   Agent,
   DimensionEntry,
@@ -172,7 +172,7 @@ export function countBySeverity(refs: FindingRef[]): Record<Severity, number> {
  * in the detail drawer beside the rule id.
  */
 export function findingTitle(env: Envelope, finding: Finding): string {
-  return prose(finding.crosswalk?.so_what || env.rules[finding.rule_id]?.crosswalk?.so_what || finding.title);
+  return PLAIN_TITLE[finding.rule_id] ?? prose(finding.crosswalk?.so_what || env.rules[finding.rule_id]?.crosswalk?.so_what || finding.title);
 }
 
 /** Any of a finding's evidence fingerprints resolves to it, so links made before a merge still open. */

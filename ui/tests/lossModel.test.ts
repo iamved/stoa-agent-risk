@@ -54,7 +54,9 @@ describe("scan to model inputs", () => {
     expect(intake.existing_coverage[0]?.ai_exclusion).toBe(true);
     const agents = candidateAgents(env);
     expect(agents.length).toBeGreaterThan(0);
-    const refund = agents.find((a) => a.id === "b8f0111742fc")!;
+    // Modeled as the unique agent: its code record (b8f0111742fc) and its AWS record merged.
+    const refund = agents.find((a) => a.display_name === "account-actions")!;
+    expect(refund.tools?.length).toBe(6);
     const { model, notes } = agentToModel(env, refund, monthlyVolume);
     expect(model.capabilities.financial_authority.enabled).toBe(true);
     expect(model.capabilities.financial_authority.max_per_action_usd).toBe(500);

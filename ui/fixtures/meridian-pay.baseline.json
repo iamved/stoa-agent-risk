@@ -2501,7 +2501,7 @@
         ]
       },
       "declared": {
-        "name": "meridian-support (Databricks)",
+        "name": "meridian-support",
         "owner": "digital-servicing@meridian.example",
         "purpose": "Support agent on Databricks Mosaic AI Agent Framework",
         "users": "customers",

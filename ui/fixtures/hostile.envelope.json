@@ -2724,7 +2724,7 @@
           ]
         },
         "declared": {
-          "name": "meridian-support (Databricks)",
+          "name": "meridian-support",
           "owner": "digital-servicing@meridian.example",
           "purpose": "\"quoted\" 'and' `backticked` \\backslash",
           "users": "customers",
@@ -3627,7 +3627,7 @@
   },
   "history": [
     {
-      "schema": "stoa-history-entry/1.0",
+      "schema": "stoa-history-entry/1.1",
       "git_ref": "a1b2c3d",
       "head_commit": {
         "hash": "a1b2c3d",
@@ -3692,10 +3692,789 @@
           "agents_elevated": 0,
           "agents_moderate": 0
         }
+      ],
+      "agents": [
+        {
+          "id": "9299e5cfdb41",
+          "name": "meridian-account-actions",
+          "display_name": "meridian-account-actions",
+          "capabilities": [
+            "database_read",
+            "database_write",
+            "email_send",
+            "tool_calling"
+          ],
+          "tools": [
+            {
+              "name": "issue_refund",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "waive_fee",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "update_contact_info",
+              "money_action": false,
+              "high_impact": true
+            },
+            {
+              "name": "reissue_card",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "place_travel_notice",
+              "money_action": false,
+              "high_impact": true
+            },
+            {
+              "name": "change_payout_account",
+              "money_action": true,
+              "high_impact": true
+            }
+          ],
+          "autonomy_level": {
+            "level": "unrestricted_autonomous"
+          },
+          "declared": {
+            "data_classes": [
+              "personal",
+              "financial"
+            ],
+            "users": "customers",
+            "autonomy_intent": "human_approved"
+          },
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 76,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 76,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 8,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 0,
+                "controls_observed": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "2f7906aae143",
+          "name": "meridian-escalation",
+          "display_name": "meridian-escalation",
+          "capabilities": [],
+          "tools": [],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": null,
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 8,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 12,
+                "controls_observed": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "2237fe0c16d2",
+          "name": "meridian-front",
+          "display_name": "meridian-front",
+          "capabilities": [],
+          "tools": [],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": null,
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": [
+                  "validation"
+                ]
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 8,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 0,
+                "controls_observed": [
+                  "validation"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "62007a57a832",
+          "name": "meridian-knowledge",
+          "display_name": "meridian-knowledge",
+          "capabilities": [
+            "vector_search"
+          ],
+          "tools": [],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": null,
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 18,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 8,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 12,
+                "controls_observed": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "b8f0111742fc",
+          "name": "graph",
+          "display_name": "account_actions_agent·graph",
+          "capabilities": [
+            "tool_calling"
+          ],
+          "tools": [
+            {
+              "name": "update_contact_info",
+              "money_action": false,
+              "high_impact": false
+            },
+            {
+              "name": "place_travel_notice",
+              "money_action": false,
+              "high_impact": false
+            }
+          ],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": {
+            "economic_authority": {
+              "max_per_action": {
+                "amount": 100,
+                "currency": "USD"
+              },
+              "daily_aggregate": {
+                "amount": 25000,
+                "currency": "USD"
+              },
+              "worst_case_customer_loss": {
+                "amount": 250000,
+                "currency": "USD"
+              }
+            },
+            "data_classes": [
+              "personal",
+              "financial"
+            ],
+            "users": "customers",
+            "autonomy_intent": "human_approved"
+          },
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 0,
+                "controls_observed": [
+                  "authentication"
+                ]
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": [
+                  "validation"
+                ]
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": [
+                  "deterministic_sampling"
+                ]
+              },
+              {
+                "id": "dependency-drift",
+                "score": 10,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 0,
+                "controls_observed": [
+                  "authentication",
+                  "validation"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "a24a49aaf9ec",
+          "name": "graph",
+          "display_name": "escalation_agent·graph",
+          "capabilities": [
+            "external_http"
+          ],
+          "tools": [],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": null,
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 18,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 2,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 10,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 13,
+                "controls_observed": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "2a61ffb1db0d",
+          "name": "graph",
+          "display_name": "front_agent·graph",
+          "capabilities": [
+            "tool_calling"
+          ],
+          "tools": [
+            {
+              "name": "verify_identity",
+              "money_action": false,
+              "high_impact": false
+            }
+          ],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": null,
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 0,
+                "controls_observed": [
+                  "authentication"
+                ]
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": [
+                  "validation"
+                ]
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": [
+                  "deterministic_sampling"
+                ]
+              },
+              {
+                "id": "dependency-drift",
+                "score": 10,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 0,
+                "controls_observed": [
+                  "authentication",
+                  "validation"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "0d380d199726",
+          "name": "graph",
+          "display_name": "knowledge_agent·graph",
+          "capabilities": [],
+          "tools": [],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": null,
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": [
+                  "deterministic_sampling"
+                ]
+              },
+              {
+                "id": "dependency-drift",
+                "score": 10,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 13,
+                "controls_observed": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "f18cfdb42fdb",
+          "name": "agent",
+          "display_name": "support_agent·agent",
+          "capabilities": [
+            "payment_access"
+          ],
+          "tools": [
+            {
+              "name": "change_payout_account",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "issue_refund",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "place_travel_notice",
+              "money_action": false,
+              "high_impact": false
+            },
+            {
+              "name": "reissue_card",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "update_contact_info",
+              "money_action": false,
+              "high_impact": false
+            },
+            {
+              "name": "waive_fee",
+              "money_action": true,
+              "high_impact": true
+            }
+          ],
+          "autonomy_level": {
+            "level": "unrestricted_autonomous"
+          },
+          "declared": {
+            "data_classes": [
+              "personal",
+              "financial"
+            ],
+            "users": "customers",
+            "autonomy_intent": "human_approved"
+          },
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 59,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 59,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 8,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 13,
+                "controls_observed": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "3af3aebaa6f7",
+          "name": "meridian-support-chat",
+          "display_name": "meridian-support-chat",
+          "capabilities": [
+            "database_read",
+            "database_write"
+          ],
+          "tools": [],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": {
+            "data_classes": [
+              "personal",
+              "financial"
+            ],
+            "users": "customers",
+            "autonomy_intent": "human_approved"
+          },
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 18,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 18,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": [
+                  "validation"
+                ]
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 0,
+                "controls_observed": [
+                  "observability",
+                  "rate_limit",
+                  "validation"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "6142266e32cb",
+          "name": "meridian-support-ivr",
+          "display_name": "meridian-support-ivr",
+          "capabilities": [
+            "database_read",
+            "database_write"
+          ],
+          "tools": [],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": null,
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 18,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 18,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 12,
+                "controls_observed": []
+              }
+            ]
+          }
+        }
       ]
     },
     {
-      "schema": "stoa-history-entry/1.0",
+      "schema": "stoa-history-entry/1.1",
       "git_ref": "b7c8d9e",
       "head_commit": {
         "hash": "b7c8d9e",
@@ -3760,10 +4539,805 @@
           "agents_elevated": 0,
           "agents_moderate": 0
         }
+      ],
+      "agents": [
+        {
+          "id": "9299e5cfdb41",
+          "name": "meridian-account-actions",
+          "display_name": "meridian-account-actions",
+          "capabilities": [
+            "database_read",
+            "database_write",
+            "email_send",
+            "tool_calling"
+          ],
+          "tools": [
+            {
+              "name": "issue_refund",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "waive_fee",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "update_contact_info",
+              "money_action": false,
+              "high_impact": true
+            },
+            {
+              "name": "reissue_card",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "place_travel_notice",
+              "money_action": false,
+              "high_impact": true
+            },
+            {
+              "name": "change_payout_account",
+              "money_action": true,
+              "high_impact": true
+            }
+          ],
+          "autonomy_level": {
+            "level": "unrestricted_autonomous"
+          },
+          "declared": {
+            "data_classes": [
+              "personal",
+              "financial"
+            ],
+            "users": "customers",
+            "autonomy_intent": "human_approved"
+          },
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 76,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 76,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 8,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 0,
+                "controls_observed": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "2f7906aae143",
+          "name": "meridian-escalation",
+          "display_name": "meridian-escalation",
+          "capabilities": [],
+          "tools": [],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": null,
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 8,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 12,
+                "controls_observed": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "2237fe0c16d2",
+          "name": "meridian-front",
+          "display_name": "meridian-front",
+          "capabilities": [],
+          "tools": [],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": null,
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": [
+                  "validation"
+                ]
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 8,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 0,
+                "controls_observed": [
+                  "validation"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "62007a57a832",
+          "name": "meridian-knowledge",
+          "display_name": "meridian-knowledge",
+          "capabilities": [
+            "vector_search"
+          ],
+          "tools": [],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": null,
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 18,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 8,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 12,
+                "controls_observed": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "b8f0111742fc",
+          "name": "graph",
+          "display_name": "account_actions_agent·graph",
+          "capabilities": [
+            "payment_access",
+            "tool_calling"
+          ],
+          "tools": [
+            {
+              "name": "issue_refund",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "waive_fee",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "update_contact_info",
+              "money_action": false,
+              "high_impact": false
+            },
+            {
+              "name": "reissue_card",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "place_travel_notice",
+              "money_action": false,
+              "high_impact": false
+            }
+          ],
+          "autonomy_level": {
+            "level": "unrestricted_autonomous"
+          },
+          "declared": {
+            "economic_authority": {
+              "max_per_action": {
+                "amount": 250,
+                "currency": "USD"
+              },
+              "daily_aggregate": {
+                "amount": 25000,
+                "currency": "USD"
+              },
+              "worst_case_customer_loss": {
+                "amount": 250000,
+                "currency": "USD"
+              }
+            },
+            "data_classes": [
+              "personal",
+              "financial"
+            ],
+            "users": "customers",
+            "autonomy_intent": "human_approved"
+          },
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 58,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 53,
+                "controls_observed": [
+                  "authentication"
+                ]
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": [
+                  "validation"
+                ]
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": [
+                  "deterministic_sampling"
+                ]
+              },
+              {
+                "id": "dependency-drift",
+                "score": 10,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 0,
+                "controls_observed": [
+                  "authentication",
+                  "validation"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "a24a49aaf9ec",
+          "name": "graph",
+          "display_name": "escalation_agent·graph",
+          "capabilities": [
+            "external_http"
+          ],
+          "tools": [],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": null,
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 18,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 2,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 10,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 13,
+                "controls_observed": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "2a61ffb1db0d",
+          "name": "graph",
+          "display_name": "front_agent·graph",
+          "capabilities": [
+            "tool_calling"
+          ],
+          "tools": [
+            {
+              "name": "verify_identity",
+              "money_action": false,
+              "high_impact": false
+            }
+          ],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": null,
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 0,
+                "controls_observed": [
+                  "authentication"
+                ]
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": [
+                  "validation"
+                ]
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": [
+                  "deterministic_sampling"
+                ]
+              },
+              {
+                "id": "dependency-drift",
+                "score": 10,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 0,
+                "controls_observed": [
+                  "authentication",
+                  "validation"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "0d380d199726",
+          "name": "graph",
+          "display_name": "knowledge_agent·graph",
+          "capabilities": [],
+          "tools": [],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": null,
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": [
+                  "deterministic_sampling"
+                ]
+              },
+              {
+                "id": "dependency-drift",
+                "score": 10,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 13,
+                "controls_observed": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "f18cfdb42fdb",
+          "name": "agent",
+          "display_name": "support_agent·agent",
+          "capabilities": [
+            "payment_access"
+          ],
+          "tools": [
+            {
+              "name": "change_payout_account",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "issue_refund",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "place_travel_notice",
+              "money_action": false,
+              "high_impact": false
+            },
+            {
+              "name": "reissue_card",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "update_contact_info",
+              "money_action": false,
+              "high_impact": false
+            },
+            {
+              "name": "waive_fee",
+              "money_action": true,
+              "high_impact": true
+            }
+          ],
+          "autonomy_level": {
+            "level": "unrestricted_autonomous"
+          },
+          "declared": {
+            "data_classes": [
+              "personal",
+              "financial"
+            ],
+            "users": "customers",
+            "autonomy_intent": "human_approved"
+          },
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 59,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 59,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 8,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 13,
+                "controls_observed": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "3af3aebaa6f7",
+          "name": "meridian-support-chat",
+          "display_name": "meridian-support-chat",
+          "capabilities": [
+            "database_read",
+            "database_write"
+          ],
+          "tools": [],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": {
+            "data_classes": [
+              "personal",
+              "financial"
+            ],
+            "users": "customers",
+            "autonomy_intent": "human_approved"
+          },
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 18,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 18,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": [
+                  "validation"
+                ]
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 0,
+                "controls_observed": [
+                  "observability",
+                  "rate_limit",
+                  "validation"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "6142266e32cb",
+          "name": "meridian-support-ivr",
+          "display_name": "meridian-support-ivr",
+          "capabilities": [
+            "database_read",
+            "database_write"
+          ],
+          "tools": [],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": null,
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 18,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 18,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 12,
+                "controls_observed": []
+              }
+            ]
+          }
+        }
       ]
     },
     {
-      "schema": "stoa-history-entry/1.0",
+      "schema": "stoa-history-entry/1.1",
       "git_ref": "e4f5a6b",
       "head_commit": {
         "hash": "e4f5a6b",
@@ -3827,6 +5401,806 @@
           "max_exposure": "low",
           "agents_elevated": 0,
           "agents_moderate": 0
+        }
+      ],
+      "agents": [
+        {
+          "id": "9299e5cfdb41",
+          "name": "meridian-account-actions",
+          "display_name": "meridian-account-actions",
+          "capabilities": [
+            "database_read",
+            "database_write",
+            "email_send",
+            "tool_calling"
+          ],
+          "tools": [
+            {
+              "name": "issue_refund",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "waive_fee",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "update_contact_info",
+              "money_action": false,
+              "high_impact": true
+            },
+            {
+              "name": "reissue_card",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "place_travel_notice",
+              "money_action": false,
+              "high_impact": true
+            },
+            {
+              "name": "change_payout_account",
+              "money_action": true,
+              "high_impact": true
+            }
+          ],
+          "autonomy_level": {
+            "level": "unrestricted_autonomous"
+          },
+          "declared": {
+            "data_classes": [
+              "personal",
+              "financial"
+            ],
+            "users": "customers",
+            "autonomy_intent": "human_approved"
+          },
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 76,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 76,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 8,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 0,
+                "controls_observed": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "2f7906aae143",
+          "name": "meridian-escalation",
+          "display_name": "meridian-escalation",
+          "capabilities": [],
+          "tools": [],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": null,
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 8,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 12,
+                "controls_observed": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "2237fe0c16d2",
+          "name": "meridian-front",
+          "display_name": "meridian-front",
+          "capabilities": [],
+          "tools": [],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": null,
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": [
+                  "validation"
+                ]
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 8,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 0,
+                "controls_observed": [
+                  "validation"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "62007a57a832",
+          "name": "meridian-knowledge",
+          "display_name": "meridian-knowledge",
+          "capabilities": [
+            "vector_search"
+          ],
+          "tools": [],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": null,
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 18,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 8,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 12,
+                "controls_observed": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "b8f0111742fc",
+          "name": "graph",
+          "display_name": "account_actions_agent·graph",
+          "capabilities": [
+            "payment_access",
+            "tool_calling"
+          ],
+          "tools": [
+            {
+              "name": "issue_refund",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "waive_fee",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "update_contact_info",
+              "money_action": false,
+              "high_impact": false
+            },
+            {
+              "name": "reissue_card",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "place_travel_notice",
+              "money_action": false,
+              "high_impact": false
+            },
+            {
+              "name": "change_payout_account",
+              "money_action": true,
+              "high_impact": true
+            }
+          ],
+          "autonomy_level": {
+            "level": "unrestricted_autonomous"
+          },
+          "declared": {
+            "economic_authority": {
+              "max_per_action": {
+                "amount": 500,
+                "currency": "USD"
+              },
+              "daily_aggregate": {
+                "amount": 25000,
+                "currency": "USD"
+              },
+              "worst_case_customer_loss": {
+                "amount": 250000,
+                "currency": "USD"
+              }
+            },
+            "data_classes": [
+              "personal",
+              "financial"
+            ],
+            "users": "customers",
+            "autonomy_intent": "human_approved"
+          },
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 58,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 53,
+                "controls_observed": [
+                  "authentication"
+                ]
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": [
+                  "validation"
+                ]
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": [
+                  "deterministic_sampling"
+                ]
+              },
+              {
+                "id": "dependency-drift",
+                "score": 10,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 0,
+                "controls_observed": [
+                  "authentication",
+                  "validation"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "a24a49aaf9ec",
+          "name": "graph",
+          "display_name": "escalation_agent·graph",
+          "capabilities": [
+            "external_http"
+          ],
+          "tools": [],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": null,
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 18,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 2,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 10,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 13,
+                "controls_observed": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "2a61ffb1db0d",
+          "name": "graph",
+          "display_name": "front_agent·graph",
+          "capabilities": [
+            "tool_calling"
+          ],
+          "tools": [
+            {
+              "name": "verify_identity",
+              "money_action": false,
+              "high_impact": false
+            }
+          ],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": null,
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 0,
+                "controls_observed": [
+                  "authentication"
+                ]
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": [
+                  "validation"
+                ]
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": [
+                  "deterministic_sampling"
+                ]
+              },
+              {
+                "id": "dependency-drift",
+                "score": 10,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 0,
+                "controls_observed": [
+                  "authentication",
+                  "validation"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "0d380d199726",
+          "name": "graph",
+          "display_name": "knowledge_agent·graph",
+          "capabilities": [],
+          "tools": [],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": null,
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": [
+                  "deterministic_sampling"
+                ]
+              },
+              {
+                "id": "dependency-drift",
+                "score": 10,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 13,
+                "controls_observed": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "f18cfdb42fdb",
+          "name": "agent",
+          "display_name": "support_agent·agent",
+          "capabilities": [
+            "payment_access"
+          ],
+          "tools": [
+            {
+              "name": "change_payout_account",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "issue_refund",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "place_travel_notice",
+              "money_action": false,
+              "high_impact": false
+            },
+            {
+              "name": "reissue_card",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "update_contact_info",
+              "money_action": false,
+              "high_impact": false
+            },
+            {
+              "name": "waive_fee",
+              "money_action": true,
+              "high_impact": true
+            }
+          ],
+          "autonomy_level": {
+            "level": "unrestricted_autonomous"
+          },
+          "declared": {
+            "data_classes": [
+              "personal",
+              "financial"
+            ],
+            "users": "customers",
+            "autonomy_intent": "human_approved"
+          },
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 59,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 59,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 8,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 13,
+                "controls_observed": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "3af3aebaa6f7",
+          "name": "meridian-support-chat",
+          "display_name": "meridian-support-chat",
+          "capabilities": [
+            "database_read",
+            "database_write"
+          ],
+          "tools": [],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": {
+            "data_classes": [
+              "personal",
+              "financial"
+            ],
+            "users": "customers",
+            "autonomy_intent": "human_approved"
+          },
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 18,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 18,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": [
+                  "validation"
+                ]
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 0,
+                "controls_observed": [
+                  "observability",
+                  "rate_limit",
+                  "validation"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "6142266e32cb",
+          "name": "meridian-support-ivr",
+          "display_name": "meridian-support-ivr",
+          "capabilities": [
+            "database_read",
+            "database_write"
+          ],
+          "tools": [],
+          "autonomy_level": {
+            "level": "recommend_only"
+          },
+          "declared": null,
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 18,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 18,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 12,
+                "controls_observed": []
+              }
+            ]
+          }
         }
       ]
     }
@@ -4147,7 +6521,7 @@
     },
     {
       "id": "3af3aebaa6f7",
-      "name": "meridian-support (Databricks)",
+      "name": "meridian-support",
       "records": [
         {
           "agent_id": "f18cfdb42fdb",

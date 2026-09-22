@@ -6,6 +6,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { Envelope } from "../src/data/types";
 import { attention, attentionStatus, nextAction, otherDimensionsLine, costOutlook, elevatedDimensions, holdings, joinWords, moneyMovers, protection, registerCard, scanSources, sentenceText, standing, whatChanged } from "../src/data/overview";
+import { PLAIN_ACTION } from "../src/data/labels";
 import { activeFindings } from "../src/data/selectors";
 
 const load = (name: string) => JSON.parse(readFileSync(new URL(`../fixtures/${name}.envelope.json`, import.meta.url), "utf8")) as Envelope;
@@ -47,7 +48,11 @@ describe("what it could cost", () => {
     expect(cost.badYear).toBeGreaterThan(cost.averageYear);
     expect(cost.averageYear).toBeGreaterThan(0);
     expect(cost).toMatchObject({ covered: 0, excluding: ["cyber"], policies: 1 });
-    expect(demo.registry.agents.map((a) => a.display_name || a.name)).toContain(cost.agent);
+    expect(cost.agent).toBe("account-actions");
+    // The trend: one point per past scan, ending at today's figure, and it rose as the code agent gained money tools.
+    expect(cost.trend.map((p) => p.ref)).toEqual(["a1b2c3d", "b7c8d9e", "e4f5a6b"]);
+    expect(cost.trend[2]!.badYear).toBe(cost.badYear);
+    expect(cost.trend[0]!.badYear).toBeLessThan(cost.badYear);
   });
 
   it("is deterministic", () => {
@@ -68,7 +73,7 @@ describe("needs your attention", () => {
     expect(items.reduce((n, i) => n + i.findings, 0)).toBe(activeFindings(demo).length);
     const rank = { critical: 4, high: 3, medium: 2, low: 1, info: 0 };
     for (let i = 1; i < items.length; i++) expect(rank[items[i - 1]!.severity]).toBeGreaterThanOrEqual(rank[items[i]!.severity]);
-    expect(attention(demo)).toHaveLength(4);
+    expect(attention(demo)).toHaveLength(3);
     expect(attention(empty)).toEqual([]);
   });
 
@@ -76,7 +81,7 @@ describe("needs your attention", () => {
     const [first, second] = attention(demo);
     expect(first!.title).toBe("Declared autonomy does not match what the code does.");
     // DECL001 fired on three records: account actions in code and on AWS (one agent), and the support agent.
-    expect(first!.agents).toEqual(["account-actions", "meridian-support (Databricks)"]);
+    expect(first!.agents).toEqual(["account-actions", "meridian-support"]);
     expect(first!.findings).toBe(2);
     expect(attentionStatus(first!)).toContain("1 marked for transfer");
     expect(second!.ruleId).toBe("AI008");
@@ -99,14 +104,14 @@ describe("needs your attention", () => {
       const action = nextAction(item);
       expect(action.length).toBeGreaterThan(0);
       expect(action).not.toContain("\u2014");
-      // Verbatim from the scanner's guidance, never rewritten.
-      expect((demo.rules[item.ruleId]?.remediation ?? "").replace(/\s*(?:\u2014|\s--\s)\s*/g, ": ")).toContain(action);
+      // Plain words where they exist; otherwise verbatim from the scanner's guidance.
+      if (!PLAIN_ACTION[item.ruleId]) expect((demo.rules[item.ruleId]?.remediation ?? "").replace(/\s*(?:\u2014|\s--\s)\s*/g, ": ")).toContain(action);
     }
     const by = (rule: string) => nextAction(items.find((i) => i.ruleId === rule)!);
-    expect(by("DECL001")).toBe("Either add the missing approval control, or correct the declaration.");
-    expect(by("DECL006")).toBe('Add an [agents."<id>"] entry, even a partial one.');
-    expect(by("CTRL007")).toMatch(/^Consider a feature-flag/);
-    expect(by("AI008")).toMatch(/^Send an idempotency key/);
+    expect(by("DECL001")).toBe("Add the approval step, or correct the declaration.");
+    expect(by("DECL006")).toBe("Add this agent to your declaration file, even with partial details.");
+    expect(by("CTRL007")).toMatch(/^Add a setting or feature flag/);
+    expect(by("AI008")).toBe("Give each payment request a unique reference so a retry cannot charge it again, and apply limits per request rather than per attempt.");
   });
 });
 

@@ -6,7 +6,7 @@
  */
 import type { Agent, Envelope, Severity, ToolRecord } from "./types";
 import { autonomyOf, capabilitiesOf, safeguardsOf, toolsOf, uniqueAgents, type UniqueAgent } from "./agents";
-import { SAFEGUARD_SUBTITLE, prose } from "./labels";
+import { PLAIN_ACTION, SAFEGUARD_SUBTITLE, prose } from "./labels";
 import { SEVERITY_RANK, activeFindings, agentLabel, findingTitle, pluralize, type FindingRef } from "./selectors";
 
 export const CONTROL_LABEL: Record<string, string> = {
@@ -240,7 +240,7 @@ export function recommendations(env: Envelope, n = 3): Recommendation[] {
     ruleId: g.rule_id,
     severity: g.worst,
     title: g.title,
-    action: actionSentence(env.rules[g.rule_id]?.remediation ?? g.refs[0]?.finding.remediation ?? ""),
+    action: PLAIN_ACTION[g.rule_id] ?? actionSentence(env.rules[g.rule_id]?.remediation ?? g.refs[0]?.finding.remediation ?? ""),
     agents: new Set(g.refs.flatMap((r) => r.uniqueAgents.map((u) => u.id))).size,
   }));
 }

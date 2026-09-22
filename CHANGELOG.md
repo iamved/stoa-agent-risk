@@ -37,6 +37,20 @@ network. See [docs/dashboard.md](docs/dashboard.md).
   (`<dimension-id>/<agent-id>`), `owner`, `treatment`, `rationale`,
   `review_by`, `status`.
 
+### Changed — second review
+- Overview tiles are Agent Inventory, Risk Mapping, Protection Level and
+  Estimated Failures Cost. Risk Mapping names the high-severity findings.
+  Estimated Failures Cost draws the modeled bad-year loss over past scans;
+  history entries (schema 1.1) now carry the agent fields the loss model
+  reads, and the model takes the unique agent with its records merged.
+  "Needs your attention" is three items in plain words; findings carry plain
+  titles and actions on the summary screens (the scanner's sentences stay in
+  the drawer). The elevated-exposure and register cards are gone. The flow
+  graph draws two agent safeguards, harness first. Financial Exposure gains
+  "How the modeled loss has moved" and shows at most two cases per loss
+  type, US financial services first, then other US sectors, then elsewhere;
+  Data Loss and Corruption and Performance Failure are not listed.
+
 ### Changed — after review
 - The header names the applicant's company; the scope strip is gone. No
   demo banner. Controls & Safeguards drops its headline tiles, lists

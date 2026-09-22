@@ -236,7 +236,7 @@ about, so a stale row stays visible.
 
 The dashboard's own envelope (`stoa-dashboard/1.0`) wraps the registry
 together with the `stoa-diff/1.0` document, history summaries
-(`stoa-history-entry/1.0`, under `.stoa/history/`), the assurance packet, and
+(`stoa-history-entry/1.1`, under `.stoa/history/`; 1.1 adds `agents`, per record the fields the loss model reads, so the modeled loss can be drawn over past scans), the assurance packet, and
 static rule and taxonomy tables. It is a separate document and is not part of
 `stoa-registry.json`. An optional top-level `demo: true` (additive, written
 only by `stoa dashboard --demo`) marks a page as demo data. In

@@ -3,6 +3,7 @@
  * inputs. Every mapping is listed on the page so a reader can see which scan
  * fact drove which model input.
  */
+import { mergedRecord, uniqueAgents } from "./agents";
 import type { Agent, Envelope } from "./types";
 import { hasAuthority } from "./selectors";
 import type { Autonomy, HumanInLoop, Intake, ModelAgent, Policy } from "./lossModel";
@@ -51,8 +52,10 @@ export function intakeFromEnvelope(env: Envelope): { intake: Intake; monthlyVolu
 }
 
 /** Agents the model can be run for: those with a dimension assessment, money movers first. */
+/** Agents the model can be run for, as unique agents with their records merged: money movers first. */
 export function candidateAgents(env: Envelope): Agent[] {
-  return env.registry.agents
+  return uniqueAgents(env)
+    .map(mergedRecord)
     .filter((a) => a.dimension_assessment)
     .sort((a, b) => Number(hasAuthority(env, b)) - Number(hasAuthority(env, a)) || worst(b) - worst(a) || (a.display_name || a.name).localeCompare(b.display_name || b.name));
 }

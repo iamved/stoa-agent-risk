@@ -15,8 +15,33 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-HISTORY_SCHEMA = "stoa-history-entry/1.0"
+HISTORY_SCHEMA = "stoa-history-entry/1.1"
 HISTORY_DIR = Path(".stoa") / "history"
+
+
+# 1.1: `agents` carries, per agent record, the few fields the dashboard's loss
+# model reads, so the modeled loss can be drawn over past scans. Still a
+# summary: no findings, no evidence, no paths beyond the record's own.
+_LOSS_TOOL_KEYS = ("name", "money_action", "high_impact")
+_LOSS_DECLARED_KEYS = ("economic_authority", "data_classes", "users", "autonomy_intent")
+
+
+def _loss_inputs(agent: dict) -> dict:
+    declared = agent.get("declared") or {}
+    dims = (agent.get("dimension_assessment") or {}).get("dimensions") or []
+    return {
+        "id": agent["id"],
+        "name": agent.get("name"),
+        "display_name": agent.get("display_name"),
+        "capabilities": list(agent.get("capabilities") or []),
+        "tools": [{k: t.get(k) for k in _LOSS_TOOL_KEYS} for t in agent.get("tools") or []],
+        "autonomy_level": {"level": (agent.get("autonomy_level") or {}).get("level")},
+        "declared": {k: declared[k] for k in _LOSS_DECLARED_KEYS if k in declared} if declared else None,
+        "dimension_assessment": {"dimensions": [
+            {"id": d["id"], "score": d.get("score", 0), "controls_observed": list(d.get("controls_observed") or [])}
+            for d in dims
+        ]},
+    }
 
 
 def entry_from_registry(registry: dict) -> dict | None:
@@ -44,6 +69,7 @@ def entry_from_registry(registry: dict) -> dict | None:
             }
             for d in dims
         ],
+        "agents": [_loss_inputs(a) for a in registry.get("agents") or []],
     }
 
 

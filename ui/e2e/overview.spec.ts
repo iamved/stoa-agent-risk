@@ -15,11 +15,11 @@ test.describe("overview", () => {
     await expect(main.getByText("Static scan of code and configuration", { exact: false })).toHaveCount(0);
     await expect(main.getByText("What the code makes possible, not what has happened.")).toBeVisible();
     await expect(main.getByRole("region", { name: "Where you stand" })).toBeVisible();
-    await expect(main.getByRole("heading", { level: 2 })).toHaveText(["What we have", "What is wrong", "Are we protected", "What it could cost", "Needs your attention", "What changed", "Where exposure is elevated", "Risk register", "Insurance assessment", "Agent Risk Flow Graph"]);
+    await expect(main.getByRole("heading", { level: 2 })).toHaveText(["Agent Inventory", "Risk Mapping", "Protection Level", "Estimated Failures Cost", "Needs your attention", "What changed", "Insurance assessment", "Agent Risk Flow Graph"]);
     // Removed on purpose: the elevated-agents card, the combined money-or-write card, the long findings list.
-    for (const gone of ["Agents at elevated exposure", "Can move money or write to systems", "Top findings", "Findings by dimension"]) await expect(main.getByText(gone)).toHaveCount(0);
+    for (const gone of ["Agents at elevated exposure", "Can move money or write to systems", "Top findings", "Findings by dimension", "Where exposure is elevated", "Risk register", "risks recorded"]) await expect(main.getByText(gone)).toHaveCount(0);
     const targets = await main.getByRole("link").evaluateAll((links) => [...new Set(links.map((a) => (a.getAttribute("href") ?? "").split(/[/?]/)[1]))]);
-    for (const screen of ["inventory", "findings", "controls", "loss", "evidence", "drift", "register"]) expect(targets, screen).toContain(screen);
+    for (const screen of ["inventory", "findings", "controls", "loss", "evidence", "drift"]) expect(targets, screen).toContain(screen);
   });
 
   test("the verdict is built from the scan, in detection language", async ({ page }) => {
@@ -41,6 +41,14 @@ test.describe("overview", () => {
     await expect(main.getByText("Human approval detected on 0 of 2 agents that can move money")).toBeVisible();
     await expect(main.getByText("8 of 8 tools that can move money have no guardrail detected")).toBeVisible();
     await expect(main.getByText(/Modeled\. An average year is about \$\d+k\./)).toBeVisible();
+    // The bad-year figure is drawn over the three scans in history, ending at today's.
+    await expect(main.getByRole("img", { name: /Modeled bad-year loss over 3 scans: \$4\.9M \(21 Jul 2026\) to \$5M \(15 Sep 2026\)/ })).toBeVisible();
+    await expect(main.getByText(/Up from \$4\.9M/)).toBeVisible();
+    // Risk Mapping names the high-severity findings, in plain words.
+    const mapping = main.getByRole("heading", { name: "Risk Mapping" }).locator("xpath=ancestor::section[1]");
+    await expect(mapping).toContainText("Declared autonomy does not match what the code does.");
+    await expect(mapping).toContainText("A payment can be charged twice if a request is retried.");
+    await expect(mapping).not.toContainText("idempotency");
     await expect(main.getByText(/1 year in 100, for .+, the agent with the largest figure\./)).toBeVisible();
     const cover = main.getByText("Declared cover for AI losses:");
     await expect(cover).toContainText("$0");
@@ -54,7 +62,8 @@ test.describe("overview", () => {
     const list = page.getByRole("region", { name: "Needs your attention" });
     await expect(list).toContainText("Highest severity first. The same problem on several agents is shown once.");
     const rows = list.getByRole("listitem");
-    await expect(rows).toHaveCount(4);
+    await expect(rows).toHaveCount(3);
+    await expect(list).not.toContainText(/idempotency|\[agents\./);
     await expect(rows.first()).toContainText("Declared autonomy does not match what the code does.");
     await expect(rows.first()).toContainText("2 agents · Mandate overreach · 1 marked for transfer");
     for (const row of await rows.all()) await expect(row).toContainText("Next action.");
@@ -83,12 +92,6 @@ test.describe("overview", () => {
 
   test("the footer cards summarize, and the sidebar carries one badge", async ({ page }) => {
     await page.goto(url("meridian-pay"));
-    const elevated = page.getByRole("region", { name: "Where exposure is elevated" });
-    await expect(elevated.getByRole("listitem")).toHaveCount(2);
-    await expect(elevated).toContainText("Agents can do more than they are declared to do.");
-    await expect(elevated).toContainText("The other 6 dimensions are low or show no findings. A finding can affect more than one dimension.");
-    await expect(elevated.getByRole("link", { name: "See all 8" })).toBeVisible();
-    await expect(page.getByRole("region", { name: "Risk register" })).toContainText("1 marked for transfer · 1 being mitigated · 4 with no treatment recorded");
     const assessment = page.getByRole("region", { name: "Insurance assessment" });
     await expect(assessment).toContainText("9 of 23 answers came from your code. 8 need your confirmation.");
     await expect(assessment.getByRole("link")).toHaveText(["Continue the assessment"]);
@@ -109,7 +112,6 @@ test.describe("overview", () => {
     await expect(page.locator("main .screen-content").getByText("11 discovered records")).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Screens" })).toContainText("Agent Inventory7");
     await expect(page.getByRole("region", { name: "What changed" })).toContainText("stoa scan . --diff-against origin/main");
-    await expect(page.getByText("No dimension is at elevated exposure in this scan.")).toBeVisible();
   });
 
   test("a scan with no agents says so plainly", async ({ page }) => {
@@ -137,7 +139,7 @@ test.describe("overview", () => {
     const diagram = flow.getByRole("group", { name: "Risk path for account-actions" });
     await expect(diagram).toBeVisible();
     for (const lane of ["Request arrives", "Agent decides", "Approval gate", "Tools it can call", "What it can touch"]) await expect(diagram).toContainText(lane);
-    await expect(diagram.getByRole("button")).toHaveCount(1 + 3 + 1 + 4 + 1 + 6 + 6);
+    await expect(diagram.getByRole("button")).toHaveCount(1 + 3 + 1 + 2 + 1 + 6 + 6);
     await expect(flow).toContainText("account-actions: 6 tools, 6 of them money-moving or high impact with no guardrail detected; 3 safeguards detected; 6 findings.");
 
     // No side panel: a selected box explains itself in one line under the diagram.

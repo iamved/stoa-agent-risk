@@ -10,7 +10,8 @@ import { canMoveMoney, exposureOf, providersOf, toolsOf, uniqueAgentOf, uniqueAg
 import { safeguardRows } from "./controls";
 import { agentToModel, candidateAgents, intakeFromEnvelope } from "./lossInputs";
 import { EVENTS, indicate, money } from "./lossModel";
-import { dimensionSubtitle, prose } from "./labels";
+import { lossTrend, type TrendPoint } from "./lossTrend";
+import { PLAIN_ACTION, dimensionSubtitle, prose } from "./labels";
 import { summarize as summarizeRegister } from "./register";
 import { SEVERITY_RANK, activeFindings, agentLabel, countByLevel, findingTitle, findingsByDimension, isNewFinding, newFingerprints, overviewDeltas, pluralize, riskLevel, type FindingRef, type RiskLevel } from "./selectors";
 
@@ -90,6 +91,9 @@ export function protection(env: Envelope): Protection {
 export interface CostOutlook {
   /** The agent the figures are modelled for: the loss model runs per agent, and bad years do not add up across agents. */
   agent: string;
+  agentId: string;
+  /** The same figure at each past scan, oldest first, ending at today's. Empty without history. */
+  trend: TrendPoint[];
   badYear: number;
   averageYear: number;
   /** Declared policy limits that do not exclude AI losses. */
@@ -122,6 +126,8 @@ export function costOutlook(env: Envelope, years?: number): CostOutlook | null {
   const policies = intake.existing_coverage;
   return {
     agent: model.name,
+    agentId: agent.id,
+    trend: lossTrend(env, agent.id, LOSS_SEED, years),
     badYear: r.summary.pMid,
     averageYear: r.summary.eal,
     covered: policies.filter((p) => !p.ai_exclusion).reduce((n, p) => n + p.limit, 0),
@@ -151,7 +157,7 @@ export interface AttentionItem {
 }
 
 /** Active findings, one item per rule, so the same problem on several agents is read once. Highest severity first. */
-export function attention(env: Envelope, n = 4): AttentionItem[] {
+export function attention(env: Envelope, n = 3): AttentionItem[] {
   const groups = new Map<string, FindingRef[]>();
   for (const ref of activeFindings(env)) {
     const list = groups.get(ref.finding.rule_id);
@@ -172,7 +178,7 @@ export function attention(env: Envelope, n = 4): AttentionItem[] {
       ruleId,
       severity: first.severity,
       level: riskLevel(first.severity),
-      title: first.crosswalk?.so_what || env.rules[ruleId]?.crosswalk?.so_what || first.title,
+      title: findingTitle(env, first),
       agents: [...new Set(refs.flatMap((r) => r.uniqueAgents.map((u) => u.name)))].sort(),
       dimension: dimensionId ? dimensionNames.get(dimensionId) ?? null : null,
       findings: refs.length,
@@ -205,6 +211,8 @@ const CONTEXT_OPENER = /^(this|these|an?|the|traces|reported|observability|stoa-
  * scene-setting.
  */
 export function nextAction(item: AttentionItem): string {
+  const plain = PLAIN_ACTION[item.ruleId];
+  if (plain) return plain;
   const sentences = prose(item.remediation).split(/(?<=[.!?])\s+(?=[A-Z[])/).map((x) => x.trim()).filter(Boolean);
   if (!sentences.length) return "";
   return [...sentences].reverse().find((x) => !CONTEXT_OPENER.test(x)) ?? sentences[sentences.length - 1]!;

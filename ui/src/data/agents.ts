@@ -179,3 +179,39 @@ export function exposureOf(agent: UniqueAgent): Exposure {
 export function safeguardsOf(agent: UniqueAgent): string[] {
   return [...new Set(agent.records.flatMap((a) => (a.dimension_assessment?.dimensions ?? []).flatMap((d) => d.controls_observed)))].sort();
 }
+
+/**
+ * One record standing for the whole agent, for readers of a single record such
+ * as the loss model's input mapping: tools and capabilities of every record,
+ * the declaration any record carries, the most autonomous level, and per
+ * dimension the highest score with every safeguard detected. No new score.
+ */
+export function mergedRecord(agent: UniqueAgent): Agent {
+  const first = agent.records[0]!;
+  // The declaration any record carries, with the spending limit and data classes from whichever record declares them.
+  const declaredRecords = agent.records.map((a) => a.declared).filter((d): d is NonNullable<typeof d> => Boolean(d));
+  const base = declaredRecords[0];
+  const declared = base ? {
+    ...base,
+    economic_authority: declaredRecords.find((d) => d.economic_authority)?.economic_authority ?? base.economic_authority,
+    data_classes: [...new Set(declaredRecords.flatMap((d) => d.data_classes))],
+    autonomy_intent: base.autonomy_intent ?? declaredRecords.find((d) => d.autonomy_intent)?.autonomy_intent ?? null,
+    users: base.users ?? declaredRecords.find((d) => d.users)?.users ?? null,
+  } : undefined;
+  const level = autonomyOf(agent);
+  const dims = dimensionsOf(agent).map((d) => ({ ...d, controls_observed: [...new Set(agent.records.flatMap((a) => (a.dimension_assessment?.dimensions ?? []).filter((x) => x.id === d.id).flatMap((x) => x.controls_observed)))].sort() }));
+  return {
+    ...first,
+    id: agent.id,
+    name: agent.name,
+    display_name: agent.name,
+    capabilities: capabilitiesOf(agent),
+    integrations: integrationsOf(agent),
+    providers: providersOf(agent),
+    frameworks: frameworksOf(agent),
+    tools: toolsOf(agent),
+    declared,
+    autonomy_level: level ? { level, signals: [], reason: null } : first.autonomy_level,
+    dimension_assessment: first.dimension_assessment || dims.length ? { ...(first.dimension_assessment ?? { schema: "" }), dimensions: dims } : undefined,
+  } as Agent;
+}

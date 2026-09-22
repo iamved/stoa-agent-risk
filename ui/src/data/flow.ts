@@ -42,7 +42,8 @@ const RULE_CONTROL: Record<string, string> = {
   CTRL007: "kill_switch", AI003: "approval", RT001: "approval", RT005: "approval", AI007: "deterministic_sampling",
 };
 const ENTRY_CONTROLS = ["authentication", "validation", "rate_limit"];
-const AGENT_CONTROLS = ["kill_switch", "observability", "deterministic_sampling", "sandbox"];
+// Kept to the two safeguards a risk officer asks about first; the rest are on the Controls screen.
+const AGENT_CONTROLS = ["kill_switch", "observability"];
 const VERB: Record<string, string> = { reads: "reads", writes: "writes", network: "sends to" };
 
 export interface Reach { cap: string; label: string; kind: string; runtime: boolean; hot: boolean; findings: FindingRef[] }
@@ -182,7 +183,7 @@ export function buildFlow(env: Envelope, agent: UniqueAgent): Flow {
 
   add({ id: "request", lane: "entry", kind: "request", label: "Incoming request", cap: "a user, system or another agent" });
   for (const c of ENTRY_CONTROLS) safeguard("entry", c);
-  add({ id: "agent", lane: "agent", kind: "agent", label: agent.name, cap: `${providers.join(" + ") || "provider not detected"} · ${harness}`, own: mismatch ? "risk" : "neutral", harness, mismatch,
+  add({ id: "agent", lane: "agent", kind: "agent", label: agent.name, cap: `${harness} · ${providers.join(" + ") || "provider not detected"}`, own: mismatch ? "risk" : "neutral", harness, mismatch,
     findings: findings.filter((r) => laneOf(r.finding.rule_id) === "agent" && !RULE_CONTROL[r.finding.rule_id]) });
   for (const c of AGENT_CONTROLS) safeguard("agent", c);
 

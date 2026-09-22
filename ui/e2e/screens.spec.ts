@@ -204,8 +204,11 @@ test.describe("loss outlook", () => {
     // Cases shown are US financial services only, source-backed, under a few hundred million.
     await expect(page.getByText("Lemonade")).toBeVisible();
     await expect(page.getByText("Earnest Operations")).toBeVisible();
-    for (const gone of ["Knight Capital", "Facebook", "Meta", "iTutorGroup", "Zillow"]) await expect(page.getByText(gone, { exact: true })).toHaveCount(0);
-    await expect(page.getByText("No public case in US financial services fits this loss type closely enough to show.").first()).toBeVisible();
+    // Over the cap, or a hidden loss type: never shown. Other US sectors fill in when financial services has fewer than two.
+    for (const gone of ["Knight Capital", "Facebook", "Zillow", "Data Loss and Corruption", "Performance Failure"]) await expect(page.getByText(gone, { exact: true })).toHaveCount(0);
+    await expect(page.getByText("Amazon (Q Developer)")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "How the modeled loss has moved" })).toBeVisible();
+    await expect(page.getByText("21 Jul 2026 · a1b2c3d")).toBeVisible();
   });
 
   test("without an intake block it says so and still runs on placeholders", async ({ page }) => {
@@ -243,7 +246,7 @@ test.describe("estate and risk model screens", () => {
     await expect(page.getByRole("heading", { name: "Recommended controls to add" })).toBeVisible();
     const recs = page.getByRole("heading", { name: "Recommended controls to add" }).locator("xpath=following::ol[1]").getByRole("listitem");
     await expect(recs).toHaveCount(3);
-    await expect(recs.first()).toContainText("A retried money action with no idempotency key can post twice");
+    await expect(recs.first()).toContainText("A payment can be charged twice if a request is retried.");
     await expect(recs.first()).not.toContainText(/AI008|CTRL00|account_tools\.py/);
     await expect(page.getByText("Pinned model")).toHaveCount(0);
     await page.goto(fileUrl("meridian-pay", "#/loss"));

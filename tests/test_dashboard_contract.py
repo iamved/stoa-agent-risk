@@ -225,7 +225,10 @@ def test_history_entry_is_a_summary_not_a_registry():
     assert entry["schema"] == HISTORY_SCHEMA
     assert entry["head_commit"]["hash"] == "abc1234"
     assert entry["dimensions"][0]["max_exposure"] == "elevated"
-    assert "agents" not in entry
+    # 1.1 carries a slice of each agent for the loss model, never findings, evidence or paths.
+    for agent in entry["agents"]:
+        assert set(agent) == {"id", "name", "display_name", "capabilities", "tools", "autonomy_level", "declared", "dimension_assessment"}
+        assert "findings" not in agent and "evidence" not in agent and "path" not in agent
     assert entry_from_registry({"repository": {}}) is None
 
 

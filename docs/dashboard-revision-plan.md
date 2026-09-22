@@ -279,3 +279,25 @@ brief above:
   fits on every event; only the cards are filtered.
 - The Agent Risk Flow Graph on the Overview has no side panel. A selected
   box explains itself in one line under the diagram.
+
+### Second review (2026-09-22)
+
+The Overview tiles were renamed and the cost tile draws a trend. To do that
+honestly, history entries (schema 1.1) now carry, per agent record, the
+fields the loss model reads, and the model runs over each past scan with
+today's business inputs. The loss model now takes the unique agent with its
+records merged, which is what the rest of the dashboard already counts.
+
+The demo's real line is $4.9M, $4.9M, $5.0M across its three scans, not the
+$3M to $5M asked for: the model is driven by declared revenue and records
+held (removing the agent's money authority entirely only reaches $4.8M), and
+the earlier scans changed the code agent's declared limit and tools while the
+Terraform record stayed the same. The figures are what the model gives; none
+were adjusted to tell a story.
+
+The support agent was named "meridian-support (Databricks)" in the demo's
+declaration file and is now "meridian-support"; the flow graph's agent box
+leads with the harness (langchain + langgraph) rather than the provider. The
+agent is still defined in code and deployed on two Databricks endpoints;
+changing the demo repository itself was not asked for and would change every
+count.

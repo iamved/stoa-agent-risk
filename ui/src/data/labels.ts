@@ -123,3 +123,61 @@ export function amountLabel(v?: { amount: number; currency: string } | null): st
 export function prose(text: string | null | undefined): string {
   return (text ?? "").replace(/\s*(?:\u2014|\s--\s)\s*/g, ": ");
 }
+
+// --- plain words for findings ----------------------------------------------------------------------
+
+/**
+ * A finding's title and next action, said for a risk officer. The scanner's
+ * own sentence stays in the finding drawer under "Why it matters" and "How to
+ * fix"; these are what the summary screens show. A rule not listed here shows
+ * the scanner's sentence.
+ */
+export const PLAIN_TITLE: Record<string, string> = {
+  DECL001: "Declared autonomy does not match what the code does.",
+  AI008: "A payment can be charged twice if a request is retried.",
+  DECL006: "This agent is missing from your declaration file.",
+  DECL005: "A production agent has no logging or monitoring detected.",
+  CTRL007: "No way to switch the agent off without a deploy was detected.",
+  CTRL004: "No logging of what this agent does was detected.",
+  AI003: "A high-impact action can run with no human approval detected.",
+  AI005: "The model version is not pinned, so its behavior can change silently.",
+  DECL003: "This agent can move money, but no spending limit is declared.",
+  DECL002: "A spending limit is declared, but the code does not enforce it.",
+  DECL004: "This agent handles data it is not declared to handle.",
+  CTRL001: "No sign-in check before the agent acts was detected.",
+  CTRL002: "No check on the agent's inputs was detected.",
+  CTRL003: "No limit on how often the agent can act was detected.",
+  CTRL005: "A loop with no limit on how many times it runs was detected.",
+  CTRL006: "Code runs outside an isolated environment.",
+  AI001: "Untrusted text is mixed into the agent's instructions.",
+  AI002: "The model's output is executed or rendered without checks.",
+  AI006: "Sensitive data is sent to an outside service.",
+  AI007: "Model settings are not fixed, so outputs vary run to run.",
+  SEC001: "A credential is written into the code.",
+  SEC002: "A password is written into the code.",
+};
+
+export const PLAIN_ACTION: Record<string, string> = {
+  DECL001: "Add the approval step, or correct the declaration.",
+  AI008: "Give each payment request a unique reference so a retry cannot charge it again, and apply limits per request rather than per attempt.",
+  DECL006: "Add this agent to your declaration file, even with partial details.",
+  DECL005: "Add logging or tracing before relying on it in production.",
+  CTRL007: "Add a setting or feature flag that can turn the agent off at once.",
+  CTRL004: "Confirm logging or tracing covers what this agent does.",
+  AI003: "Confirm a person approves this action before it runs.",
+  AI005: "Pin a specific model version.",
+  DECL003: "Declare the spending limit.",
+  DECL002: "Enforce the declared limit in code.",
+  DECL004: "Update the declaration, or confirm the finding is wrong.",
+  CTRL001: "Confirm callers are signed in before the agent acts.",
+  CTRL002: "Confirm inputs are checked before the agent acts.",
+  CTRL003: "Confirm a rate limit applies to the agent's actions.",
+  CTRL005: "Put a limit on how many times the loop can run.",
+  CTRL006: "Run this code in an isolated environment.",
+  AI001: "Keep instructions fixed and pass untrusted text as data.",
+  AI002: "Only allow a fixed list of actions, and never run model output directly.",
+  AI006: "Strip sensitive fields before sending, or approve the destination.",
+  AI007: "Fix the model settings on decisions that matter.",
+  SEC001: "Load the credential from a secret manager.",
+  SEC002: "Load the password from a secret manager.",
+};

@@ -306,6 +306,19 @@ export interface HistoryEntry {
   agent_candidates: number;
   findings: Partial<Record<Severity, number>>;
   dimensions: { id: string; max_exposure: Exposure; agents_elevated: number; agents_moderate: number }[];
+  /** 1.1: per agent record, the fields the loss model reads, so the modeled loss can be drawn over past scans. */
+  agents?: HistoryAgent[];
+}
+
+export interface HistoryAgent {
+  id: string;
+  name: string | null;
+  display_name: string | null;
+  capabilities: string[];
+  tools: { name: string; money_action: boolean; high_impact: boolean }[];
+  autonomy_level: { level: string | null };
+  declared: Pick<AgentDeclaration, "economic_authority" | "data_classes" | "users" | "autonomy_intent"> | null;
+  dimension_assessment: { dimensions: { id: string; score: number; controls_observed: string[] }[] };
 }
 
 export interface RegisterLevel {
