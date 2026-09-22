@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useApp } from "../app/context";
 import { printAs } from "../app/print";
 import { buildHash } from "../app/router";
+import { AgentFlow } from "../components/AgentFlow";
 import { SeverityBadge } from "../components/Badge";
 import { ExposureTip } from "../components/InfoTip";
 import { money } from "../data/lossModel";
@@ -53,6 +54,8 @@ export function Overview() {
           <AssessmentCard />
         </div>
       ) : null}
+
+      {hasAgents ? <AgentFlow /> : null}
     </div>
   );
 }

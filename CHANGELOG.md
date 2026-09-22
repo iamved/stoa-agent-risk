@@ -37,6 +37,13 @@ network. See [docs/dashboard.md](docs/dashboard.md).
   (`<dimension-id>/<agent-id>`), `owner`, `treatment`, `rationale`,
   `review_by`, `status`.
 
+### Added — the Agent Risk Flow Graph
+- The Overview ends with one agent's risk path in five steps (request, agent,
+  approval gate, tools, reach), with safeguards and guardrails marked
+  detected or not, findings placed on the step they belong to, and a detail
+  panel per box. Drawn for unique agents from the same data as the tiles
+  above it. Merged tools now carry the effects seen in any of their records.
+
 ### Added — beyond the demo
 - **Open your own scan in any dashboard page.** `stoa scan --dashboard-json`
   and `stoa dashboard --json-out` write the dashboard's data (redacted like

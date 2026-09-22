@@ -116,9 +116,11 @@ export function toolsOf(agent: UniqueAgent): ToolRecord[] {
   for (const record of agent.records) {
     for (const tool of record.tools ?? []) {
       const seen = byName.get(tool.name);
-      if (!seen) byName.set(tool.name, { ...tool, guards: [...tool.guards] });
+      if (!seen) byName.set(tool.name, { ...tool, guards: [...tool.guards], capabilities: [...tool.capabilities], integrations: [...tool.integrations] });
       else {
         seen.guards = [...new Set([...seen.guards, ...tool.guards])].sort();
+        seen.capabilities = [...new Set([...seen.capabilities, ...tool.capabilities])].sort();
+        seen.integrations = [...new Set([...seen.integrations, ...tool.integrations])].sort();
         seen.money_action ||= tool.money_action;
         seen.high_impact ||= tool.high_impact;
         seen.retry ||= tool.retry;

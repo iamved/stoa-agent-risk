@@ -12,7 +12,7 @@ test.describe("overview", () => {
     const main = page.locator("main .screen-content");
     await expect(main.getByText("What the code makes possible, not what has happened.")).toBeVisible();
     await expect(main.getByRole("region", { name: "Where you stand" })).toBeVisible();
-    await expect(main.getByRole("heading", { level: 2 })).toHaveText(["What we have", "What is wrong", "Are we protected", "What it could cost", "Needs your attention", "What changed", "Where exposure is elevated", "Risk register", "Insurance assessment"]);
+    await expect(main.getByRole("heading", { level: 2 })).toHaveText(["What we have", "What is wrong", "Are we protected", "What it could cost", "Needs your attention", "What changed", "Where exposure is elevated", "Risk register", "Insurance assessment", "Agent Risk Flow Graph"]);
     // Removed on purpose: the elevated-agents card, the combined money-or-write card, the long findings list.
     for (const gone of ["Agents at elevated exposure", "Can move money or write to systems", "Top findings", "Findings by dimension"]) await expect(main.getByText(gone)).toHaveCount(0);
     const targets = await main.getByRole("link").evaluateAll((links) => [...new Set(links.map((a) => (a.getAttribute("href") ?? "").split(/[/?]/)[1]))]);
@@ -56,7 +56,8 @@ test.describe("overview", () => {
     await expect(rows.first()).toContainText("2 agents · Mandate overreach · 1 marked for transfer");
     for (const row of await rows.all()) await expect(row).toContainText("Next action.");
     await expect(list.getByRole("button")).toHaveCount(0);
-    await expect(page.locator("main .screen-content").getByText(/assign|owner|overdue|due by|due date/i)).toHaveCount(0);
+    // No workflow UI. (A declared owner shown as a fact, from stoa-declared.toml, is allowed.)
+    await expect(page.locator("main .screen-content").getByText(/assign owner|assign to|overdue|due by|due date/i)).toHaveCount(0);
     await expect(list.getByRole("link", { name: "View all 21 findings" })).toBeVisible();
     await rows.nth(1).getByRole("link").click();
     await expect(page.getByRole("dialog")).toBeVisible();
@@ -121,5 +122,42 @@ test.describe("overview", () => {
     await page.goto(url("meridian-pay"));
     await expect(page.getByRole("region", { name: "Where you stand" })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  });
+
+  test("the flow graph draws each unique agent's path and opens a box's details", async ({ page }) => {
+    await page.goto(url("meridian-pay"));
+    const flow = page.getByRole("region", { name: "Agent Risk Flow Graph" });
+    await flow.scrollIntoViewIfNeeded();
+    const picker = flow.getByRole("group", { name: "Agents" });
+    await expect(picker.getByRole("button")).toHaveCount(5);
+    await expect(picker.getByRole("button", { pressed: true })).toHaveText(/account-actions/);
+    const diagram = flow.getByRole("group", { name: "Risk path for account-actions" });
+    await expect(diagram).toBeVisible();
+    for (const lane of ["Request arrives", "Agent decides", "Approval gate", "Tools it can call", "What it can touch"]) await expect(diagram).toContainText(lane);
+    await expect(diagram.getByRole("button")).toHaveCount(1 + 3 + 1 + 4 + 1 + 6 + 6);
+    await expect(flow).toContainText("Defined in code · Deployed on AWS");
+    await expect(flow).toContainText("account-actions: 6 tools, 6 of them money-moving or high impact with no guardrail detected; 3 safeguards detected; 6 findings.");
+
+    await diagram.getByRole("button", { name: /^Human approval, no human approval detected/ }).click();
+    await expect(flow).toContainText("No human approval detected. 6 money-moving or high-impact tools can run without a person confirming.");
+    await expect(flow).toContainText("Declared autonomy does not match what the code does.");
+    await flow.getByRole("button", { name: "Back to agent overview" }).click();
+    await expect(flow).toContainText("Risk intensity, by dimension (0 to 100)");
+
+    await picker.getByRole("button", { name: /meridian-escalation/ }).click();
+    await expect(flow.getByRole("group", { name: "Risk path for meridian-escalation" })).toContainText("No tool definitions detected");
+    // Keyboard: a box opens on Enter.
+    await flow.getByRole("group", { name: "Risk path for meridian-escalation" }).getByRole("button", { name: /^Incoming request/ }).focus();
+    await page.keyboard.press("Enter");
+    await expect(flow).toContainText("Everything the agent does starts here.");
+    await expect(flow.getByText(/assign|owner .*due|overdue/i)).toHaveCount(0);
+  });
+
+  test("the flow graph follows a first scan and is absent with no agents", async ({ page }) => {
+    await page.goto(url("first-run"));
+    const flow = page.getByRole("region", { name: "Agent Risk Flow Graph" });
+    await expect(flow.getByRole("group", { name: "Agents" }).getByRole("button")).toHaveCount(7);
+    await page.goto(url("no-agents"));
+    await expect(page.getByRole("heading", { name: "Agent Risk Flow Graph" })).toHaveCount(0);
   });
 });

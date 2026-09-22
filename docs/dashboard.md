@@ -167,6 +167,24 @@ it. Because an opened file did not come straight from the scanner, its shape
 is checked before any screen reads it; a file that fails leaves the scan on
 screen unchanged.
 
+## Agent Risk Flow Graph
+
+At the bottom of the Overview, one agent's path in five steps: the request
+arrives, the agent decides, the approval gate, the tools it can call, and
+what it can touch. Safeguards hang under the step they protect, each marked
+detected or not detected; a tool is marked when it moves money or is high
+impact with no guardrail detected; a box carrying a finding is marked by its
+severity. Selecting a box opens its details; selecting nothing shows the
+agent's dimension scores, declared authority and the cloud permissions the
+infrastructure scan read.
+
+It draws unique agents, so an agent seen in code and in Terraform is one
+path with the tools and reach of both records. Everything on it comes from
+the same helpers as the tiles above (`ui/src/data/flow.ts`), and
+`ui/tests/flow.test.ts` holds it to the Controls and Findings screens'
+numbers. The five steps are a fixed reading order: a static scan knows what
+sits at each step, not the order things run in.
+
 ## A first scan
 
 A first `stoa scan` has no declarations, no baseline, no history and no
