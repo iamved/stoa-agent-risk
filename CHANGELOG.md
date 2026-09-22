@@ -37,6 +37,15 @@ network. See [docs/dashboard.md](docs/dashboard.md).
   (`<dimension-id>/<agent-id>`), `owner`, `treatment`, `rationale`,
   `review_by`, `status`.
 
+### Changed — after review
+- The header names the applicant's company; the scope strip is gone. No
+  demo banner. Controls & Safeguards drops its headline tiles, lists
+  safeguards without human approval and sandboxing, and ends with
+  "Recommended controls to add": three, in plain words. Financial Exposure
+  drops the curve, the year tiles and the declared-limits table, and shows
+  only US financial-services cases with a public record under $300M. The
+  flow graph has no side panel.
+
 ### Added — the Agent Risk Flow Graph
 - The Overview ends with one agent's risk path in five steps (request, agent,
   approval gate, tools, reach), with safeguards and guardrails marked

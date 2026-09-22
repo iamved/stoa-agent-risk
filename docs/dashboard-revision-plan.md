@@ -254,3 +254,28 @@ forbid. Removed.
 - Em dashes: none in UI copy. Checked by a test over `ui/src`.
 - "guard" as a bare word: replaced in UI copy. The registry field
   `tools[].guards` keeps its name; it is data, not copy.
+
+## Later changes (2026-09-21, after review)
+
+Ved reviewed the live build and asked for these, which override parts of the
+brief above:
+
+- Controls & Safeguards: the "Safeguards detected" list leaves out Human
+  approval (it has the Overview's gate and tile) and Sandboxing; the three
+  headline tiles are gone; "Safeguards not detected" became "Recommended
+  controls to add", the top three by severity, in plain words with no rule
+  ids or file paths. The rule stays behind the "Affects N agents" link.
+- The header shows the company from the setup details ("Meridian Pay"),
+  with the repository name in its tooltip. The scope strip (commit, sources,
+  file count, "Static scan of code and configuration...") is gone from the
+  header; the sentence survives on the printed board report and as the
+  Controls page caption.
+- The demo banner ("Demo data for a fictional company", "Open your scan")
+  is gone. Opening a scan file is still in the reviewer menu.
+- Financial Exposure: the exceedance curve, the four year tiles, the
+  declared-limits table and the closing disclaimer are gone. Cases shown are
+  US financial services only, backed by a court, regulator or press record,
+  and under $300M: two in the dataset (Lemonade, Earnest). The model still
+  fits on every event; only the cards are filtered.
+- The Agent Risk Flow Graph on the Overview has no side panel. A selected
+  box explains itself in one line under the diagram.

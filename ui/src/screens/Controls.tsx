@@ -2,11 +2,9 @@ import { useApp } from "../app/context";
 import { buildHash } from "../app/router";
 import { SeverityBadge } from "../components/Badge";
 import { Section } from "../components/Section";
-import { StatCard } from "../components/StatCard";
 import { definedIn } from "../data/agents";
-import { COVERAGE_CONTROLS, SAFEGUARD_STATE_LABEL, controlLabel, gapGroups, safeguardCoverage, safeguardRows, safeguardTotals, type SafeguardState } from "../data/controls";
-import { prose } from "../data/labels";
-import { findingTitle, pluralize } from "../data/selectors";
+import { COVERAGE_CONTROLS, SAFEGUARD_STATE_LABEL, controlLabel, recommendations, safeguardCoverage, safeguardRows, type SafeguardState } from "../data/controls";
+import { pluralize } from "../data/selectors";
 
 const STATE_CLASS: Record<SafeguardState, string> = {
   detected: "border-navy/30 bg-navy-100 text-navy",
@@ -19,21 +17,13 @@ export function Controls() {
   const { envelope } = useApp();
   const rows = safeguardRows(envelope);
   const coverage = safeguardCoverage(envelope);
-  const gaps = gapGroups(envelope);
-  const totals = safeguardTotals(envelope);
-  const double = totals.doublePayment[0];
+  const recommended = recommendations(envelope);
 
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="m-0">Controls & Safeguards</h1>
         <div className="caption">What the scan detected in the scanned sources. Detection is not proof that a safeguard works.</div>
-      </div>
-
-      <div className={`mt-4 grid gap-3 ${double ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
-        <StatCard icon="controls" label="Safeguards not detected where expected" value={totals.gaps} detail="Items to verify, not confirmed weaknesses." href={buildHash("findings", null, { rule: "CTRL" })} tone={totals.gaps ? "warn" : "neutral"} />
-        <StatCard icon="loss" label="Tools that can move money with no guardrail detected" value={totals.moneyTools ? `${totals.moneyToolsWithoutGuardrail} of ${totals.moneyTools}` : "0"} detail={totals.moneyTools ? undefined : "No tool that can move money was found."} tone={totals.moneyToolsWithoutGuardrail ? "warn" : "neutral"} />
-        {double ? <StatCard icon="flag" label="A payment can post twice on retry" value={totals.doublePayment.length} detail={findingTitle(envelope, double.finding)} href={buildHash("findings", double.finding.fingerprint)} tone="warn" /> : null}
       </div>
 
       <Section title="Safeguards detected" caption="Counted against the agents each safeguard is relevant to.">
@@ -79,17 +69,21 @@ export function Controls() {
         </div>
       </Section>
 
-      <Section title="Safeguards not detected" caption="The scan looked for a safeguard and did not find one. Items to verify, not confirmed weaknesses.">
-        {gaps.length === 0 ? <p className="caption m-0">Nothing to verify: no expected safeguard was missing.</p> : (
-          <ul className="m-0 p-0 list-none panel divide-y divide-line">
-            {gaps.map((g) => (
-              <li key={g.rule_id} className="p-3 text-[13px]">
-                <div className="flex flex-wrap items-center gap-2"><SeverityBadge severity={g.worst} /><span className="font-medium">{g.title}</span><span className="mono caption">{g.rule_id}</span><span className="caption">{pluralize(g.refs.length, "finding")}</span></div>
-                <p className="m-0 mt-1 caption">{prose(envelope.rules[g.rule_id]?.remediation)}</p>
-                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 caption">{g.refs.slice(0, 6).map((ref) => <a key={ref.finding.fingerprint} href={buildHash("findings", ref.finding.fingerprint)} className="link">{ref.uniqueAgents[0] ? `${ref.uniqueAgents[0].name} · ` : ""}<span className="mono">{ref.finding.path}:{ref.finding.line}</span></a>)}{g.refs.length > 6 ? <a className="link" href={buildHash("findings", null, { rule: g.rule_id })}>and {g.refs.length - 6} more</a> : null}</div>
+      <Section title="Recommended controls to add" caption="Safeguards the scan looked for and did not find, most important first.">
+        {recommended.length === 0 ? <p className="caption m-0">Nothing to add: every safeguard the scan looks for was detected.</p> : (
+          <ol className="m-0 p-0 list-none panel divide-y divide-line">
+            {recommended.map((rec, i) => (
+              <li key={rec.ruleId} className="grid grid-cols-[28px_minmax(0,1fr)_auto] gap-x-3 items-start px-4 py-3.5">
+                <span aria-hidden="true" className="num text-[18px] text-ink-muted leading-none pt-0.5">{i + 1}</span>
+                <div className="min-w-0">
+                  <div className="text-[14px] font-medium text-navy leading-snug">{rec.title}</div>
+                  <div className="text-[13px] text-ink-soft mt-1">{rec.action}</div>
+                  <a href={buildHash("findings", null, { rule: rec.ruleId })} className="link text-[12.5px] inline-block mt-1.5">{rec.agents === 1 ? "Affects 1 agent" : `Affects ${rec.agents} agents`}</a>
+                </div>
+                <SeverityBadge severity={rec.severity} />
               </li>
             ))}
-          </ul>
+          </ol>
         )}
       </Section>
     </div>

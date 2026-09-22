@@ -25,32 +25,21 @@ export function OpenScanButton({ onOpen, className = "btn", role, children }: { 
 }
 
 /**
- * Says where the scan on screen came from whenever that is not obvious: the
- * hosted demo, or a file the viewer opened. A dashboard a customer generated
- * for their own repository shows nothing here.
+ * Says when the scan on screen is a file the viewer opened, and reports a file
+ * that could not be opened. A dashboard's own embedded scan shows nothing here.
  */
 export function ScanSourceBanner() {
-  const { envelope, opened, openScan, openError, clearOpenError } = useApp();
-  const demo = envelope.demo === true && opened === null;
-  if (!demo && opened === null && !openError) return null;
+  const { opened, openScan, openError, clearOpenError } = useApp();
+  if (opened === null && !openError) return null;
   return (
     <div className="no-print px-6 pt-4">
-      {demo || opened !== null ? (
+      {opened !== null ? (
         <div className="panel px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-2">
           <div className="min-w-0 flex-1 basis-[32ch]">
-            {demo ? (
-              <>
-                <div className="text-[13.5px] font-medium text-navy">Demo data for a fictional company</div>
-                <div className="caption mt-0.5">To see your own agents here, run <span className="mono">stoa scan . --dashboard-json stoa-dashboard.json</span> and open that file. It is read in this browser and never uploaded.</div>
-              </>
-            ) : (
-              <>
-                <div className="text-[13.5px] font-medium text-navy truncate">Showing <span className="mono">{opened}</span></div>
-                <div className="caption mt-0.5">Opened from your computer and read in this browser. Nothing was uploaded, and closing the tab forgets it.</div>
-              </>
-            )}
+            <div className="text-[13.5px] font-medium text-navy truncate">Showing <span className="mono">{opened}</span></div>
+            <div className="caption mt-0.5">Opened from your computer and read in this browser. Nothing was uploaded, and closing the tab forgets it.</div>
           </div>
-          <OpenScanButton onOpen={openScan} className={demo ? "btn btn-primary" : "btn"}>{demo ? "Open your scan" : "Open another scan"}</OpenScanButton>
+          <OpenScanButton onOpen={openScan} className="btn">Open another scan</OpenScanButton>
         </div>
       ) : null}
       {openError ? (

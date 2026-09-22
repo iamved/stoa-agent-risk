@@ -2,8 +2,7 @@ import type { ReactNode } from "react";
 import { useApp } from "../app/context";
 import { buildHash, type ScreenId } from "../app/router";
 import { uniqueAgents } from "../data/agents";
-import { scanSources } from "../data/overview";
-import { activeFindings, countByLevel, formatDate, pluralize } from "../data/selectors";
+import { activeFindings, countByLevel } from "../data/selectors";
 import { Icon, type IconName } from "./Icons";
 import { Logo } from "./Logo";
 import { ScanSourceBanner } from "./OpenScan";
@@ -16,9 +15,9 @@ type NavGroup = { label: string; showLabel: boolean; items: NavItem[] };
 export function Shell({ screen, children }: { screen: ScreenId; children: ReactNode }) {
   const { envelope } = useApp();
   const r = envelope.registry;
-  const head = r.repository.head_commit;
   const high = countByLevel(activeFindings(envelope)).high;
-  const sources = scanSources(envelope);
+  // The applicant's company from the setup details, else a name derived from the repository.
+  const company = envelope.assessment.identity.company.trim() || r.repository.name;
 
   const groups: NavGroup[] = [
     {
@@ -77,22 +76,14 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
       </nav>
 
       <div className="flex-1 min-w-0">
-        <header className="px-6 pt-4 pb-3 border-b border-line bg-paper">
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <div className="md:hidden text-navy">
-              <Logo height={24} />
-            </div>
-            <div className="min-w-0 text-[15px] font-semibold text-navy leading-tight truncate">{r.repository.name}</div>
-            <div className="ml-auto flex items-center gap-2 no-print">
-              <UserMenu />
-            </div>
+        <header className="px-6 pt-4 pb-3 border-b border-line bg-paper flex flex-wrap items-center gap-x-5 gap-y-2">
+          <div className="md:hidden text-navy">
+            <Logo height={24} />
           </div>
-          {/* The scope strip: what was looked at, and what a static scan cannot see. Said once, on every screen. */}
-          <p className="caption m-0 mt-1.5 max-w-[120ch]" data-testid="scope-strip">
-            {[head ? `Commit of ${formatDate(head.date)}` : "", sources.join(", "), pluralize(r.summary.files_scanned, "file")].filter(Boolean).join(" · ")}
-            {". "}
-            Static scan of code and configuration. Controls outside the scanned sources are not visible.
-          </p>
+          <div className="min-w-0 text-[15px] font-semibold text-navy leading-tight truncate" title={r.repository.name} data-testid="company">{company}</div>
+          <div className="ml-auto flex items-center gap-2 no-print">
+            <UserMenu />
+          </div>
         </header>
         <ScanSourceBanner />
         <main className="px-6 pb-8 pt-5 max-w-[1360px]">

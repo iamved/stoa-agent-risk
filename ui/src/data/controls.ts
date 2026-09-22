@@ -6,7 +6,7 @@
  */
 import type { Agent, Envelope, Severity, ToolRecord } from "./types";
 import { autonomyOf, capabilitiesOf, safeguardsOf, toolsOf, uniqueAgents, type UniqueAgent } from "./agents";
-import { SAFEGUARD_SUBTITLE } from "./labels";
+import { SAFEGUARD_SUBTITLE, prose } from "./labels";
 import { SEVERITY_RANK, activeFindings, agentLabel, findingTitle, pluralize, type FindingRef } from "./selectors";
 
 export const CONTROL_LABEL: Record<string, string> = {
@@ -176,9 +176,12 @@ export interface SafeguardCoverage {
   denominator: string;
 }
 
+/** Safeguards listed on the Controls screen. Human approval has its own tile and the approval gate on the Overview; sandboxing is left out of the list. */
+export const LISTED_CONTROLS = COVERAGE_CONTROLS.filter((id) => id !== "approval" && id !== "sandbox");
+
 export function safeguardCoverage(env: Envelope): SafeguardCoverage[] {
   const rows = safeguardRows(env);
-  return COVERAGE_CONTROLS.map((id) => {
+  return LISTED_CONTROLS.map((id) => {
     const relevant = rows.filter((r) => r.states[id] !== "not_applicable");
     const narrowed = id === "approval";
     return {
@@ -209,4 +212,35 @@ export function safeguardTotals(env: Envelope): SafeguardTotals {
     moneyToolsWithoutGuardrail: rows.reduce((n, r) => n + r.moneyToolsWithoutGuardrail, 0),
     doublePayment: activeFindings(env).filter((r) => r.finding.rule_id === "AI008"),
   };
+}
+
+export interface Recommendation {
+  /** The rule behind it, for the link to its findings. Never shown as text. */
+  ruleId: string;
+  severity: Severity;
+  /** What is missing, in plain words. */
+  title: string;
+  /** What to do, one sentence, in the scanner's words. */
+  action: string;
+  agents: number;
+}
+
+const SCENE_SETTING = /^(this|these|an?|the|traces|reported|observability|stoa-declared\.toml)\b/i;
+
+/** The instruction sentence of a remediation: a long one explains first and instructs last. */
+export function actionSentence(text: string): string {
+  const sentences = prose(text).split(/(?<=[.!?])\s+(?=[A-Z[])/).map((x) => x.trim()).filter(Boolean);
+  if (!sentences.length) return "";
+  return [...sentences].reverse().find((x) => !SCENE_SETTING.test(x)) ?? sentences[sentences.length - 1]!;
+}
+
+/** The safeguards most worth adding: the control gaps by severity, at most `n`, without rule ids or file paths. */
+export function recommendations(env: Envelope, n = 3): Recommendation[] {
+  return gapGroups(env).slice(0, n).map((g) => ({
+    ruleId: g.rule_id,
+    severity: g.worst,
+    title: g.title,
+    action: actionSentence(env.rules[g.rule_id]?.remediation ?? g.refs[0]?.finding.remediation ?? ""),
+    agents: new Set(g.refs.flatMap((r) => r.uniqueAgents.map((u) => u.id))).size,
+  }));
 }

@@ -1,19 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { AgentMark } from "../components/AgentMark";
 import { useApp } from "../app/context";
 import { buildHash, useRoute } from "../app/router";
-import { ExposureBadge, Pill } from "../components/Badge";
 import { Chips } from "../components/KeyValue";
-import { LossCurve } from "../components/LossCurve";
 import { Section } from "../components/Section";
 import { CATS, EVENTS, STATUS_LABEL, catName, indicate, money, pct, whatIfs, type Comparable, type GapStatus, type Indication, type Intake, type ModelAgent, type Policy, type WhatIf } from "../data/lossModel";
 import { agentToModel, candidateAgents, intakeFromEnvelope, intakeToToml } from "../data/lossInputs";
-import { lossRows, money as declaredMoney } from "../data/loss";
 import { uniqueAgentOf } from "../data/agents";
 import { LOSS_SEED } from "../data/overview";
 import { activeFindings, dimensionName } from "../data/selectors";
 import type { MappingNote } from "../data/lossInputs";
-import type { Exposure } from "../data/types";
 
 const GAP_CHIP: Record<GapStatus, string> = { unprotected: "chip-critical", excluded: "chip-critical", shortfall: "chip-medium", ok: "chip-ok", minor: "chip-muted" };
 const SEED = LOSS_SEED;
@@ -57,7 +52,6 @@ export function Loss() {
       <div>
         <h1 className="m-0">Financial Exposure</h1>
         <p className="caption">No agent in this scan has a dimension assessment, so there is nothing to model.</p>
-        <DeclaredLimits />
       </div>
     );
   }
@@ -173,9 +167,7 @@ export function Loss() {
         <Outlook r={result.r} levers={result.levers} intake={intake} model={model} notes={mapped.notes} declared={initial.declared} agentId={agent.id} />
       )}
 
-      <DeclaredLimits />
 
-      <p className="caption mt-8 pt-4 border-t border-line max-w-[90ch]">Indication for discussion with a licensed broker and carrier. Not a quote, not a premium, not advice. Past cases are public events with approximate amounts; the assumptions (version {result?.r.assumptions_version ?? "demo-0.1"}, seed {SEED}) need actuarial review.</p>
     </div>
   );
 }
@@ -208,20 +200,6 @@ function Outlook({ r, levers, intake, model, notes, declared, agentId }: { r: In
 
       <Drivers r={r} intake={intake} notes={notes} declared={declared} top={top.key} agentId={agentId} />
 
-      <figure className="m-0 mt-4 panel p-3 overflow-x-auto" tabIndex={0}>
-        <LossCurve r={r} coverage={intake.existing_coverage} />
-      </figure>
-
-      <div className="mt-3 grid gap-3 grid-cols-2 md:grid-cols-4">
-        {([["Average year", S.eal, "expected annual loss"], ["1 in 20 year", S.pLow, "a rough year"], ["1 in 100 year", S.pMid, "a bad year"], ["1 in 250 year", S.pHigh, "a severe year"]] as const).map(([n, v, d], i) => (
-          <div key={n} className={`panel px-4 py-3.5 ${i === 2 ? "ring-2 ring-gold/60" : ""}`}>
-            <div className="text-[12.5px] text-ink-muted">{n}</div>
-            <div className="num text-[26px] text-navy leading-tight mt-1">{money(v)}</div>
-            <div className="caption">{d}</div>
-          </div>
-        ))}
-      </div>
-
       <div className="mt-3 flex flex-wrap gap-x-10 gap-y-2 rounded-xl bg-gold-100/70 px-5 py-4">
         <div className="grid"><span className="caption">Suggested coverage limit</span><b className="text-[18px] font-semibold text-navy">{money(L.lean)} to {money(L.conservative)}</b></div>
         <div className="grid"><span className="caption">Most common choice</span><b className="text-[18px] font-semibold text-navy">{money(L.standard)}</b></div>
@@ -230,11 +208,11 @@ function Outlook({ r, levers, intake, model, notes, declared, agentId }: { r: In
         <a href={buildHash("evidence")} className="link self-end text-[12.5px]">Carry into the assessment schedule</a>
       </div>
 
-      <Section title="Where the loss could come from" caption="With the closest public cases, scaled to your size.">
+      <Section title="Where the loss could come from" caption="With the closest public cases from US financial services, each backed by a court, regulator or press record, scaled to your size.">
         <div className="flex flex-col divide-y divide-line">
           {major.map((c, i) => {
             const g = gap(c.key);
-            const cases = (r.comparables[c.key] ?? []).slice(0, i < 3 ? 3 : 2);
+            const cases = relevantCases(r.comparables[c.key] ?? []).slice(0, i < 3 ? 3 : 2);
             return (
               <div key={c.key} className="py-5">
                 <div className="grid gap-x-8 gap-y-2 md:grid-cols-[minmax(200px,1.3fr)_auto_auto_minmax(220px,2fr)] items-start mb-3">
@@ -243,7 +221,7 @@ function Outlook({ r, levers, intake, model, notes, declared, agentId }: { r: In
                   <div className="grid"><b className="num text-[22px] text-navy leading-tight">{money(c.eal)}</b><span className="caption">average year</span></div>
                   <div><div className="h-2 rounded bg-paper border border-line overflow-hidden"><i className="block h-full bg-navy" style={{ width: `${Math.max(1, c.tailShare * 100)}%` }} /></div><span className="caption">{pct(c.tailShare)} of total bad-year loss. {g.note}</span></div>
                 </div>
-                <div className="grid gap-3 md:grid-cols-3">{cases.map((k) => <CaseCard key={k.id} c={k} />)}</div>
+                {cases.length ? <div className="grid gap-3 md:grid-cols-3">{cases.map((k) => <CaseCard key={k.id} c={k} />)}</div> : <p className="caption m-0">No public case in US financial services fits this loss type closely enough to show.</p>}
               </div>
             );
           })}
@@ -312,6 +290,22 @@ function Drivers({ r, intake, notes, declared, top, agentId }: { r: Indication; 
   );
 }
 
+/**
+ * Cases shown as references: US financial services, backed by a court,
+ * regulator or press record, and under a few hundred million dollars, so a
+ * reader can check each one and none dwarfs the deployment being assessed.
+ * The model's fitting still uses every event; this filters only what is shown.
+ */
+const FINANCIAL_SECTORS = new Set(["fintech", "insurance", "banking", "payments", "lending"]);
+const CASE_CAP = 300e6;
+export function relevantCases(cases: Comparable[]): Comparable[] {
+  const byId = new Map(EVENTS.map((e) => [e.id, e]));
+  return cases.filter((c) => {
+    const e = byId.get(c.id);
+    return Boolean(e && e.jur === "US" && FINANCIAL_SECTORS.has(e.sector) && c.src && (c.grade === "A" || c.grade === "B") && c.raw !== null && c.raw <= CASE_CAP);
+  });
+}
+
 function CaseCard({ c }: { c: Comparable }) {
   const loss = c.raw ? money(c.raw) : c.nearMiss ? "Near miss" : c.status === "pending" || c.status === "appealed" ? "Still in court" : "Not disclosed";
   return (
@@ -326,30 +320,3 @@ function CaseCard({ c }: { c: Comparable }) {
   );
 }
 
-/** The declared limits the scanner checks, unchanged from before the outlook. */
-function DeclaredLimits() {
-  const { envelope } = useApp();
-  const rows = lossRows(envelope);
-  return (
-    <Section title="Declared limits" caption="Limits you declared, and whether the code enforces them.">
-      <div className="panel overflow-x-auto" tabIndex={0}>
-        <table className="tbl">
-          <thead><tr><th>Agent</th><th>Money-moving tools</th><th>Max per action</th><th>Daily aggregate</th><th>Worst-case customer loss</th><th>Enforcement</th><th>Exposure</th></tr></thead>
-          <tbody>
-            {rows.length === 0 ? <tr><td colSpan={7} className="caption text-center">No agent with money authority or a declared economic limit in this scan.</td></tr> : rows.map((r) => (
-              <tr key={r.agent.id}>
-                <td><span className="flex items-center gap-2.5"><AgentMark /><span><a href={buildHash("inventory", r.agent.id)} className="link font-medium">{r.name}</a><div className="caption mono">{r.agent.path}</div></span></span></td>
-                <td><Chips items={r.moneyTools.map((n) => ({ label: n, hot: true }))} empty={r.authority ? "capability only" : "none detected"} tone="mono" /></td>
-                <td className="tabular-nums">{declaredMoney(r.maxPerAction)}</td>
-                <td className="tabular-nums">{declaredMoney(r.dailyAggregate)}</td>
-                <td className="tabular-nums">{declaredMoney(r.worstCase)}</td>
-                <td>{r.enforcementGaps.length === 0 ? <span className="caption">{r.maxPerAction ? "no gap reported" : "nothing to enforce"}</span> : <span className="flex flex-wrap gap-1">{r.enforcementGaps.map((g) => <a key={g.finding.fingerprint} href={buildHash("findings", g.finding.fingerprint)} className="no-underline"><Pill tone="warn">{g.finding.rule_id}</Pill></a>)}</span>}</td>
-                <td><ExposureBadge exposure={r.worstExposure as Exposure} /></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </Section>
-  );
-}

@@ -1,10 +1,10 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState } from "react";
 import { useApp } from "../app/context";
 import { buildHash } from "../app/router";
-import { definedIn, dimensionsOf, type UniqueAgent } from "../data/agents";
+import { type UniqueAgent } from "../data/agents";
 import { FLOW_WIDTH, LANES, agentWorstLevel, buildFlow, flowAgents, flowCaption, worstLevel, type Flow, type FlowNode, type LaneId, type Tone } from "../data/flow";
-import { amountLabel, autonomyLabel, prose } from "../data/labels";
-import { EXPOSURE_LABEL, RISK_LABEL, SEVERITY_RANK, dimensionName, findingTitle, pluralize, type RiskLevel } from "../data/selectors";
+import { autonomyLabel } from "../data/labels";
+import { RISK_LABEL, SEVERITY_RANK, findingTitle, pluralize, type RiskLevel } from "../data/selectors";
 import { SeverityBadge } from "./Badge";
 
 const HEAD = 74, NODE_H = 46, CHIP_H = 32, GAP = 10;
@@ -17,7 +17,6 @@ const BOX: Record<Tone, string> = {
   neutral: "fill-panel stroke-line-strong",
 };
 const DOT: Record<RiskLevel, string> = { high: "bg-sev-high", medium: "bg-sev-medium", low: "bg-sev-low" };
-const KIND_LABEL: Record<FlowNode["kind"], string> = { request: "Step 1 · entry", agent: "The agent", gate: "Safeguard on the path", safeguard: "Safeguard", tool: "Tool", resource: "Data or resource", service: "Application or service", empty: "" };
 
 type Placed = FlowNode & { x: number; y: number; w: number; h: number };
 
@@ -84,18 +83,13 @@ export function AgentFlow() {
           );
         })}
       </div>
-      <div className="grid gap-4 min-[1700px]:grid-cols-[minmax(0,1fr)_320px] items-start">
-        <figure className="m-0 panel overflow-hidden">
-          <div className="overflow-x-auto"><Diagram flow={flow} selected={selected} onSelect={setSelected} /></div>
-          <figcaption className="border-t border-line px-4 py-3 caption flex flex-col gap-2">
-            <Legend />
-            <div>{flowCaption(flow)}</div>
-          </figcaption>
-        </figure>
-        <aside className="panel p-4 flex flex-col gap-3.5 min-[1700px]:sticky min-[1700px]:top-4 min-[1700px]:max-h-[calc(100vh-2rem)] min-[1700px]:overflow-y-auto" aria-live="polite">
-          {node ? <NodeDetail flow={flow} node={node} onBack={() => setSelected(null)} /> : <AgentOverview flow={flow} />}
-        </aside>
-      </div>
+      <figure className="m-0 panel overflow-hidden">
+        <div className="overflow-x-auto"><Diagram flow={flow} selected={selected} onSelect={setSelected} /></div>
+        <figcaption className="border-t border-line px-4 py-3 caption flex flex-col gap-2">
+          <Legend />
+          {node ? <NodeNote flow={flow} node={node} onBack={() => setSelected(null)} /> : <div>{flowCaption(flow)}</div>}
+        </figcaption>
+      </figure>
     </section>
   );
 }
@@ -190,124 +184,38 @@ function Diagram({ flow, selected, onSelect }: { flow: Flow; selected: string | 
   );
 }
 
-// --- detail panel ---------------------------------------------------------------------
+// --- the selected box, in the caption -----------------------------------------------------
 
-function Facts({ rows }: { rows: [string, ReactNode][] }) {
-  return (
-    <dl className="grid grid-cols-[minmax(96px,auto)_1fr] gap-x-3 gap-y-1 m-0 text-[13px]">
-      {rows.filter(([, v]) => v !== null && v !== undefined && v !== "").map(([k, v]) => <div key={k} className="contents"><dt className="caption">{k}</dt><dd className="m-0 min-w-0 break-words">{v}</dd></div>)}
-    </dl>
-  );
-}
-
-function Part({ title, children }: { title: string; children: ReactNode }) {
-  return <div className="flex flex-col gap-1.5 border-t border-line pt-3"><h3 className="text-[13px] m-0">{title}</h3>{children}</div>;
-}
-
-function FindingList({ flow, refs }: { flow: Flow; refs: FlowNode["findings"] }) {
+/** One or two lines about the selected box, where the caption sits. The full record is on the Findings and Inventory screens. */
+function NodeNote({ flow, node, onBack }: { flow: Flow; node: FlowNode; onBack: () => void }) {
   const { envelope } = useApp();
-  return (
-    <ul className="m-0 p-0 list-none flex flex-col gap-2">
-      {[...refs].sort((a, b) => SEVERITY_RANK[b.finding.severity] - SEVERITY_RANK[a.finding.severity]).map((r) => (
-        <li key={r.finding.fingerprint} className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 text-[13px] items-start">
-          <SeverityBadge severity={r.finding.severity} />
-          <a href={buildHash("findings", r.finding.fingerprint)} className="link">{findingTitle(envelope, r.finding)}</a>
-          <span className="col-start-2 caption break-words">{r.finding.message ? prose(r.finding.message) : `${r.finding.rule_id} · ${r.finding.path}:${r.finding.line}`}</span>
-        </li>
-      ))}
-      {refs.length === 0 ? <li className="caption">None reported on this box.{flow.findings.length ? "" : " This agent has no findings."}</li> : null}
-    </ul>
-  );
-}
-
-function AgentOverview({ flow }: { flow: Flow }) {
-  const { envelope } = useApp();
-  const agent = flow.agent;
-  const econ = flow.agent.records.find((a) => a.declared?.economic_authority)?.declared?.economic_authority;
-  const declared = agent.records.find((a) => a.declared)?.declared;
-  const dims = dimensionsOf(agent).filter((d) => d.exposure !== "not-assessable").sort((a, b) => b.score - a.score);
-  return (
-    <>
-      <div className="flex flex-col gap-0.5">
-        <div className="eyebrow">Agent overview</div>
-        <div className="text-[16px] font-semibold text-navy break-words">{agent.name}</div>
-        <div className="caption">{definedIn(agent)}</div>
-        <ul className="m-0 p-0 list-none mono caption">{agent.records.map((r) => <li key={r.id} className="break-all">{r.path}{r.symbol ? ` :: ${r.symbol}` : ""}</li>)}</ul>
-      </div>
-      {dims.length ? (
-        <Part title="Risk intensity, by dimension (0 to 100)">
-          <div className="flex flex-col gap-2">
-            {dims.map((d) => {
-              const before = d.score_before_controls ?? d.score;
-              return (
-                <div key={d.id} className="flex flex-wrap justify-between gap-x-2 text-[12.5px]" title={`${dimensionName(envelope, d.id)}: ${d.score} of 100, ${EXPOSURE_LABEL[d.exposure].toLowerCase()}`}>
-                  <span>{dimensionName(envelope, d.id)}</span>
-                  <span className="tabular-nums text-ink-soft">{d.score} · {EXPOSURE_LABEL[d.exposure].toLowerCase()}{before !== d.score ? ` · ${before} before safeguards` : ""}</span>
-                  <span className="basis-full relative h-1.5 rounded-full bg-line/60 mt-0.5" aria-hidden="true">
-                    <span className="absolute inset-y-0 left-0 rounded-full bg-navy" style={{ width: `${Math.max(0, Math.min(100, d.score))}%` }} />
-                    {before !== d.score ? <span className="absolute -top-[3px] w-0.5 h-3 bg-ink-muted" style={{ left: `calc(${Math.min(100, before)}% - 1px)` }} /> : null}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </Part>
-      ) : null}
-      <Part title="Permissions and authority">
-        <Facts rows={[
-          ["Autonomy", <span title={flow.inferred ?? "indeterminate"}>{autonomyLabel(flow.inferred)} (inferred)</span>],
-          ["Declared as", flow.declared ? <span title={flow.declared}>{autonomyLabel(flow.declared)}</span> : "not declared"],
-          ["Per action", econ?.max_per_action ? amountLabel(econ.max_per_action) : "no limit declared"],
-          ["Per day", econ?.daily_aggregate ? amountLabel(econ.daily_aggregate) : "no limit declared"],
-          ["Data classes", declared?.data_classes.length ? declared.data_classes.join(", ") : "not declared"],
-          ["Owner", declared?.owner || "not declared"],
-        ]} />
-      </Part>
-      {flow.permissions.length ? <Part title="Cloud permissions, as written in the infrastructure"><ul className="m-0 p-0 list-none flex flex-col gap-1 text-[12.5px] text-ink-soft">{flow.permissions.map((t) => <li key={t} className="break-words">{t}</li>)}</ul></Part> : null}
-      <Part title={`Findings (${flow.findings.length})`}>
-        <a href={buildHash("findings", null, { agent: agent.id })} className="link text-[13px]">Open the findings for this agent</a>
-      </Part>
-    </>
-  );
-}
-
-function NodeDetail({ flow, node, onBack }: { flow: Flow; node: FlowNode; onBack: () => void }) {
   const notes: string[] = [];
-  let rows: [string, ReactNode][] = [];
   if (node.kind === "request") notes.push("Everything the agent does starts here. The three safeguards below decide who can reach it, what input it accepts, and how often.");
   if (node.kind === "agent") {
-    rows = [["Model provider", flow.providers.join(", ") || "not detected"], ["Harness", node.harness ?? ""], ["Found in", definedIn(flow.agent)], ["Autonomy", <span title={flow.inferred ?? "indeterminate"}>{autonomyLabel(flow.inferred)}</span>], ["Purpose", flow.agent.records.find((a) => a.declared?.purpose)?.declared?.purpose ?? ""]];
+    notes.push(`${flow.providers.join(", ") || "Provider not detected"} · ${node.harness ?? ""} · ${autonomyLabel(flow.inferred).toLowerCase()}.`);
     if (node.mismatch) notes.push(`Declared as ${autonomyLabel(flow.declared).toLowerCase()}, but the scan reads it as ${autonomyLabel(flow.inferred).toLowerCase()}.`);
   }
   if (node.kind === "gate") notes.push(node.own === "ok" ? "A human approval step was detected before high-impact actions." : node.heavy ? `No human approval detected. ${pluralize(node.heavy, "money-moving or high-impact tool")} can run without a person confirming.` : "No human approval detected. This agent binds no money-moving or high-impact tools.");
   if (node.kind === "safeguard") notes.push(node.state === "detected" ? "Detected in the scanned files." : node.state === "not_applicable" ? "Not expected of this agent: it does not act on its own with high-impact tools." : "Not detected in the scanned files. It may exist outside the repository.");
   if (node.kind === "tool" && node.tool) {
-    const t = node.tool;
-    if (node.exposed) notes.push(`${t.money_action ? "Moves money" : "High impact"}, and no guardrail was detected around it.`);
+    if (node.exposed) notes.push(`${node.tool.money_action ? "Moves money" : "High impact"}, and no guardrail was detected around it.`);
     if (node.unsafeRetry) notes.push("Retried without an idempotency key, so one request can act twice.");
-    rows = [["Defined at", <span className="mono">{t.path}:{t.line}</span>], ["Kind", t.kind.replace(/_/g, " ")], ["Effects", t.capabilities.map((c) => c.replace(/_/g, " ")).join(", ") || "none detected"], ["Guardrails", t.guards.join(", ") || "none detected"], ["Retry", t.retry ? (t.idempotency_key ? "with an idempotency key" : "without an idempotency key") : ""]];
+    notes.push(`Defined at ${node.tool.path}:${node.tool.line}.`);
   }
   if (node.kind === "resource" && node.reach) {
     const via = flow.edges.filter((e) => e.to === node.id && e.from.startsWith("tool:")).map((e) => flow.nodes.find((n) => n.id === e.from)!.label);
-    if (node.reach.hot) notes.push("A high-impact capability.");
+    notes.push(via.length ? `Reached through ${via.join(", ")}.` : "Reached through the agent's own code, no tool named.");
     if (node.reach.runtime) notes.push("Seen in runtime traces but not found in code or declarations.");
-    rows = [["Capability", node.reach.cap.replace(/_/g, " ")], ["Reached through", via.length ? via.join(", ") : "the agent's own code, no tool named"]];
   }
   if (node.kind === "service" && node.sensitive) notes.push("On Stoa's list of sensitive integrations.");
+  const worst = [...node.findings].sort((a, b) => SEVERITY_RANK[b.finding.severity] - SEVERITY_RANK[a.finding.severity])[0];
   return (
-    <>
-      <button type="button" onClick={onBack} className="self-start text-[12.5px] text-ink-soft underline decoration-line-strong underline-offset-2 hover:decoration-gold bg-transparent border-0 p-0 cursor-pointer">Back to agent overview</button>
-      <div className="flex flex-col gap-0.5">
-        <div className="eyebrow">{KIND_LABEL[node.kind]}</div>
-        <div className="text-[16px] font-semibold text-navy break-words">{node.label}</div>
-        <div className="caption">{node.cap}</div>
-      </div>
-      {notes.map((t) => <p key={t} className="m-0 text-[13.5px] text-ink-soft">{t}</p>)}
-      {rows.length ? <Facts rows={rows} /> : null}
-      {node.kind === "agent" && flow.evidence.length ? <Part title="What the scan read"><ul className="m-0 p-0 list-none flex flex-col gap-1 text-[12.5px] text-ink-soft">{flow.evidence.map((t) => <li key={t} className="break-words">{t}</li>)}</ul></Part> : null}
-      <Part title={node.findings.length ? `${pluralize(node.findings.length, "finding")} here` : "Findings here"}>
-        <FindingList flow={flow} refs={node.findings} />
-      </Part>
-    </>
+    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-ink-soft">
+      <span className="font-medium text-navy">{node.label || node.cap}</span>
+      {node.label && node.kind !== "gate" && node.kind !== "safeguard" ? <span>{node.cap}.</span> : null}
+      {notes.map((t) => <span key={t}>{t}</span>)}
+      {worst ? <span className="inline-flex items-center gap-1.5"><SeverityBadge severity={worst.finding.severity} /><a href={buildHash("findings", worst.finding.fingerprint)} className="link">{findingTitle(envelope, worst.finding)}</a>{node.findings.length > 1 ? <span>and {pluralize(node.findings.length - 1, "more finding")}</span> : null}</span> : null}
+      <button type="button" onClick={onBack} className="link bg-transparent border-0 p-0 cursor-pointer text-[12.5px]">Clear</button>
+    </div>
   );
 }

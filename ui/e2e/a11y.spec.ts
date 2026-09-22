@@ -1,8 +1,15 @@
 import { pathToFileURL } from "node:url";
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { dashboardPath } from "./global-setup";
 import { ROUTES } from "./routes";
+
+/** The file picker sits in the reviewer menu. */
+async function pickFile(page: Page, file: string): Promise<void> {
+  await page.getByRole("button", { name: /Reviewing as/ }).click();
+  await page.locator('input[type="file"]').first().setInputFiles(file);
+}
+
 
 /** WCAG 2.x A/AA automated checks on every screen and on an open drawer. No serious or critical violations. */
 test.describe("accessibility", () => {
@@ -16,19 +23,18 @@ test.describe("accessibility", () => {
     });
   }
 
-  test("no serious violations on the demo banner, an opened scan, and a refused file", async ({ page }) => {
+  test("no serious violations on an opened scan and a refused file", async ({ page }) => {
     const check = async () => {
       const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
       const serious = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
       expect(serious.map((v) => `${v.id}: ${v.help} (${v.nodes.length})`)).toEqual([]);
     };
     await page.goto(pathToFileURL(dashboardPath("demo")).href);
-    await expect(page.getByText("Demo data for a fictional company")).toBeVisible();
-    await check();
-    await page.locator('input[type="file"]').first().setInputFiles(dashboardPath("meridian-pay").replace("meridian-pay.html", "first-run.json"));
+    await expect(page.locator("#root")).not.toBeEmpty();
+    await pickFile(page, dashboardPath("meridian-pay").replace("meridian-pay.html", "first-run.json"));
     await expect(page.getByText("Nothing was uploaded", { exact: false })).toBeVisible();
     await check();
-    await page.locator('input[type="file"]').first().setInputFiles(dashboardPath("hostile").replace("hostile.html", "../../fixtures/meridian-pay.baseline.json"));
+    await pickFile(page, dashboardPath("hostile").replace("hostile.html", "../../fixtures/meridian-pay.baseline.json"));
     await expect(page.getByRole("alert")).toBeVisible();
     await check();
   });

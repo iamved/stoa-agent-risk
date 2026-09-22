@@ -195,12 +195,17 @@ test.describe("loss outlook", () => {
     await page.goto(fileUrl("meridian-pay", "#/loss"));
     await expect(page.getByRole("heading", { name: /A bad year could cost \$/ })).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText("Suggested coverage limit")).toBeVisible();
-    await expect(page.locator("svg[role=img]").first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: /A bad year could cost/ })).toBeVisible({ timeout: 60_000 });
     await expect(page.getByRole("heading", { name: "Where the loss could come from" })).toBeVisible();
     await expect(page.getByText("AI exclusion applies").first()).toBeVisible();
     await expect(page.getByRole("heading", { name: "What would lower it" })).toBeVisible();
-    await expect(page.getByText("Not a quote, not a premium, not advice").first()).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Declared limits" })).toBeVisible();
+    // Removed on request: the exceedance curve, the four year tiles, the declared-limits table and the closing disclaimer.
+    for (const gone of ["Declared limits", "Not a quote, not a premium, not advice", "Insurable loss in one year", "a severe year", "expected annual loss"]) await expect(page.getByText(gone, { exact: false })).toHaveCount(0);
+    // Cases shown are US financial services only, source-backed, under a few hundred million.
+    await expect(page.getByText("Lemonade")).toBeVisible();
+    await expect(page.getByText("Earnest Operations")).toBeVisible();
+    for (const gone of ["Knight Capital", "Facebook", "Meta", "iTutorGroup", "Zillow"]) await expect(page.getByText(gone, { exact: true })).toHaveCount(0);
+    await expect(page.getByText("No public case in US financial services fits this loss type closely enough to show.").first()).toBeVisible();
   });
 
   test("without an intake block it says so and still runs on placeholders", async ({ page }) => {
@@ -229,12 +234,21 @@ test.describe("estate and risk model screens", () => {
     expect(uw).toContain('sector                = "fintech"');
     await page.goto(fileUrl("meridian-pay", "#/controls"));
     await expect(page.getByRole("heading", { name: "Controls & Safeguards" })).toBeVisible();
-    await expect(page.getByText("Human approval").first()).toBeVisible();
-    await expect(page.getByText("Kill switch").first()).toBeVisible();
+    // The list omits human approval (it has the Overview's gate and tile) and sandboxing.
+    const detected = page.getByRole("heading", { name: "Safeguards detected" }).locator("xpath=following::div[contains(@class,'panel')][1]");
+    await expect(detected).toContainText("Kill switch");
+    await expect(detected).not.toContainText("Human approval");
+    await expect(detected).not.toContainText("Sandboxing");
+    await expect(page.getByText("Safeguards not detected where expected")).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Recommended controls to add" })).toBeVisible();
+    const recs = page.getByRole("heading", { name: "Recommended controls to add" }).locator("xpath=following::ol[1]").getByRole("listitem");
+    await expect(recs).toHaveCount(3);
+    await expect(recs.first()).toContainText("A retried money action with no idempotency key can post twice");
+    await expect(recs.first()).not.toContainText(/AI008|CTRL00|account_tools\.py/);
     await expect(page.getByText("Pinned model")).toHaveCount(0);
     await page.goto(fileUrl("meridian-pay", "#/loss"));
     await expect(page.getByRole("heading", { name: "Financial Exposure", level: 1 })).toBeVisible();
-    await expect(page.getByText("500 USD").first()).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("heading", { name: "What would lower it" })).toBeVisible({ timeout: 60_000 });
     await page.goto(fileUrl("meridian-pay", "#/risk"));
     await expect(page.getByRole("tab", { name: /Findings/ })).toHaveAttribute("aria-selected", "true");
     await expect(page.getByRole("navigation", { name: "Screens" })).toContainText("AI Risk Insurance");
@@ -282,7 +296,7 @@ test.describe("a customer's first scan", () => {
     await expect(page.getByRole("heading", { name: "No agents to assess" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Print and sign" })).toHaveCount(0);
     await expect(page.getByText("Policy limit", { exact: false })).toHaveCount(0);
-    await expect(page.getByTestId("scope-strip")).toContainText("1 file. Static scan of code and configuration.");
+    await expect(page.getByTestId("company").filter({ hasText: "Acme Billing" })).toBeVisible();
   });
 });
 
@@ -337,9 +351,7 @@ test.describe("financial exposure explains itself", () => {
     await expect(drivers).toContainText("$40M revenue");
     await expect(drivers).toContainText("Data Leakage is the largest driver");
     await expect(drivers).toContainText("Driven by your business profile and data handled, not by scan findings.");
-    const curve = page.getByRole("img", { name: /Chance of exceeding a given loss/ });
-    await expect(curve).toContainText("Insurable loss in one year, US dollars");
-    await expect(curve).toContainText("declared");
+    await expect(page.getByRole("img", { name: /Chance of exceeding a given loss/ })).toHaveCount(0);
     // The bad year here is the bad year on the Overview.
     const here = (await page.getByRole("heading", { name: /A bad year could cost/ }).textContent())!.match(/\$[\d.]+[kM]/)![0];
     await page.goto(fileUrl("meridian-pay", "#/overview"));

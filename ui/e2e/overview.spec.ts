@@ -8,8 +8,11 @@ const url = (name: string, hash = "#/overview") => pathToFileURL(dashboardPath(n
 test.describe("overview", () => {
   test("it holds exactly the agreed sections, and links to all five other screens", async ({ page }) => {
     await page.goto(url("meridian-pay"));
-    await expect(page.getByTestId("scope-strip")).toContainText("application code, AWS and Databricks definitions · 11 files. Static scan of code and configuration. Controls outside the scanned sources are not visible.");
+    // The header names the company from the setup details; the repository name stays in its tooltip.
+    await expect(page.getByTestId("company")).toHaveText("Meridian Pay");
+    await expect(page.getByTestId("company")).toHaveAttribute("title", "meridian-pay");
     const main = page.locator("main .screen-content");
+    await expect(main.getByText("Static scan of code and configuration", { exact: false })).toHaveCount(0);
     await expect(main.getByText("What the code makes possible, not what has happened.")).toBeVisible();
     await expect(main.getByRole("region", { name: "Where you stand" })).toBeVisible();
     await expect(main.getByRole("heading", { level: 2 })).toHaveText(["What we have", "What is wrong", "Are we protected", "What it could cost", "Needs your attention", "What changed", "Where exposure is elevated", "Risk register", "Insurance assessment", "Agent Risk Flow Graph"]);
@@ -135,14 +138,15 @@ test.describe("overview", () => {
     await expect(diagram).toBeVisible();
     for (const lane of ["Request arrives", "Agent decides", "Approval gate", "Tools it can call", "What it can touch"]) await expect(diagram).toContainText(lane);
     await expect(diagram.getByRole("button")).toHaveCount(1 + 3 + 1 + 4 + 1 + 6 + 6);
-    await expect(flow).toContainText("Defined in code · Deployed on AWS");
     await expect(flow).toContainText("account-actions: 6 tools, 6 of them money-moving or high impact with no guardrail detected; 3 safeguards detected; 6 findings.");
 
+    // No side panel: a selected box explains itself in one line under the diagram.
+    await expect(flow.getByText("Risk intensity, by dimension")).toHaveCount(0);
     await diagram.getByRole("button", { name: /^Human approval, no human approval detected/ }).click();
     await expect(flow).toContainText("No human approval detected. 6 money-moving or high-impact tools can run without a person confirming.");
     await expect(flow).toContainText("Declared autonomy does not match what the code does.");
-    await flow.getByRole("button", { name: "Back to agent overview" }).click();
-    await expect(flow).toContainText("Risk intensity, by dimension (0 to 100)");
+    await flow.getByRole("button", { name: "Clear" }).click();
+    await expect(flow).toContainText("account-actions: 6 tools");
 
     await picker.getByRole("button", { name: /meridian-escalation/ }).click();
     await expect(flow.getByRole("group", { name: "Risk path for meridian-escalation" })).toContainText("No tool definitions detected");
