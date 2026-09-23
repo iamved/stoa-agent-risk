@@ -12,6 +12,13 @@ import { UserMenu } from "./UserMenu";
 type NavItem = { id: string; label: string; href: string; screens: ScreenId[]; count?: number; alert?: string; icon: IconName };
 type NavGroup = { label: string; showLabel: boolean; items: NavItem[] };
 
+/** "MP" for "Meridian Pay": the first letter of the first two words, or the first two letters of one. */
+function initials(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  const text = words.length >= 2 ? `${words[0]![0]}${words[1]![0]}` : (words[0] ?? "").slice(0, 2);
+  return text.toUpperCase();
+}
+
 export function Shell({ screen, children }: { screen: ScreenId; children: ReactNode }) {
   const { envelope } = useApp();
   const r = envelope.registry;
@@ -81,7 +88,10 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
           <div className="md:hidden text-navy">
             <Logo height={24} />
           </div>
-          <div className="min-w-0 text-[15px] font-semibold text-navy leading-tight truncate" title={r.repository.name} data-testid="company">{company}</div>
+          <div className="min-w-0 flex items-center gap-2.5 rounded-md border border-line bg-panel pl-1.5 pr-3 py-1" title={r.repository.name}>
+            <span aria-hidden="true" className="inline-flex h-7 w-7 flex-none items-center justify-center rounded bg-navy text-[11.5px] font-bold tracking-[0.04em] text-[#e3c88a]">{initials(company)}</span>
+            <span className="min-w-0 truncate text-[15px] font-semibold tracking-[-0.01em] text-navy leading-tight" data-testid="company">{company}</span>
+          </div>
           <div className="ml-auto flex items-center gap-2 no-print">
             <UserMenu />
           </div>
