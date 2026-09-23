@@ -10,7 +10,7 @@ test.describe("overview", () => {
     await page.goto(url("meridian-pay"));
     // The header names the company from the setup details; the repository name stays in its tooltip.
     await expect(page.getByTestId("company")).toHaveText("Meridian Pay");
-    await expect(page.getByTestId("company")).toHaveAttribute("title", "meridian-pay");
+    await expect(page.getByTestId("company").locator("xpath=..")).toHaveAttribute("title", "meridian-pay");
     const main = page.locator("main .screen-content");
     await expect(main.getByText("Static scan of code and configuration", { exact: false })).toHaveCount(0);
     await expect(main.getByText("What the code makes possible, not what has happened.")).toHaveCount(0);
