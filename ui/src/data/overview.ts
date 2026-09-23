@@ -14,7 +14,7 @@ import { agentChanges, largestStep, lossTrendMax, type TrendPoint } from "./loss
 import { PLAIN_ACTION, PLAIN_WHY, autonomyLabel, dimensionSubtitle, prose } from "./labels";
 import { toolRows } from "./inventory";
 import { summarize as summarizeRegister } from "./register";
-import { SEVERITY_RANK, activeFindings, agentLabel, countByLevel, findingTitle, findingsByDimension, formatDate, isNewFinding, newFingerprints, overviewDeltas, pluralize, riskLevel, type FindingRef, type RiskLevel } from "./selectors";
+import { SEVERITY_RANK, activeFindings, countByLevel, findingTitle, findingsByDimension, formatDate, isNewFinding, newFingerprints, pluralize, riskLevel, type FindingRef, type RiskLevel } from "./selectors";
 
 // --- what we have ---------------------------------------------------------------
 
@@ -119,7 +119,7 @@ export function highLines(env: Envelope): HighLine[] {
     .filter((r) => riskLevel(r.finding.severity) === "high")
     .map((r) => ({ fingerprint: r.finding.fingerprint, agents: [...new Set(r.uniqueAgents.map((u) => u.name))].sort(), title: findingTitle(env, r.finding), isNew: isNewFinding(r, fresh), severity: r.finding.severity }))
     .sort((a, b) => SEVERITY_RANK[b.severity] - SEVERITY_RANK[a.severity] || a.agents.join().localeCompare(b.agents.join()) || a.title.localeCompare(b.title))
-    .map(({ severity: _s, ...line }) => line);
+    .map(({ fingerprint, agents, title, isNew }) => ({ fingerprint, agents, title, isNew }));
 }
 
 /** "+1 high since last scan (meridian-support)". Empty without a baseline. */
