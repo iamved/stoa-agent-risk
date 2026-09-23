@@ -15,16 +15,16 @@
     }
   },
   "summary": {
-    "files_scanned": 9,
-    "agent_candidates": 8,
-    "high_confidence_candidates": 5,
-    "integrations": 1,
+    "files_scanned": 8,
+    "agent_candidates": 4,
+    "high_confidence_candidates": 4,
+    "integrations": 2,
     "findings": {
       "critical": 1,
       "high": 1,
-      "medium": 7,
-      "low": 4,
-      "info": 9
+      "medium": 1,
+      "low": 2,
+      "info": 3
     },
     "new_findings": {
       "critical": 0,
@@ -37,567 +37,6 @@
   },
   "agents": [
     {
-      "id": "9299e5cfdb41",
-      "name": "meridian-account-actions",
-      "display_name": "meridian-account-actions",
-      "symbol": "aws_bedrockagent_agent.account_actions",
-      "path": "aws/agents.tf",
-      "language": "terraform",
-      "confidence": "high",
-      "detection_score": 8,
-      "evidence": [
-        {
-          "rule_id": "AGENT_IAC_BEDROCK_AGENT",
-          "line": 11,
-          "description": "Amazon Bedrock agent 'meridian-account-actions' — a deployed agent, on foundation model anthropic.claude-3-5-sonnet-20241022-v2:0"
-        },
-        {
-          "rule_id": "IAC_FOUNDATION_MODEL",
-          "line": 11,
-          "description": "foundation model by anthropic, served inside Bedrock"
-        },
-        {
-          "rule_id": "IAC_IAM_POLICY",
-          "line": 31,
-          "description": "bedrock:InvokeModel, lambda:InvokeFunction on all resources (agent role) (in aws/iam.tf)"
-        }
-      ],
-      "providers": [
-        "anthropic",
-        "bedrock"
-      ],
-      "frameworks": [],
-      "integrations": [
-        "aws"
-      ],
-      "capabilities": [
-        "tool_calling"
-      ],
-      "permission_tags": [],
-      "call_sites": {},
-      "last_touched_by": null,
-      "last_commit": null,
-      "codeowners": [],
-      "findings": [],
-      "highest_severity": null,
-      "dimension_assessment": {
-        "taxonomy": {
-          "id": "stoa-aiuc-8",
-          "version": "2.0"
-        },
-        "dimensions": [
-          {
-            "id": "mandate-overreach",
-            "group": "B",
-            "assessability": "strong",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "boundary-leakage",
-            "group": "A",
-            "assessability": "strong",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "unreviewed-high-impact-action",
-            "group": "C",
-            "assessability": "strong",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "output-fidelity",
-            "group": "D",
-            "assessability": "partial",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "injection-tamper-surface",
-            "group": "B",
-            "assessability": "partial",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "conduct-variability",
-            "group": "D",
-            "assessability": "proxy",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
-          },
-          {
-            "id": "dependency-drift",
-            "group": "D",
-            "assessability": "proxy",
-            "exposure": "low",
-            "score": 8,
-            "score_before_controls": 8,
-            "contributing_findings": [],
-            "contributing_capabilities": [
-              "provider:anthropic"
-            ],
-            "controls_observed": [],
-            "statement": "Proxy signals only: 0 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
-          },
-          {
-            "id": "control-coverage-gap",
-            "group": "B",
-            "assessability": "partial",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          }
-        ]
-      },
-      "declared": {
-        "name": "meridian-account-actions",
-        "owner": "digital-servicing@meridian.example",
-        "purpose": "Account actions on Bedrock",
-        "users": "customers",
-        "geography": [],
-        "production_status": "production",
-        "autonomy_intent": "human_approved",
-        "data_classes": [
-          "personal",
-          "financial"
-        ]
-      },
-      "autonomy_level": {
-        "level": "recommend_only",
-        "signals": [],
-        "reason": null
-      },
-      "source": "iac",
-      "discovery_tier": "recognized",
-      "platform": "bedrock"
-    },
-    {
-      "id": "2f7906aae143",
-      "name": "meridian-escalation",
-      "display_name": "meridian-escalation",
-      "symbol": "aws_bedrockagent_agent.escalation",
-      "path": "aws/agents.tf",
-      "language": "terraform",
-      "confidence": "high",
-      "detection_score": 8,
-      "evidence": [
-        {
-          "rule_id": "AGENT_IAC_BEDROCK_AGENT",
-          "line": 24,
-          "description": "Amazon Bedrock agent 'meridian-escalation' — a deployed agent, on foundation model anthropic.claude-3-haiku-20240307-v1:0"
-        },
-        {
-          "rule_id": "IAC_FOUNDATION_MODEL",
-          "line": 24,
-          "description": "foundation model by anthropic, served inside Bedrock"
-        },
-        {
-          "rule_id": "IAC_IAM_POLICY",
-          "line": 24,
-          "description": "no policy for role escalation is defined in this module (agent role) — reach unresolved"
-        }
-      ],
-      "providers": [
-        "anthropic",
-        "bedrock"
-      ],
-      "frameworks": [],
-      "integrations": [
-        "aws"
-      ],
-      "capabilities": [],
-      "permission_tags": [],
-      "call_sites": {},
-      "last_touched_by": null,
-      "last_commit": null,
-      "codeowners": [],
-      "findings": [
-        {
-          "fingerprint": "fcd727c03ca82d60",
-          "rule_id": "DECL006",
-          "title": "Scanned agent has no declaration entry",
-          "category": "contradiction",
-          "severity": "medium",
-          "confidence": "high",
-          "path": "aws/agents.tf",
-          "line": 24,
-          "column": 1,
-          "snippet": "no declaration entry for `aws_bedrockagent_agent.escalation`",
-          "remediation": "stoa-declared.toml exists but doesn't mention this agent. Add an [agents.\"<id>\"] entry, even a partial one.",
-          "suppressed": false,
-          "suppression_reason": null,
-          "is_new": false,
-          "dimensions": [
-            "control-coverage-gap"
-          ],
-          "message": "stoa-declared.toml exists but has no [agents.\"2f7906aae143\"] entry for `aws_bedrockagent_agent.escalation`.",
-          "declared_ref": {
-            "path": "stoa-declared.toml",
-            "key": "agents.\"2f7906aae143\""
-          },
-          "crosswalk": {
-            "owasp_llm_2025": null,
-            "eu_ai_act": "Art. 11",
-            "relation": "exposure",
-            "so_what": "The agent is not declared at all."
-          }
-        }
-      ],
-      "highest_severity": "medium",
-      "dimension_assessment": {
-        "taxonomy": {
-          "id": "stoa-aiuc-8",
-          "version": "2.0"
-        },
-        "dimensions": [
-          {
-            "id": "mandate-overreach",
-            "group": "B",
-            "assessability": "strong",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "boundary-leakage",
-            "group": "A",
-            "assessability": "strong",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "unreviewed-high-impact-action",
-            "group": "C",
-            "assessability": "strong",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "output-fidelity",
-            "group": "D",
-            "assessability": "partial",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "injection-tamper-surface",
-            "group": "B",
-            "assessability": "partial",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "conduct-variability",
-            "group": "D",
-            "assessability": "proxy",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
-          },
-          {
-            "id": "dependency-drift",
-            "group": "D",
-            "assessability": "proxy",
-            "exposure": "low",
-            "score": 8,
-            "score_before_controls": 8,
-            "contributing_findings": [],
-            "contributing_capabilities": [
-              "provider:anthropic"
-            ],
-            "controls_observed": [],
-            "statement": "Proxy signals only: 0 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
-          },
-          {
-            "id": "control-coverage-gap",
-            "group": "B",
-            "assessability": "partial",
-            "exposure": "low",
-            "score": 12,
-            "score_before_controls": 12,
-            "contributing_findings": [
-              "fcd727c03ca82d60"
-            ],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
-          }
-        ]
-      },
-      "autonomy_level": {
-        "level": "recommend_only",
-        "signals": [],
-        "reason": null
-      },
-      "source": "iac",
-      "discovery_tier": "recognized",
-      "platform": "bedrock"
-    },
-    {
-      "id": "2237fe0c16d2",
-      "name": "meridian-front",
-      "display_name": "meridian-front",
-      "symbol": "aws_bedrockagent_agent.front",
-      "path": "aws/agents.tf",
-      "language": "terraform",
-      "confidence": "high",
-      "detection_score": 8,
-      "evidence": [
-        {
-          "rule_id": "AGENT_IAC_BEDROCK_AGENT",
-          "line": 1,
-          "description": "Amazon Bedrock agent 'meridian-front' — a deployed agent, on foundation model anthropic.claude-3-5-sonnet-20241022-v2:0"
-        },
-        {
-          "rule_id": "IAC_FOUNDATION_MODEL",
-          "line": 1,
-          "description": "foundation model by anthropic, served inside Bedrock"
-        },
-        {
-          "rule_id": "IAC_CONTROL_GUARDRAIL",
-          "line": 1,
-          "description": "Bedrock guardrail attached (customer: content, sensitive information policies)"
-        },
-        {
-          "rule_id": "IAC_IAM_POLICY",
-          "line": 1,
-          "description": "no policy for role front is defined in this module (agent role) — reach unresolved"
-        }
-      ],
-      "providers": [
-        "anthropic",
-        "bedrock"
-      ],
-      "frameworks": [],
-      "integrations": [
-        "aws"
-      ],
-      "capabilities": [],
-      "permission_tags": [],
-      "call_sites": {},
-      "last_touched_by": null,
-      "last_commit": null,
-      "codeowners": [],
-      "findings": [
-        {
-          "fingerprint": "a62c7e34462e12df",
-          "rule_id": "DECL006",
-          "title": "Scanned agent has no declaration entry",
-          "category": "contradiction",
-          "severity": "medium",
-          "confidence": "high",
-          "path": "aws/agents.tf",
-          "line": 1,
-          "column": 1,
-          "snippet": "no declaration entry for `aws_bedrockagent_agent.front`",
-          "remediation": "stoa-declared.toml exists but doesn't mention this agent. Add an [agents.\"<id>\"] entry, even a partial one.",
-          "suppressed": false,
-          "suppression_reason": null,
-          "is_new": false,
-          "dimensions": [
-            "control-coverage-gap"
-          ],
-          "message": "stoa-declared.toml exists but has no [agents.\"2237fe0c16d2\"] entry for `aws_bedrockagent_agent.front`.",
-          "declared_ref": {
-            "path": "stoa-declared.toml",
-            "key": "agents.\"2237fe0c16d2\""
-          },
-          "crosswalk": {
-            "owasp_llm_2025": null,
-            "eu_ai_act": "Art. 11",
-            "relation": "exposure",
-            "so_what": "The agent is not declared at all."
-          }
-        }
-      ],
-      "highest_severity": "medium",
-      "dimension_assessment": {
-        "taxonomy": {
-          "id": "stoa-aiuc-8",
-          "version": "2.0"
-        },
-        "dimensions": [
-          {
-            "id": "mandate-overreach",
-            "group": "B",
-            "assessability": "strong",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "boundary-leakage",
-            "group": "A",
-            "assessability": "strong",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "unreviewed-high-impact-action",
-            "group": "C",
-            "assessability": "strong",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "output-fidelity",
-            "group": "D",
-            "assessability": "partial",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [
-              "validation"
-            ],
-            "statement": "No exposure observed; controls observed: validation."
-          },
-          {
-            "id": "injection-tamper-surface",
-            "group": "B",
-            "assessability": "partial",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "conduct-variability",
-            "group": "D",
-            "assessability": "proxy",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
-          },
-          {
-            "id": "dependency-drift",
-            "group": "D",
-            "assessability": "proxy",
-            "exposure": "low",
-            "score": 8,
-            "score_before_controls": 8,
-            "contributing_findings": [],
-            "contributing_capabilities": [
-              "provider:anthropic"
-            ],
-            "controls_observed": [],
-            "statement": "Proxy signals only: 0 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
-          },
-          {
-            "id": "control-coverage-gap",
-            "group": "B",
-            "assessability": "partial",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 12,
-            "contributing_findings": [
-              "a62c7e34462e12df"
-            ],
-            "contributing_capabilities": [],
-            "controls_observed": [
-              "validation"
-            ],
-            "statement": "No exposure observed; controls observed: validation."
-          }
-        ]
-      },
-      "autonomy_level": {
-        "level": "recommend_only",
-        "signals": [],
-        "reason": null
-      },
-      "source": "iac",
-      "discovery_tier": "recognized",
-      "platform": "bedrock"
-    },
-    {
       "id": "62007a57a832",
       "name": "meridian-knowledge",
       "display_name": "meridian-knowledge",
@@ -609,22 +48,22 @@
       "evidence": [
         {
           "rule_id": "AGENT_IAC_BEDROCK_AGENT",
-          "line": 18,
+          "line": 3,
           "description": "Amazon Bedrock agent 'meridian-knowledge' — a deployed agent, on foundation model anthropic.claude-3-5-sonnet-20241022-v2:0"
         },
         {
           "rule_id": "IAC_FOUNDATION_MODEL",
-          "line": 18,
+          "line": 3,
           "description": "foundation model by anthropic, served inside Bedrock"
         },
         {
           "rule_id": "IAC_KNOWLEDGE_BASE",
-          "line": 30,
+          "line": 9,
           "description": "knowledge base tickets attached"
         },
         {
           "rule_id": "IAC_IAM_POLICY",
-          "line": 18,
+          "line": 3,
           "description": "no policy for role knowledge is defined in this module (agent role) — reach unresolved"
         }
       ],
@@ -644,39 +83,8 @@
       "last_touched_by": null,
       "last_commit": null,
       "codeowners": [],
-      "findings": [
-        {
-          "fingerprint": "ae36794fd240d96e",
-          "rule_id": "DECL006",
-          "title": "Scanned agent has no declaration entry",
-          "category": "contradiction",
-          "severity": "medium",
-          "confidence": "high",
-          "path": "aws/agents.tf",
-          "line": 18,
-          "column": 1,
-          "snippet": "no declaration entry for `aws_bedrockagent_agent.knowledge`",
-          "remediation": "stoa-declared.toml exists but doesn't mention this agent. Add an [agents.\"<id>\"] entry, even a partial one.",
-          "suppressed": false,
-          "suppression_reason": null,
-          "is_new": false,
-          "dimensions": [
-            "control-coverage-gap"
-          ],
-          "message": "stoa-declared.toml exists but has no [agents.\"62007a57a832\"] entry for `aws_bedrockagent_agent.knowledge`.",
-          "declared_ref": {
-            "path": "stoa-declared.toml",
-            "key": "agents.\"62007a57a832\""
-          },
-          "crosswalk": {
-            "owasp_llm_2025": null,
-            "eu_ai_act": "Art. 11",
-            "relation": "exposure",
-            "so_what": "The agent is not declared at all."
-          }
-        }
-      ],
-      "highest_severity": "medium",
+      "findings": [],
+      "highest_severity": null,
       "dimension_assessment": {
         "taxonomy": {
           "id": "stoa-aiuc-8",
@@ -775,17 +183,25 @@
             "id": "control-coverage-gap",
             "group": "B",
             "assessability": "partial",
-            "exposure": "low",
-            "score": 12,
-            "score_before_controls": 12,
-            "contributing_findings": [
-              "ae36794fd240d96e"
-            ],
+            "exposure": "none-observed",
+            "score": 0,
+            "score_before_controls": 0,
+            "contributing_findings": [],
             "contributing_capabilities": [],
             "controls_observed": [],
-            "statement": "1 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+            "statement": "No exposure observed in scanned files."
           }
         ]
+      },
+      "declared": {
+        "name": "meridian-knowledge",
+        "owner": "platform-risk@meridian.example",
+        "purpose": "Answers policy and ticket questions from the knowledge base, on Bedrock",
+        "users": "internal",
+        "geography": [],
+        "production_status": null,
+        "autonomy_intent": null,
+        "data_classes": []
       },
       "autonomy_level": {
         "level": "recommend_only",
@@ -939,32 +355,6 @@
             "eu_ai_act": "Art. 14",
             "relation": "exposure",
             "so_what": "Declared autonomy does not match what the code does."
-          }
-        },
-        {
-          "fingerprint": "cfbb1ba81b36c6c3",
-          "rule_id": "CTRL003",
-          "title": "Rate limiting control not observed",
-          "category": "control",
-          "severity": "info",
-          "confidence": "low",
-          "path": "code/agents/account_actions_agent.py",
-          "line": 26,
-          "column": 1,
-          "snippet": "Rate limiting control not observed for candidate graph",
-          "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
-          "suppressed": false,
-          "suppression_reason": null,
-          "is_new": false,
-          "dimensions": [
-            "control-coverage-gap"
-          ],
-          "message": "Rate limiting control not observed (code/agents/account_actions_agent.py:26). Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
-          "crosswalk": {
-            "owasp_llm_2025": "LLM10",
-            "eu_ai_act": "Art. 15",
-            "relation": "exposure",
-            "so_what": "No rate limit was observed, so repeated calls can run up cost or load."
           }
         },
         {
@@ -1174,13 +564,12 @@
             "assessability": "partial",
             "exposure": "none-observed",
             "score": 0,
-            "score_before_controls": 29,
+            "score_before_controls": 28,
             "contributing_findings": [
               "1b5760feca23bde6",
               "77d4c36eaa0b4850",
               "AI008-c0e7b0d45a69",
-              "CTRL004-9d9a33f2fd7f",
-              "cfbb1ba81b36c6c3"
+              "CTRL004-9d9a33f2fd7f"
             ],
             "contributing_capabilities": [],
             "controls_observed": [
@@ -1390,58 +779,74 @@
       ]
     },
     {
-      "id": "a24a49aaf9ec",
+      "id": "2a61ffb1db0d",
       "name": "graph",
-      "display_name": "escalation_agent·graph",
+      "display_name": "front_agent·graph",
       "symbol": "graph",
-      "path": "code/agents/escalation_agent.py",
+      "path": "code/agents/front_agent.py",
       "language": "python",
-      "confidence": "medium",
-      "detection_score": 6,
+      "confidence": "high",
+      "detection_score": 11,
       "evidence": [
         {
           "rule_id": "AGENT_LANGGRAPH",
-          "line": 13,
+          "line": 42,
           "description": "LangGraph agent construct"
         },
         {
+          "rule_id": "AGENT_BEDROCK_AGENTS",
+          "line": 34,
+          "description": "Amazon Bedrock Agents agent construct"
+        },
+        {
           "rule_id": "AGENT_PROVIDER_IMPORT",
-          "line": 6,
+          "line": 18,
           "description": "LLM provider import or reference"
         }
       ],
       "providers": [
+        "bedrock",
+        "databricks",
         "openai"
       ],
       "frameworks": [
+        "bedrock_agents",
         "langgraph"
       ],
-      "integrations": [],
+      "integrations": [
+        "aws",
+        "databricks"
+      ],
       "capabilities": [
-        "external_http"
+        "cloud_resource_access",
+        "external_http",
+        "tool_calling"
       ],
       "permission_tags": [],
-      "call_sites": {},
+      "call_sites": {
+        "aws": 2,
+        "databricks": 2
+      },
       "last_touched_by": null,
       "last_commit": null,
       "codeowners": [],
       "findings": [
         {
-          "fingerprint": "52f17cb6902c02ab",
+          "fingerprint": "22c29130660d7c64",
           "rule_id": "AI005",
           "title": "Model, endpoint, or artifact dependency observed without a pin or integrity control",
           "category": "ai-supplychain",
           "severity": "low",
           "confidence": "low",
-          "path": "code/agents/escalation_agent.py",
-          "line": 6,
+          "path": "code/agents/front_agent.py",
+          "line": 18,
           "column": 1,
-          "snippet": "ChatOpenAI(model=\"gpt-4o-mini\"",
+          "snippet": "ChatOpenAI(model=\"gpt-4o\"",
           "remediation": "Pin a reviewed model revision or dated snapshot and use a TLS endpoint from an allowlist.",
           "suppressed": false,
           "suppression_reason": null,
           "is_new": false,
-          "id": "AI005-52f17cb6902c",
+          "id": "AI005-22c29130660d",
           "canonical_name": "STOA-LLM05-UNPINNED-MODEL",
           "owasp": {
             "llm_top10_v1_1": "LLM05",
@@ -1452,7 +857,7 @@
             "conduct-variability",
             "dependency-drift"
           ],
-          "message": "Model string `gpt-4o-mini` (line 6) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility.",
+          "message": "Model string `gpt-4o` (line 18) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility.",
           "crosswalk": {
             "owasp_llm_2025": "LLM03",
             "eu_ai_act": "Art. 15",
@@ -1461,40 +866,14 @@
           }
         },
         {
-          "fingerprint": "1f626977da9d1103",
-          "rule_id": "CTRL003",
-          "title": "Rate limiting control not observed",
-          "category": "control",
-          "severity": "info",
-          "confidence": "low",
-          "path": "code/agents/escalation_agent.py",
-          "line": 13,
-          "column": 1,
-          "snippet": "Rate limiting control not observed for candidate graph",
-          "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
-          "suppressed": false,
-          "suppression_reason": null,
-          "is_new": false,
-          "dimensions": [
-            "control-coverage-gap"
-          ],
-          "message": "Rate limiting control not observed (code/agents/escalation_agent.py:13). Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
-          "crosswalk": {
-            "owasp_llm_2025": "LLM10",
-            "eu_ai_act": "Art. 15",
-            "relation": "exposure",
-            "so_what": "No rate limit was observed, so repeated calls can run up cost or load."
-          }
-        },
-        {
-          "fingerprint": "7f49f045b1421c52",
+          "fingerprint": "d373f238bf601384",
           "rule_id": "CTRL007",
           "title": "No kill-switch signal observed on the agent's entry path",
           "category": "control",
           "severity": "info",
           "confidence": "low",
-          "path": "code/agents/escalation_agent.py",
-          "line": 13,
+          "path": "code/agents/front_agent.py",
+          "line": 42,
           "column": 1,
           "snippet": "No kill-switch signal observed on the agent's entry path for candidate graph",
           "remediation": "Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
@@ -1504,46 +883,16 @@
           "dimensions": [
             "control-coverage-gap"
           ],
-          "message": "No kill-switch signal observed on the agent's entry path (code/agents/escalation_agent.py:13). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
+          "message": "No kill-switch signal observed on the agent's entry path (code/agents/front_agent.py:42). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
           "crosswalk": {
             "owasp_llm_2025": "LLM06",
             "eu_ai_act": "Art. 14",
             "relation": "exposure",
             "so_what": "No kill-switch signal was observed to halt the agent mid-run."
           }
-        },
-        {
-          "fingerprint": "3d972dea9961b5e1",
-          "rule_id": "DECL006",
-          "title": "Scanned agent has no declaration entry",
-          "category": "contradiction",
-          "severity": "medium",
-          "confidence": "high",
-          "path": "code/agents/escalation_agent.py",
-          "line": 13,
-          "column": 1,
-          "snippet": "no declaration entry for `graph`",
-          "remediation": "stoa-declared.toml exists but doesn't mention this agent. Add an [agents.\"<id>\"] entry, even a partial one.",
-          "suppressed": false,
-          "suppression_reason": null,
-          "is_new": false,
-          "dimensions": [
-            "control-coverage-gap"
-          ],
-          "message": "stoa-declared.toml exists but has no [agents.\"a24a49aaf9ec\"] entry for `graph`.",
-          "declared_ref": {
-            "path": "stoa-declared.toml",
-            "key": "agents.\"a24a49aaf9ec\""
-          },
-          "crosswalk": {
-            "owasp_llm_2025": null,
-            "eu_ai_act": "Art. 11",
-            "relation": "exposure",
-            "so_what": "The agent is not declared at all."
-          }
         }
       ],
-      "highest_severity": "medium",
+      "highest_severity": "low",
       "dimension_assessment": {
         "taxonomy": {
           "id": "stoa-aiuc-8",
@@ -1556,11 +905,15 @@
             "assessability": "strong",
             "exposure": "none-observed",
             "score": 0,
-            "score_before_controls": 0,
+            "score_before_controls": 18,
             "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
+            "contributing_capabilities": [
+              "cloud_resource_access"
+            ],
+            "controls_observed": [
+              "approval"
+            ],
+            "statement": "No exposure observed; controls observed: approval."
           },
           {
             "id": "boundary-leakage",
@@ -1582,288 +935,16 @@
             "assessability": "strong",
             "exposure": "none-observed",
             "score": 0,
-            "score_before_controls": 0,
+            "score_before_controls": 18,
             "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "output-fidelity",
-            "group": "D",
-            "assessability": "partial",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "injection-tamper-surface",
-            "group": "B",
-            "assessability": "partial",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "conduct-variability",
-            "group": "D",
-            "assessability": "proxy",
-            "exposure": "low",
-            "score": 2,
-            "score_before_controls": 2,
-            "contributing_findings": [
-              "AI005-52f17cb6902c"
-            ],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "Proxy signals only: 1 finding(s) and 0 capability signal(s) contribute. Runtime evaluation required for direct assessment."
-          },
-          {
-            "id": "dependency-drift",
-            "group": "D",
-            "assessability": "proxy",
-            "exposure": "low",
-            "score": 10,
-            "score_before_controls": 10,
-            "contributing_findings": [
-              "AI005-52f17cb6902c"
-            ],
             "contributing_capabilities": [
-              "provider:openai"
+              "cloud_resource_access"
             ],
-            "controls_observed": [],
-            "statement": "Proxy signals only: 1 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
-          },
-          {
-            "id": "control-coverage-gap",
-            "group": "B",
-            "assessability": "partial",
-            "exposure": "low",
-            "score": 13,
-            "score_before_controls": 13,
-            "contributing_findings": [
-              "1f626977da9d1103",
-              "3d972dea9961b5e1",
-              "7f49f045b1421c52"
-            ],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "3 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
-          }
-        ]
-      },
-      "autonomy_level": {
-        "level": "recommend_only",
-        "signals": [],
-        "reason": null
-      }
-    },
-    {
-      "id": "2a61ffb1db0d",
-      "name": "graph",
-      "display_name": "front_agent·graph",
-      "symbol": "graph",
-      "path": "code/agents/front_agent.py",
-      "language": "python",
-      "confidence": "medium",
-      "detection_score": 6,
-      "evidence": [
-        {
-          "rule_id": "AGENT_LANGGRAPH",
-          "line": 24,
-          "description": "LangGraph agent construct"
-        },
-        {
-          "rule_id": "AGENT_PROVIDER_IMPORT",
-          "line": 12,
-          "description": "LLM provider import or reference"
-        }
-      ],
-      "providers": [
-        "openai"
-      ],
-      "frameworks": [
-        "langgraph"
-      ],
-      "integrations": [],
-      "capabilities": [
-        "tool_calling"
-      ],
-      "permission_tags": [],
-      "call_sites": {},
-      "last_touched_by": null,
-      "last_commit": null,
-      "codeowners": [],
-      "findings": [
-        {
-          "fingerprint": "22c29130660d7c64",
-          "rule_id": "AI005",
-          "title": "Model, endpoint, or artifact dependency observed without a pin or integrity control",
-          "category": "ai-supplychain",
-          "severity": "low",
-          "confidence": "low",
-          "path": "code/agents/front_agent.py",
-          "line": 12,
-          "column": 1,
-          "snippet": "ChatOpenAI(model=\"gpt-4o\"",
-          "remediation": "Pin a reviewed model revision or dated snapshot and use a TLS endpoint from an allowlist.",
-          "suppressed": false,
-          "suppression_reason": null,
-          "is_new": false,
-          "id": "AI005-22c29130660d",
-          "canonical_name": "STOA-LLM05-UNPINNED-MODEL",
-          "owasp": {
-            "llm_top10_v1_1": "LLM05",
-            "llm_top10_2025": "LLM03"
-          },
-          "variant": "floating-alias",
-          "dimensions": [
-            "conduct-variability",
-            "dependency-drift"
-          ],
-          "message": "Model string `gpt-4o` (line 12) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility.",
-          "crosswalk": {
-            "owasp_llm_2025": "LLM03",
-            "eu_ai_act": "Art. 15",
-            "relation": "exposure",
-            "so_what": "The model reference is unpinned, so behavior can change under you silently."
-          }
-        },
-        {
-          "fingerprint": "33ec986832ba42c6",
-          "rule_id": "CTRL003",
-          "title": "Rate limiting control not observed",
-          "category": "control",
-          "severity": "info",
-          "confidence": "low",
-          "path": "code/agents/front_agent.py",
-          "line": 24,
-          "column": 1,
-          "snippet": "Rate limiting control not observed for candidate graph",
-          "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
-          "suppressed": false,
-          "suppression_reason": null,
-          "is_new": false,
-          "dimensions": [
-            "control-coverage-gap"
-          ],
-          "message": "Rate limiting control not observed (code/agents/front_agent.py:24). Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
-          "crosswalk": {
-            "owasp_llm_2025": "LLM10",
-            "eu_ai_act": "Art. 15",
-            "relation": "exposure",
-            "so_what": "No rate limit was observed, so repeated calls can run up cost or load."
-          }
-        },
-        {
-          "fingerprint": "d373f238bf601384",
-          "rule_id": "CTRL007",
-          "title": "No kill-switch signal observed on the agent's entry path",
-          "category": "control",
-          "severity": "info",
-          "confidence": "low",
-          "path": "code/agents/front_agent.py",
-          "line": 24,
-          "column": 1,
-          "snippet": "No kill-switch signal observed on the agent's entry path for candidate graph",
-          "remediation": "Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
-          "suppressed": false,
-          "suppression_reason": null,
-          "is_new": false,
-          "dimensions": [
-            "control-coverage-gap"
-          ],
-          "message": "No kill-switch signal observed on the agent's entry path (code/agents/front_agent.py:24). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
-          "crosswalk": {
-            "owasp_llm_2025": "LLM06",
-            "eu_ai_act": "Art. 14",
-            "relation": "exposure",
-            "so_what": "No kill-switch signal was observed to halt the agent mid-run."
-          }
-        },
-        {
-          "fingerprint": "1b89568505354454",
-          "rule_id": "DECL006",
-          "title": "Scanned agent has no declaration entry",
-          "category": "contradiction",
-          "severity": "medium",
-          "confidence": "high",
-          "path": "code/agents/front_agent.py",
-          "line": 24,
-          "column": 1,
-          "snippet": "no declaration entry for `graph`",
-          "remediation": "stoa-declared.toml exists but doesn't mention this agent. Add an [agents.\"<id>\"] entry, even a partial one.",
-          "suppressed": false,
-          "suppression_reason": null,
-          "is_new": false,
-          "dimensions": [
-            "control-coverage-gap"
-          ],
-          "message": "stoa-declared.toml exists but has no [agents.\"2a61ffb1db0d\"] entry for `graph`.",
-          "declared_ref": {
-            "path": "stoa-declared.toml",
-            "key": "agents.\"2a61ffb1db0d\""
-          },
-          "crosswalk": {
-            "owasp_llm_2025": null,
-            "eu_ai_act": "Art. 11",
-            "relation": "exposure",
-            "so_what": "The agent is not declared at all."
-          }
-        }
-      ],
-      "highest_severity": "medium",
-      "dimension_assessment": {
-        "taxonomy": {
-          "id": "stoa-aiuc-8",
-          "version": "2.0"
-        },
-        "dimensions": [
-          {
-            "id": "mandate-overreach",
-            "group": "B",
-            "assessability": "strong",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "boundary-leakage",
-            "group": "A",
-            "assessability": "strong",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
-          },
-          {
-            "id": "unreviewed-high-impact-action",
-            "group": "C",
-            "assessability": "strong",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
-            "contributing_findings": [],
-            "contributing_capabilities": [],
             "controls_observed": [
+              "approval",
               "authentication"
             ],
-            "statement": "No exposure observed; controls observed: authentication."
+            "statement": "No exposure observed; controls observed: approval, authentication."
           },
           {
             "id": "output-fidelity",
@@ -1918,7 +999,7 @@
               "AI005-22c29130660d"
             ],
             "contributing_capabilities": [
-              "provider:openai"
+              "provider:bedrock"
             ],
             "controls_observed": [],
             "statement": "Proxy signals only: 1 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
@@ -1929,10 +1010,8 @@
             "assessability": "partial",
             "exposure": "none-observed",
             "score": 0,
-            "score_before_controls": 13,
+            "score_before_controls": 1,
             "contributing_findings": [
-              "1b89568505354454",
-              "33ec986832ba42c6",
               "d373f238bf601384"
             ],
             "contributing_capabilities": [],
@@ -1943,6 +1022,16 @@
             "statement": "No exposure observed; controls observed: authentication, validation."
           }
         ]
+      },
+      "declared": {
+        "name": "meridian-front",
+        "owner": "digital-servicing@meridian.example",
+        "purpose": "Customer conversation, identity check and routing to the specialists",
+        "users": "customers",
+        "geography": [],
+        "production_status": null,
+        "autonomy_intent": null,
+        "data_classes": []
       },
       "autonomy_level": {
         "level": "recommend_only",
@@ -1977,158 +1066,52 @@
       ]
     },
     {
-      "id": "0d380d199726",
-      "name": "graph",
-      "display_name": "knowledge_agent·graph",
-      "symbol": "graph",
-      "path": "code/agents/knowledge_agent.py",
-      "language": "python",
-      "confidence": "medium",
-      "detection_score": 6,
+      "id": "224627e4877d",
+      "name": "meridian-escalation",
+      "display_name": "meridian-escalation",
+      "symbol": "databricks_model_serving.escalation",
+      "path": "databricks/infra/main.tf",
+      "language": "terraform",
+      "confidence": "high",
+      "detection_score": 8,
       "evidence": [
         {
-          "rule_id": "AGENT_LANGGRAPH",
-          "line": 14,
-          "description": "LangGraph agent construct"
+          "rule_id": "AGENT_IAC_SERVING_ENDPOINT",
+          "line": 6,
+          "description": "Databricks model serving endpoint 'meridian-escalation' — a deployed agent, serving UC model prod.agents.meridian_escalation"
         },
         {
-          "rule_id": "AGENT_PROVIDER_IMPORT",
+          "rule_id": "IAC_CONTROL_RATE_LIMIT",
           "line": 6,
-          "description": "LLM provider import or reference"
+          "description": "AI Gateway rate limit configured"
+        },
+        {
+          "rule_id": "IAC_CONTROL_OBSERVABILITY",
+          "line": 6,
+          "description": "AI Gateway inference tables / usage tracking enabled"
+        },
+        {
+          "rule_id": "IAC_GRANT",
+          "line": 15,
+          "description": "MODIFY, SELECT, USE_CATALOG on catalog prod (via escalation)"
         }
       ],
-      "providers": [
-        "openai"
+      "providers": [],
+      "frameworks": [],
+      "integrations": [
+        "databricks"
       ],
-      "frameworks": [
-        "langgraph"
+      "capabilities": [
+        "database_read",
+        "database_write"
       ],
-      "integrations": [],
-      "capabilities": [],
       "permission_tags": [],
       "call_sites": {},
       "last_touched_by": null,
       "last_commit": null,
       "codeowners": [],
-      "findings": [
-        {
-          "fingerprint": "6a586c1855ca21d2",
-          "rule_id": "AI005",
-          "title": "Model, endpoint, or artifact dependency observed without a pin or integrity control",
-          "category": "ai-supplychain",
-          "severity": "low",
-          "confidence": "low",
-          "path": "code/agents/knowledge_agent.py",
-          "line": 6,
-          "column": 1,
-          "snippet": "ChatOpenAI(model=\"gpt-4o\"",
-          "remediation": "Pin a reviewed model revision or dated snapshot and use a TLS endpoint from an allowlist.",
-          "suppressed": false,
-          "suppression_reason": null,
-          "is_new": false,
-          "id": "AI005-6a586c1855ca",
-          "canonical_name": "STOA-LLM05-UNPINNED-MODEL",
-          "owasp": {
-            "llm_top10_v1_1": "LLM05",
-            "llm_top10_2025": "LLM03"
-          },
-          "variant": "floating-alias",
-          "dimensions": [
-            "conduct-variability",
-            "dependency-drift"
-          ],
-          "message": "Model string `gpt-4o` (line 6) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility.",
-          "crosswalk": {
-            "owasp_llm_2025": "LLM03",
-            "eu_ai_act": "Art. 15",
-            "relation": "exposure",
-            "so_what": "The model reference is unpinned, so behavior can change under you silently."
-          }
-        },
-        {
-          "fingerprint": "f1a760ee3ec0547f",
-          "rule_id": "CTRL003",
-          "title": "Rate limiting control not observed",
-          "category": "control",
-          "severity": "info",
-          "confidence": "low",
-          "path": "code/agents/knowledge_agent.py",
-          "line": 14,
-          "column": 1,
-          "snippet": "Rate limiting control not observed for candidate graph",
-          "remediation": "Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
-          "suppressed": false,
-          "suppression_reason": null,
-          "is_new": false,
-          "dimensions": [
-            "control-coverage-gap"
-          ],
-          "message": "Rate limiting control not observed (code/agents/knowledge_agent.py:14). Confirm rate limiting exists for this agent's actions; it was not observed in this file.",
-          "crosswalk": {
-            "owasp_llm_2025": "LLM10",
-            "eu_ai_act": "Art. 15",
-            "relation": "exposure",
-            "so_what": "No rate limit was observed, so repeated calls can run up cost or load."
-          }
-        },
-        {
-          "fingerprint": "0410b64895326df5",
-          "rule_id": "CTRL007",
-          "title": "No kill-switch signal observed on the agent's entry path",
-          "category": "control",
-          "severity": "info",
-          "confidence": "low",
-          "path": "code/agents/knowledge_agent.py",
-          "line": 14,
-          "column": 1,
-          "snippet": "No kill-switch signal observed on the agent's entry path for candidate graph",
-          "remediation": "Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
-          "suppressed": false,
-          "suppression_reason": null,
-          "is_new": false,
-          "dimensions": [
-            "control-coverage-gap"
-          ],
-          "message": "No kill-switch signal observed on the agent's entry path (code/agents/knowledge_agent.py:14). Consider a feature-flag or env-var gate that can disable this agent without a deploy; none was observed. This is the weakest signal in the control set -- informational only.",
-          "crosswalk": {
-            "owasp_llm_2025": "LLM06",
-            "eu_ai_act": "Art. 14",
-            "relation": "exposure",
-            "so_what": "No kill-switch signal was observed to halt the agent mid-run."
-          }
-        },
-        {
-          "fingerprint": "7b594b7fb163b884",
-          "rule_id": "DECL006",
-          "title": "Scanned agent has no declaration entry",
-          "category": "contradiction",
-          "severity": "medium",
-          "confidence": "high",
-          "path": "code/agents/knowledge_agent.py",
-          "line": 14,
-          "column": 1,
-          "snippet": "no declaration entry for `graph`",
-          "remediation": "stoa-declared.toml exists but doesn't mention this agent. Add an [agents.\"<id>\"] entry, even a partial one.",
-          "suppressed": false,
-          "suppression_reason": null,
-          "is_new": false,
-          "dimensions": [
-            "control-coverage-gap"
-          ],
-          "message": "stoa-declared.toml exists but has no [agents.\"0d380d199726\"] entry for `graph`.",
-          "declared_ref": {
-            "path": "stoa-declared.toml",
-            "key": "agents.\"0d380d199726\""
-          },
-          "crosswalk": {
-            "owasp_llm_2025": null,
-            "eu_ai_act": "Art. 11",
-            "relation": "exposure",
-            "so_what": "The agent is not declared at all."
-          }
-        }
-      ],
-      "highest_severity": "medium",
+      "findings": [],
+      "highest_severity": null,
       "dimension_assessment": {
         "taxonomy": {
           "id": "stoa-aiuc-8",
@@ -2139,13 +1122,15 @@
             "id": "mandate-overreach",
             "group": "B",
             "assessability": "strong",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
+            "exposure": "low",
+            "score": 18,
+            "score_before_controls": 18,
             "contributing_findings": [],
-            "contributing_capabilities": [],
+            "contributing_capabilities": [
+              "database_write"
+            ],
             "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
+            "statement": "0 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
             "id": "boundary-leakage",
@@ -2163,13 +1148,15 @@
             "id": "unreviewed-high-impact-action",
             "group": "C",
             "assessability": "strong",
-            "exposure": "none-observed",
-            "score": 0,
-            "score_before_controls": 0,
+            "exposure": "low",
+            "score": 18,
+            "score_before_controls": 18,
             "contributing_findings": [],
-            "contributing_capabilities": [],
+            "contributing_capabilities": [
+              "database_write"
+            ],
             "controls_observed": [],
-            "statement": "No exposure observed in scanned files."
+            "statement": "0 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
           },
           {
             "id": "output-fidelity",
@@ -2201,55 +1188,59 @@
             "assessability": "proxy",
             "exposure": "none-observed",
             "score": 0,
-            "score_before_controls": 2,
-            "contributing_findings": [
-              "AI005-6a586c1855ca"
-            ],
+            "score_before_controls": 0,
+            "contributing_findings": [],
             "contributing_capabilities": [],
-            "controls_observed": [
-              "deterministic_sampling"
-            ],
+            "controls_observed": [],
             "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
           },
           {
             "id": "dependency-drift",
             "group": "D",
             "assessability": "proxy",
-            "exposure": "low",
-            "score": 10,
-            "score_before_controls": 10,
-            "contributing_findings": [
-              "AI005-6a586c1855ca"
-            ],
-            "contributing_capabilities": [
-              "provider:openai"
-            ],
+            "exposure": "none-observed",
+            "score": 0,
+            "score_before_controls": 0,
+            "contributing_findings": [],
+            "contributing_capabilities": [],
             "controls_observed": [],
-            "statement": "Proxy signals only: 1 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+            "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
           },
           {
             "id": "control-coverage-gap",
             "group": "B",
             "assessability": "partial",
-            "exposure": "low",
-            "score": 13,
-            "score_before_controls": 13,
-            "contributing_findings": [
-              "0410b64895326df5",
-              "7b594b7fb163b884",
-              "f1a760ee3ec0547f"
-            ],
+            "exposure": "none-observed",
+            "score": 0,
+            "score_before_controls": 0,
+            "contributing_findings": [],
             "contributing_capabilities": [],
-            "controls_observed": [],
-            "statement": "3 finding(s) and 0 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+            "controls_observed": [
+              "observability",
+              "rate_limit"
+            ],
+            "statement": "No exposure observed; controls observed: observability, rate_limit."
           }
         ]
+      },
+      "declared": {
+        "name": "meridian-escalation",
+        "owner": "platform-risk@meridian.example",
+        "purpose": "Drafts case notes and queues them for a person, on Databricks",
+        "users": "internal",
+        "geography": [],
+        "production_status": null,
+        "autonomy_intent": null,
+        "data_classes": []
       },
       "autonomy_level": {
         "level": "recommend_only",
         "signals": [],
         "reason": null
-      }
+      },
+      "source": "iac",
+      "discovery_tier": "recognized",
+      "platform": "databricks"
     }
   ],
   "repository_findings": [
@@ -2409,7 +1400,7 @@
         "name": "Conduct variability",
         "group": "D",
         "assessability": "proxy",
-        "max_exposure": "low",
+        "max_exposure": "none-observed",
         "agents_elevated": 0,
         "agents_moderate": 0,
         "crosswalk": {
@@ -2443,7 +1434,7 @@
         "name": "Control coverage gap",
         "group": "B",
         "assessability": "partial",
-        "max_exposure": "low",
+        "max_exposure": "none-observed",
         "agents_elevated": 0,
         "agents_moderate": 0,
         "crosswalk": {
@@ -2452,10 +1443,8 @@
             "LLM10"
           ],
           "eu_ai_act": [
-            "Art. 11",
             "Art. 12",
             "Art. 14",
-            "Art. 15",
             "Art. 9"
           ]
         }

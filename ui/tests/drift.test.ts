@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import type { Envelope } from "../src/data/types";
 import { changes, groupChanges } from "../src/data/drift";
 
-const env = JSON.parse(readFileSync(new URL("../fixtures/meridian-pay.envelope.json", import.meta.url), "utf8")) as Envelope;
+// two-stacks: account actions on AWS gained its action group, a real authority increase in the diff.
+const env = JSON.parse(readFileSync(new URL("../fixtures/two-stacks.envelope.json", import.meta.url), "utf8")) as Envelope;
 
 describe("drift grouping copies the diff", () => {
   it("surfaces the payment authority increase first and flags it for review", () => {
@@ -11,12 +12,11 @@ describe("drift grouping copies the diff", () => {
     expect(items.length).toBeGreaterThan(0);
     const first = items[0]!;
     expect(first.needsReview).toBe(true);
-    // The September push gave the AWS account-actions record its tools: high-impact capabilities, unapproved.
+    // The AWS account-actions record got its tools: high-impact capabilities, unapproved.
     const cap = items.find((c) => c.kind === "capability_added" && c.label === "database_write")!;
     expect(cap.severity).toBe("high");
     expect(cap.authorityIncrease).toBe(true);
     expect(cap.approved).toBe(false);
-    expect(items.some((c) => c.kind === "dimension_increased")).toBe(true);
     expect(items.some((c) => c.kind === "finding_new" && c.fingerprint)).toBe(true);
   });
 

@@ -205,7 +205,7 @@ function Outlook({ r, levers, intake, model, notes, declared, agentId }: { r: In
 
       <LossOverTime />
 
-      <div className="mt-3 flex flex-wrap gap-x-10 gap-y-2 rounded-xl bg-gold-100/70 px-5 py-4">
+      <div className="mt-3 flex flex-wrap gap-x-10 gap-y-2 rounded-lg bg-gold-100/70 px-5 py-4">
         <div className="grid"><span className="caption">Suggested coverage limit</span><b className="text-[18px] font-semibold text-navy">{money(L.lean)} to {money(L.conservative)}</b></div>
         <div className="grid"><span className="caption">Most common choice</span><b className="text-[18px] font-semibold text-navy">{money(L.standard)}</b></div>
         <div className="grid"><span className="caption">Suggested retention</span><b className="text-[18px] font-semibold text-navy">{money(r.retention)}</b></div>

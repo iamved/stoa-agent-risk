@@ -124,7 +124,9 @@ def test_csp_hash_matches_real_template_if_built():
 def test_planted_secret_never_reaches_the_html():
     key = fake_openai_key()
     env = _envelope()
-    env["registry"]["agents"][0]["findings"][0]["snippet"] = f'api_key = "{key}"'
+    # Whichever record has a finding: the first ones may be infrastructure records with none.
+    agent = next(a for a in env["registry"]["agents"] if a["findings"])
+    agent["findings"][0]["snippet"] = f'api_key = "{key}"'
     env["registry"]["warnings"].append(f"token {key} leaked")
     html = render_dashboard(env, FAKE_TEMPLATE)
     assert key not in html

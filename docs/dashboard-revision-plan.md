@@ -329,3 +329,49 @@ Two things this surfaced and fixed: the scanner emitted a tool-level finding
 once per agent binding the tool, with one fingerprint, so its totals double
 counted it (now counted once, on both agents); and a finding on an agent the
 diff reports as added was not treated as new.
+
+### Three in code, one on AWS, one on Databricks (2026-09-22)
+
+Ved asked for the demo's five agents to be split three in code, one on AWS
+and one on Databricks. `code/agents/front_agent.py` now routes to the
+account-actions graph, calls the knowledge agent on Bedrock and posts to the
+escalation endpoint on Databricks; `knowledge_agent.py` and
+`escalation_agent.py` are gone, `aws/agents.tf` holds only the knowledge
+agent and its knowledge base, and `databricks/infra/main.tf` holds the
+escalation model-serving endpoint. Five agents from five records: the demo
+no longer has an agent defined twice, so identity resolution and drift are
+now exercised by a separate fixture, `ui/fixtures/two-stacks.envelope.json`,
+built from the example plus `ui/fixtures/twins/account_actions.tf` (the old
+Bedrock twin of account-actions, declared `same_as` the code agent). The
+Python tests that need two stacks copy the same file.
+
+The history keeps its shape (cap in code, no chatbot, then the September
+push). Without the AWS record's reach the line is $3.4M, $3.5M, $4.7M. Ved's
+brief quoted "$5M"; the sentence on the Overview is derived from the trend,
+so it says what the model gives.
+
+**Overview, third pass.** The tagline is gone. "Where you stand" is one
+derived sentence: the rise from the first scan to today, the span in words,
+and, when one step between scans accounts for most of the rise, the month of
+that push and its causes read from the history (agents first seen, an agent
+whose inferred autonomy went from bounded to unrestricted: "the amount cap on
+account-actions came off"). Agent Inventory says who the agents serve
+(declared `users`) and names the newest agent with the date it first
+appeared in history and whether approval was detected on it. Risk Mapping
+lists one line per high-severity finding with the agent named, counts in the
+caption, "+1 high since last scan (meridian-support)", and its link opens
+Findings filtered to high. Protection Level keeps "0 of 2" and adds a
+four-row scorecard (kill switch, logging, rate limiting, input validation)
+with the Controls screen's counts, the least-protected money mover, and the
+tools line linking to the double-charge finding. Estimated Failures Cost
+draws two reference lines on the trend: the largest declared policy limit
+(with "AI losses excluded" when it is) and the cover that applies to AI
+losses; the caption says what share of that limit the bad year now is. What
+changed is three lines: agents added, the biggest change to an existing agent
+(from history first, then the diff), and the modeled loss before and after
+with new high findings and elevated agents. Needs your attention rows are
+the title with agents named, then "What the scan saw" (a sentence built from
+the finding: declared against inferred, tool and file), "Why it matters"
+(`PLAIN_WHY` in labels.ts) and "Fix" (`PLAIN_ACTION` plus the register
+status); no dimension names, no rule ids. Panels lost some padding and
+radius, headings a size, so the page reads denser and flatter.

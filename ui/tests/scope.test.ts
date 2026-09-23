@@ -27,7 +27,8 @@ describe("declared scope", () => {
     const c = completeness(s);
     expect(c.total).toBeGreaterThan(10);
     expect(c.filled).toBeLessThan(c.total);
-    expect(c.gaps.some((g) => g.label === "Owner")).toBe(true);
+    // Every agent is declared with an owner; the chatbot moves money with no limit declared.
+    expect(c.gaps.some((g) => g.label === "Owner")).toBe(false);
     expect(c.gaps.some((g) => g.label === "Max per action")).toBe(true);
   });
 

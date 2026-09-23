@@ -8,7 +8,8 @@ import { describe, expect, it } from "vitest";
 import type { Envelope } from "../src/data/types";
 import { checkEnvelope } from "../src/data/schema";
 
-const envelope = JSON.parse(readFileSync(new URL("../fixtures/meridian-pay.envelope.json", import.meta.url), "utf8")) as Envelope;
+const load = (name: string) => JSON.parse(readFileSync(new URL(`../fixtures/${name}.envelope.json`, import.meta.url), "utf8")) as Envelope;
+const envelope = load("meridian-pay");
 
 describe("meridian-pay fixture matches the consumed contract", () => {
   it("passes the schema check", () => {
@@ -40,11 +41,15 @@ describe("meridian-pay fixture matches the consumed contract", () => {
     expect(r.risk_register?.length).toBe(3);
   });
 
-  it("carries a diff with a real authority increase", () => {
+  it("carries a diff with an added agent; two-stacks carries one with a real authority increase", () => {
     const diff = envelope.diff!;
     expect(diff.schema).toBe("stoa-diff/1.0");
-    const added = diff.agents.changed.flatMap((c) => c.capabilities.added);
+    expect(diff.agents.added.map((a) => a.name)).toEqual(["support_agent"]);
+    const twoStacks = load("two-stacks");
+    expect(checkEnvelope(twoStacks)).toBeNull();
+    const added = twoStacks.diff!.agents.changed.flatMap((c) => c.capabilities.added);
     expect(added.some((c) => c.high_impact && c.drift_severity === "high")).toBe(true);
+    expect(twoStacks.unique_agents!.find((u) => u.name === "account-actions")!.records).toHaveLength(2);
   });
 
   it("carries history, register rows, rules, and taxonomy", () => {
@@ -65,7 +70,6 @@ describe("meridian-pay fixture matches the consumed contract", () => {
   });
 });
 
-const load = (name: string) => JSON.parse(readFileSync(new URL(`../fixtures/${name}.envelope.json`, import.meta.url), "utf8")) as Envelope;
 
 describe("first-run and no-agents fixtures", () => {
   it("pass the schema check with every optional block absent", () => {

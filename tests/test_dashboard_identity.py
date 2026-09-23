@@ -102,18 +102,28 @@ def test_resolution_is_deterministic_and_loses_no_record():
     assert len(ids) == len(set(ids))
 
 
-def test_the_demo_is_five_agents_from_nine_records():
-    """Four agents built in code and on AWS pair by name; the support chatbot is code only."""
+def test_the_demo_is_five_agents_from_five_records():
+    """Three agents in code, one on AWS, one on Databricks: five records, five agents, nothing joined."""
     demo = json.loads((FIXTURES / "meridian-pay.envelope.json").read_text())
-    assert len(demo["unique_agents"]) == 5 and len(demo["registry"]["agents"]) == 9
+    assert len(demo["unique_agents"]) == 5 and len(demo["registry"]["agents"]) == 5
     by_name = {u["name"]: u for u in demo["unique_agents"]}
-    assert [r["kind"] for r in by_name["account-actions"]["records"]] == ["code", "infrastructure"]
-    assert by_name["account-actions"]["linked_by"] == "name"
-    assert [r["kind"] for r in by_name["meridian-support"]["records"]] == ["code"]
-    # Without a declaration file the four pairs still hold, and the chatbot still stands alone.
+    assert sorted(by_name) == ["account-actions", "meridian-escalation", "meridian-front", "meridian-knowledge", "meridian-support"]
+    assert all(len(u["records"]) == 1 and u["linked_by"] is None for u in demo["unique_agents"])
+    assert by_name["meridian-knowledge"]["records"][0]["platform"] == "bedrock"
+    assert by_name["meridian-escalation"]["records"][0]["platform"] == "databricks"
     first_run = json.loads((FIXTURES / "first-run.envelope.json").read_text())
     assert len(first_run["unique_agents"]) == 5
     assert json.loads((FIXTURES / "no-agents.envelope.json").read_text())["unique_agents"] == []
+
+
+def test_two_stacks_joins_account_actions_across_code_and_aws():
+    """With the AWS twin declared as the same agent, the two records resolve to one agent and the rest stand alone."""
+    two = json.loads((FIXTURES / "two-stacks.envelope.json").read_text())
+    assert len(two["unique_agents"]) == 5 and len(two["registry"]["agents"]) == 6
+    by_name = {u["name"]: u for u in two["unique_agents"]}
+    assert [r["kind"] for r in by_name["account-actions"]["records"]] == ["code", "infrastructure"]
+    assert by_name["account-actions"]["linked_by"] == "declared"
+    assert [r["kind"] for r in by_name["meridian-support"]["records"]] == ["code"]
 
 
 def test_same_as_feeds_no_rule_and_no_score():
@@ -130,12 +140,14 @@ def test_same_as_feeds_no_rule_and_no_score():
     with tempfile.TemporaryDirectory() as tmp:
         unlinked = Path(tmp) / "unlinked"
         shutil.copytree(REPO_ROOT / "examples" / "meridian-pay", unlinked)
+        # The AWS twin of account-actions, as the two-stacks fixture has it.
+        shutil.copy(FIXTURES / "twins" / "account_actions.tf", unlinked / "aws" / "account_actions.tf")
         linked = Path(tmp) / "linked"
         shutil.copytree(unlinked, linked)
         declared = linked / "stoa-declared.toml"
         text = declared.read_text()
         # Declare the code account-actions agent as the same agent as its AWS record.
-        text = text.replace('name = "account-actions"\n', 'name = "account-actions"\nsame_as = ["9299e5cfdb41"]\n', 1)
+        text = text.replace('name = "account-actions"\n', 'name = "account-actions"\nsame_as = ["ddb08fa73da1"]\n', 1)
         assert "same_as" in text
         declared.write_text(text)
         a, b = scan(linked), scan(unlinked)

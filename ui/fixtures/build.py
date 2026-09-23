@@ -23,13 +23,18 @@ Outputs (all deterministic):
                                 stoa-declared.toml, no .stoa/underwriting.toml,
                                 no baseline, no history
 * no-agents.envelope.json     — a scan that finds no agent candidates at all
+* two-stacks.envelope.json    — the example plus twins/account_actions.tf, so
+                                account-actions is defined twice (code and a
+                                Bedrock agent) and resolves to one agent; its
+                                diff is against the same tree with the Bedrock
+                                action group missing, a real authority increase
 """
 
 from __future__ import annotations
 
 import copy
-import re
 import json
+import re
 import shutil
 import sys
 import tempfile
@@ -151,12 +156,6 @@ def _variant(tmp: Path, name: str, *, cap: int, drop_tools: list[str], max_per_a
     text = text.replace("def act(state: MessagesState):\n", _CAP.format(cap=cap), 1)
     assert "MAX_PER_ACTION" in text
     agent.write_text(text)
-    # On AWS the account-actions agent existed but its action group (the
-    # tools) went live in the September push: strip that resource.
-    tf = root / "aws" / "agents.tf"
-    stripped, n = re.subn(r'resource "aws_bedrockagent_agent_action_group" "account_tools" \{.*?\n\}\n', "", tf.read_text(), flags=re.S)
-    assert n == 1
-    tf.write_text(stripped)
     declared = root / "stoa-declared.toml"
     toml = declared.read_text().replace(
         "max_per_action = { amount = 500, currency = \"USD\" }",
@@ -167,6 +166,36 @@ def _variant(tmp: Path, name: str, *, cap: int, drop_tools: list[str], max_per_a
     end = toml.find("\n[", start + 1)
     toml = toml[:start] + (toml[end + 1:] if end != -1 else "")
     declared.write_text(toml)
+    return root
+
+
+TWIN = Path(__file__).resolve().parent / "twins" / "account_actions.tf"
+TWIN_DECLARATION = '''
+[agents."ddb08fa73da1"]      # aws/account_actions.tf :: aws_bedrockagent_agent.account_actions
+name = "meridian-account-actions"
+same_as = ["b8f0111742fc"]
+owner = "digital-servicing@meridian.example"
+purpose = "Account actions on Bedrock"
+users = "customers"
+production_status = "production"
+autonomy_intent = "human_approved"
+data_classes = ["personal", "financial"]
+'''
+
+
+def _two_stacks(tmp: Path, name: str, *, action_group: bool) -> Path:
+    """The example with account-actions also defined as a Bedrock agent."""
+    root = tmp / name
+    shutil.copytree(EXAMPLE, root)
+    text = TWIN.read_text()
+    if not action_group:
+        text, n = re.subn(r'resource "aws_bedrockagent_agent_action_group" "account_tools" \{.*?\n\}\n', "", text, flags=re.S)
+        assert n == 1
+    (root / "aws" / "account_actions.tf").write_text(text)
+    # Declared as the same agent as the code record, with the same intent, so the
+    # contradiction fires on both records and the two resolve to one agent.
+    with open(root / "stoa-declared.toml", "a") as handle:
+        handle.write(TWIN_DECLARATION)
     return root
 
 
@@ -188,6 +217,9 @@ def build(out: Path = OUT) -> None:
         first_run = _stamp(_scan(first_run_root), "head", "acme-support")
         first_run_underwriting = _load_underwriting(first_run_root, None)
         no_agents = _stamp(_scan(_no_agents(tmp)), "head", "acme-billing")
+        two_stacks_base = _stamp(_scan(_two_stacks(tmp, "two-stacks-base", action_group=False)), "middle")
+        two_stacks = _stamp(_scan(_two_stacks(tmp, "two-stacks", action_group=True)), "head")
+        two_stacks_underwriting = _load_underwriting(head_root, None)
 
     diff = diff_registries(baseline, head)
     history = [entry_from_registry(r) for r in (baseline, middle, head)]
@@ -199,6 +231,9 @@ def build(out: Path = OUT) -> None:
     _write(out, "large.envelope.json", _large(envelope, 5000))
     _write(out, "first-run.envelope.json", build_envelope(first_run, underwriting=first_run_underwriting))
     _write(out, "no-agents.envelope.json", build_envelope(no_agents))
+    _write(out, "two-stacks.envelope.json", build_envelope(
+        two_stacks, diff=diff_registries(two_stacks_base, two_stacks), baseline=two_stacks_base,
+        history=[entry_from_registry(r) for r in (two_stacks_base, two_stacks)], underwriting=two_stacks_underwriting))
 
 
 def _hostile(envelope: dict) -> dict:

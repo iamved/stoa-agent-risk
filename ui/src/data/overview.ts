@@ -6,14 +6,15 @@
  * and the screen says so instead of filling the gap.
  */
 import type { Envelope, RegisterRow, Severity } from "./types";
-import { canMoveMoney, exposureOf, providersOf, toolsOf, uniqueAgentOf, uniqueAgents, type UniqueAgent } from "./agents";
-import { safeguardRows } from "./controls";
+import { autonomyOf, canMoveMoney, declaredOf, exposureOf, providersOf, toolsOf, uniqueAgentOf, uniqueAgents, type UniqueAgent } from "./agents";
+import { LISTED_CONTROLS, safeguardCoverage, safeguardRows, type SafeguardCoverage } from "./controls";
 import { agentToModel, candidateAgents, intakeFromEnvelope } from "./lossInputs";
 import { EVENTS, indicate, money } from "./lossModel";
-import { lossTrendMax, type TrendPoint } from "./lossTrend";
-import { PLAIN_ACTION, dimensionSubtitle, prose } from "./labels";
+import { agentChanges, largestStep, lossTrendMax, type TrendPoint } from "./lossTrend";
+import { PLAIN_ACTION, PLAIN_WHY, autonomyLabel, dimensionSubtitle, prose } from "./labels";
+import { toolRows } from "./inventory";
 import { summarize as summarizeRegister } from "./register";
-import { SEVERITY_RANK, activeFindings, agentLabel, countByLevel, findingTitle, findingsByDimension, isNewFinding, newFingerprints, overviewDeltas, pluralize, riskLevel, type FindingRef, type RiskLevel } from "./selectors";
+import { SEVERITY_RANK, activeFindings, agentLabel, countByLevel, findingTitle, findingsByDimension, formatDate, isNewFinding, newFingerprints, overviewDeltas, pluralize, riskLevel, type FindingRef, type RiskLevel } from "./selectors";
 
 // --- what we have ---------------------------------------------------------------
 
@@ -38,8 +39,8 @@ export function holdings(env: Envelope): Holdings {
     agents: agents.length,
     records: env.registry.agents.length,
     moneyMovers: moneyMovers(env).length,
-    // A tool seen in an agent's code and again in its infrastructure is one tool.
-    tools: agents.reduce((n, a) => n + toolsOf(a).length, 0),
+    // Distinct tools, the Agent Inventory's count: a tool two agents share is one tool.
+    tools: toolRows(env).length,
     providers: new Set(agents.flatMap(providersOf)).size,
   };
 }
@@ -58,6 +59,78 @@ export function scanSources(env: Envelope): string[] {
 export function joinWords(items: string[]): string {
   if (items.length <= 1) return items[0] ?? "";
   return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+}
+
+/** "3 customer-facing, 2 internal", from the declared `users` of each agent. Empty when nothing is declared. */
+export function audienceLine(env: Envelope): string {
+  let customer = 0, internal = 0, undeclared = 0;
+  for (const u of uniqueAgents(env)) {
+    const users = declaredOf(u)?.users;
+    if (!users) undeclared += 1;
+    else if (users === "internal") internal += 1;
+    else customer += 1;
+  }
+  if (!customer && !internal) return "";
+  return [customer ? `${customer} customer-facing` : "", internal ? `${internal} internal` : "", undeclared ? `${undeclared} not declared` : ""].filter(Boolean).join(", ");
+}
+
+export interface NewestAgent {
+  name: string;
+  id: string;
+  /** Date of the first scan that saw it, from history. Null when only the diff says it is new. */
+  date: string | null;
+  /** "moves money with no approval detected", "moves money, human approval detected", or "does not move money". */
+  note: string;
+}
+
+/** The agent added most recently: one the diff lists as added, or failing a diff, the last one to appear in history. */
+export function newestAgent(env: Envelope): NewestAgent | null {
+  const agents = uniqueAgents(env);
+  const history = [...env.history].filter((h) => Array.isArray(h.agents)).sort((a, b) => a.head_commit.date.localeCompare(b.head_commit.date));
+  const firstSeen = (u: UniqueAgent) => history.find((h) => h.agents!.some((r) => u.records.some((x) => x.id === r.id)))?.head_commit.date ?? null;
+  let newest: UniqueAgent | undefined;
+  const added = new Set((env.diff?.agents.added ?? []).map((a) => uniqueAgentOf(env, a.agent_id)?.id ?? a.agent_id));
+  const candidates = agents.filter((u) => added.has(u.id));
+  if (candidates.length) newest = candidates.sort((a, b) => (firstSeen(b) ?? "").localeCompare(firstSeen(a) ?? "") || a.name.localeCompare(b.name))[0];
+  else if (history.length > 1) {
+    const dated = agents.map((u) => ({ u, date: firstSeen(u) })).filter((x) => x.date && x.date > history[0]!.head_commit.date);
+    newest = dated.sort((a, b) => b.date!.localeCompare(a.date!) || a.u.name.localeCompare(b.u.name))[0]?.u;
+  }
+  if (!newest) return null;
+  const row = safeguardRows(env).find((r) => r.agent === newest);
+  const note = !canMoveMoney(newest) ? "does not move money" : row?.states["approval"] === "detected" ? "moves money, human approval detected" : "moves money with no approval detected";
+  return { name: newest.name, id: newest.id, date: firstSeen(newest), note };
+}
+
+// --- risk mapping ------------------------------------------------------------------
+
+export interface HighLine {
+  fingerprint: string;
+  agents: string[];
+  /** The plain title, e.g. "A payment can be charged twice if a request is retried." */
+  title: string;
+  isNew: boolean;
+}
+
+/** One line per high-severity finding as shown, highest severity first, then by agent. */
+export function highLines(env: Envelope): HighLine[] {
+  const fresh = newFingerprints(env);
+  return activeFindings(env)
+    .filter((r) => riskLevel(r.finding.severity) === "high")
+    .map((r) => ({ fingerprint: r.finding.fingerprint, agents: [...new Set(r.uniqueAgents.map((u) => u.name))].sort(), title: findingTitle(env, r.finding), isNew: isNewFinding(r, fresh), severity: r.finding.severity }))
+    .sort((a, b) => SEVERITY_RANK[b.severity] - SEVERITY_RANK[a.severity] || a.agents.join().localeCompare(b.agents.join()) || a.title.localeCompare(b.title))
+    .map(({ severity: _s, ...line }) => line);
+}
+
+/** "+1 high since last scan (meridian-support)". Empty without a baseline. */
+export function newHighLine(env: Envelope): string {
+  if (!env.diff) return "";
+  const fresh = newFingerprints(env);
+  const refs = activeFindings(env).filter((r) => riskLevel(r.finding.severity) === "high" && isNewFinding(r, fresh));
+  const resolved = env.diff.summary.findings_delta.resolved;
+  if (!refs.length) return resolved ? `No new high since last scan, ${resolved} resolved` : "No new high since last scan";
+  const names = [...new Set(refs.flatMap((r) => r.uniqueAgents.map((u) => u.name)))].sort();
+  return `+${refs.length} high since last scan${names.length ? ` (${names.join(", ")})` : ""}`;
 }
 
 // --- are we protected -------------------------------------------------------------
@@ -86,6 +159,30 @@ export function protection(env: Envelope): Protection {
   };
 }
 
+/** Safeguards on the tile's scorecard, in this order. The counts are the Controls screen's. */
+export const SCORECARD_CONTROLS = ["kill_switch", "observability", "rate_limit", "validation"];
+const SCORECARD_LABEL: Record<string, string> = { kill_switch: "Kill switch", observability: "Logging", rate_limit: "Rate limiting", validation: "Input validation" };
+
+export interface ProtectionCard extends Protection {
+  scorecard: (SafeguardCoverage & { short: string })[];
+  /** Money-moving agents with the fewest safeguards detected, and how many of the listed safeguards that is. */
+  least: { agents: string[]; detected: number; of: number } | null;
+  /** The double-charge finding, if any, for the tools line to link to. */
+  doublePostFingerprint: string | null;
+}
+
+export function protectionCard(env: Envelope): ProtectionCard {
+  const base = protection(env);
+  const coverage = safeguardCoverage(env);
+  const scorecard = SCORECARD_CONTROLS.map((id) => coverage.find((c) => c.id === id)).filter((c): c is SafeguardCoverage => Boolean(c)).map((c) => ({ ...c, short: SCORECARD_LABEL[c.id] ?? c.label }));
+  const movers = new Set(moneyMovers(env));
+  const rows = safeguardRows(env).filter((r) => movers.has(r.agent)).map((r) => ({ name: r.agent.name, detected: LISTED_CONTROLS.filter((id) => r.states[id] === "detected").length }));
+  const min = rows.length ? Math.min(...rows.map((r) => r.detected)) : 0;
+  const least = rows.length ? { agents: rows.filter((r) => r.detected === min).map((r) => r.name).sort(), detected: min, of: LISTED_CONTROLS.length } : null;
+  const doublePost = activeFindings(env).find((r) => r.finding.rule_id === "AI008");
+  return { ...base, scorecard, least, doublePostFingerprint: doublePost?.finding.fingerprint ?? null };
+}
+
 // --- what it could cost ---------------------------------------------------------------
 
 export interface CostOutlook {
@@ -101,6 +198,8 @@ export interface CostOutlook {
   /** Declared policy types that exclude AI, e.g. ["cyber"]. */
   excluding: string[];
   policies: number;
+  /** Each declared policy's limit, largest first, for the reference lines on the trend. */
+  limits: { label: string; limit: number; aiExcluded: boolean }[];
   confidence: "high" | "medium" | "low";
 }
 
@@ -133,6 +232,7 @@ export function costOutlook(env: Envelope, years?: number): CostOutlook | null {
     covered: policies.filter((p) => !p.ai_exclusion).reduce((n, p) => n + p.limit, 0),
     excluding: policies.filter((p) => p.ai_exclusion).map((p) => POLICY_LABEL[p.type] ?? p.type),
     policies: policies.length,
+    limits: [...policies].sort((a, b) => b.limit - a.limit).map((p) => ({ label: `${POLICY_LABEL[p.type] ?? p.type} policy limit`, limit: p.limit, aiExcluded: p.ai_exclusion })),
     confidence: r.confidence,
   };
 }
@@ -154,6 +254,8 @@ export interface AttentionItem {
   register: RegisterRow[];
   /** The rule's remediation guidance, as the scanner wrote it. */
   remediation: string;
+  /** The findings behind the item, highest severity first. */
+  refs: FindingRef[];
 }
 
 /** Active findings, one item per rule, so the same problem on several agents is read once. Highest severity first. */
@@ -185,6 +287,7 @@ export function attention(env: Envelope, n = 3): AttentionItem[] {
       fingerprint: first.fingerprint,
       register: env.register.filter((row) => row.contributing_findings.some((fp) => fingerprints.has(fp))),
       remediation: env.rules[ruleId]?.remediation || first.remediation || "",
+      refs,
     });
   }
   items.sort((a, b) => SEVERITY_RANK[b.severity] - SEVERITY_RANK[a.severity] || b.findings - a.findings || a.ruleId.localeCompare(b.ruleId));
@@ -199,6 +302,55 @@ export function attentionStatus(item: AttentionItem): string {
   for (const row of declared) counts.set(row.declared!.treatment!, (counts.get(row.declared!.treatment!) ?? 0) + 1);
   const phrase: Record<string, string> = { transfer: "marked for transfer", mitigate: "being mitigated", accept: "accepted", avoid: "being avoided" };
   return [...counts].map(([t, c]) => `${c} ${phrase[t] ?? t}`).join(" · ");
+}
+
+/** The title with the agents named first: "account-actions and meridian-support: a payment can be charged twice if a request is retried." */
+export function attentionTitle(item: AttentionItem): string {
+  const who = item.agents.length ? joinWords(item.agents) : "Repository";
+  const title = item.title.replace(/^[A-Z](?![A-Z])/, (c) => c.toLowerCase());
+  return `${who}: ${title}`;
+}
+
+const NUMBER_TEXT = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+const countWord = (n: number) => NUMBER_TEXT[n] ?? String(n);
+
+/**
+ * What the scan saw, in one sentence built from the finding: the declared
+ * value against the inferred one, the tool and file for a code finding.
+ * Falls back to the scanner's first sentence, without its backticks.
+ */
+export function scanSaw(item: AttentionItem): string {
+  const first = item.refs[0]?.finding;
+  if (!first) return "";
+  const where = `${first.path.split("/").slice(-2).join("/")}, line ${first.line}`;
+  const agents = item.refs.flatMap((r) => r.uniqueAgents);
+  const named = item.agents.length === 1 ? "The agent" : item.agents.length === 2 ? "Both agents" : `All ${countWord(item.agents.length)} agents`;
+  switch (item.ruleId) {
+    case "DECL001": {
+      const declared = [...new Set(agents.map((u) => declaredOf(u)?.autonomy_intent).filter(Boolean))].map((x) => autonomyLabel(x).toLowerCase());
+      const inferred = [...new Set(agents.map((u) => autonomyOf(u)).filter(Boolean))].map((x) => autonomyLabel(x).toLowerCase());
+      const tools = new Set(agents.flatMap((u) => toolsOf(u).filter((t) => t.money_action).map((t) => t.name)));
+      return `Declared: ${joinWords(declared) || "human approval"}. In the code: ${joinWords(inferred) || "acts on its own"}, with ${tools.size ? `${pluralize(tools.size, "tool")} that can move money and ` : ""}no approval step detected.`;
+    }
+    case "AI008": {
+      const tool = /`([^`]+)`/.exec(first.message ?? "")?.[1] ?? /def\s+(\w+)/.exec(first.snippet ?? "")?.[1] ?? "The payment call";
+      return `${tool} is retried on failure with no unique reference per request, in ${where}. ${named} ${item.agents.length === 1 ? "calls" : "call"} it.`;
+    }
+    case "DECL005":
+      return item.agents.length > 1 ? `${named} are declared production, but no logging or tracing was found in their code.` : `Declared production, but no logging or tracing was found in ${where}.`;
+    case "CTRL007":
+      return `No feature flag or setting that stops the agent was found in ${where}.`;
+    case "AI005":
+      return `The model is named without a version in ${where}.`;
+    default: {
+      const sentence = prose(first.message ?? first.title).replace(/`/g, "").split(/(?<=[.!?])\s+/)[0] ?? "";
+      return sentence;
+    }
+  }
+}
+
+export function whyItMatters(item: AttentionItem): string {
+  return PLAIN_WHY[item.ruleId] ?? "";
 }
 
 /** Sentences that set the scene rather than say what to do. */
@@ -226,74 +378,80 @@ export interface ChangeLine {
   detail: string;
 }
 
-const NUMBER_WORD = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
-const count = (n: number) => NUMBER_WORD[n] ?? String(n);
 const CAPABILITY_PHRASE: Record<string, string> = { payment_access: "payment access", database_write: "database write access", shell_execution: "shell access", file_write: "file write access", email_send: "the ability to send email" };
 
-/** Null without a baseline. Otherwise always the same four lines, so an unchanged scan reads as unchanged. */
-export function whatChanged(env: Envelope): ChangeLine[] | null {
+/** The previous scan and the current one, as history hashes, when the history holds both. */
+function lastTwoScans(env: Envelope): [string, string] | null {
+  const dated = [...env.history].filter((h) => Array.isArray(h.agents)).sort((a, b) => a.head_commit.date.localeCompare(b.head_commit.date));
+  if (dated.length < 2) return null;
+  return [dated[dated.length - 2]!.head_commit.hash, dated[dated.length - 1]!.head_commit.hash];
+}
+
+/**
+ * Null without a baseline. Otherwise three lines: agents added or removed,
+ * the biggest change to an agent that was already there, and what those did
+ * to the modeled loss and the findings. Pass the cost outlook when it is
+ * known, so the third line can quote the modeled loss before and after.
+ */
+export function whatChanged(env: Envelope, cost?: CostOutlook | null): ChangeLine[] | null {
   const diff = env.diff;
   if (!diff) return null;
-  const deltas = overviewDeltas(env);
   const highImpact = new Set(env.vocabulary.high_impact_capabilities);
   const lines: ChangeLine[] = [];
 
-  const gained = diff.agents.changed.flatMap((c) => c.capabilities.added.filter((x) => x.high_impact ?? highImpact.has(x.id)).map((x) => ({ change: c, capability: x.id })));
-  // Counted in unique agents: a capability gained by an agent's code and by its Terraform is one agent gaining it.
-  const gainers = new Set(gained.map((g) => uniqueAgentOf(env, g.change.agent_id)?.id ?? g.change.agent_id));
-  const authority = gainers.size || (deltas.authority?.value ?? 0);
-  if (authority > 0) {
-    const money = gained.some((g) => g.capability === "payment_access");
-    const first = gained[0];
-    let detail = "";
-    if (first) {
-      const agent = env.registry.agents.find((a) => a.id === first.change.agent_id);
-      const name = uniqueAgentOf(env, first.change.agent_id)?.name ?? (agent ? agentLabel(agent) : first.change.name);
-      detail = `${name} gained ${CAPABILITY_PHRASE[first.capability] ?? first.capability.replace(/_/g, " ")}`;
-      // Commit and author exist only when the scan ran inside git.
-      if (agent?.last_commit) detail += ` in ${agent.last_commit.hash.slice(0, 7)}`;
-      if (agent?.last_touched_by) detail += `, last changed by ${agent.last_touched_by}`;
-      detail += gained.length > 1 ? `, and ${pluralize(gained.length - 1, "other capability change")}.` : ".";
+  // 1. Agents added and removed, named.
+  const addedNames = [...new Set(diff.agents.added.map((a) => uniqueAgentOf(env, a.agent_id)?.name ?? a.name))].sort();
+  const removedNames = [...new Set(diff.agents.removed.map((a) => a.name))].sort();
+  const addedMoney = diff.agents.added.filter((a) => a.capabilities.some((c) => highImpact.has(c))).map((a) => uniqueAgentOf(env, a.agent_id)?.name ?? a.name);
+  lines.push(addedNames.length || removedNames.length
+    ? {
+      direction: addedNames.length >= removedNames.length ? "up" : "down",
+      title: `${addedNames.length ? `${pluralize(addedNames.length, "agent")} added` : ""}${addedNames.length && removedNames.length ? ", " : ""}${removedNames.length ? `${pluralize(removedNames.length, "agent")} removed` : ""}: ${joinWords([...addedNames, ...removedNames.map((n) => `${n} (removed)`)])}.`,
+      detail: addedMoney.length ? `${joinWords([...new Set(addedMoney)])} can move money.` : "",
     }
-    lines.push({ direction: "up", title: `${count(authority)} more ${authority === 1 ? "agent" : "agents"} can now ${money ? "move money" : "change systems"}.`, detail });
-  } else {
-    lines.push({ direction: "same", title: "No agent gained new reach.", detail: "No new money or system access." });
-  }
+    : { direction: "same", title: "No agents added or removed.", detail: "" });
 
-  // Findings as shown. A known finding that gained a location (the same rule now also fires on the
-  // agent's other record) is said as that, not counted as new.
-  const fd = diff.summary.findings_delta;
-  const fresh = newFingerprints(env);
-  const highNow = activeFindings(env).filter((r) => riskLevel(r.finding.severity) === "high");
-  const newHighRefs = highNow.filter((r) => isNewFinding(r, fresh));
-  const widened = highNow.filter((r) => !isNewFinding(r, fresh) && r.evidence.some((f) => fresh.has(f.fingerprint)));
-  const newHigh = newHighRefs.length;
-  if (newHigh > 0 || widened.length > 0 || fd.resolved > 0) {
-    const titles = [...new Set(newHighRefs.map((r) => findingTitle(env, r.finding)))];
+  // 2. The biggest change to an existing agent: an in-code limit that came off, an agent that now acts on
+  //    its own, a declared limit raised (all from the history), or a capability gained (from the diff).
+  const scans = lastTwoScans(env);
+  const changes = scans ? agentChanges(env, scans[0], scans[1]) : [];
+  const gained = diff.agents.changed.flatMap((c) => c.capabilities.added.filter((x) => x.high_impact ?? highImpact.has(x.id)).map((x) => ({ name: uniqueAgentOf(env, c.agent_id)?.name ?? c.name, capability: x.id })));
+  const phrases: string[] = [];
+  // A raised declared limit on an agent that also lost its in-code cap is part of the same story, told in the detail.
+  const uncappedIds = new Set(changes.filter((c) => c.kind === "uncapped").map((c) => c.id));
+  for (const kind of ["uncapped", "autonomous", "limit"] as const) for (const c of changes.filter((x) => x.kind === kind && !(kind === "limit" && uncappedIds.has(x.id)))) {
+    phrases.push(kind === "uncapped" ? `${c.name} lost its amount cap` : kind === "autonomous" ? `${c.name} now acts on its own` : `the declared limit for ${c.name} rose from $${Number(c.from).toLocaleString()} to $${Number(c.to).toLocaleString()}`);
+  }
+  for (const g of gained) phrases.push(`${g.name} gained ${CAPABILITY_PHRASE[g.capability] ?? g.capability.replace(/_/g, " ")}`);
+  const unique = [...new Set(phrases)];
+  if (unique.length) {
+    const first = unique[0]!;
+    const uncapped = changes.find((c) => c.kind === "uncapped" && first.startsWith(c.name));
+    const declaredMax = uncapped ? declaredOf(uniqueAgents(env).find((u) => u.id === uncapped.id)!)?.economic_authority?.max_per_action?.amount : undefined;
     const detail = [
-      titles.length ? `${titles[0]}${titles.length > 1 ? ` And ${pluralize(titles.length - 1, "other")}.` : ""}` : "",
-      widened.length ? `${pluralize(widened.length, "known high-severity finding")} now ${widened.length === 1 ? "has" : "have"} a second evidence location.` : "",
-      fd.resolved ? `${pluralize(fd.resolved, "finding")} resolved.` : "",
+      uncapped ? (declaredMax ? `Every action was limited in code; now the only limit is the $${declaredMax.toLocaleString()} written in the system prompt.` : "Every action was limited in code; no limit is enforced now.") : "",
+      unique.length > 1 ? `Also: ${joinWords(unique.slice(1))}.` : "",
     ].filter(Boolean).join(" ");
-    lines.push({ direction: newHigh > 0 || widened.length > 0 ? "up" : "down", title: newHigh > 0 ? `${newHigh} new high-severity ${newHigh === 1 ? "finding" : "findings"}.` : widened.length ? "No new high-severity findings." : `${pluralize(fd.resolved, "finding")} resolved.`, detail });
+    // Agent names keep their case, so the line is not capitalised when it opens with one.
+    lines.push({ direction: "up", title: `${first.startsWith("the ") ? `T${first.slice(1)}` : first}.`, detail });
   } else {
-    lines.push({ direction: "same", title: "No new high-severity findings.", detail: "None resolved either." });
+    lines.push({ direction: "same", title: "No existing agent gained reach.", detail: "No new money or system access, and no limit came off." });
   }
 
-  const risers = new Set(diff.agents.changed.filter((c) => c.dimension_delta.some((d) => d.direction === "increased" && d.to === "elevated")).map((c) => uniqueAgentOf(env, c.agent_id)?.id ?? c.agent_id));
+  // 3. The consequence: the modeled loss before and after, new high findings, agents at elevated exposure.
+  const fresh = newFingerprints(env);
+  const newHigh = activeFindings(env).filter((r) => riskLevel(r.finding.severity) === "high" && isNewFinding(r, fresh)).length;
   const agents = uniqueAgents(env);
   const elevatedNow = agents.filter((u) => exposureOf(u) === "elevated").length;
-  lines.push(risers.size > 0
-    ? { direction: "up", title: `${count(risers.size)} more ${risers.size === 1 ? "agent" : "agents"} at elevated exposure.`, detail: `${elevatedNow} of ${pluralize(agents.length, "agent")} ${elevatedNow === 1 ? "is" : "are"} now elevated.` }
-    : { direction: "same", title: "No agent rose to elevated exposure.", detail: `${elevatedNow} of ${pluralize(agents.length, "agent")} ${elevatedNow === 1 ? "is" : "are"} elevated.` });
-
-  // The diff counts scanned records, so that is what this line says.
-  // Added and removed records, named as the agents they belong to.
-  const addedNames = [...new Set(diff.agents.added.map((a) => uniqueAgentOf(env, a.agent_id)?.name ?? a.name))];
-  const removedNames = [...new Set(diff.agents.removed.map((a) => a.name))];
-  lines.push(addedNames.length || removedNames.length
-    ? { direction: addedNames.length >= removedNames.length ? "up" : "down", title: `${addedNames.length ? `${pluralize(addedNames.length, "agent")} added` : ""}${addedNames.length && removedNames.length ? ", " : ""}${removedNames.length ? `${pluralize(removedNames.length, "agent")} removed` : ""}.`, detail: [addedNames.length ? `New: ${joinWords(addedNames)}.` : "", removedNames.length ? `Gone: ${joinWords(removedNames)}.` : ""].filter(Boolean).join(" ") }
-    : { direction: "same", title: "No agents added or removed.", detail: "" });
+  const trend = cost?.trend ?? [];
+  const before = trend.length >= 2 ? trend[trend.length - 2]! : null;
+  const now = trend.length ? trend[trend.length - 1]! : null;
+  const rose = before && now && now.badYear > before.badYear * 1.005;
+  const fell = before && now && now.badYear < before.badYear * 0.995;
+  const tail = [newHigh ? `${pluralize(newHigh, "new high-severity finding")}.` : "No new high-severity findings.", `${elevatedNow} of ${pluralize(agents.length, "agent")} ${elevatedNow === 1 ? "is" : "are"} elevated.`].join(" ");
+  if (before && now) lines.push({ direction: rose ? "up" : fell ? "down" : "same", title: `Modeled loss in a bad year: ${money(before.badYear)} to ${money(now.badYear)}.`, detail: tail });
+  else if (now) lines.push({ direction: newHigh ? "up" : "same", title: `Modeled loss in a bad year: ${money(now.badYear)}.`, detail: tail });
+  else lines.push({ direction: newHigh ? "up" : "same", title: newHigh ? `${pluralize(newHigh, "new high-severity finding")}.` : "No new high-severity findings.", detail: `${elevatedNow} of ${pluralize(agents.length, "agent")} ${elevatedNow === 1 ? "is" : "are"} elevated.` });
   return lines;
 }
 
@@ -355,27 +513,58 @@ export function sentenceText(sentence: Sentence): string {
   return sentence.map((part) => (typeof part === "string" ? part : part.strong)).join("");
 }
 
+/** "two months", "six weeks", "nine days": the span between two dates, in the largest unit that reads well. */
+export function spanWords(fromIso: string, toIso: string): string {
+  const days = Math.round((Date.parse(toIso) - Date.parse(fromIso)) / 86_400_000);
+  if (days >= 55) { const m = Math.round(days / 30.4); return `${countWord(m)} ${m === 1 ? "month" : "months"}`; }
+  if (days >= 14) { const w = Math.round(days / 7); return `${countWord(w)} weeks`; }
+  return `${countWord(Math.max(days, 1))} ${days === 1 ? "day" : "days"}`;
+}
+
+const MONTH_NAME = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const monthOf = (iso: string) => MONTH_NAME[Number.parseInt(iso.slice(5, 7), 10) - 1] ?? "";
+
 /**
- * The opening sentences. Each clause is one of the facts above, and a clause
- * with no fact behind it is left out rather than softened.
+ * The opening sentences. The first is the modeled loss and, when the history
+ * shows it, how it moved and what moved it. The second is what can move money
+ * and whether approval was detected. A clause with no fact behind it is left
+ * out rather than softened.
  */
 export function standing(env: Envelope, cost: CostOutlook | null): Sentence[] {
   const agents = uniqueAgents(env).length;
   if (agents === 0) return [["No AI agents were found in this scan, so there is nothing to report on yet."]];
   const out: Sentence[] = [];
+  if (cost) {
+    const trend = cost.trend;
+    const first = trend[0], last = trend[trend.length - 1];
+    const step = largestStep(env, trend);
+    if (first && last && trend.length >= 2 && last.badYear > first.badYear * 1.005) {
+      const sentence: Sentence = ["Modeled loss in a bad year has risen from ", { strong: money(first.badYear) }, " to ", { strong: money(last.badYear) }, ` in ${spanWords(first.date, last.date)}`];
+      if (step && step.share >= 0.7) {
+        const causes = [
+          step.added.length ? `${joinWords(step.added)} went live` : "",
+          ...step.changes.filter((c) => c.kind === "uncapped").map((c) => `the amount cap on ${c.name} came off`),
+          ...step.changes.filter((c) => c.kind === "autonomous").map((c) => `${c.name} began acting on its own`),
+        ].filter(Boolean);
+        sentence.push(`, driven by one push in ${monthOf(step.to.date)}${causes.length ? `: ${joinWords(causes)}` : ""}.`);
+      } else sentence.push(` over ${pluralize(trend.length, "scan")}.`);
+      out.push(sentence);
+    } else if (first && last && trend.length >= 2 && last.badYear < first.badYear * 0.995) {
+      out.push(["Modeled loss in a bad year has fallen from ", { strong: money(first.badYear) }, " to ", { strong: money(last.badYear) }, ` in ${spanWords(first.date, last.date)}.`]);
+    } else if (first && trend.length >= 2) {
+      out.push(["Modeled loss in a bad year is ", { strong: money(cost.badYear) }, `, unchanged since ${formatDate(first.date)}.`]);
+    } else out.push(["Modeled loss in a bad year is ", { strong: money(cost.badYear) }, "."]);
+  }
   const p = protection(env);
   if (p.moneyMovers > 0) {
     // A detection result, not a claim about the business process: "was detected", never "has".
-    const approval = p.approved === 0 ? `and no human approval was detected for ${p.moneyMovers === 1 ? "it" : p.moneyMovers === 2 ? "either" : "any of them"}`
-      : p.approved === p.moneyMovers ? `and human approval was detected for ${p.moneyMovers === 1 ? "it" : p.moneyMovers === 2 ? "both" : "all of them"}`
-      : `and human approval was detected for ${p.approved} of them`;
-    out.push([`${pluralize(p.moneyMovers, "agent")} can move money on ${p.moneyMovers === 1 ? "its" : "their"} own, ${approval}.`]);
+    const approval = p.approved === 0 ? `no human approval was detected on ${p.moneyMovers === 1 ? "it" : p.moneyMovers === 2 ? "either" : "any of them"}`
+      : p.approved === p.moneyMovers ? `human approval was detected on ${p.moneyMovers === 1 ? "it" : p.moneyMovers === 2 ? "both" : "all of them"}`
+      : `human approval was detected on ${p.approved} of them`;
+    out.push([`${pluralize(p.moneyMovers, "agent")} can move money on ${p.moneyMovers === 1 ? "its" : "their"} own, and ${approval}.`]);
   } else {
     const high = countByLevel(activeFindings(env)).high;
-    out.push([`${pluralize(agents, "AI agent")} found, and none can move money. ${high ? `${pluralize(high, "high-severity finding")} ${high === 1 ? "needs" : "need"} attention.` : "No high-severity findings."}`]);
+    out.push([`${pluralize(agents, "AI agent")} found, none of which can move money. ${high ? `${pluralize(high, "high-severity finding")} ${high === 1 ? "needs" : "need"} attention.` : "No high-severity findings."}`]);
   }
-  if (cost) out.push(["Modeled loss in a bad year is ", { strong: money(cost.badYear) }, "."]);
-  const changed = (whatChanged(env) ?? []).filter((line) => line.direction === "up").length;
-  if (changed) out.push([`${pluralize(changed, "thing")} changed since the last scan.`]);
   return out;
 }

@@ -157,6 +157,32 @@ export const PLAIN_TITLE: Record<string, string> = {
   SEC002: "A password is written into the code.",
 };
 
+/** Why a finding matters, in one plain sentence. The consequence, not the mechanism. */
+export const PLAIN_WHY: Record<string, string> = {
+  DECL001: "The approval your policy relies on is not there. Losses from these agents would be uncontrolled and unbudgeted.",
+  AI008: "One flaky network call can pay a customer twice, and nothing in the code would notice.",
+  DECL006: "An agent nobody has declared has no owner, no purpose on record and no one accountable for it.",
+  DECL005: "If this agent does something wrong in production, there is no record of what it did or why.",
+  CTRL007: "If the agent misbehaves, stopping it means a code change and a deploy, not a switch.",
+  CTRL004: "Without logs there is no way to reconstruct what the agent did after an incident.",
+  AI003: "A single bad decision by the model goes straight to a real-world effect.",
+  AI005: "The provider can change the model under you, and the agent's decisions change with it.",
+  DECL003: "Without a declared limit, there is no agreed ceiling on what this agent can spend.",
+  DECL002: "The limit exists on paper only. The code will let a larger amount through.",
+  DECL004: "The agent touches data your records say it does not, which is a compliance gap.",
+  CTRL001: "Anyone who can reach the agent can make it act.",
+  CTRL002: "Malformed or hostile input reaches the model and the tools unchecked.",
+  CTRL003: "A loop or an attacker can make the agent act thousands of times in minutes.",
+  CTRL005: "A stuck loop can run up cost, or repeat an action, until someone notices.",
+  CTRL006: "A mistake or an attack has the run of the host, not just the agent.",
+  AI001: "Text from a user or a document can redirect what the agent does.",
+  AI002: "The model can be talked into running code or content of its own making.",
+  AI006: "Customer data leaves your control and may be retained by the outside service.",
+  AI007: "The same request can get a different answer each time, so decisions are hard to defend.",
+  SEC001: "Anyone with the code has the credential.",
+  SEC002: "Anyone with the code has the password.",
+};
+
 export const PLAIN_ACTION: Record<string, string> = {
   DECL001: "Add the approval step, or correct the declaration.",
   AI008: "Give each payment request a unique reference so a retry cannot charge it again, and apply limits per request rather than per attempt.",

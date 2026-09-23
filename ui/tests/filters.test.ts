@@ -6,7 +6,10 @@ import { EMPTY_FILTERS, applyFilters, filtersFromQuery, filtersToQuery, sortFrom
 import { categories, codeAgents, iacAgents, integrationRows, toolRows } from "../src/data/inventory";
 import { activeFindings, allFindings } from "../src/data/selectors";
 
-const env = JSON.parse(readFileSync(new URL("../fixtures/meridian-pay.envelope.json", import.meta.url), "utf8")) as Envelope;
+const load = (name: string) => JSON.parse(readFileSync(new URL(`../fixtures/${name}.envelope.json`, import.meta.url), "utf8")) as Envelope;
+const env = load("meridian-pay");
+// account-actions defined in code and on AWS: one agent, two records.
+const twoStacks = load("two-stacks");
 
 describe("finding filters round-trip through the URL", () => {
   it("parses and serializes every filter", () => {
@@ -30,14 +33,14 @@ describe("finding filters round-trip through the URL", () => {
     const cls = applyFilters(env, { ...EMPTY_FILTERS, cls: "LLM06" }, "owasp");
     expect(cls.length).toBeGreaterThan(0);
     expect(cls.every((r) => r.finding.crosswalk?.owasp_llm_2025 === "LLM06")).toBe(true);
-    const agent = env.registry.agents.find((a) => a.findings.length > 0)!;
-    const byAgent = applyFilters(env, { ...EMPTY_FILTERS, agent: agent.id }, "owasp");
+    const agent = twoStacks.registry.agents.find((a) => a.id === "b8f0111742fc")!;
+    const byAgent = applyFilters(twoStacks, { ...EMPTY_FILTERS, agent: agent.id }, "owasp");
     // The filter means the whole agent: the same findings whichever of its records the link names.
-    const whole = uniqueAgentOf(env, agent.id)!;
-    expect(whole.records.length).toBeGreaterThan(1);
+    const whole = uniqueAgentOf(twoStacks, agent.id)!;
+    expect(whole.records.length).toBe(2);
     expect(byAgent.length).toBeGreaterThan(0);
     expect(byAgent.every((r) => r.uniqueAgents.includes(whole))).toBe(true);
-    for (const record of whole.records) expect(applyFilters(env, { ...EMPTY_FILTERS, agent: record.id }, "owasp")).toEqual(byAgent);
+    for (const record of whole.records) expect(applyFilters(twoStacks, { ...EMPTY_FILTERS, agent: record.id }, "owasp")).toEqual(byAgent);
     expect(applyFilters(env, { ...EMPTY_FILTERS, agent: "no-such-agent" }, "owasp")).toEqual([]);
     expect(applyFilters(env, { ...EMPTY_FILTERS, rule: "DECL" }, "owasp").every((r) => r.finding.rule_id.startsWith("DECL"))).toBe(true);
     expect(applyFilters(env, { ...EMPTY_FILTERS, q: "idempotency" }, "owasp").some((r) => r.finding.rule_id === "AI008")).toBe(true);
@@ -55,7 +58,7 @@ describe("inventory categories come from the registry", () => {
     const cats = categories(env);
     expect(cats.map((c) => c.id)).toEqual(["agents", "agents_code", "agents_iac", "tools", "providers", "integrations", "declarations"]);
     expect(cats[0]!.count).toBe(5);
-    expect(cats[1]!.count + cats[2]!.count).toBe(9);
+    expect([cats[1]!.count, cats[2]!.count]).toEqual([3, 2]);
     expect(cats.find((c) => c.id === "declarations")?.count).toBe(env.registry.agents.filter((a) => a.declared).length);
     expect(integrationRows(env).every((r) => r.agents.length > 0)).toBe(true);
   });

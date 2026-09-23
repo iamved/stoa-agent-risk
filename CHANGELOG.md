@@ -48,6 +48,23 @@ network. See [docs/dashboard.md](docs/dashboard.md).
   registry summary, SARIF and the CLI. It is one finding, on both agents,
   counted once.
 
+### Changed — third review
+- The demo is five agents in three places: three in code (front, account
+  actions, the support chatbot), one on AWS (knowledge) and one on Databricks
+  (escalation). Identity resolution and drift keep their end-to-end coverage
+  on a second fixture (`ui/fixtures/two-stacks.envelope.json`: the example
+  plus a Bedrock twin of account-actions).
+- Overview: the verdict is one sentence derived from the trend and the
+  history (how much the modeled loss rose, over what span, which push did it,
+  what went live and which cap came off). Agent Inventory says who the agents
+  serve and names the newest one. Risk Mapping lists each high-severity
+  finding with its agent. Protection Level carries a four-safeguard scorecard
+  with the Controls screen's counts. The cost tile draws the declared policy
+  limit and the cover that applies to AI losses as reference lines. What
+  changed is three lines; Needs your attention rows say what the scan saw,
+  why it matters and the fix, with no rule ids or dimension names.
+- Declared Scope names agents the way every other screen does.
+
 ### Changed — second review
 - Overview tiles are Agent Inventory, Risk Mapping, Protection Level and
   Estimated Failures Cost. Risk Mapping names the high-severity findings.

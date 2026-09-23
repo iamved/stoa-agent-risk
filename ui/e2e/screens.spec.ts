@@ -13,15 +13,15 @@ function envelope(name: string) {
 
 test.describe("findings", () => {
   test("URL filters drive the table and survive reload", async ({ page }) => {
-    // The demo's three critical records are two findings: account actions was seen in code and on AWS.
+    // The demo's two critical findings are one rule on two agents: one row.
     await page.goto(fileUrl("meridian-pay", "#/findings?severity=critical"));
-    await expect(page.getByText("2 of 25 shown (filtered)")).toBeVisible();
+    await expect(page.getByText("2 of 13 shown (filtered)")).toBeVisible();
     const table = page.getByRole("table", { name: "Findings", exact: true });
     await expect(table).toHaveAttribute("aria-rowcount", "1");
     await page.getByRole("button", { name: /^High\s+\d+$/ }).click();
     await expect.poll(() => page.evaluate(() => window.location.hash)).toContain("severity=critical%2Chigh");
     await page.reload();
-    await expect(page.getByText("3 of 25 shown (filtered)")).toBeVisible();
+    await expect(page.getByText("3 of 13 shown (filtered)")).toBeVisible();
     await expect(table).toHaveAttribute("aria-rowcount", "2");
     // The High filter button carries the same count the caption reports.
     await expect(page.getByRole("button", { name: /^High\s+3$/ })).toBeVisible();
@@ -82,7 +82,7 @@ test.describe("inventory", () => {
     const env = envelope("meridian-pay");
     await page.goto(fileUrl("meridian-pay", "#/inventory?category=tools"));
     await expect(page.getByRole("table", { name: "Tools" })).toBeVisible();
-    await page.goto(fileUrl("meridian-pay", "#/inventory?authority=1"));
+    await page.goto(fileUrl("meridian-pay", "#/inventory?capability=payments"));
     const shown = Number(await page.getByRole("table", { name: "Agents" }).getAttribute("aria-rowcount"));
     expect(shown).toBeGreaterThan(0);
     expect(shown).toBeLessThan(env.registry.agents.length);
@@ -358,6 +358,6 @@ test.describe("financial exposure explains itself", () => {
     // The bad year here is the bad year on the Overview.
     const here = (await page.getByRole("heading", { name: /A bad year could cost/ }).textContent())!.match(/\$[\d.]+[kM]/)![0];
     await page.goto(fileUrl("meridian-pay", "#/overview"));
-    await expect(page.getByRole("region", { name: "Where you stand" })).toContainText(`Modeled loss in a bad year is ${here}.`, { timeout: 60_000 });
+    await expect(page.getByRole("region", { name: "Where you stand" })).toContainText(`Modeled loss in a bad year has risen from $3.4M to ${here} in two months`, { timeout: 60_000 });
   });
 });

@@ -4,7 +4,10 @@ import type { Envelope } from "../src/data/types";
 import { activeFindings, countBySeverity, dimensionMatrix, dimensionTrend, elevatedAgents, findingByFingerprint, frameworkClasses, hasAuthority, stats, topRisks } from "../src/data/selectors";
 import { buildHash, parseHash } from "../src/app/router";
 
-const env = JSON.parse(readFileSync(new URL("../fixtures/meridian-pay.envelope.json", import.meta.url), "utf8")) as Envelope;
+const load = (name: string) => JSON.parse(readFileSync(new URL(`../fixtures/${name}.envelope.json`, import.meta.url), "utf8")) as Envelope;
+const env = load("meridian-pay");
+// account-actions defined in code and on AWS: the same rule on both records is one finding with two locations.
+const twoStacks = load("two-stacks");
 
 describe("selectors copy scanner numbers without recomputing", () => {
   it("the scanner records behind the findings tie to the registry summary exactly", () => {
@@ -17,11 +20,12 @@ describe("selectors copy scanner numbers without recomputing", () => {
   });
 
   it("the same rule on two records of one agent is one finding with two locations", () => {
-    const active = activeFindings(env);
-    const counts = countBySeverity(active);
-    expect(counts).toEqual({ critical: 2, high: 1, medium: 5, low: 5, info: 12 });
+    expect(countBySeverity(activeFindings(env))).toEqual({ critical: 2, high: 1, medium: 2, low: 3, info: 5 });
+    expect(activeFindings(env).every((r) => r.evidence.length === 1)).toBe(true);
+    const active = activeFindings(twoStacks);
+    expect(countBySeverity(active)).toEqual({ critical: 2, high: 1, medium: 2, low: 3, info: 5 });
     const merged = active.filter((r) => r.evidence.length > 1);
-    expect(merged.map((r) => r.finding.rule_id).sort()).toEqual(["DECL001", "DECL006", "DECL006", "DECL006"]);
+    expect(merged.map((r) => r.finding.rule_id)).toEqual(["DECL001"]);
     // The refund tool is bound by two agents: its AI008 is one finding, one location, two agents.
     const shared = active.find((r) => r.finding.rule_id === "AI008")!;
     expect(shared.evidence).toHaveLength(1);
@@ -35,13 +39,13 @@ describe("selectors copy scanner numbers without recomputing", () => {
     }
     // A link made to either location still opens the finding.
     const both = merged[0]!;
-    for (const f of both.evidence) expect(findingByFingerprint(env, f.fingerprint)).toBe(both);
+    for (const f of both.evidence) expect(findingByFingerprint(twoStacks, f.fingerprint)).toBe(both);
   });
 
   it("nothing merges without an identity block", () => {
-    const old = { ...env, unique_agents: undefined };
+    const old = { ...twoStacks, unique_agents: undefined };
     expect(activeFindings(old).every((r) => r.evidence.length === 1)).toBe(true);
-    expect(countBySeverity(activeFindings(old))).toEqual(env.registry.summary.findings);
+    expect(countBySeverity(activeFindings(old))).toEqual(twoStacks.registry.summary.findings);
   });
 
   it("matrix cells mirror dimension_summary", () => {

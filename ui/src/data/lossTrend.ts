@@ -5,7 +5,7 @@
  * code did. Entries written before 1.1 carry no agents and are skipped.
  */
 import type { Agent, Envelope, HistoryAgent, HistoryEntry } from "./types";
-import { mergedRecord, uniqueAgents, type UniqueAgent } from "./agents";
+import { autonomyOf, declaredOf, mergedRecord, uniqueAgents, type UniqueAgent } from "./agents";
 import { agentToModel, intakeFromEnvelope } from "./lossInputs";
 import { EVENTS, indicate } from "./lossModel";
 
@@ -78,6 +78,63 @@ export function lossTrend(env: Envelope, agentId: string, seed: number, years?: 
     if (f) out.push({ hash: h.head_commit.hash, ref: h.git_ref, date: h.head_commit.date, agent: agent.name, added: [], ...f });
   }
   return out;
+}
+
+const ACTS_ALONE = new Set(["unrestricted_autonomous", "bounded_autonomous"]);
+
+export interface AgentChange {
+  name: string;
+  id: string;
+  /** "uncapped": an in-code limit came off (bounded to unrestricted). "autonomous": it now acts on its own. "limit": the declared per-action limit rose. */
+  kind: "uncapped" | "autonomous" | "limit";
+  from: string;
+  to: string;
+}
+
+/**
+ * How the agents present at both of two scans changed between them, from the
+ * history slices: the autonomy the scanner inferred, and the declared
+ * per-action limit. Empty when either scan is not in the history.
+ */
+export function agentChanges(env: Envelope, fromHash: string, toHash: string): AgentChange[] {
+  const entries = entriesOf(env);
+  const from = entries.find((h) => h.head_commit.hash === fromHash);
+  const to = entries.find((h) => h.head_commit.hash === toHash);
+  if (!from || !to) return [];
+  const before = new Map(agentsAt(env, from.agents).map((u) => [u.id, u]));
+  const out: AgentChange[] = [];
+  for (const u of agentsAt(env, to.agents)) {
+    const b = before.get(u.id);
+    if (!b) continue;
+    const lb = autonomyOf(b) ?? "", la = autonomyOf(u) ?? "";
+    if (lb === "bounded_autonomous" && la === "unrestricted_autonomous") out.push({ name: u.name, id: u.id, kind: "uncapped", from: lb, to: la });
+    else if (!ACTS_ALONE.has(lb) && ACTS_ALONE.has(la)) out.push({ name: u.name, id: u.id, kind: "autonomous", from: lb, to: la });
+    const mb = declaredOf(b)?.economic_authority?.max_per_action?.amount, ma = declaredOf(u)?.economic_authority?.max_per_action?.amount;
+    if (mb !== undefined && ma !== undefined && ma > mb) out.push({ name: u.name, id: u.id, kind: "limit", from: String(mb), to: String(ma) });
+  }
+  return out.sort((a, b) => a.name.localeCompare(b.name) || a.kind.localeCompare(b.kind));
+}
+
+export interface TrendStep {
+  from: TrendPoint;
+  to: TrendPoint;
+  /** Agents first seen at `to`. */
+  added: string[];
+  changes: AgentChange[];
+  /** This step's share of the whole rise, 0 to 1. */
+  share: number;
+}
+
+/** The step between consecutive scans that added the most to the line. Null unless the line rose over at least two scans. */
+export function largestStep(env: Envelope, trend: TrendPoint[]): TrendStep | null {
+  if (trend.length < 2) return null;
+  const first = trend[0]!, last = trend[trend.length - 1]!;
+  const rise = last.badYear - first.badYear;
+  if (rise <= 0) return null;
+  let best = 1;
+  for (let i = 2; i < trend.length; i++) if (trend[i]!.badYear - trend[i - 1]!.badYear > trend[best]!.badYear - trend[best - 1]!.badYear) best = i;
+  const from = trend[best - 1]!, to = trend[best]!;
+  return { from, to, added: to.added, changes: agentChanges(env, from.hash, to.hash), share: (to.badYear - from.badYear) / rise };
 }
 
 /**

@@ -22,8 +22,10 @@ def test_overview_reports_the_registrys_own_numbers():
     counts = env["registry"]["summary"]["findings"]
     assert f"{counts['critical']} critical, {counts['high']} high" in text
     assert "meridian-pay @ e4f5a6b" in text
-    assert "Agents    5, from 9 discovered records" in text
-    assert "Drift     vs a1b2c3d: 1 agent added, 1 agent changed; unapproved drift up to high" in text
+    assert "Agents    5 (5 high confidence)" in text
+    assert "Drift     vs a1b2c3d: 1 agent added; unapproved drift up to high" in text
+    # Two records of one agent read as one agent with a record count.
+    assert "Agents    5, from 6 discovered records" in render_overview(_envelope("two-stacks"))
     # Only dimensions above low are listed, elevated first.
     exposure = text.split("Exposure above low")[1].split("Top findings")[0]
     assert "elevated" in exposure and " low " not in exposure
@@ -33,9 +35,14 @@ def test_overview_reports_the_registrys_own_numbers():
 
 
 def test_top_findings_show_one_per_rule_before_repeating():
+    # The first run has four distinct rules: each is listed, then one repeats, in severity order.
     rules = [line.split()[1] for line in render_overview(_envelope("first-run")).splitlines()
              if line.startswith("  ") and len(line.split()) >= 3 and line.split()[0] in ("critical", "high", "medium", "low", "info")]
-    assert len(rules) == 5 and len(set(rules)) == len(rules)
+    assert len(rules) == 5 and len(set(rules)) == 4
+    # The demo has more than five rules, so no rule repeats.
+    demo = [line.split()[1] for line in render_overview(_envelope("meridian-pay")).splitlines()
+            if line.startswith("  ") and len(line.split()) >= 3 and line.split()[0] in ("critical", "high", "medium", "low", "info")]
+    assert len(demo) == 5 and len(set(demo)) == 5
 
 
 def test_next_steps_name_only_what_is_missing():

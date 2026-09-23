@@ -5,6 +5,7 @@
  * the repository; it generates the files to commit.
  */
 import type { Agent, Envelope } from "./types";
+import { uniqueAgentOf } from "./agents";
 import { hasAuthority } from "./selectors";
 
 export const USERS = ["internal", "customers", "public"] as const;
@@ -44,7 +45,8 @@ export function scopeFromEnvelope(env: Envelope): ScopeState {
     const d = a.declared;
     const ea = d?.economic_authority;
     return {
-      id: a.id, label: a.display_name || a.name, path: a.path, inferredAutonomy: a.autonomy_level?.level ?? null, moneyMover: hasAuthority(env, a), wasDeclared: Boolean(d),
+      // The same name the other screens use: the declared name when there is one, else the scanner's.
+      id: a.id, label: uniqueAgentOf(env, a.id)?.name ?? a.display_name ?? a.name, path: a.path, inferredAutonomy: a.autonomy_level?.level ?? null, moneyMover: hasAuthority(env, a), wasDeclared: Boolean(d),
       name: d?.name ?? a.name, owner: d?.owner ?? "", purpose: d?.purpose ?? "", users: d?.users ?? "", geography: list(d?.geography), production_status: d?.production_status ?? "", autonomy_intent: d?.autonomy_intent ?? "", data_classes: [...(d?.data_classes ?? [])],
       max_per_action: amount(ea?.max_per_action), daily_aggregate: amount(ea?.daily_aggregate), worst_case: amount(ea?.worst_case_customer_loss), currency: ea?.max_per_action?.currency ?? ea?.daily_aggregate?.currency ?? ea?.worst_case_customer_loss?.currency ?? "USD",
     };

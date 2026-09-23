@@ -14,7 +14,7 @@ import { activeFindings } from "../src/data/selectors";
 const load = (name: string) => JSON.parse(readFileSync(new URL(`../fixtures/${name}.envelope.json`, import.meta.url), "utf8")) as Envelope;
 const demo = load("meridian-pay");
 
-describe.each(["meridian-pay", "first-run", "hostile"])("%s", (name) => {
+describe.each(["meridian-pay", "two-stacks", "first-run", "hostile"])("%s", (name) => {
   const env = load(name);
   const rows = safeguardRows(env);
 
@@ -54,25 +54,35 @@ describe.each(["meridian-pay", "first-run", "hostile"])("%s", (name) => {
 });
 
 describe("the demo", () => {
-  it("shows five agents, and account actions as one path from two records", () => {
+  it("shows five agents, the account-actions path first", () => {
     const agents = flowAgents(demo);
     expect(agents.map((a) => a.name)).toEqual(["account-actions", "meridian-support", "meridian-front", "meridian-escalation", "meridian-knowledge"]);
     const flow = buildFlow(demo, agents[0]!);
+    expect(flow.agent.records).toHaveLength(1);
+    expect(flow.nodes.filter((n) => n.kind === "tool")).toHaveLength(6);
+    const gate = flow.nodes.find((n) => n.kind === "gate")!;
+    expect(gate.cap).toBe("no human approval detected");
+    expect(gate.heavy).toBe(4);
+    expect(gate.findings.map((r) => r.finding.rule_id)).toEqual(["DECL001"]);
+    expect(flow.edges.some((e) => e.from === "gate" && e.tone === "risk")).toBe(true);
+    expect(flow.nodes.find((n) => n.kind === "agent")!.mismatch).toBe(true);
+    expect(agentWorstLevel(demo, agents[0]!)).toBe("high");
+    expect(flowCaption(flow)).toMatch(/^account-actions: 6 tools, 4 of them money-moving or high impact with no guardrail detected; 3 safeguards detected; 6 findings\./);
+  });
+
+  it("draws account actions as one path from two records when it is defined in code and on AWS", () => {
+    const twoStacks = load("two-stacks");
+    const agent = flowAgents(twoStacks)[0]!;
+    expect(agent.name).toBe("account-actions");
+    const flow = buildFlow(twoStacks, agent);
     expect(flow.agent.records).toHaveLength(2);
     expect(flow.nodes.filter((n) => n.kind === "tool")).toHaveLength(6);
     // The merged tool carries the effects seen in either record, so the code tool's payment access and the Terraform tool's database and email reach both draw.
     const payout = flow.nodes.find((n) => n.label === "change_payout_account")!;
     expect(payout.tool!.capabilities).toEqual(["database_read", "database_write", "email_send", "payment_access"]);
     expect(flow.edges.filter((e) => e.from === payout.id).map((e) => e.to).sort()).toEqual(["reach:database_read", "reach:database_write", "reach:email_send", "reach:payment_access"]);
-    const gate = flow.nodes.find((n) => n.kind === "gate")!;
-    expect(gate.cap).toBe("no human approval detected");
-    expect(gate.heavy).toBe(6);
-    expect(gate.findings.map((r) => r.finding.rule_id)).toEqual(["DECL001"]);
-    expect(flow.edges.some((e) => e.from === "gate" && e.tone === "risk")).toBe(true);
     expect(flow.permissions.some((t) => t.startsWith("dynamodb:*"))).toBe(true);
-    expect(flow.nodes.find((n) => n.kind === "agent")!.mismatch).toBe(true);
-    expect(agentWorstLevel(demo, agents[0]!)).toBe("high");
-    expect(flowCaption(flow)).toMatch(/^account-actions: 6 tools, 6 of them money-moving or high impact with no guardrail detected; 3 safeguards detected; 7 findings\./);
+    expect(flow.nodes.find((n) => n.kind === "gate")!.findings.map((r) => r.finding.rule_id)).toEqual(["DECL001"]);
   });
 
   it("places the retry finding on the tool that is retried", () => {

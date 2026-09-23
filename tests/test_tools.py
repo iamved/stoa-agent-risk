@@ -21,6 +21,15 @@ from stoa.tools import bind_agent_tools, collect_tools
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 MERIDIAN = REPO_ROOT / "examples/meridian-pay"
+# The AWS twin of account-actions the fixtures use: the same agent, defined a second time as a Bedrock agent.
+TWIN = REPO_ROOT / "ui/fixtures/twins/account_actions.tf"
+
+
+def _two_stacks(tmp_path: Path) -> Path:
+    work = tmp_path / "two-stacks"
+    shutil.copytree(MERIDIAN, work)
+    shutil.copy(TWIN, work / "aws" / "account_actions.tf")
+    return work
 
 
 def _scan(root: Path):
@@ -122,8 +131,8 @@ def test_binding_resolves_names_through_the_import_graph():
 # --- the fixture, three stacks -----------------------------------------------------------------
 
 
-def test_account_actions_agent_names_its_tools_in_both_stacks_and_the_chatbot_binds_them_too():
-    result, _ = _scan(MERIDIAN)
+def test_account_actions_agent_names_its_tools_in_both_stacks_and_the_chatbot_binds_them_too(tmp_path):
+    result, _ = _scan(_two_stacks(tmp_path))
     code = _agent(result, "code/agents/account_actions_agent.py")
     aws = next(a for a in result.agents if a.symbol == "aws_bedrockagent_agent.account_actions")
     chatbot = _agent(result, "code/agents/support_agent.py")
@@ -139,16 +148,21 @@ def test_account_actions_agent_names_its_tools_in_both_stacks_and_the_chatbot_bi
     assert all("database_write" in t["capabilities"] for t in aws.tools)
 
 
-def test_declaration_contradiction_fires_in_both_stacks_and_on_the_chatbot():
+def test_declaration_contradiction_fires_in_both_stacks_and_on_the_chatbot(tmp_path):
     result, _ = _scan(MERIDIAN)
     for suffix in ("code/agents/account_actions_agent.py", "code/agents/support_agent.py"):
         agent = _agent(result, suffix)
         assert agent.autonomy_level["level"] == "unrestricted_autonomous", suffix
         assert "DECL001" in _rules(agent), suffix
-    aws = next(a for a in result.agents if a.symbol == "aws_bedrockagent_agent.account_actions")
-    assert aws.autonomy_level["level"] == "unrestricted_autonomous" and "DECL001" in _rules(aws)
     front = _agent(result, "code/agents/front_agent.py")
     assert front.autonomy_level["level"] == "recommend_only"          # verify_identity is not a side effect
+    # The AWS twin, declared with the same human_approved intent, contradicts it the same way.
+    work = _two_stacks(tmp_path)
+    with open(work / "stoa-declared.toml", "a") as handle:
+        handle.write('\n[agents."ddb08fa73da1"]\nname = "meridian-account-actions"\nsame_as = ["b8f0111742fc"]\nowner = "x@meridian.example"\npurpose = "twin"\nproduction_status = "production"\nautonomy_intent = "human_approved"\n')
+    result, _ = _scan(work)
+    aws = next(a for a in result.agents if a.symbol == "aws_bedrockagent_agent.account_actions")
+    assert aws.autonomy_level["level"] == "unrestricted_autonomous" and "DECL001" in _rules(aws)
 
 
 def test_ai008_fires_on_the_retried_unkeyed_refund_only():

@@ -21,12 +21,12 @@
       }
     },
     "summary": {
-      "files_scanned": 9,
-      "agent_candidates": 5,
-      "high_confidence_candidates": 5,
-      "integrations": 2,
+      "files_scanned": 10,
+      "agent_candidates": 6,
+      "high_confidence_candidates": 6,
+      "integrations": 3,
       "findings": {
-        "critical": 2,
+        "critical": 3,
         "high": 1,
         "medium": 2,
         "low": 3,
@@ -42,6 +42,394 @@
       "suppressed_findings": 0
     },
     "agents": [
+      {
+        "id": "ddb08fa73da1",
+        "name": "meridian-account-actions",
+        "display_name": "meridian-account-actions",
+        "symbol": "aws_bedrockagent_agent.account_actions",
+        "path": "aws/account_actions.tf",
+        "language": "terraform",
+        "confidence": "high",
+        "detection_score": 8,
+        "evidence": [
+          {
+            "rule_id": "AGENT_IAC_BEDROCK_AGENT",
+            "line": 6,
+            "description": "Amazon Bedrock agent 'meridian-account-actions' — a deployed agent, on foundation model anthropic.claude-3-5-sonnet-20241022-v2:0"
+          },
+          {
+            "rule_id": "IAC_FOUNDATION_MODEL",
+            "line": 6,
+            "description": "foundation model by anthropic, served inside Bedrock"
+          },
+          {
+            "rule_id": "IAC_TOOL_BINDING",
+            "line": 12,
+            "description": "action group 'account-tools' executes in Lambda account_tools: issue_refund, waive_fee, update_contact_info, reissue_card, place_travel_notice, change_payout_account"
+          },
+          {
+            "rule_id": "IAC_IAM_POLICY",
+            "line": 50,
+            "description": "bedrock:InvokeModel, lambda:InvokeFunction on all resources (agent role)"
+          },
+          {
+            "rule_id": "IAC_IAM_POLICY",
+            "line": 46,
+            "description": "dynamodb:* on all resources (Lambda account_tools's role) — wildcard actions, broad reach"
+          },
+          {
+            "rule_id": "IAC_IAM_POLICY",
+            "line": 46,
+            "description": "secretsmanager:GetSecretValue, ses:SendEmail on all resources (Lambda account_tools's role)"
+          }
+        ],
+        "providers": [
+          "anthropic",
+          "bedrock"
+        ],
+        "frameworks": [],
+        "integrations": [
+          "aws",
+          "ses"
+        ],
+        "capabilities": [
+          "database_read",
+          "database_write",
+          "email_send",
+          "tool_calling"
+        ],
+        "permission_tags": [],
+        "call_sites": {},
+        "last_touched_by": null,
+        "last_commit": null,
+        "codeowners": [],
+        "findings": [
+          {
+            "fingerprint": "15ac449355856721",
+            "rule_id": "DECL001",
+            "title": "Declared autonomy contradicts inferred autonomy",
+            "category": "contradiction",
+            "severity": "critical",
+            "confidence": "high",
+            "path": "aws/account_actions.tf",
+            "line": 12,
+            "column": 1,
+            "snippet": "autonomy_intent='human_approved' vs inferred='unrestricted_autonomous'",
+            "remediation": "This agent was declared recommend-only or human-approved, but the scanner found a side-effecting path with no correlated approval gate. Either add the missing approval control, or correct the declaration.",
+            "suppressed": false,
+            "suppression_reason": null,
+            "is_new": false,
+            "dimensions": [
+              "mandate-overreach",
+              "unreviewed-high-impact-action"
+            ],
+            "message": "Agent `aws_bedrockagent_agent.account_actions` is declared `human_approved`, but the scanner inferred `unrestricted_autonomous` from a side-effecting path with no correlated approval gate. Either the declaration is stale, or the approval control is missing.",
+            "declared_ref": {
+              "path": "stoa-declared.toml",
+              "key": "agents.\"ddb08fa73da1\".autonomy_intent"
+            },
+            "crosswalk": {
+              "owasp_llm_2025": "LLM06",
+              "eu_ai_act": "Art. 14",
+              "relation": "exposure",
+              "so_what": "Declared autonomy does not match what the code does."
+            }
+          }
+        ],
+        "highest_severity": "critical",
+        "dimension_assessment": {
+          "taxonomy": {
+            "id": "stoa-aiuc-8",
+            "version": "2.0"
+          },
+          "dimensions": [
+            {
+              "id": "mandate-overreach",
+              "group": "B",
+              "assessability": "strong",
+              "exposure": "elevated",
+              "score": 76,
+              "score_before_controls": 76,
+              "contributing_findings": [
+                "15ac449355856721"
+              ],
+              "contributing_capabilities": [
+                "database_write",
+                "email_send"
+              ],
+              "controls_observed": [],
+              "statement": "1 finding(s) and 2 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+            },
+            {
+              "id": "boundary-leakage",
+              "group": "A",
+              "assessability": "strong",
+              "exposure": "none-observed",
+              "score": 0,
+              "score_before_controls": 0,
+              "contributing_findings": [],
+              "contributing_capabilities": [],
+              "controls_observed": [],
+              "statement": "No exposure observed in scanned files."
+            },
+            {
+              "id": "unreviewed-high-impact-action",
+              "group": "C",
+              "assessability": "strong",
+              "exposure": "elevated",
+              "score": 76,
+              "score_before_controls": 76,
+              "contributing_findings": [
+                "15ac449355856721"
+              ],
+              "contributing_capabilities": [
+                "database_write",
+                "email_send"
+              ],
+              "controls_observed": [],
+              "statement": "1 finding(s) and 2 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+            },
+            {
+              "id": "output-fidelity",
+              "group": "D",
+              "assessability": "partial",
+              "exposure": "none-observed",
+              "score": 0,
+              "score_before_controls": 0,
+              "contributing_findings": [],
+              "contributing_capabilities": [],
+              "controls_observed": [],
+              "statement": "No exposure observed in scanned files."
+            },
+            {
+              "id": "injection-tamper-surface",
+              "group": "B",
+              "assessability": "partial",
+              "exposure": "none-observed",
+              "score": 0,
+              "score_before_controls": 0,
+              "contributing_findings": [],
+              "contributing_capabilities": [],
+              "controls_observed": [],
+              "statement": "No exposure observed in scanned files."
+            },
+            {
+              "id": "conduct-variability",
+              "group": "D",
+              "assessability": "proxy",
+              "exposure": "none-observed",
+              "score": 0,
+              "score_before_controls": 0,
+              "contributing_findings": [],
+              "contributing_capabilities": [],
+              "controls_observed": [],
+              "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
+            },
+            {
+              "id": "dependency-drift",
+              "group": "D",
+              "assessability": "proxy",
+              "exposure": "low",
+              "score": 8,
+              "score_before_controls": 8,
+              "contributing_findings": [],
+              "contributing_capabilities": [
+                "provider:anthropic"
+              ],
+              "controls_observed": [],
+              "statement": "Proxy signals only: 0 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+            },
+            {
+              "id": "control-coverage-gap",
+              "group": "B",
+              "assessability": "partial",
+              "exposure": "none-observed",
+              "score": 0,
+              "score_before_controls": 0,
+              "contributing_findings": [],
+              "contributing_capabilities": [],
+              "controls_observed": [],
+              "statement": "No exposure observed in scanned files."
+            }
+          ]
+        },
+        "declared": {
+          "name": "meridian-account-actions",
+          "owner": "digital-servicing@meridian.example",
+          "purpose": "Account actions on Bedrock",
+          "users": "customers",
+          "geography": [],
+          "production_status": "production",
+          "autonomy_intent": "human_approved",
+          "data_classes": [
+            "personal",
+            "financial"
+          ],
+          "same_as": [
+            "b8f0111742fc"
+          ]
+        },
+        "autonomy_level": {
+          "level": "unrestricted_autonomous",
+          "signals": [
+            {
+              "signal": "tool:issue_refund",
+              "path": "aws/account_actions.tf",
+              "line": 12
+            },
+            {
+              "signal": "tool:waive_fee",
+              "path": "aws/account_actions.tf",
+              "line": 12
+            },
+            {
+              "signal": "tool:update_contact_info",
+              "path": "aws/account_actions.tf",
+              "line": 12
+            },
+            {
+              "signal": "tool:reissue_card",
+              "path": "aws/account_actions.tf",
+              "line": 12
+            },
+            {
+              "signal": "tool:place_travel_notice",
+              "path": "aws/account_actions.tf",
+              "line": 12
+            },
+            {
+              "signal": "tool:change_payout_account",
+              "path": "aws/account_actions.tf",
+              "line": 12
+            },
+            {
+              "signal": "high_impact_capability",
+              "path": "aws/account_actions.tf",
+              "line": 12
+            }
+          ],
+          "reason": null
+        },
+        "tools": [
+          {
+            "name": "issue_refund",
+            "path": "aws/account_actions.tf",
+            "line": 12,
+            "kind": "bedrock_action_group",
+            "params": [],
+            "capabilities": [
+              "database_read",
+              "database_write",
+              "email_send"
+            ],
+            "integrations": [],
+            "high_impact": true,
+            "money_action": true,
+            "guards": [],
+            "retry": null,
+            "idempotency_key": false,
+            "resolved": false
+          },
+          {
+            "name": "waive_fee",
+            "path": "aws/account_actions.tf",
+            "line": 12,
+            "kind": "bedrock_action_group",
+            "params": [],
+            "capabilities": [
+              "database_read",
+              "database_write",
+              "email_send"
+            ],
+            "integrations": [],
+            "high_impact": true,
+            "money_action": true,
+            "guards": [],
+            "retry": null,
+            "idempotency_key": false,
+            "resolved": false
+          },
+          {
+            "name": "update_contact_info",
+            "path": "aws/account_actions.tf",
+            "line": 12,
+            "kind": "bedrock_action_group",
+            "params": [],
+            "capabilities": [
+              "database_read",
+              "database_write",
+              "email_send"
+            ],
+            "integrations": [],
+            "high_impact": true,
+            "money_action": false,
+            "guards": [],
+            "retry": null,
+            "idempotency_key": false,
+            "resolved": false
+          },
+          {
+            "name": "reissue_card",
+            "path": "aws/account_actions.tf",
+            "line": 12,
+            "kind": "bedrock_action_group",
+            "params": [],
+            "capabilities": [
+              "database_read",
+              "database_write",
+              "email_send"
+            ],
+            "integrations": [],
+            "high_impact": true,
+            "money_action": true,
+            "guards": [],
+            "retry": null,
+            "idempotency_key": false,
+            "resolved": false
+          },
+          {
+            "name": "place_travel_notice",
+            "path": "aws/account_actions.tf",
+            "line": 12,
+            "kind": "bedrock_action_group",
+            "params": [],
+            "capabilities": [
+              "database_read",
+              "database_write",
+              "email_send"
+            ],
+            "integrations": [],
+            "high_impact": true,
+            "money_action": false,
+            "guards": [],
+            "retry": null,
+            "idempotency_key": false,
+            "resolved": false
+          },
+          {
+            "name": "change_payout_account",
+            "path": "aws/account_actions.tf",
+            "line": 12,
+            "kind": "bedrock_action_group",
+            "params": [],
+            "capabilities": [
+              "database_read",
+              "database_write",
+              "email_send"
+            ],
+            "integrations": [],
+            "high_impact": true,
+            "money_action": true,
+            "guards": [],
+            "retry": null,
+            "idempotency_key": false,
+            "resolved": false
+          }
+        ],
+        "source": "iac",
+        "discovery_tier": "recognized",
+        "platform": "bedrock"
+      },
       {
         "id": "62007a57a832",
         "name": "meridian-knowledge",
@@ -1978,9 +2366,7 @@
       }
     ],
     "skipped_files": [],
-    "warnings": [
-      "stoa-declared.toml: risk_register entry 'boundary-leakage/000000000000' names an agent id not found in this scan"
-    ],
+    "warnings": [],
     "dimension_summary": {
       "taxonomy": {
         "id": "stoa-aiuc-8",
@@ -1993,7 +2379,7 @@
           "group": "B",
           "assessability": "strong",
           "max_exposure": "elevated",
-          "agents_elevated": 2,
+          "agents_elevated": 3,
           "agents_moderate": 0,
           "crosswalk": {
             "owasp_llm_2025": [
@@ -2022,8 +2408,8 @@
           "name": "Unreviewed high-impact action",
           "group": "C",
           "assessability": "strong",
-          "max_exposure": "moderate",
-          "agents_elevated": 0,
+          "max_exposure": "elevated",
+          "agents_elevated": 1,
           "agents_moderate": 2,
           "crosswalk": {
             "owasp_llm_2025": [
@@ -2127,30 +2513,6 @@
       ],
       "max_customer_dependency": "high"
     },
-    "risk_register": [
-      {
-        "risk_id": "unreviewed-high-impact-action/b8f0111742fc",
-        "owner": "digital-servicing@meridian.example",
-        "treatment": "mitigate",
-        "rationale": "Dual approval on issue_refund and change_payout_account being added in Q4",
-        "review_by": "2026-12-01",
-        "status": "in_progress"
-      },
-      {
-        "risk_id": "mandate-overreach/bc3db1f17013",
-        "owner": "platform-risk@meridian.example",
-        "treatment": "transfer",
-        "rationale": "Covered under the AI liability submission; evidence pack prepared from this scan",
-        "review_by": "2026-11-15",
-        "status": "open"
-      },
-      {
-        "risk_id": "boundary-leakage/000000000000",
-        "owner": "someone@meridian.example",
-        "treatment": "accept",
-        "rationale": "Stale: this agent was removed two releases ago"
-      }
-    ],
     "crosswalk": {
       "id": "stoa-crosswalk-1",
       "version": "1.0",
@@ -2163,7 +2525,7 @@
     "scanner_version": "0.7.4",
     "base": {
       "registry_schema": "1.8",
-      "commit": "a1b2c3d",
+      "commit": "b7c8d9e",
       "ref": null
     },
     "head": {
@@ -2172,17 +2534,17 @@
       "ref": "HEAD"
     },
     "summary": {
-      "agents_added": 1,
+      "agents_added": 0,
       "agents_removed": 0,
-      "agents_changed": 0,
+      "agents_changed": 1,
       "escalations": {
-        "high": 0,
-        "medium": 0,
+        "high": 3,
+        "medium": 1,
         "low": 0
       },
       "reductions": 0,
       "findings_delta": {
-        "new_critical": 0,
+        "new_critical": 1,
         "new_high": 0,
         "resolved": 0
       },
@@ -2191,28 +2553,83 @@
       "approvals_applied": 0
     },
     "agents": {
-      "added": [
-        {
-          "agent_id": "bc3db1f17013",
-          "name": "support_agent",
-          "path": "code/agents/support_agent.py",
-          "confidence": "high",
-          "capabilities": [
-            "payment_access"
-          ],
-          "integrations": [],
-          "providers": [
-            "openai"
-          ],
-          "drift_severity": "high",
-          "drift_reasons": [
-            "new agent binds high-impact capability payment_access"
-          ],
-          "approved": false
-        }
-      ],
+      "added": [],
       "removed": [],
-      "changed": []
+      "changed": [
+        {
+          "agent_id": "ddb08fa73da1",
+          "name": "meridian-account-actions",
+          "path": "aws/account_actions.tf",
+          "confidence": {
+            "base": "high",
+            "head": "high"
+          },
+          "capabilities": {
+            "added": [
+              {
+                "id": "database_read",
+                "high_impact": false,
+                "drift_severity": "medium",
+                "approved": false
+              },
+              {
+                "id": "database_write",
+                "high_impact": true,
+                "drift_severity": "high",
+                "approved": false
+              },
+              {
+                "id": "email_send",
+                "high_impact": true,
+                "drift_severity": "high",
+                "approved": false
+              }
+            ],
+            "removed": []
+          },
+          "integrations": {
+            "added": [
+              {
+                "id": "ses",
+                "sensitive": true,
+                "drift_severity": "high",
+                "approved": false
+              }
+            ],
+            "removed": []
+          },
+          "providers": {
+            "added": [],
+            "removed": []
+          },
+          "findings_delta": {
+            "new": [
+              {
+                "fingerprint": "15ac449355856721",
+                "rule_id": "DECL001",
+                "severity": "critical",
+                "line": 12
+              }
+            ],
+            "resolved": []
+          },
+          "dimension_delta": [
+            {
+              "id": "mandate-overreach",
+              "from": "none-observed",
+              "to": "elevated",
+              "direction": "increased"
+            },
+            {
+              "id": "unreviewed-high-impact-action",
+              "from": "none-observed",
+              "to": "elevated",
+              "direction": "increased"
+            }
+          ],
+          "drift_severity": "high"
+        }
+      ]
     },
     "approvals": {
       "applied": [],
@@ -2222,10 +2639,10 @@
   },
   "baseline": {
     "name": "meridian-pay",
-    "git_ref": "a1b2c3d",
+    "git_ref": "b7c8d9e",
     "head_commit": {
-      "hash": "a1b2c3d",
-      "date": "2026-07-21T09:12:44+00:00"
+      "hash": "b7c8d9e",
+      "date": "2026-08-18T14:03:10+00:00"
     },
     "scanner_version": "0.7.4",
     "schema_version": "1.8"
@@ -2233,26 +2650,26 @@
   "history": [
     {
       "schema": "stoa-history-entry/1.1",
-      "git_ref": "a1b2c3d",
+      "git_ref": "b7c8d9e",
       "head_commit": {
-        "hash": "a1b2c3d",
-        "date": "2026-07-21T09:12:44+00:00"
+        "hash": "b7c8d9e",
+        "date": "2026-08-18T14:03:10+00:00"
       },
       "scanner_version": "0.7.4",
       "registry_schema_version": "1.8",
-      "agent_candidates": 4,
+      "agent_candidates": 6,
       "findings": {
-        "critical": 1,
+        "critical": 2,
         "high": 1,
-        "medium": 1,
-        "low": 2,
-        "info": 3
+        "medium": 2,
+        "low": 3,
+        "info": 5
       },
       "dimensions": [
         {
           "id": "mandate-overreach",
           "max_exposure": "elevated",
-          "agents_elevated": 1,
+          "agents_elevated": 2,
           "agents_moderate": 0
         },
         {
@@ -2265,7 +2682,7 @@
           "id": "unreviewed-high-impact-action",
           "max_exposure": "moderate",
           "agents_elevated": 0,
-          "agents_moderate": 1
+          "agents_moderate": 2
         },
         {
           "id": "output-fidelity",
@@ -2300,20 +2717,23 @@
       ],
       "agents": [
         {
-          "id": "62007a57a832",
-          "name": "meridian-knowledge",
-          "display_name": "meridian-knowledge",
+          "id": "ddb08fa73da1",
+          "name": "meridian-account-actions",
+          "display_name": "meridian-account-actions",
           "capabilities": [
-            "vector_search"
+            "tool_calling"
           ],
           "tools": [],
           "autonomy_level": {
             "level": "recommend_only"
           },
           "declared": {
-            "data_classes": [],
-            "users": "internal",
-            "autonomy_intent": null
+            "data_classes": [
+              "personal",
+              "financial"
+            ],
+            "users": "customers",
+            "autonomy_intent": "human_approved"
           },
           "dimension_assessment": {
             "dimensions": [
@@ -2339,7 +2759,7 @@
               },
               {
                 "id": "injection-tamper-surface",
-                "score": 18,
+                "score": 0,
                 "controls_observed": []
               },
               {
@@ -2360,336 +2780,6 @@
             ]
           }
         },
-        {
-          "id": "b8f0111742fc",
-          "name": "graph",
-          "display_name": "account_actions_agent·graph",
-          "capabilities": [
-            "payment_access",
-            "tool_calling"
-          ],
-          "tools": [
-            {
-              "name": "issue_refund",
-              "money_action": true,
-              "high_impact": true
-            },
-            {
-              "name": "waive_fee",
-              "money_action": true,
-              "high_impact": true
-            },
-            {
-              "name": "update_contact_info",
-              "money_action": false,
-              "high_impact": false
-            },
-            {
-              "name": "reissue_card",
-              "money_action": true,
-              "high_impact": true
-            },
-            {
-              "name": "place_travel_notice",
-              "money_action": false,
-              "high_impact": false
-            }
-          ],
-          "autonomy_level": {
-            "level": "bounded_autonomous"
-          },
-          "declared": {
-            "economic_authority": {
-              "max_per_action": {
-                "amount": 100,
-                "currency": "USD"
-              },
-              "daily_aggregate": {
-                "amount": 25000,
-                "currency": "USD"
-              },
-              "worst_case_customer_loss": {
-                "amount": 250000,
-                "currency": "USD"
-              }
-            },
-            "data_classes": [
-              "personal",
-              "financial"
-            ],
-            "users": "customers",
-            "autonomy_intent": "human_approved"
-          },
-          "dimension_assessment": {
-            "dimensions": [
-              {
-                "id": "mandate-overreach",
-                "score": 58,
-                "controls_observed": []
-              },
-              {
-                "id": "boundary-leakage",
-                "score": 0,
-                "controls_observed": []
-              },
-              {
-                "id": "unreviewed-high-impact-action",
-                "score": 53,
-                "controls_observed": [
-                  "authentication"
-                ]
-              },
-              {
-                "id": "output-fidelity",
-                "score": 0,
-                "controls_observed": [
-                  "validation"
-                ]
-              },
-              {
-                "id": "injection-tamper-surface",
-                "score": 0,
-                "controls_observed": []
-              },
-              {
-                "id": "conduct-variability",
-                "score": 0,
-                "controls_observed": [
-                  "deterministic_sampling"
-                ]
-              },
-              {
-                "id": "dependency-drift",
-                "score": 10,
-                "controls_observed": []
-              },
-              {
-                "id": "control-coverage-gap",
-                "score": 0,
-                "controls_observed": [
-                  "authentication",
-                  "validation"
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "id": "2a61ffb1db0d",
-          "name": "graph",
-          "display_name": "front_agent·graph",
-          "capabilities": [
-            "cloud_resource_access",
-            "external_http",
-            "tool_calling"
-          ],
-          "tools": [
-            {
-              "name": "verify_identity",
-              "money_action": false,
-              "high_impact": false
-            }
-          ],
-          "autonomy_level": {
-            "level": "recommend_only"
-          },
-          "declared": {
-            "data_classes": [],
-            "users": "customers",
-            "autonomy_intent": null
-          },
-          "dimension_assessment": {
-            "dimensions": [
-              {
-                "id": "mandate-overreach",
-                "score": 0,
-                "controls_observed": [
-                  "approval"
-                ]
-              },
-              {
-                "id": "boundary-leakage",
-                "score": 18,
-                "controls_observed": []
-              },
-              {
-                "id": "unreviewed-high-impact-action",
-                "score": 0,
-                "controls_observed": [
-                  "approval",
-                  "authentication"
-                ]
-              },
-              {
-                "id": "output-fidelity",
-                "score": 0,
-                "controls_observed": [
-                  "validation"
-                ]
-              },
-              {
-                "id": "injection-tamper-surface",
-                "score": 0,
-                "controls_observed": []
-              },
-              {
-                "id": "conduct-variability",
-                "score": 0,
-                "controls_observed": [
-                  "deterministic_sampling"
-                ]
-              },
-              {
-                "id": "dependency-drift",
-                "score": 10,
-                "controls_observed": []
-              },
-              {
-                "id": "control-coverage-gap",
-                "score": 0,
-                "controls_observed": [
-                  "authentication",
-                  "validation"
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "id": "224627e4877d",
-          "name": "meridian-escalation",
-          "display_name": "meridian-escalation",
-          "capabilities": [
-            "database_read",
-            "database_write"
-          ],
-          "tools": [],
-          "autonomy_level": {
-            "level": "recommend_only"
-          },
-          "declared": {
-            "data_classes": [],
-            "users": "internal",
-            "autonomy_intent": null
-          },
-          "dimension_assessment": {
-            "dimensions": [
-              {
-                "id": "mandate-overreach",
-                "score": 18,
-                "controls_observed": []
-              },
-              {
-                "id": "boundary-leakage",
-                "score": 0,
-                "controls_observed": []
-              },
-              {
-                "id": "unreviewed-high-impact-action",
-                "score": 18,
-                "controls_observed": []
-              },
-              {
-                "id": "output-fidelity",
-                "score": 0,
-                "controls_observed": []
-              },
-              {
-                "id": "injection-tamper-surface",
-                "score": 0,
-                "controls_observed": []
-              },
-              {
-                "id": "conduct-variability",
-                "score": 0,
-                "controls_observed": []
-              },
-              {
-                "id": "dependency-drift",
-                "score": 0,
-                "controls_observed": []
-              },
-              {
-                "id": "control-coverage-gap",
-                "score": 0,
-                "controls_observed": [
-                  "observability",
-                  "rate_limit"
-                ]
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "schema": "stoa-history-entry/1.1",
-      "git_ref": "b7c8d9e",
-      "head_commit": {
-        "hash": "b7c8d9e",
-        "date": "2026-08-18T14:03:10+00:00"
-      },
-      "scanner_version": "0.7.4",
-      "registry_schema_version": "1.8",
-      "agent_candidates": 4,
-      "findings": {
-        "critical": 1,
-        "high": 1,
-        "medium": 1,
-        "low": 2,
-        "info": 3
-      },
-      "dimensions": [
-        {
-          "id": "mandate-overreach",
-          "max_exposure": "elevated",
-          "agents_elevated": 1,
-          "agents_moderate": 0
-        },
-        {
-          "id": "boundary-leakage",
-          "max_exposure": "low",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        },
-        {
-          "id": "unreviewed-high-impact-action",
-          "max_exposure": "moderate",
-          "agents_elevated": 0,
-          "agents_moderate": 1
-        },
-        {
-          "id": "output-fidelity",
-          "max_exposure": "none-observed",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        },
-        {
-          "id": "injection-tamper-surface",
-          "max_exposure": "low",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        },
-        {
-          "id": "conduct-variability",
-          "max_exposure": "none-observed",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        },
-        {
-          "id": "dependency-drift",
-          "max_exposure": "low",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        },
-        {
-          "id": "control-coverage-gap",
-          "max_exposure": "none-observed",
-          "agents_elevated": 0,
-          "agents_moderate": 0
-        }
-      ],
-      "agents": [
         {
           "id": "62007a57a832",
           "name": "meridian-knowledge",
@@ -2792,12 +2882,12 @@
             }
           ],
           "autonomy_level": {
-            "level": "bounded_autonomous"
+            "level": "unrestricted_autonomous"
           },
           "declared": {
             "economic_authority": {
               "max_per_action": {
-                "amount": 250,
+                "amount": 500,
                 "currency": "USD"
               },
               "daily_aggregate": {
@@ -2913,6 +3003,110 @@
                 "score": 0,
                 "controls_observed": [
                   "approval",
+                  "authentication"
+                ]
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": [
+                  "validation"
+                ]
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": [
+                  "deterministic_sampling"
+                ]
+              },
+              {
+                "id": "dependency-drift",
+                "score": 10,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 0,
+                "controls_observed": [
+                  "authentication",
+                  "validation"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "bc3db1f17013",
+          "name": "support_agent",
+          "display_name": "support_agent",
+          "capabilities": [
+            "payment_access"
+          ],
+          "tools": [
+            {
+              "name": "issue_refund",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "waive_fee",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "update_contact_info",
+              "money_action": false,
+              "high_impact": false
+            },
+            {
+              "name": "reissue_card",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "place_travel_notice",
+              "money_action": false,
+              "high_impact": false
+            },
+            {
+              "name": "change_payout_account",
+              "money_action": true,
+              "high_impact": true
+            }
+          ],
+          "autonomy_level": {
+            "level": "unrestricted_autonomous"
+          },
+          "declared": {
+            "data_classes": [
+              "personal",
+              "financial"
+            ],
+            "users": "customers",
+            "autonomy_intent": "human_approved"
+          },
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 58,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 53,
+                "controls_observed": [
                   "authentication"
                 ]
               },
@@ -3027,9 +3221,9 @@
       },
       "scanner_version": "0.7.4",
       "registry_schema_version": "1.8",
-      "agent_candidates": 5,
+      "agent_candidates": 6,
       "findings": {
-        "critical": 2,
+        "critical": 3,
         "high": 1,
         "medium": 2,
         "low": 3,
@@ -3039,7 +3233,7 @@
         {
           "id": "mandate-overreach",
           "max_exposure": "elevated",
-          "agents_elevated": 2,
+          "agents_elevated": 3,
           "agents_moderate": 0
         },
         {
@@ -3050,8 +3244,8 @@
         },
         {
           "id": "unreviewed-high-impact-action",
-          "max_exposure": "moderate",
-          "agents_elevated": 0,
+          "max_exposure": "elevated",
+          "agents_elevated": 1,
           "agents_moderate": 2
         },
         {
@@ -3086,6 +3280,104 @@
         }
       ],
       "agents": [
+        {
+          "id": "ddb08fa73da1",
+          "name": "meridian-account-actions",
+          "display_name": "meridian-account-actions",
+          "capabilities": [
+            "database_read",
+            "database_write",
+            "email_send",
+            "tool_calling"
+          ],
+          "tools": [
+            {
+              "name": "issue_refund",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "waive_fee",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "update_contact_info",
+              "money_action": false,
+              "high_impact": true
+            },
+            {
+              "name": "reissue_card",
+              "money_action": true,
+              "high_impact": true
+            },
+            {
+              "name": "place_travel_notice",
+              "money_action": false,
+              "high_impact": true
+            },
+            {
+              "name": "change_payout_account",
+              "money_action": true,
+              "high_impact": true
+            }
+          ],
+          "autonomy_level": {
+            "level": "unrestricted_autonomous"
+          },
+          "declared": {
+            "data_classes": [
+              "personal",
+              "financial"
+            ],
+            "users": "customers",
+            "autonomy_intent": "human_approved"
+          },
+          "dimension_assessment": {
+            "dimensions": [
+              {
+                "id": "mandate-overreach",
+                "score": 76,
+                "controls_observed": []
+              },
+              {
+                "id": "boundary-leakage",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "unreviewed-high-impact-action",
+                "score": 76,
+                "controls_observed": []
+              },
+              {
+                "id": "output-fidelity",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "injection-tamper-surface",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "conduct-variability",
+                "score": 0,
+                "controls_observed": []
+              },
+              {
+                "id": "dependency-drift",
+                "score": 8,
+                "controls_observed": []
+              },
+              {
+                "id": "control-coverage-gap",
+                "score": 0,
+                "controls_observed": []
+              }
+            ]
+          }
+        },
         {
           "id": "62007a57a832",
           "name": "meridian-knowledge",
@@ -3521,6 +3813,36 @@
   ],
   "register": [
     {
+      "risk_id": "mandate-overreach/ddb08fa73da1",
+      "source": "scanned",
+      "dimension_id": "mandate-overreach",
+      "dimension_name": "Mandate overreach",
+      "group": "B",
+      "assessability": "strong",
+      "agent_id": "ddb08fa73da1",
+      "agent_name": "meridian-account-actions",
+      "agent_path": "aws/account_actions.tf",
+      "inherent": {
+        "score": 76,
+        "level": "elevated"
+      },
+      "residual": {
+        "score": 76,
+        "level": "elevated"
+      },
+      "controls_observed": [],
+      "contributing_findings": [
+        "15ac449355856721"
+      ],
+      "contributing_capabilities": [
+        "database_write",
+        "email_send"
+      ],
+      "statement": "1 finding(s) and 2 capability signal(s) contribute exposure; no mitigating control observed in scanned files.",
+      "declared": null,
+      "unmatched": false
+    },
+    {
       "risk_id": "mandate-overreach/b8f0111742fc",
       "source": "scanned",
       "dimension_id": "mandate-overreach",
@@ -3575,14 +3897,37 @@
         "payment_access"
       ],
       "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files.",
-      "declared": {
-        "risk_id": "mandate-overreach/bc3db1f17013",
-        "owner": "platform-risk@meridian.example",
-        "treatment": "transfer",
-        "rationale": "Covered under the AI liability submission; evidence pack prepared from this scan",
-        "review_by": "2026-11-15",
-        "status": "open"
+      "declared": null,
+      "unmatched": false
+    },
+    {
+      "risk_id": "unreviewed-high-impact-action/ddb08fa73da1",
+      "source": "scanned",
+      "dimension_id": "unreviewed-high-impact-action",
+      "dimension_name": "Unreviewed high-impact action",
+      "group": "C",
+      "assessability": "strong",
+      "agent_id": "ddb08fa73da1",
+      "agent_name": "meridian-account-actions",
+      "agent_path": "aws/account_actions.tf",
+      "inherent": {
+        "score": 76,
+        "level": "elevated"
       },
+      "residual": {
+        "score": 76,
+        "level": "elevated"
+      },
+      "controls_observed": [],
+      "contributing_findings": [
+        "15ac449355856721"
+      ],
+      "contributing_capabilities": [
+        "database_write",
+        "email_send"
+      ],
+      "statement": "1 finding(s) and 2 capability signal(s) contribute exposure; no mitigating control observed in scanned files.",
+      "declared": null,
       "unmatched": false
     },
     {
@@ -3614,14 +3959,7 @@
         "payment_access"
       ],
       "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; 1 mitigating control(s) observed.",
-      "declared": {
-        "risk_id": "unreviewed-high-impact-action/b8f0111742fc",
-        "owner": "digital-servicing@meridian.example",
-        "treatment": "mitigate",
-        "rationale": "Dual approval on issue_refund and change_payout_account being added in Q4",
-        "review_by": "2026-12-01",
-        "status": "in_progress"
-      },
+      "declared": null,
       "unmatched": false
     },
     {
@@ -3655,30 +3993,6 @@
       "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; 1 mitigating control(s) observed.",
       "declared": null,
       "unmatched": false
-    },
-    {
-      "risk_id": "boundary-leakage/000000000000",
-      "source": "declared",
-      "dimension_id": "boundary-leakage",
-      "dimension_name": "Boundary leakage",
-      "group": "",
-      "assessability": "",
-      "agent_id": "000000000000",
-      "agent_name": null,
-      "agent_path": null,
-      "inherent": null,
-      "residual": null,
-      "controls_observed": [],
-      "contributing_findings": [],
-      "contributing_capabilities": [],
-      "statement": "Declared, but no scored exposure at moderate or above matches this risk id in the current scan.",
-      "declared": {
-        "risk_id": "boundary-leakage/000000000000",
-        "owner": "someone@meridian.example",
-        "treatment": "accept",
-        "rationale": "Stale: this agent was removed two releases ago"
-      },
-      "unmatched": true
     }
   ],
   "unique_agents": [
@@ -3693,9 +4007,17 @@
           "label": "Defined in code",
           "path": "code/agents/account_actions_agent.py",
           "symbol": "graph"
+        },
+        {
+          "agent_id": "ddb08fa73da1",
+          "kind": "infrastructure",
+          "platform": "bedrock",
+          "label": "Deployed on AWS",
+          "path": "aws/account_actions.tf",
+          "symbol": "aws_bedrockagent_agent.account_actions"
         }
       ],
-      "linked_by": null
+      "linked_by": "declared"
     },
     {
       "id": "224627e4877d",
@@ -3962,6 +4284,34 @@
         ]
       },
       {
+        "id": "ddb08fa73da1",
+        "type": "agent",
+        "label": "meridian-account-actions",
+        "dimension_scores": {
+          "mandate-overreach": 76,
+          "boundary-leakage": 0,
+          "unreviewed-high-impact-action": 76,
+          "output-fidelity": 0,
+          "injection-tamper-surface": 0,
+          "conduct-variability": 0,
+          "dependency-drift": 8,
+          "control-coverage-gap": 0
+        },
+        "display_severity": "critical",
+        "path": "aws/account_actions.tf",
+        "symbol": "aws_bedrockagent_agent.account_actions",
+        "autonomy_level": "unrestricted_autonomous",
+        "findings": [
+          {
+            "rule_id": "DECL001",
+            "severity": "critical",
+            "path": "aws/account_actions.tf",
+            "line": 12,
+            "message": "Agent `aws_bedrockagent_agent.account_actions` is declared `human_approved`, but the scanner inferred `unrestricted_autonomous` from a side-effecting path with no correlated approval gate. Either the declaration is stale, or the approval control is missing."
+          }
+        ]
+      },
+      {
         "id": "resource_cloud_resource_access",
         "type": "resource",
         "label": "Cloud resource access",
@@ -3987,6 +4337,17 @@
         "id": "resource_database_write",
         "type": "resource",
         "label": "Database write",
+        "dimension_scores": {},
+        "display_severity": null,
+        "path": null,
+        "symbol": null,
+        "autonomy_level": null,
+        "findings": []
+      },
+      {
+        "id": "resource_email_send",
+        "type": "resource",
+        "label": "Email send",
         "dimension_scores": {},
         "display_severity": null,
         "path": null,
@@ -4077,6 +4438,17 @@
         "label": "openai",
         "dimension_scores": {},
         "display_severity": "low",
+        "path": null,
+        "symbol": null,
+        "autonomy_level": null,
+        "findings": []
+      },
+      {
+        "id": "tool_ses",
+        "type": "tool",
+        "label": "ses",
+        "dimension_scores": {},
+        "display_severity": null,
         "path": null,
         "symbol": null,
         "autonomy_level": null,
@@ -4276,6 +4648,69 @@
             "message": "Model string `gpt-4o` (line 16) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
           }
         ]
+      },
+      {
+        "source": "ddb08fa73da1",
+        "target": "resource_database_read",
+        "kind": "reads",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "ddb08fa73da1",
+        "target": "resource_database_write",
+        "kind": "writes",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "ddb08fa73da1",
+        "target": "resource_email_send",
+        "kind": "network",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "ddb08fa73da1",
+        "target": "tool_anthropic",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "ddb08fa73da1",
+        "target": "tool_aws",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "ddb08fa73da1",
+        "target": "tool_bedrock",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "ddb08fa73da1",
+        "target": "tool_ses",
+        "kind": "tool_call",
+        "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
       }
     ]
   },
@@ -4287,17 +4722,29 @@
       "scan_timestamp": "2026-09-15T16:45:02+00:00",
       "stoa_version": "0.7.4",
       "registry_schema_version": "1.8",
-      "agent_count": 5,
+      "agent_count": 6,
       "findings_by_severity": {
-        "critical": 2,
+        "critical": 3,
         "high": 1,
         "medium": 2,
         "low": 3,
         "info": 5
       },
-      "contradiction_count": 6
+      "contradiction_count": 7
     },
     "contradictions": [
+      {
+        "rule_id": "DECL001",
+        "severity": "critical",
+        "title": "Declared autonomy contradicts inferred autonomy",
+        "path": "aws/account_actions.tf",
+        "line": 12,
+        "declared_ref": {
+          "path": "stoa-declared.toml",
+          "key": "agents.\"ddb08fa73da1\".autonomy_intent"
+        },
+        "message": "Agent `aws_bedrockagent_agent.account_actions` is declared `human_approved`, but the scanner inferred `unrestricted_autonomous` from a side-effecting path with no correlated approval gate. Either the declaration is stale, or the approval control is missing."
+      },
       {
         "rule_id": "DECL001",
         "severity": "critical",
@@ -4377,6 +4824,70 @@
         "area_name": "AI inventory",
         "layers": "scanned + declared",
         "agents": [
+          {
+            "agent_id": "ddb08fa73da1",
+            "name": "meridian-account-actions",
+            "fields": {
+              "model": {
+                "field": "model",
+                "status": "scanned",
+                "evidence": {
+                  "path": "aws/account_actions.tf",
+                  "line": 6
+                }
+              },
+              "agent": {
+                "field": "agent",
+                "status": "scanned",
+                "evidence": {
+                  "path": "aws/account_actions.tf",
+                  "line": 6
+                }
+              },
+              "version": {
+                "field": "version",
+                "status": "not_provided",
+                "evidence": null
+              },
+              "owner": {
+                "field": "owner",
+                "status": "declared",
+                "evidence": {
+                  "path": "stoa-declared.toml",
+                  "key": "agents.\"ddb08fa73da1\".owner"
+                }
+              },
+              "purpose": {
+                "field": "purpose",
+                "status": "declared",
+                "evidence": {
+                  "path": "stoa-declared.toml",
+                  "key": "agents.\"ddb08fa73da1\".purpose"
+                }
+              },
+              "users": {
+                "field": "users",
+                "status": "declared",
+                "evidence": {
+                  "path": "stoa-declared.toml",
+                  "key": "agents.\"ddb08fa73da1\".users"
+                }
+              },
+              "geography": {
+                "field": "geography",
+                "status": "not_provided",
+                "evidence": null
+              },
+              "production_status": {
+                "field": "production_status",
+                "status": "declared",
+                "evidence": {
+                  "path": "stoa-declared.toml",
+                  "key": "agents.\"ddb08fa73da1\".production_status"
+                }
+              }
+            }
+          },
           {
             "agent_id": "62007a57a832",
             "name": "meridian-knowledge",
@@ -4705,6 +5216,25 @@
         "layers": "scanned + declared",
         "agents": [
           {
+            "agent_id": "ddb08fa73da1",
+            "name": "meridian-account-actions",
+            "fields": {
+              "declared_data_classes": {
+                "field": "data_classes",
+                "status": "declared",
+                "evidence": {
+                  "path": "stoa-declared.toml",
+                  "key": "agents.\"ddb08fa73da1\".data_classes"
+                }
+              },
+              "scanned_authentication_evidence": {
+                "field": "scanned_authentication_evidence",
+                "status": "not_provided",
+                "evidence": null
+              }
+            }
+          },
+          {
             "agent_id": "62007a57a832",
             "name": "meridian-knowledge",
             "fields": {
@@ -4797,6 +5327,26 @@
         "area_name": "Permissions",
         "layers": "scanned",
         "agents": [
+          {
+            "agent_id": "ddb08fa73da1",
+            "name": "meridian-account-actions",
+            "fields": {
+              "permissions": {
+                "field": "permissions",
+                "status": "scanned",
+                "evidence": {
+                  "path": "aws/account_actions.tf",
+                  "line": 6,
+                  "value": [
+                    "database_read",
+                    "database_write",
+                    "email_send",
+                    "tool_calling"
+                  ]
+                }
+              }
+            }
+          },
           {
             "agent_id": "62007a57a832",
             "name": "meridian-knowledge",
@@ -4893,6 +5443,36 @@
         "area_name": "Dependencies",
         "layers": "scanned",
         "agents": [
+          {
+            "agent_id": "ddb08fa73da1",
+            "name": "meridian-account-actions",
+            "fields": {
+              "foundation_models": {
+                "field": "foundation_models",
+                "status": "scanned",
+                "evidence": {
+                  "path": "aws/account_actions.tf",
+                  "line": 6,
+                  "value": [
+                    "anthropic",
+                    "bedrock"
+                  ]
+                }
+              },
+              "external_tools_and_apis": {
+                "field": "external_tools_and_apis",
+                "status": "scanned",
+                "evidence": {
+                  "path": "aws/account_actions.tf",
+                  "line": 6,
+                  "value": [
+                    "aws",
+                    "ses"
+                  ]
+                }
+              }
+            }
+          },
           {
             "agent_id": "62007a57a832",
             "name": "meridian-knowledge",
@@ -5026,6 +5606,61 @@
         "area_name": "Technical controls",
         "layers": "scanned",
         "agents": [
+          {
+            "agent_id": "ddb08fa73da1",
+            "name": "meridian-account-actions",
+            "fields": {
+              "authentication": {
+                "field": "authentication",
+                "status": "scanned",
+                "evidence": {
+                  "note": "no gap finding for this control"
+                }
+              },
+              "input_validation": {
+                "field": "input_validation",
+                "status": "scanned",
+                "evidence": {
+                  "note": "no gap finding for this control"
+                }
+              },
+              "rate_limits": {
+                "field": "rate_limits",
+                "status": "scanned",
+                "evidence": {
+                  "note": "no gap finding for this control"
+                }
+              },
+              "observability": {
+                "field": "observability",
+                "status": "scanned",
+                "evidence": {
+                  "note": "no gap finding for this control"
+                }
+              },
+              "loop_rate_limiting": {
+                "field": "loop_rate_limiting",
+                "status": "scanned",
+                "evidence": {
+                  "note": "no gap finding for this control"
+                }
+              },
+              "sandboxing": {
+                "field": "sandboxing",
+                "status": "scanned",
+                "evidence": {
+                  "note": "no gap finding for this control"
+                }
+              },
+              "kill_switch": {
+                "field": "kill_switch",
+                "status": "scanned",
+                "evidence": {
+                  "note": "no gap finding for this control"
+                }
+              }
+            }
+          },
           {
             "agent_id": "62007a57a832",
             "name": "meridian-knowledge",
@@ -5331,6 +5966,64 @@
         "layers": "scanned (inferred) + declared (intent)",
         "agents": [
           {
+            "agent_id": "ddb08fa73da1",
+            "name": "meridian-account-actions",
+            "fields": {
+              "inferred_level": {
+                "field": "inferred_level",
+                "status": "scanned",
+                "evidence": {
+                  "value": "unrestricted_autonomous",
+                  "signals": [
+                    {
+                      "signal": "tool:issue_refund",
+                      "path": "aws/account_actions.tf",
+                      "line": 12
+                    },
+                    {
+                      "signal": "tool:waive_fee",
+                      "path": "aws/account_actions.tf",
+                      "line": 12
+                    },
+                    {
+                      "signal": "tool:update_contact_info",
+                      "path": "aws/account_actions.tf",
+                      "line": 12
+                    },
+                    {
+                      "signal": "tool:reissue_card",
+                      "path": "aws/account_actions.tf",
+                      "line": 12
+                    },
+                    {
+                      "signal": "tool:place_travel_notice",
+                      "path": "aws/account_actions.tf",
+                      "line": 12
+                    },
+                    {
+                      "signal": "tool:change_payout_account",
+                      "path": "aws/account_actions.tf",
+                      "line": 12
+                    },
+                    {
+                      "signal": "high_impact_capability",
+                      "path": "aws/account_actions.tf",
+                      "line": 12
+                    }
+                  ]
+                }
+              },
+              "declared_intent": {
+                "field": "autonomy_intent",
+                "status": "declared",
+                "evidence": {
+                  "path": "stoa-declared.toml",
+                  "key": "agents.\"ddb08fa73da1\".autonomy_intent"
+                }
+              }
+            }
+          },
+          {
             "agent_id": "62007a57a832",
             "name": "meridian-knowledge",
             "fields": {
@@ -5507,6 +6200,36 @@
         "area_name": "Reliability scores",
         "layers": "scanned",
         "agents": [
+          {
+            "agent_id": "ddb08fa73da1",
+            "name": "meridian-account-actions",
+            "fields": {
+              "output-fidelity": {
+                "field": "output-fidelity",
+                "status": "scanned",
+                "evidence": {
+                  "value": "none-observed",
+                  "score": 0
+                }
+              },
+              "conduct-variability": {
+                "field": "conduct-variability",
+                "status": "scanned",
+                "evidence": {
+                  "value": "none-observed",
+                  "score": 0
+                }
+              },
+              "dependency-drift": {
+                "field": "dependency-drift",
+                "status": "scanned",
+                "evidence": {
+                  "value": "low",
+                  "score": 8
+                }
+              }
+            }
+          },
           {
             "agent_id": "62007a57a832",
             "name": "meridian-knowledge",
@@ -5694,6 +6417,17 @@
         ],
         "agents": [
           {
+            "agent_id": "ddb08fa73da1",
+            "name": "meridian-account-actions",
+            "fields": {
+              "observability": {
+                "field": "observability",
+                "status": "scanned",
+                "evidence": null
+              }
+            }
+          },
+          {
             "agent_id": "62007a57a832",
             "name": "meridian-knowledge",
             "fields": {
@@ -5879,8 +6613,8 @@
     }
   },
   "underwriting": {
-    "agent_count": 5,
-    "critical_count": 4,
+    "agent_count": 6,
+    "critical_count": 5,
     "robustness": false,
     "code_quality": true,
     "monitoring": false,
@@ -5888,10 +6622,11 @@
     "has_declarations": true,
     "econ_findings": [],
     "elevated_dims": [
-      "Mandate overreach"
+      "Mandate overreach",
+      "Unreviewed high-impact action"
     ],
-    "limit": "US$ 10,000,000",
-    "deductible": "US$ 50,000",
+    "limit": "US$ 25,000,000",
+    "deductible": "US$ 100,000",
     "trigger": "Unexpected High Number of Errors above the Exhibit B threshold in the covered model's decisions"
   },
   "assessment": {
@@ -5994,14 +6729,14 @@
           {
             "key": "inventory",
             "label": "Agent inventory scanned",
-            "value": "5 agent candidate(s)",
+            "value": "6 agent candidate(s)",
             "source": "scan",
             "note": ""
           },
           {
             "key": "critical",
             "label": "Critical findings at development time",
-            "value": "4",
+            "value": "5",
             "source": "scan",
             "note": ""
           }
@@ -6072,7 +6807,7 @@
       {
         "key": "elevated_dims",
         "label": "Elevated-exposure dimensions",
-        "value": "Mandate overreach",
+        "value": "Mandate overreach, Unreviewed high-impact action",
         "source": "scan",
         "note": ""
       },
@@ -6086,14 +6821,14 @@
       {
         "key": "policy_limit",
         "label": "Policy limit (aggregate)",
-        "value": "US$ 10,000,000",
+        "value": "US$ 25,000,000",
         "source": "indicative",
         "note": ""
       },
       {
         "key": "sublimit_own_losses",
         "label": "Sublimit: own financial losses",
-        "value": "US$ 10,000,000",
+        "value": "US$ 25,000,000",
         "source": "indicative",
         "note": ""
       },
@@ -6107,7 +6842,7 @@
       {
         "key": "aggregate_deductible",
         "label": "Aggregate deductible",
-        "value": "US$ 50,000",
+        "value": "US$ 100,000",
         "source": "indicative",
         "note": ""
       },
@@ -6144,8 +6879,8 @@
       "total": 23
     },
     "derived": {
-      "agent_count": 5,
-      "critical_count": 4,
+      "agent_count": 6,
+      "critical_count": 5,
       "robustness": false,
       "code_quality": true,
       "monitoring": false,
@@ -6153,10 +6888,11 @@
       "has_declarations": true,
       "econ_findings": [],
       "elevated_dims": [
-        "Mandate overreach"
+        "Mandate overreach",
+        "Unreviewed high-impact action"
       ],
-      "limit": "US$ 10,000,000",
-      "deductible": "US$ 50,000",
+      "limit": "US$ 25,000,000",
+      "deductible": "US$ 100,000",
       "trigger": "Unexpected High Number of Errors above the Exhibit B threshold in the covered model's decisions"
     }
   },

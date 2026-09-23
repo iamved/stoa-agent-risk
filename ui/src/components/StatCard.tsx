@@ -15,5 +15,5 @@ export function StatCard({ label, value, detail, href, tone = "neutral", icon }:
       </div>
     </div>
   );
-  return href ? <a href={href} className="block rounded-xl no-underline">{body}</a> : body;
+  return href ? <a href={href} className="block rounded-lg no-underline">{body}</a> : body;
 }
