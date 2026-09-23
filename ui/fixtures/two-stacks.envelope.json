@@ -6907,6 +6907,7 @@
     "regulated": true,
     "minors": false,
     "monthly_action_volume": 200000,
+    "risk_capacity": 4000000,
     "existing_coverage": [
       {
         "type": "cyber",

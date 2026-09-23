@@ -41,6 +41,7 @@
 # regulated             = false
 # minors                = false      # serves users under 18
 # monthly_action_volume = 0          # actions your agents take per month
+# risk_capacity         = 0          # the most you will carry from one AI failure in a year; drawn on the loss trend
 
 # Policies already in force. Repeat once per policy.
 # [[intake.existing_coverage]]

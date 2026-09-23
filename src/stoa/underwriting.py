@@ -148,7 +148,7 @@ def _default_identity(document: dict, repo: str) -> dict:
     }
 
 
-_INTAKE_KEYS = ("revenue", "sector", "jurisdictions", "records", "regulated", "minors", "monthly_action_volume")
+_INTAKE_KEYS = ("revenue", "sector", "jurisdictions", "records", "regulated", "minors", "monthly_action_volume", "risk_capacity")
 
 
 def load_intake(path: Path) -> dict | None:

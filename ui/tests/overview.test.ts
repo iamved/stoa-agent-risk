@@ -5,9 +5,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { Envelope } from "../src/data/types";
-import { attention, attentionStatus, attentionTitle, audienceLine, costOutlook, elevatedDimensions, highLines, holdings, joinWords, moneyMovers, newHighLine, newestAgent, nextAction, otherDimensionsLine, protection, protectionCard, registerCard, scanSaw, scanSources, sentenceText, spanWords, standing, whatChanged, whyItMatters } from "../src/data/overview";
+import { SPECTRUM_BANDS, agentSpectrum, attention, attentionStatus, attentionTitle, audienceLine, costOutlook, elevatedDimensions, highLines, holdings, joinWords, moneyMovers, newHighLine, newestAgent, nextAction, otherDimensionsLine, protection, registerCard, scanSaw, scanSources, sentenceText, spanWords, standing, whatChanged, whyItMatters } from "../src/data/overview";
 import { PLAIN_ACTION, PLAIN_TITLE, PLAIN_WHY } from "../src/data/labels";
-import { safeguardCoverage, safeguardTotals } from "../src/data/controls";
 import { toolRows } from "../src/data/inventory";
 import { activeFindings, countByLevel } from "../src/data/selectors";
 
@@ -54,21 +53,25 @@ describe("what we have and whether it is protected", () => {
     expect(protection(guarded).moneyToolsWithoutGuardrail).toBe(7);
   });
 
-  it("scores the same safeguards the Controls screen counts", () => {
-    const card = protectionCard(demo);
-    expect(card.scorecard.map((c) => c.short)).toEqual(["Kill switch", "Logging", "Rate limiting", "Input validation"]);
-    const controls = safeguardCoverage(demo);
-    for (const row of card.scorecard) expect(controls.find((c) => c.id === row.id)).toMatchObject({ detected: row.detected, applicable: row.applicable });
-    expect(card.scorecard.find((c) => c.id === "kill_switch")).toMatchObject({ detected: 0, applicable: 5 });
-    // The money movers with the fewest safeguards detected. Both have the same three.
-    expect(card.least).toEqual({ agents: ["account-actions", "meridian-support"], detected: 3, of: 6 });
-    expect(card.moneyToolsWithoutGuardrail).toBe(safeguardTotals(demo).moneyToolsWithoutGuardrail);
-    expect(card.doublePostFingerprint).toBe(activeFindings(demo).find((r) => r.finding.rule_id === "AI008")!.finding.fingerprint);
-    expect(protectionCard(empty).least).toBeNull();
-  });
 });
 
 describe("risk mapping", () => {
+  it("places every agent on the spectrum by its highest dimension score, the new one marked", () => {
+    const rows = agentSpectrum(demo);
+    expect(rows.map((r) => [r.name, r.score, r.level, r.isNew])).toEqual([
+      ["meridian-support", 58, "elevated", true],
+      ["account-actions", 58, "elevated", false],
+      ["meridian-escalation", 18, "low", false],
+      ["meridian-front", 18, "low", false],
+      ["meridian-knowledge", 18, "low", false],
+    ]);
+    // The scanner's own buckets, so the bands on the line are where its levels change.
+    expect(SPECTRUM_BANDS).toEqual({ moderate: 25, elevated: 55 });
+    for (const r of rows) expect(r.score).toBe(Math.max(...demo.registry.agents.filter((a) => a.id === r.id).flatMap((a) => a.dimension_assessment!.dimensions.map((d) => d.score))));
+    expect(agentSpectrum(firstRun).every((r) => !r.isNew)).toBe(true);
+    expect(agentSpectrum(empty)).toEqual([]);
+  });
+
   it("lists each high-severity finding once, naming its agents", () => {
     const lines = highLines(demo);
     expect(lines).toHaveLength(countByLevel(activeFindings(demo)).high);
@@ -87,7 +90,14 @@ describe("what it could cost", () => {
     const cost = costOutlook(demo, 4000)!;
     expect(cost.badYear).toBeGreaterThan(cost.averageYear);
     expect(cost.averageYear).toBeGreaterThan(0);
-    expect(cost).toMatchObject({ covered: 0, excluding: ["cyber"], policies: 1, limits: [{ label: "cyber policy limit", limit: 5e6, aiExcluded: true }] });
+    expect(cost).toMatchObject({ covered: 0, excluding: ["cyber"], policies: 1, limits: [{ label: "cyber policy limit", limit: 5e6, aiExcluded: true }], capacity: 4e6 });
+    // At the full simulation length (what the screens run) the bad year now sits above the declared risk capacity; the earlier scans did not.
+    const full = costOutlook(demo)!;
+    expect(full.trend[0]!.badYear).toBeLessThan(full.capacity!);
+    expect(full.badYear).toBeGreaterThan(full.capacity!);
+    const undeclared = structuredClone(demo);
+    delete undeclared.intake!.risk_capacity;
+    expect(costOutlook(undeclared, 2000)!.capacity).toBeNull();
     expect(cost.agent).toBe("account-actions");
     // The trend: one point per past scan, ending at today's figure, and it rose when the cap came off and the chatbot arrived.
     expect(cost.trend.map((p) => p.ref)).toEqual(["a1b2c3d", "b7c8d9e", "e4f5a6b"]);
@@ -221,19 +231,24 @@ describe("what changed", () => {
 describe("where you stand", () => {
   const text = (env: Envelope, years?: number) => standing(env, costOutlook(env, years)).map(sentenceText).join(" ");
 
-  it("tells the rise, the push and its causes from the trend and the history", () => {
+  it("is one sentence: the rise, the push and what went live", () => {
     const t = text(demo, 4000);
-    expect(t).toMatch(/^Modeled loss in a bad year has risen from \$[\d.]+[kM] to \$[\d.]+[kM] in two months, driven by one push in September: meridian-support went live and the amount cap on account-actions came off\. /);
-    expect(t).toContain("2 agents can move money on their own, and no human approval was detected on either.");
-    expect(t).not.toContain("changed since the last scan");
+    expect(t).toMatch(/^Modeled loss in a bad year has risen from \$[\d.]+[kM] to \$[\d.]+[kM] in two months, driven by one push in September: meridian-support went live\.$/);
   });
 
-  it("says less when the line did not move", () => {
+  it("says less when the line did not move, or nothing went live", () => {
     const flat = structuredClone(demo);
     flat.history = flat.history.slice(-1);
-    expect(text(flat, 2000)).toMatch(/^Modeled loss in a bad year is \$[\d.]+[kM]\. 2 agents/);
-    // Two-stacks: the AWS record gained its action group, so the line rose; nothing went live and no cap came off, so no cause is named.
-    expect(text(twoStacks, 2000)).toMatch(/^Modeled loss in a bad year has risen from \$[\d.]+[kM] to \$[\d.]+[kM] in four weeks, driven by one push in September\. /);
+    expect(text(flat, 2000)).toMatch(/^Modeled loss in a bad year is \$[\d.]+[kM]\.$/);
+    // Two-stacks: the line rose but nothing went live and no cap came off, so no cause is named.
+    expect(text(twoStacks, 2000)).toMatch(/^Modeled loss in a bad year has risen from \$[\d.]+[kM] to \$[\d.]+[kM] in four weeks, driven by one push in September\.$/);
+    // Nothing went live but a cap came off: that is the cause.
+    const capOnly = structuredClone(demo);
+    capOnly.diff!.agents.added = [];
+    for (const h of capOnly.history) h.agents = h.agents!.filter((a) => a.id !== "bc3db1f17013");
+    capOnly.registry.agents = capOnly.registry.agents.filter((a) => a.id !== "bc3db1f17013");
+    capOnly.unique_agents = capOnly.unique_agents!.filter((u) => u.name !== "meridian-support");
+    expect(text(capOnly, 2000)).toMatch(/driven by one push in September: the amount cap on account-actions came off\.$/);
   });
 
   it("leaves out every clause it has no fact for", () => {

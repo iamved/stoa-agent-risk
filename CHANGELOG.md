@@ -64,6 +64,11 @@ network. See [docs/dashboard.md](docs/dashboard.md).
   changed is three lines; Needs your attention rows say what the scan saw,
   why it matters and the fix, with no rule ids or dimension names.
 - Declared Scope names agents the way every other screen does.
+- Overview, cut back: the verdict is one sentence (the rise and what went
+  live). Risk Mapping is every agent on a low-to-high line, placed by its
+  highest dimension score, the new one marked. Protection Level is gone
+  (Controls & Safeguards has it). The cost tile is a plot by month against a
+  declared `risk_capacity` (new optional `[intake]` key), no caption.
 
 ### Changed — second review
 - Overview tiles are Agent Inventory, Risk Mapping, Protection Level and

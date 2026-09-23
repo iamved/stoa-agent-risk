@@ -7,14 +7,14 @@
  */
 import type { Envelope, RegisterRow, Severity } from "./types";
 import { autonomyOf, canMoveMoney, declaredOf, exposureOf, providersOf, toolsOf, uniqueAgentOf, uniqueAgents, type UniqueAgent } from "./agents";
-import { LISTED_CONTROLS, safeguardCoverage, safeguardRows, type SafeguardCoverage } from "./controls";
+import { safeguardRows } from "./controls";
 import { agentToModel, candidateAgents, intakeFromEnvelope } from "./lossInputs";
 import { EVENTS, indicate, money } from "./lossModel";
 import { agentChanges, largestStep, lossTrendMax, type TrendPoint } from "./lossTrend";
 import { PLAIN_ACTION, PLAIN_WHY, autonomyLabel, dimensionSubtitle, prose } from "./labels";
 import { toolRows } from "./inventory";
 import { summarize as summarizeRegister } from "./register";
-import { SEVERITY_RANK, activeFindings, countByLevel, findingTitle, findingsByDimension, formatDate, isNewFinding, newFingerprints, pluralize, riskLevel, type FindingRef, type RiskLevel } from "./selectors";
+import { SEVERITY_RANK, activeFindings, countByLevel, findingTitle, findingsByDimension, isNewFinding, newFingerprints, pluralize, riskLevel, type FindingRef, type RiskLevel } from "./selectors";
 
 // --- what we have ---------------------------------------------------------------
 
@@ -159,28 +159,31 @@ export function protection(env: Envelope): Protection {
   };
 }
 
-/** Safeguards on the tile's scorecard, in this order. The counts are the Controls screen's. */
-export const SCORECARD_CONTROLS = ["kill_switch", "observability", "rate_limit", "validation"];
-const SCORECARD_LABEL: Record<string, string> = { kill_switch: "Kill switch", observability: "Logging", rate_limit: "Rate limiting", validation: "Input validation" };
+// --- risk mapping: agents on a spectrum -------------------------------------------
 
-export interface ProtectionCard extends Protection {
-  scorecard: (SafeguardCoverage & { short: string })[];
-  /** Money-moving agents with the fewest safeguards detected, and how many of the listed safeguards that is. */
-  least: { agents: string[]; detected: number; of: number } | null;
-  /** The double-charge finding, if any, for the tools line to link to. */
-  doublePostFingerprint: string | null;
+export interface SpectrumRow {
+  id: string;
+  name: string;
+  /** The agent's highest dimension score, 0 to 100: its position on the spectrum. */
+  score: number;
+  level: "low" | "moderate" | "elevated" | "none";
+  /** Added since the last scan. */
+  isNew: boolean;
 }
 
-export function protectionCard(env: Envelope): ProtectionCard {
-  const base = protection(env);
-  const coverage = safeguardCoverage(env);
-  const scorecard = SCORECARD_CONTROLS.map((id) => coverage.find((c) => c.id === id)).filter((c): c is SafeguardCoverage => Boolean(c)).map((c) => ({ ...c, short: SCORECARD_LABEL[c.id] ?? c.label }));
-  const movers = new Set(moneyMovers(env));
-  const rows = safeguardRows(env).filter((r) => movers.has(r.agent)).map((r) => ({ name: r.agent.name, detected: LISTED_CONTROLS.filter((id) => r.states[id] === "detected").length }));
-  const min = rows.length ? Math.min(...rows.map((r) => r.detected)) : 0;
-  const least = rows.length ? { agents: rows.filter((r) => r.detected === min).map((r) => r.name).sort(), detected: min, of: LISTED_CONTROLS.length } : null;
-  const doublePost = activeFindings(env).find((r) => r.finding.rule_id === "AI008");
-  return { ...base, scorecard, least, doublePostFingerprint: doublePost?.finding.fingerprint ?? null };
+/** The scanner's buckets: 1 to 24 low, 25 to 54 moderate, 55 and up elevated. */
+export const SPECTRUM_BANDS = { moderate: 25, elevated: 55 };
+
+/** Every agent, highest score first, with the scanner's exposure level for that score. */
+export function agentSpectrum(env: Envelope): SpectrumRow[] {
+  const added = new Set((env.diff?.agents.added ?? []).map((a) => uniqueAgentOf(env, a.agent_id)?.id ?? a.agent_id));
+  return uniqueAgents(env)
+    .map((u) => {
+      const score = Math.max(0, ...u.records.flatMap((r) => (r.dimension_assessment?.dimensions ?? []).map((d) => d.score)));
+      const level = score >= SPECTRUM_BANDS.elevated ? "elevated" : score >= SPECTRUM_BANDS.moderate ? "moderate" : score > 0 ? "low" : "none";
+      return { id: u.id, name: u.name, score, level, isNew: added.has(u.id) } as SpectrumRow;
+    })
+    .sort((a, b) => b.score - a.score || Number(b.isNew) - Number(a.isNew) || a.name.localeCompare(b.name));
 }
 
 // --- what it could cost ---------------------------------------------------------------
@@ -198,8 +201,10 @@ export interface CostOutlook {
   /** Declared policy types that exclude AI, e.g. ["cyber"]. */
   excluding: string[];
   policies: number;
-  /** Each declared policy's limit, largest first, for the reference lines on the trend. */
+  /** Each declared policy's limit, largest first. */
   limits: { label: string; limit: number; aiExcluded: boolean }[];
+  /** Declared risk capacity: the most the company will carry from one AI failure in a year. Null when not declared. */
+  capacity: number | null;
   confidence: "high" | "medium" | "low";
 }
 
@@ -233,6 +238,7 @@ export function costOutlook(env: Envelope, years?: number): CostOutlook | null {
     excluding: policies.filter((p) => p.ai_exclusion).map((p) => POLICY_LABEL[p.type] ?? p.type),
     policies: policies.length,
     limits: [...policies].sort((a, b) => b.limit - a.limit).map((p) => ({ label: `${POLICY_LABEL[p.type] ?? p.type} policy limit`, limit: p.limit, aiExcluded: p.ai_exclusion })),
+    capacity: typeof env.intake?.risk_capacity === "number" && env.intake.risk_capacity > 0 ? env.intake.risk_capacity : null,
     confidence: r.confidence,
   };
 }
@@ -525,15 +531,14 @@ const MONTH_NAME = ["January", "February", "March", "April", "May", "June", "Jul
 const monthOf = (iso: string) => MONTH_NAME[Number.parseInt(iso.slice(5, 7), 10) - 1] ?? "";
 
 /**
- * The opening sentences. The first is the modeled loss and, when the history
- * shows it, how it moved and what moved it. The second is what can move money
- * and whether approval was detected. A clause with no fact behind it is left
- * out rather than softened.
+ * One sentence. With a trend: how much the modeled loss rose, over what
+ * span, and the push that did it, read from the history (the agent that went
+ * live, or the cap that came off). Without a trend: the figure. Without a
+ * figure: what can move money and whether approval was detected.
  */
 export function standing(env: Envelope, cost: CostOutlook | null): Sentence[] {
   const agents = uniqueAgents(env).length;
   if (agents === 0) return [["No AI agents were found in this scan, so there is nothing to report on yet."]];
-  const out: Sentence[] = [];
   if (cost) {
     const trend = cost.trend;
     const first = trend[0], last = trend[trend.length - 1];
@@ -541,19 +546,14 @@ export function standing(env: Envelope, cost: CostOutlook | null): Sentence[] {
     if (first && last && trend.length >= 2 && last.badYear > first.badYear * 1.005) {
       const sentence: Sentence = ["Modeled loss in a bad year has risen from ", { strong: money(first.badYear) }, " to ", { strong: money(last.badYear) }, ` in ${spanWords(first.date, last.date)}`];
       if (step && step.share >= 0.7) {
-        const causes = [
-          step.added.length ? `${joinWords(step.added)} went live` : "",
-          ...step.changes.filter((c) => c.kind === "uncapped").map((c) => `the amount cap on ${c.name} came off`),
-          ...step.changes.filter((c) => c.kind === "autonomous").map((c) => `${c.name} began acting on its own`),
-        ].filter(Boolean);
-        sentence.push(`, driven by one push in ${monthOf(step.to.date)}${causes.length ? `: ${joinWords(causes)}` : ""}.`);
+        const uncapped = step.changes.find((c) => c.kind === "uncapped");
+        const cause = step.added.length ? `${joinWords(step.added)} went live` : uncapped ? `the amount cap on ${uncapped.name} came off` : "";
+        sentence.push(`, driven by one push in ${monthOf(step.to.date)}${cause ? `: ${cause}` : ""}.`);
       } else sentence.push(` over ${pluralize(trend.length, "scan")}.`);
-      out.push(sentence);
-    } else if (first && last && trend.length >= 2 && last.badYear < first.badYear * 0.995) {
-      out.push(["Modeled loss in a bad year has fallen from ", { strong: money(first.badYear) }, " to ", { strong: money(last.badYear) }, ` in ${spanWords(first.date, last.date)}.`]);
-    } else if (first && trend.length >= 2) {
-      out.push(["Modeled loss in a bad year is ", { strong: money(cost.badYear) }, `, unchanged since ${formatDate(first.date)}.`]);
-    } else out.push(["Modeled loss in a bad year is ", { strong: money(cost.badYear) }, "."]);
+      return [sentence];
+    }
+    if (first && last && trend.length >= 2 && last.badYear < first.badYear * 0.995) return [["Modeled loss in a bad year has fallen from ", { strong: money(first.badYear) }, " to ", { strong: money(last.badYear) }, ` in ${spanWords(first.date, last.date)}.`]];
+    return [["Modeled loss in a bad year is ", { strong: money(cost.badYear) }, "."]];
   }
   const p = protection(env);
   if (p.moneyMovers > 0) {
@@ -561,10 +561,8 @@ export function standing(env: Envelope, cost: CostOutlook | null): Sentence[] {
     const approval = p.approved === 0 ? `no human approval was detected on ${p.moneyMovers === 1 ? "it" : p.moneyMovers === 2 ? "either" : "any of them"}`
       : p.approved === p.moneyMovers ? `human approval was detected on ${p.moneyMovers === 1 ? "it" : p.moneyMovers === 2 ? "both" : "all of them"}`
       : `human approval was detected on ${p.approved} of them`;
-    out.push([`${pluralize(p.moneyMovers, "agent")} can move money on ${p.moneyMovers === 1 ? "its" : "their"} own, and ${approval}.`]);
-  } else {
-    const high = countByLevel(activeFindings(env)).high;
-    out.push([`${pluralize(agents, "AI agent")} found, none of which can move money. ${high ? `${pluralize(high, "high-severity finding")} ${high === 1 ? "needs" : "need"} attention.` : "No high-severity findings."}`]);
+    return [[`${pluralize(p.moneyMovers, "agent")} can move money on ${p.moneyMovers === 1 ? "its" : "their"} own, and ${approval}.`]];
   }
-  return out;
+  const high = countByLevel(activeFindings(env)).high;
+  return [[`${pluralize(agents, "AI agent")} found, none of which can move money. ${high ? `${pluralize(high, "high-severity finding")} ${high === 1 ? "needs" : "need"} attention.` : "No high-severity findings."}`]];
 }

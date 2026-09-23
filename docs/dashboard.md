@@ -52,6 +52,7 @@ records               = 1500000            # personal records held
 regulated             = true
 minors                = false
 monthly_action_volume = 200000
+risk_capacity         = 4000000            # optional: the most you will carry from one AI failure in a year; drawn on the loss trend
 
 [[intake.existing_coverage]]
 type         = "cyber"                     # cyber | tech_eo | crime

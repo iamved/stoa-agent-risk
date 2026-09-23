@@ -6,8 +6,8 @@ import { AgentFlow } from "../components/AgentFlow";
 import { SeverityBadge } from "../components/Badge";
 import { money } from "../data/lossModel";
 import type { TrendPoint } from "../data/lossTrend";
-import { attention, attentionStatus, attentionTitle, audienceLine, costOutlook, highLines, holdings, newHighLine, newestAgent, nextAction, protectionCard, scanSaw, standing, whatChanged, whyItMatters, type AttentionItem, type ChangeLine, type CostOutlook } from "../data/overview";
-import { activeFindings, countByLevel, formatDate, overviewDeltas, pluralize, RISK_LEVELS, RISK_SEVERITIES, type RiskLevel } from "../data/selectors";
+import { SPECTRUM_BANDS, agentSpectrum, attention, attentionStatus, attentionTitle, audienceLine, costOutlook, holdings, newestAgent, nextAction, scanSaw, standing, whatChanged, whyItMatters, type AttentionItem, type ChangeLine, type CostOutlook, type SpectrumRow } from "../data/overview";
+import { activeFindings, formatDate, overviewDeltas, pluralize } from "../data/selectors";
 
 /** The loss model takes about a tenth of a second, so it runs after first paint. `undefined` is "not yet". */
 function useCostOutlook(): CostOutlook | null | undefined {
@@ -32,10 +32,9 @@ export function Overview() {
 
       <Standing cost={cost ?? null} />
 
-      <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <HoldingsTile />
         <FindingsTile />
-        <ProtectionTile />
         <CostTile cost={cost} />
       </div>
 
@@ -121,69 +120,31 @@ function HoldingsTile() {
   );
 }
 
-const LEVEL_BAR: Record<RiskLevel, string> = { high: "bg-sev-high", medium: "bg-sev-medium", low: "bg-sev-low" };
+const SPECTRUM_DOT: Record<SpectrumRow["level"], string> = { elevated: "bg-sev-high", moderate: "bg-sev-medium", low: "bg-sev-low", none: "bg-line-strong" };
 
+/** Each agent on one line from low to high, placed by its highest dimension score. */
 function FindingsTile() {
   const { envelope } = useApp();
-  const active = activeFindings(envelope);
-  const counts = countByLevel(active);
-  const total = counts.high + counts.medium + counts.low;
-  const high = highLines(envelope);
-  const fresh = newHighLine(envelope);
+  const rows = agentSpectrum(envelope);
   return (
-    <Tile question="Risk Mapping" href={buildHash("findings", null, { severity: RISK_SEVERITIES.high.join(",") })} action="View high-severity findings">
-      <Figure value={String(counts.high)} unit={counts.high === 1 ? "high-severity finding" : "high-severity findings"} tone={counts.high ? "warn" : "neutral"} />
-      {high.length ? (
-        <ul className="mt-1.5 mb-0 p-0 list-none flex flex-col gap-1">
-          {high.slice(0, 4).map((line) => (
-            <li key={line.fingerprint} className="text-[12px] leading-snug text-ink-soft flex gap-1.5 items-baseline">
-              <span aria-hidden="true" className="inline-block w-1.5 h-1.5 rounded-full bg-sev-high flex-none translate-y-[-1px]" />
-              <a href={buildHash("findings", line.fingerprint)} className="no-underline text-ink-soft hover:underline"><span className="font-medium text-navy">{line.agents.join(", ")}</span>: {line.title.replace(/^[A-Z](?![A-Z])/, (c) => c.toLowerCase())}</a>
-            </li>
-          ))}
-          {high.length > 4 ? <li className="caption">and {pluralize(high.length - 4, "more")}</li> : null}
-        </ul>
-      ) : null}
-      {total ? (
-        <div className="mt-2 flex gap-1" role="img" aria-label={`${counts.high} high, ${counts.medium} medium, ${counts.low} low`}>
-          {RISK_LEVELS.filter((level) => counts[level] > 0).map((level) => <span key={level} className={`h-1 rounded-full ${LEVEL_BAR[level]}`} style={{ flexGrow: counts[level], flexBasis: 0, minWidth: 6 }} />)}
-        </div>
-      ) : null}
-      <p className="caption mt-1.5 mb-0">{total ? `${counts.high} high · ${counts.medium} medium · ${counts.low} low · ${total} in total` : "No open findings."}</p>
-      {fresh ? <p className={`mt-0.5 mb-0 text-[12px] ${fresh.startsWith("+") ? "text-sev-high font-medium" : "text-ink-muted"}`}>{fresh}</p> : null}
-    </Tile>
-  );
-}
-
-function ProtectionTile() {
-  const { envelope } = useApp();
-  const p = protectionCard(envelope);
-  const exposed = p.moneyMovers > 0 && p.approved < p.moneyMovers;
-  return (
-    <Tile question="Protection Level" href={buildHash("controls")} action="View safeguards">
-      {p.moneyMovers ? (
-        <>
-          <Figure value={`${p.approved} of ${p.moneyMovers}`} unit="" tone={exposed ? "warn" : "neutral"} />
-          <p className="mt-0.5 mb-0 text-[12.5px] text-ink-soft">Human approval detected on {p.approved} of {pluralize(p.moneyMovers, "agent")} that can move money</p>
-        </>
-      ) : (
-        <>
-          <Figure value="0" unit="agents can move money" />
-          <p className="mt-0.5 mb-0 text-[12.5px] text-ink-soft">No payment tools or payment access were detected.</p>
-        </>
-      )}
-      {p.scorecard.length ? (
-        <dl className="mt-2 mb-0 grid grid-cols-[1fr_auto] gap-x-3 gap-y-0.5 text-[12px] leading-snug">
-          {p.scorecard.map((c) => (
-            <div key={c.id} className="contents">
-              <dt className="text-ink-soft">{c.short}</dt>
-              <dd className={`m-0 tabular-nums text-right ${c.detected === 0 && c.applicable ? "text-sev-high font-medium" : "text-navy"}`}>{c.detected} of {c.applicable}</dd>
+    <Tile question="Risk Mapping" href={buildHash("findings")} action="View findings">
+      {rows.length ? (
+        <div className="grid grid-cols-[minmax(0,1.15fr)_minmax(100px,1fr)] gap-x-3 gap-y-1.5 items-center text-[12.5px]">
+          <div className="caption text-[11px]" />
+          <div className="flex justify-between text-[10.5px] uppercase tracking-[0.06em] text-ink-muted" aria-hidden="true"><span>Low</span><span>Medium</span><span>High</span></div>
+          {rows.map((r) => (
+            <div key={r.id} className="contents">
+              <div className="min-w-0 truncate"><a href={buildHash("inventory", r.id)} className="no-underline text-navy hover:underline">{r.name}</a>{r.isNew ? <span className="ml-1.5 chip chip-plain chip-high text-[10px] leading-4 py-0 px-1.5">new</span> : null}</div>
+              <div className="relative h-4">
+                <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-line-strong" />
+                <div className="absolute top-1/2 h-1.5 w-px -translate-y-1/2 bg-line-strong" style={{ left: `${SPECTRUM_BANDS.moderate}%` }} />
+                <div className="absolute top-1/2 h-1.5 w-px -translate-y-1/2 bg-line-strong" style={{ left: `${SPECTRUM_BANDS.elevated}%` }} />
+                <span role="img" aria-label={r.level === "none" ? "no findings" : r.level === "elevated" ? "high" : r.level === "moderate" ? "medium" : "low"} className={`absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ${SPECTRUM_DOT[r.level]} ${r.isNew ? "ring-2 ring-gold ring-offset-1 ring-offset-panel" : ""}`} style={{ left: `${Math.min(Math.max(r.score, 2), 98)}%` }} />
+              </div>
             </div>
           ))}
-        </dl>
-      ) : null}
-      {p.least ? <p className="mt-1.5 mb-0 text-[12px] text-ink-soft leading-snug">Least protected: <span className="font-medium text-navy">{p.least.agents.join(", ")}</span>, {p.least.detected} of {pluralize(p.least.of, "safeguard")} detected{p.least.agents.length > 1 ? " each" : ""}.</p> : null}
-      {p.moneyTools ? <p className="mt-1 mb-0 text-[12px] text-ink-soft leading-snug">{p.moneyToolsWithoutGuardrail} of {pluralize(p.moneyTools, "tool")} that can move money {p.moneyToolsWithoutGuardrail === 1 ? "has" : "have"} no guardrail detected{p.doublePostFingerprint ? <>; <a href={buildHash("findings", p.doublePostFingerprint)} className="link">one can charge twice on retry</a></> : null}.</p> : null}
+        </div>
+      ) : <p className="caption m-0">No agents were found in the scanned files.</p>}
     </Tile>
   );
 }
@@ -196,10 +157,7 @@ function CostTile({ cost }: { cost: CostOutlook | null | undefined }) {
       {cost === undefined ? (
         <p className="caption m-0">Estimating…</p>
       ) : cost ? (
-        <>
-          <CostTrend cost={cost} />
-          <p className="caption mt-1.5 mb-0">Modeled. An average year is about {money(cost.averageYear)}.</p>
-        </>
+        <CostTrend cost={cost} />
       ) : (
         <>
           <div className="text-[18px] leading-tight text-navy font-medium">Not estimated yet</div>
@@ -210,54 +168,52 @@ function CostTile({ cost }: { cost: CostOutlook | null | undefined }) {
   );
 }
 
-/** Reference lines for the trend: each declared policy limit, and the cover that applies to AI losses. */
-function boundaryLines(cost: CostOutlook): { label: string; value: number; tone: "limit" | "cover" }[] {
-  const lines: { label: string; value: number; tone: "limit" | "cover" }[] = [];
-  const top = cost.limits[0];
-  if (top) lines.push({ label: `${top.label.charAt(0).toUpperCase()}${top.label.slice(1)} ${money(top.limit)}${top.aiExcluded ? ", AI losses excluded" : ""}`, value: top.limit, tone: "limit" });
-  if (cost.policies) lines.push({ label: `Cover that applies to AI losses ${money(cost.covered)}`, value: cost.covered, tone: "cover" });
-  return lines;
-}
+const MONTH = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const monthShort = (iso: string) => MONTH[Number.parseInt(iso.slice(5, 7), 10) - 1] ?? "";
 
 /**
- * The bad-year figure over past scans, as a small line ending at today's
- * figure, against the declared policy limit and the cover that applies to AI
- * losses. The gap between the line and the cover is what the company would
- * carry itself. One scan alone shows the figure.
+ * The bad-year figure by month of scan, against the declared risk capacity
+ * as a dotted line. Amounts sit on the points; nothing else is written.
  */
 function CostTrend({ cost }: { cost: CostOutlook }) {
   const points: TrendPoint[] = cost.trend.length ? cost.trend : [{ hash: "", ref: null, date: "", agent: cost.agent, added: [], badYear: cost.badYear, averageYear: cost.averageYear }];
   const last = points[points.length - 1]!;
-  const first = points[0]!;
-  const bounds = boundaryLines(cost);
-  if (points.length < 2 && !bounds.length) return <Figure value={money(last.badYear)} unit="in a bad year" />;
-  const W = 160, H = 56, padX = 4, padY = 5;
-  const top = Math.max(...points.map((p) => p.badYear), ...bounds.map((b) => b.value)) * 1.06;
-  const bottom = 0;
-  const x = (i: number) => padX + (i * (W - padX * 2)) / Math.max(points.length - 1, 1);
-  const y = (v: number) => H - padY - ((v - bottom) / Math.max(top - bottom, 1)) * (H - padY * 2);
+  if (points.length < 2) return <Figure value={money(last.badYear)} unit="in a bad year" />;
+  const W = 240, H = 104, left = 8, right = 8, top = 12, bottom = 18;
+  const values = [...points.map((p) => p.badYear), ...(cost.capacity !== null ? [cost.capacity] : [])];
+  const max = Math.max(...values) * 1.06, min = Math.min(...values) * 0.8;
+  const x = (i: number) => left + (i * (W - left - right)) / (points.length - 1);
+  const y = (v: number) => top + (1 - (v - min) / (max - min)) * (H - top - bottom);
   const path = points.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.badYear).toFixed(1)}`).join(" ");
-  const up = last.badYear > first.badYear * 1.005, down = last.badYear < first.badYear * 0.995;
-  const label = `Modeled bad-year loss over ${pluralize(points.length, "scan")}: ${money(first.badYear)} (${formatDate(first.date)}) to ${money(last.badYear)} (${formatDate(last.date)})${bounds.map((b) => `. ${b.label}`).join("")}`;
-  const share = cost.limits[0] && cost.limits[0].limit > 0 ? Math.round((last.badYear / cost.limits[0].limit) * 100) : null;
+  const over = cost.capacity !== null && last.badYear > cost.capacity;
+  const label = `Modeled bad-year loss by month: ${points.map((p) => `${money(p.badYear)} in ${monthShort(p.date)}`).join(", ")}${cost.capacity !== null ? `. Risk capacity ${money(cost.capacity)}${over ? ", exceeded" : ""}` : ""}`;
   return (
     <div>
       <div className="flex flex-wrap items-baseline gap-x-2">
-        <span className="num text-[28px] leading-none text-navy">{money(last.badYear)}</span>
+        <span className={`num text-[28px] leading-none ${over ? "text-sev-high" : "text-navy"}`}>{money(last.badYear)}</span>
         <span className="text-[12.5px] text-ink-soft">in a bad year</span>
       </div>
-      <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={label} className="block mt-1.5 max-w-[240px] overflow-visible">
+      <svg width="100%" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label} className="block mt-1.5 max-w-[300px] overflow-visible text-[9px]">
         <title>{label}</title>
-        {bounds.map((b) => <line key={b.tone} x1={0} x2={W} y1={y(b.value)} y2={y(b.value)} className={b.tone === "limit" ? "stroke-sev-high" : "stroke-ok"} strokeDasharray={b.tone === "limit" ? "4 3" : "2 2"} strokeWidth={1} vectorEffect="non-scaling-stroke" />)}
-        {points.length > 1 ? <path d={path} className="fill-none stroke-navy [stroke-width:1.75] [stroke-linejoin:round] [stroke-linecap:round]" vectorEffect="non-scaling-stroke" /> : null}
-        {points.map((p, i) => <circle key={p.hash || i} cx={x(i)} cy={y(p.badYear)} r={i === points.length - 1 ? 3.5 : 2} className={i === points.length - 1 ? "fill-gold" : "fill-navy"} />)}
+        {cost.capacity !== null ? (
+          <g>
+            <line x1={left} x2={W - right} y1={y(cost.capacity)} y2={y(cost.capacity)} className="stroke-sev-high" strokeDasharray="2 3" strokeWidth={1} />
+            <text x={left} y={y(cost.capacity) - 3} textAnchor="start" className="fill-sev-high">Risk capacity {money(cost.capacity)}</text>
+          </g>
+        ) : null}
+        <path d={path} className="fill-none stroke-navy [stroke-width:1.75] [stroke-linejoin:round] [stroke-linecap:round]" />
+        {points.map((p, i) => {
+          const isLast = i === points.length - 1;
+          const above = cost.capacity !== null && p.badYear > cost.capacity;
+          return (
+            <g key={p.hash || i}>
+              <circle cx={x(i)} cy={y(p.badYear)} r={isLast ? 3.5 : 2.5} className={above ? "fill-sev-high" : "fill-navy"} />
+              <text x={x(i)} y={y(p.badYear) + (above ? -7 : 12)} textAnchor={i === 0 ? "start" : isLast ? "end" : "middle"} className={`num ${above ? "fill-sev-high" : "fill-navy"}`}>{money(p.badYear)}</text>
+              <text x={x(i)} y={H - 4} textAnchor={i === 0 ? "start" : isLast ? "end" : "middle"} className="fill-ink-muted">{monthShort(p.date)}</text>
+            </g>
+          );
+        })}
       </svg>
-      {points.length > 1 ? <div className="text-[12px] mt-1 leading-snug"><span className={up ? "text-sev-high font-medium" : down ? "text-ok font-medium" : "text-ink-muted"}>{up ? "Up" : down ? "Down" : "Level"} from {money(first.badYear)}</span><span className="text-ink-muted"> since {formatDate(first.date)}{share !== null ? `, now ${share}% of the ${cost.limits[0]!.label}` : ""}.</span></div> : null}
-      {bounds.length ? (
-        <ul className="m-0 mt-1 p-0 list-none flex flex-col gap-0.5 text-[11.5px] text-ink-muted leading-snug">
-          {bounds.map((b) => <li key={b.tone} className="flex items-center gap-1.5"><span aria-hidden="true" className={`inline-block w-3 border-t ${b.tone === "limit" ? "border-sev-high border-dashed" : "border-ok border-dotted"}`} />{b.label}</li>)}
-        </ul>
-      ) : null}
     </div>
   );
 }

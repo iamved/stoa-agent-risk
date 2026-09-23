@@ -47,6 +47,7 @@ records               = 1500000
 regulated             = true
 minors                = false
 monthly_action_volume = 200000
+risk_capacity         = 4000000   # the most the company will carry from one AI failure in a year
 
 [[intake.existing_coverage]]
 type         = "cyber"

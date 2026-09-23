@@ -6,7 +6,7 @@ const url = (name: string, hash = "#/overview") => pathToFileURL(dashboardPath(n
 
 /** The home page: scope strip, verdict band, four tiles, two panels, three footer cards. */
 test.describe("overview", () => {
-  test("it holds exactly the agreed sections, and links to all five other screens", async ({ page }) => {
+  test("it holds exactly the agreed sections, and links to the other screens", async ({ page }) => {
     await page.goto(url("meridian-pay"));
     // The header names the company from the setup details; the repository name stays in its tooltip.
     await expect(page.getByTestId("company")).toHaveText("Meridian Pay");
@@ -15,19 +15,17 @@ test.describe("overview", () => {
     await expect(main.getByText("Static scan of code and configuration", { exact: false })).toHaveCount(0);
     await expect(main.getByText("What the code makes possible, not what has happened.")).toHaveCount(0);
     await expect(main.getByRole("region", { name: "Where you stand" })).toBeVisible();
-    await expect(main.getByRole("heading", { level: 2 })).toHaveText(["Agent Inventory", "Risk Mapping", "Protection Level", "Estimated Failures Cost", "Needs your attention", "What changed", "Insurance assessment", "Agent Risk Flow Graph"]);
+    await expect(main.getByRole("heading", { level: 2 })).toHaveText(["Agent Inventory", "Risk Mapping", "Estimated Failures Cost", "Needs your attention", "What changed", "Insurance assessment", "Agent Risk Flow Graph"]);
     // Removed on purpose: the elevated-agents card, the combined money-or-write card, the long findings list.
     for (const gone of ["Agents at elevated exposure", "Can move money or write to systems", "Top findings", "Findings by dimension", "Where exposure is elevated", "Risk register", "risks recorded"]) await expect(main.getByText(gone)).toHaveCount(0);
     const targets = await main.getByRole("link").evaluateAll((links) => [...new Set(links.map((a) => (a.getAttribute("href") ?? "").split(/[/?]/)[1]))]);
-    for (const screen of ["inventory", "findings", "controls", "loss", "evidence", "drift"]) expect(targets, screen).toContain(screen);
+    for (const screen of ["inventory", "findings", "loss", "evidence", "drift"]) expect(targets, screen).toContain(screen);
   });
 
   test("the verdict is built from the scan, in detection language", async ({ page }) => {
     await page.goto(url("meridian-pay"));
     const verdict = page.getByRole("region", { name: "Where you stand" });
-    await expect(verdict).toContainText(/Modeled loss in a bad year has risen from \$3\.4M to \$[\d.]+M in two months, driven by one push in September: meridian-support went live and the amount cap on account-actions came off\./);
-    await expect(verdict).toContainText("2 agents can move money on their own, and no human approval was detected on either.");
-    await expect(verdict).not.toContainText("things changed");
+    await expect(verdict.getByRole("paragraph")).toHaveText(/^Modeled loss in a bad year has risen from \$3\.4M to \$[\d.]+M in two months, driven by one push in September: meridian-support went live\.$/);
     await expect(verdict.getByRole("button")).toHaveText(["Export board report"]);
   });
 
@@ -40,36 +38,25 @@ test.describe("overview", () => {
     await expect(main.getByText("discovered records")).toHaveCount(0);
     const inventory = main.getByRole("heading", { name: "Agent Inventory" }).locator("xpath=ancestor::section[1]");
     await expect(inventory).toContainText("Newest: meridian-support, added 15 Sep, moves money with no approval detected.");
-    // Risk Mapping: one line per high-severity finding, naming the agent, counts in the caption.
+    // Risk Mapping: every agent on a low-to-high line, the new support agent at the high end.
     const mapping = main.getByRole("heading", { name: "Risk Mapping" }).locator("xpath=ancestor::section[1]");
-    await expect(mapping.getByRole("listitem")).toHaveText([
-      /account-actions: declared autonomy does not match what the code does\.$/,
-      /meridian-support: declared autonomy does not match what the code does\.$/,
-      /account-actions, meridian-support: a payment can be charged twice if a request is retried\.$/,
-    ]);
-    await expect(mapping).toContainText("3 high · 2 medium · 8 low · 13 in total");
-    await expect(mapping).toContainText("+1 high since last scan (meridian-support)");
-    await expect(mapping).not.toContainText(/idempotency|×/);
-    await expect(mapping.getByRole("link", { name: "View high-severity findings" })).toHaveAttribute("href", "#/findings?severity=critical%2Chigh");
-    // Protection Level: the approval gate, four safeguards as the Controls screen counts them, the least protected money mover.
-    const protection = main.getByRole("heading", { name: "Protection Level" }).locator("xpath=ancestor::section[1]");
-    await expect(protection).toContainText("0 of 2");
-    await expect(protection).toContainText("Human approval detected on 0 of 2 agents that can move money");
-    await expect(protection.getByRole("definition")).toHaveText(["0 of 5", "1 of 5", "1 of 5", "3 of 5"]);
-    await expect(protection.getByRole("term")).toHaveText(["Kill switch", "Logging", "Rate limiting", "Input validation"]);
-    await expect(protection).toContainText("Least protected: account-actions, meridian-support, 3 of 6 safeguards detected each.");
-    await expect(protection).toContainText("8 of 8 tools that can move money have no guardrail detected; one can charge twice on retry.");
-    // Estimated Failures Cost: the trend against the declared policy limit and the cover that applies to AI losses.
+    await expect(mapping.getByRole("link")).toHaveText(["meridian-support", "account-actions", "meridian-escalation", "meridian-front", "meridian-knowledge", /View findings/]);
+    expect(await mapping.getByRole("img").evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")))).toEqual(["high", "high", "low", "low", "low"]);
+    await expect(mapping).toContainText("LowMediumHigh");
+    await expect(mapping).toContainText("meridian-supportnew");
+    await expect(mapping).not.toContainText(/high-severity|idempotency|×/);
+    await expect(mapping.getByRole("link", { name: "View findings" })).toHaveAttribute("href", "#/findings");
+    // No Protection Level tile.
+    await expect(main.getByText("Protection Level")).toHaveCount(0);
+    // Estimated Failures Cost: the figure and a plot by month against the declared risk capacity, nothing else written.
     const cost = main.getByRole("heading", { name: "Estimated Failures Cost" }).locator("xpath=ancestor::section[1]");
     await expect(cost).toContainText(/\$[\d.]+Min a bad year/);
-    await expect(cost.getByRole("img", { name: /Modeled bad-year loss over 3 scans: \$3\.4M \(21 Jul 2026\) to \$[\d.]+M \(15 Sep 2026\)\. Cyber policy limit \$5M, AI losses excluded\. Cover that applies to AI losses \$0/ })).toBeVisible();
-    await expect(cost).toContainText(/Up from \$3\.4M since 21 Jul 2026, now \d+% of the cyber policy limit\./);
-    await expect(cost).toContainText("Cyber policy limit $5M, AI losses excluded");
-    await expect(cost).toContainText("Cover that applies to AI losses $0");
-    await expect(cost).toContainText(/Modeled\. An average year is about \$\d+k\./);
-    await expect(cost).not.toContainText("1 year in 100");
-    await main.getByRole("link", { name: "View safeguards" }).click();
-    await expect(page).toHaveURL(/#\/controls/);
+    await expect(cost.getByRole("img", { name: /^Modeled bad-year loss by month: \$3\.4M in Jul, \$3\.5M in Aug, \$[\d.]+M in Sep\. Risk capacity \$4M, exceeded$/ })).toBeVisible();
+    await expect(cost.getByRole("img")).toContainText("Risk capacity $4M");
+    await expect(cost).not.toContainText(/Cyber policy|Modeled\.|Up from|1 year in 100/);
+    await expect(cost.getByRole("paragraph")).toHaveCount(0);
+    await main.getByRole("link", { name: "View financial exposure" }).click();
+    await expect(page).toHaveURL(/#\/loss/);
   });
 
   test("attention rows name the agents and say what was seen, why it matters and the fix, with no workflow controls", async ({ page }) => {

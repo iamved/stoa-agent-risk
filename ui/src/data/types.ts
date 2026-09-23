@@ -511,6 +511,8 @@ export interface IntakeBlock {
   regulated?: boolean;
   minors?: boolean;
   monthly_action_volume?: number;
+  /** The most the company will carry from one AI failure in a year, declared. Drawn as the threshold on the loss trend. */
+  risk_capacity?: number;
   existing_coverage?: { type: string; limit: number; ai_exclusion: boolean }[];
 }
 
