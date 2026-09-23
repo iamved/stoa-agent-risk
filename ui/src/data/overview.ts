@@ -11,6 +11,7 @@ import { safeguardRows } from "./controls";
 import { agentToModel, candidateAgents, intakeFromEnvelope } from "./lossInputs";
 import { EVENTS, indicate, money } from "./lossModel";
 import { agentChanges, largestStep, lossTrendMax, type TrendPoint } from "./lossTrend";
+import { cached } from "./lossCache";
 import { PLAIN_ACTION, PLAIN_WHY, autonomyLabel, dimensionSubtitle, prose } from "./labels";
 import { toolRows } from "./inventory";
 import { summarize as summarizeRegister } from "./register";
@@ -219,6 +220,10 @@ const POLICY_LABEL: Record<string, string> = { cyber: "cyber", tech_eo: "tech E&
  * Overview is not the place to explain that.
  */
 export function costOutlook(env: Envelope, years?: number): CostOutlook | null {
+  return cached(env, `costOutlook:${years ?? ""}`, () => computeCostOutlook(env, years));
+}
+
+function computeCostOutlook(env: Envelope, years?: number): CostOutlook | null {
   const { intake, monthlyVolume, declared } = intakeFromEnvelope(env);
   const agent = candidateAgents(env)[0];
   if (!declared || !agent) return null;

@@ -8,6 +8,7 @@ import type { Agent, Envelope, HistoryAgent, HistoryEntry } from "./types";
 import { autonomyOf, declaredOf, mergedRecord, uniqueAgents, type UniqueAgent } from "./agents";
 import { agentToModel, intakeFromEnvelope } from "./lossInputs";
 import { EVENTS, indicate } from "./lossModel";
+import { cached } from "./lossCache";
 
 export interface TrendPoint {
   hash: string;
@@ -35,12 +36,15 @@ function asAgent(a: HistoryAgent): Agent {
   } as unknown as Agent;
 }
 
-function figure(env: Envelope, agent: UniqueAgent, intake: ReturnType<typeof intakeFromEnvelope>["intake"], monthlyVolume: number, seed: number, years?: number): { badYear: number; averageYear: number } | null {
-  const merged = mergedRecord(agent);
-  if (!merged.dimension_assessment) return null;
-  const { model } = agentToModel(env, merged, monthlyVolume);
-  const r = indicate(EVENTS, model, intake, seed, {}, { years, noBoot: true });
-  return { badYear: r.summary.pMid, averageYear: r.summary.eal };
+function figure(env: Envelope, scan: string, agent: UniqueAgent, intake: ReturnType<typeof intakeFromEnvelope>["intake"], monthlyVolume: number, seed: number, years?: number): { badYear: number; averageYear: number } | null {
+  // One run per scan, agent and simulation length; the inputs are the envelope's, so the key needs no more.
+  return cached(env, `figure:${scan}:${agent.id}:${seed}:${years ?? ""}`, () => {
+    const merged = mergedRecord(agent);
+    if (!merged.dimension_assessment) return null;
+    const { model } = agentToModel(env, merged, monthlyVolume);
+    const r = indicate(EVENTS, model, intake, seed, {}, { years, noBoot: true });
+    return { badYear: r.summary.pMid, averageYear: r.summary.eal };
+  });
 }
 
 /** A past scan's records grouped as today's identity mapping groups them; a record no current agent claims stands alone. */
@@ -74,7 +78,7 @@ export function lossTrend(env: Envelope, agentId: string, seed: number, years?: 
   const out: TrendPoint[] = [];
   for (const h of entriesOf(env)) {
     const agent = agentsAt(env, h.agents).find((u) => u.id === agentId);
-    const f = agent && figure(env, agent, intake, monthlyVolume, seed, years);
+    const f = agent && figure(env, h.head_commit.hash, agent, intake, monthlyVolume, seed, years);
     if (f) out.push({ hash: h.head_commit.hash, ref: h.git_ref, date: h.head_commit.date, agent: agent.name, added: [], ...f });
   }
   return out;
@@ -143,6 +147,10 @@ export function largestStep(env: Envelope, trend: TrendPoint[]): TrendStep | nul
  * line: what one agent could cost in a year seen once in a hundred.
  */
 export function lossTrendMax(env: Envelope, seed: number, years?: number): TrendPoint[] {
+  return cached(env, `trendMax:${seed}:${years ?? ""}`, () => trendMax(env, seed, years));
+}
+
+function trendMax(env: Envelope, seed: number, years?: number): TrendPoint[] {
   const { intake, monthlyVolume } = intakeFromEnvelope(env);
   const out: TrendPoint[] = [];
   let seen: Set<string> | null = null;
@@ -152,7 +160,7 @@ export function lossTrendMax(env: Envelope, seed: number, years?: number): Trend
     seen = new Set(agents.map((a) => a.id));
     let best: TrendPoint | null = null;
     for (const agent of agents) {
-      const f = figure(env, agent, intake, monthlyVolume, seed, years);
+      const f = figure(env, h.head_commit.hash, agent, intake, monthlyVolume, seed, years);
       if (f && (!best || f.badYear > best.badYear)) best = { hash: h.head_commit.hash, ref: h.git_ref, date: h.head_commit.date, agent: agent.name, added, ...f };
     }
     if (best) out.push(best);

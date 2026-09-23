@@ -1,5 +1,7 @@
 import { relabelDimensions } from "../data/labels";
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { warmLoss } from "../data/lossCache";
+import { LOSS_SEED, costOutlook } from "../data/overview";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Envelope } from "../data/types";
 import type { FrameworkId } from "../data/frameworks";
 import type { SchemaProblem } from "../data/schema";
@@ -42,6 +44,8 @@ export function AppProvider({ envelope: raw, source, children }: { envelope: Env
   const [framework, setFrameworkState] = useState<FrameworkId>(readPref);
   // Display names for dimensions, applied once; ids and everything exported stay the scanner's.
   const envelope = useMemo(() => relabelDimensions(raw), [raw]);
+  // The loss figures take a couple of seconds in total; compute them in idle time so every screen opens with them ready.
+  useEffect(() => { warmLoss(envelope, LOSS_SEED, () => costOutlook(envelope)); }, [envelope]);
   const value = useMemo<AppState>(
     () => ({
       ...source,

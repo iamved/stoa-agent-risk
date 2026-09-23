@@ -3,7 +3,8 @@ import { useApp } from "../app/context";
 import { buildHash, useRoute } from "../app/router";
 import { Chips } from "../components/KeyValue";
 import { Section } from "../components/Section";
-import { CATS, EVENTS, STATUS_LABEL, catName, indicate, money, pct, whatIfs, type Comparable, type GapStatus, type Indication, type Intake, type ModelAgent, type Policy, type WhatIf } from "../data/lossModel";
+import { CATS, EVENTS, STATUS_LABEL, catName, money, pct, type Comparable, type GapStatus, type Indication, type Intake, type ModelAgent, type Policy, type WhatIf } from "../data/lossModel";
+import { indicationFor } from "../data/lossCache";
 import { agentToModel, candidateAgents, intakeFromEnvelope, intakeToToml } from "../data/lossInputs";
 import { uniqueAgentOf } from "../data/agents";
 import { LOSS_SEED } from "../data/overview";
@@ -36,12 +37,9 @@ export function Loss() {
   useEffect(() => {
     if (!model) return;
     setResult(null);
-    const id = window.setTimeout(() => {
-      const r = indicate(EVENTS, model, intake, SEED);
-      setResult({ r, levers: whatIfs(model, intake, SEED, r) });
-    }, 30);
+    const id = window.setTimeout(() => setResult(indicationFor(envelope, model, intake, SEED)), 30);
     return () => window.clearTimeout(id);
-  }, [model, intake]);
+  }, [envelope, model, intake]);
 
   const toml = intakeToToml(intake, volume);
   const copy = async () => {
