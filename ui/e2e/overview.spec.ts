@@ -25,7 +25,7 @@ test.describe("overview", () => {
   test("the verdict is built from the scan, in detection language", async ({ page }) => {
     await page.goto(url("meridian-pay"));
     const verdict = page.getByRole("region", { name: "Where you stand" });
-    await expect(verdict.getByRole("paragraph")).toHaveText(/^Modeled loss in a bad year has risen from \$3\.4M to \$[\d.]+M in two months, driven by one push in September: meridian-support went live\.$/);
+    await expect(verdict.getByRole("paragraph")).toHaveText(/^Modeled loss in a bad year has risen from \$3\.7M to \$[\d.]+M in two months, driven by one push in September: meridian-support went live\.$/);
     await expect(verdict.getByRole("button")).toHaveText(["Export board report"]);
   });
 
@@ -51,7 +51,7 @@ test.describe("overview", () => {
     // Estimated Failures Cost: the figure and a plot by month against the declared risk capacity, nothing else written.
     const cost = main.getByRole("heading", { name: "Estimated Failures Cost" }).locator("xpath=ancestor::section[1]");
     await expect(cost).toContainText(/\$[\d.]+Min a bad year/);
-    await expect(cost.getByRole("img", { name: /^Modeled bad-year loss by month: \$3\.4M in Jul, \$3\.5M in Aug, \$[\d.]+M in Sep\. Risk capacity \$4M, exceeded$/ })).toBeVisible();
+    await expect(cost.getByRole("img", { name: /^Modeled bad-year loss by month: \$3\.7M in Jul, \$3\.7M in Aug, \$[\d.]+M in Sep\. Risk capacity \$4M, exceeded$/ })).toBeVisible();
     await expect(cost.getByRole("img")).toContainText("Risk capacity $4M");
     await expect(cost).not.toContainText(/Cyber policy|Modeled\.|Up from|1 year in 100/);
     await expect(cost.getByRole("paragraph")).toHaveCount(0);
@@ -86,7 +86,7 @@ test.describe("overview", () => {
     await expect(lines.nth(0)).toContainText("meridian-support can move money.");
     await expect(lines.nth(1)).toContainText("account-actions lost its amount cap.");
     await expect(lines.nth(1)).toContainText("Every action was limited in code; now the only limit is the $500 written in the system prompt.");
-    await expect(lines.nth(2)).toContainText(/Modeled loss in a bad year: \$3\.5M to \$[\d.]+M\./);
+    await expect(lines.nth(2)).toContainText(/Modeled loss in a bad year: \$3\.7M to \$[\d.]+M\./);
     await expect(lines.nth(2)).toContainText("1 new high-severity finding. 2 of 5 agents are elevated.");
     await expect(changed).not.toContainText(/reopened|because|follow from/i);
     await changed.getByRole("link", { name: "Open the change log" }).click();

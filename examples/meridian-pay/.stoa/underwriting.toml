@@ -42,7 +42,7 @@ cadence = "Monthly"
 [intake]
 revenue               = 40000000
 sector                = "fintech"
-jurisdictions         = ["AU", "US"]
+jurisdictions         = ["EU", "US"]
 records               = 1500000
 regulated             = true
 minors                = false

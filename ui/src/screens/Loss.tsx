@@ -70,7 +70,6 @@ export function Loss() {
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="m-0">Financial Exposure</h1>
-        <div className="caption">An indication for a broker conversation. Not a quote.</div>
       </div>
 
       <div className="mt-4 flex flex-wrap items-end justify-between gap-4 pb-3 border-b border-line">
@@ -199,7 +198,7 @@ function Outlook({ r, levers, intake, model, notes, declared, agentId }: { r: In
         <h2 className="m-0 text-[26px] leading-tight tracking-tight">A bad year could cost {money(S.pMid)}</h2>
         <span className="chip chip-muted" title="A simulation from your inputs and public loss data. Not a quote, and not an observed loss.">Modeled</span>
       </div>
-      <p className="mt-2 mb-5 max-w-[68ch] text-[14.5px]">That is the insurable loss this AI deployment could cause in a year seen once in a hundred. An average year costs about <strong>{money(S.eal)}</strong>. {catName(top.key)} accounts for {pct(top.tailShare)} of the bad-year figure.</p>
+      <p className="mt-2 mb-5 max-w-[68ch] text-[14.5px]">An average year costs about <strong>{money(S.eal)}</strong>. {catName(top.key)} accounts for {pct(top.tailShare)} of the bad-year figure.</p>
 
       <Drivers r={r} intake={intake} notes={notes} declared={declared} top={top.key} agentId={agentId} />
 
@@ -354,7 +353,7 @@ function LossOverTime() {
         <h3 id="loss-over-time-title" className="m-0 text-[15px]">How the modeled loss has moved</h3>
         <span className="caption">{money(first.badYear)} on {formatDate(first.date)} to {money(last.badYear)} on {formatDate(last.date)}: <span className={change > 0 ? "text-sev-high" : change < 0 ? "text-ok" : ""}>{change > 0 ? "up" : change < 0 ? "down" : "level"}{change ? ` ${money(Math.abs(change))}` : ""}</span></span>
       </div>
-      <p className="caption mt-1 mb-2">Each point is a scanned commit, modeled with today's business inputs, so the line moves only when the code did. It follows whichever agent could cost the most at that scan; a bad year is 1 year in 100.</p>
+      <p className="caption mt-1 mb-2">Each point is a scanned commit, modeled with today's business inputs, so the line moves only when the code did. It follows whichever agent could cost the most at that scan.</p>
       <div className="overflow-x-auto">
         <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label} className="block w-full h-auto min-w-[520px]">
           <title>{label}</title>

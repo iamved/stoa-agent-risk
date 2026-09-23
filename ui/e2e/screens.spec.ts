@@ -242,7 +242,7 @@ test.describe("loss outlook", () => {
     await expect(page.getByText("AI exclusion applies").first()).toBeVisible();
     await expect(page.getByRole("heading", { name: "What would lower it" })).toBeVisible();
     // Removed on request: the exceedance curve, the four year tiles, the declared-limits table and the closing disclaimer.
-    for (const gone of ["Declared limits", "Not a quote, not a premium, not advice", "Insurable loss in one year", "a severe year", "expected annual loss"]) await expect(page.getByText(gone, { exact: false })).toHaveCount(0);
+    for (const gone of ["Declared limits", "Not a quote", "Insurable loss in one year", "a severe year", "expected annual loss", "once in a hundred", "1 year in 100", "AU and US"]) await expect(page.getByText(gone, { exact: false })).toHaveCount(0);
     // Cases shown are US financial services only, source-backed, under a few hundred million.
     await expect(page.getByText("Lemonade")).toBeVisible();
     await expect(page.getByText("Earnest Operations")).toBeVisible();
@@ -400,6 +400,6 @@ test.describe("financial exposure explains itself", () => {
     // The bad year here is the bad year on the Overview.
     const here = (await page.getByRole("heading", { name: /A bad year could cost/ }).textContent())!.match(/\$[\d.]+[kM]/)![0];
     await page.goto(fileUrl("meridian-pay", "#/overview"));
-    await expect(page.getByRole("region", { name: "Where you stand" })).toContainText(`Modeled loss in a bad year has risen from $3.4M to ${here} in two months`, { timeout: 60_000 });
+    await expect(page.getByRole("region", { name: "Where you stand" })).toContainText(`Modeled loss in a bad year has risen from $3.7M to ${here} in two months`, { timeout: 60_000 });
   });
 });
