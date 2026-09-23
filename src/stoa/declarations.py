@@ -51,11 +51,14 @@ SOCIETAL_RISK_FLAGS = ("critical_infrastructure", "biosecurity_adjacent", "mass_
 _KNOWN_AGENT_KEYS = {
     "name", "owner", "purpose", "users", "geography", "production_status",
     "autonomy_intent", "data_classes", "economic_authority", "same_as",
+    "engineer", "slack_thread",
 }
+# `[integrations]`: where the team talks about these agents. Links only; feeds no rule.
+_KNOWN_INTEGRATION_KEYS = {"jira_create_url", "slack_workspace"}
 _KNOWN_BUSINESS_KEYS = {
     "industries", "regulated_activities", "max_customer_dependency", "societal_risk_flags",
 }
-_KNOWN_TOP_KEYS = {"version", "business", "agents", "governance", "evidence", "risk_register"}
+_KNOWN_TOP_KEYS = {"version", "business", "agents", "governance", "evidence", "risk_register", "integrations"}
 TREATMENTS = ("accept", "mitigate", "avoid", "transfer")
 _KNOWN_REGISTER_KEYS = {"risk_id", "owner", "treatment", "rationale", "review_by", "status"}
 REGISTER_STATUSES = ("open", "in_progress", "closed")
@@ -84,6 +87,9 @@ class AgentDeclaration:
     # infrastructure definition, a second endpoint). Read only by the
     # dashboard's identity resolution; feeds no rule and no score.
     same_as: list[str] = field(default_factory=list)
+    # Who to talk to, and where. Shown on the dashboard's Safety Audit; feeds no rule.
+    engineer: str = ""
+    slack_thread: str = ""
 
 
 @dataclass
@@ -130,6 +136,7 @@ class Declarations:
         governance: Governance | None,
         evidence: list[EvidenceRef],
         risk_register: list[RiskRegisterEntry] | None = None,
+        integrations: dict | None = None,
     ):
         self.path = path
         self.agents = agents
@@ -137,6 +144,7 @@ class Declarations:
         self.governance = governance
         self.evidence = evidence
         self.risk_register: list[RiskRegisterEntry] = list(risk_register or [])
+        self.integrations: dict = dict(integrations or {})
 
     @property
     def exists(self) -> bool:
@@ -203,6 +211,18 @@ class Declarations:
             warnings.extend(agent_warnings)
             agents[agent_id] = decl
 
+        integrations: dict = {}
+        raw_integrations = data.get("integrations", {})
+        if not isinstance(raw_integrations, dict):
+            raise ConfigError(f"{path}: [integrations] must be a table")
+        for key, value in raw_integrations.items():
+            if key not in _KNOWN_INTEGRATION_KEYS:
+                warnings.append(f"{path}: unknown key integrations.{key} — ignored")
+            elif not isinstance(value, str):
+                warnings.append(f"{path}: integrations.{key} must be a string — ignored")
+            else:
+                integrations[key] = value
+
         governance = None
         raw_gov = data.get("governance")
         if raw_gov is not None:
@@ -252,7 +272,7 @@ class Declarations:
             seen_ids.add(entry.risk_id)
             risk_register.append(entry)
 
-        return cls(path, agents, business, governance, evidence, risk_register), warnings
+        return cls(path, agents, business, governance, evidence, risk_register, integrations), warnings
 
     def unknown_agent_ids(self, known_ids: set[str]) -> list[str]:
         """Declared ids that no longer match any scanned agent (DECL007)."""
@@ -290,6 +310,8 @@ def generate_stub(agents: list[dict]) -> str:
             f"# autonomy_intent = \"human_approved\"  # {'|'.join(AUTONOMY_INTENTS)}",
             f"# data_classes = []  # {'|'.join(DATA_CLASSES)}",
             '# same_as = []  # ids of other scanned records that are this same agent',
+            '# engineer = ""  # who to ask about the code; shown on the Safety Audit',
+            '# slack_thread = ""  # link to the thread where this agent is discussed',
             "#",
             f'# [agents."{agent_id}".economic_authority]',
             '# max_per_action = {amount = 0, currency = "USD"}',
@@ -355,6 +377,10 @@ def agent_declaration_to_dict(decl: AgentDeclaration) -> dict:
     # Emitted only when set, so registries that never use it are unchanged.
     if decl.same_as:
         record["same_as"] = list(decl.same_as)
+    if decl.engineer:
+        record["engineer"] = decl.engineer
+    if decl.slack_thread:
+        record["slack_thread"] = decl.slack_thread
     return record
 
 
@@ -510,5 +536,7 @@ def _parse_agent_declaration(
         data_classes=data_classes,
         economic_authority=economic_authority,
         same_as=[x for x in same_as if x != agent_id],
+        engineer=str(raw.get("engineer", "") or ""),
+        slack_thread=str(raw.get("slack_thread", "") or ""),
     )
     return decl, warnings

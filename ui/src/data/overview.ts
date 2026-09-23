@@ -359,6 +359,40 @@ export function whyItMatters(item: AttentionItem): string {
   return PLAIN_WHY[item.ruleId] ?? "";
 }
 
+export interface FixFirst {
+  item: AttentionItem;
+  /** "account-actions and meridian-support can move money without approval" */
+  title: string;
+  found: string;
+  why: string;
+  fix: string;
+}
+
+/**
+ * The one finding to fix first: the top attention item, said in three short
+ * lines. DECL001 on money-moving agents has its own wording; other rules use
+ * the item's plain title, what the scan saw, why it matters and the fix.
+ */
+export function fixFirst(env: Envelope): FixFirst | null {
+  const item = attention(env, 1)[0];
+  if (!item) return null;
+  const agents = item.refs.flatMap((r) => r.uniqueAgents);
+  const moneyTools = new Set(agents.flatMap((u) => toolsOf(u).filter((t) => t.money_action).map((t) => t.name)));
+  if (item.ruleId === "DECL001" && moneyTools.size) {
+    const who = item.agents.length ? joinWords(item.agents) : "This agent";
+    const both = item.agents.length === 1 ? "The agent is" : item.agents.length === 2 ? "Both agents are" : `All ${countWord(item.agents.length)} agents are`;
+    const its = item.agents.length === 1 ? "its" : "their";
+    return {
+      item,
+      title: `${who} can move money without approval`,
+      found: `${both} declared as needing human approval, but ${moneyTools.size} of ${its} tools can move money with no approval step in the code.`,
+      why: "Your policy assumes a person signs off on these actions. Right now nobody does, so losses would be uncontrolled.",
+      fix: `Add an approval step before these tools run, or update the declaration if the ${item.agents.length === 1 ? "agent is" : "agents are"} meant to act on ${its} own.`,
+    };
+  }
+  return { item, title: attentionTitle(item).replace(/\.$/, ""), found: scanSaw(item), why: whyItMatters(item), fix: nextAction(item) };
+}
+
 /** Sentences that set the scene rather than say what to do. */
 const CONTEXT_OPENER = /^(this|these|an?|the|traces|reported|observability|stoa-declared\.toml)\b/i;
 

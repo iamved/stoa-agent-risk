@@ -20,20 +20,20 @@ export function DimensionChart({ selected, onSelect }: { selected: string | null
     <section className="panel" aria-labelledby="dimension-chart-title">
       <div className="px-5 pt-4 pb-3 flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
         <div>
-          <h2 id="dimension-chart-title" className="m-0">Findings by dimension</h2>
-          <div className="caption">A finding can affect more than one dimension. Select a dimension to filter the table.</div>
+          <h2 id="dimension-chart-title" className="m-0">Findings by category</h2>
+          <div className="caption">Findings can appear in more than one category. Click a row to filter.</div>
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 caption">
           <span className="flex items-center gap-1.5 font-medium text-ink-soft">Severity <SeverityTip align="right" /></span>
           {RISK_LEVELS.map((level) => <span key={level} className="flex items-center gap-1.5"><span aria-hidden="true" className={`inline-block w-2.5 h-2.5 rounded-sm ${BAR[level]}`} />{LEVEL_NAME[level]}</span>)}
         </div>
       </div>
-      <div role="table" aria-label="Findings by dimension" className="border-t border-line/70">
+      <div role="table" aria-label="Findings by category" className="border-t border-line/70">
         <div role="row" className="grid grid-cols-[minmax(0,1.5fr)_minmax(80px,1fr)_56px_150px] gap-x-4 px-5 py-2 text-[11px] uppercase tracking-wide font-semibold text-ink-muted border-b border-line/70">
-          <span role="columnheader">Dimension</span>
-          <span role="columnheader">Findings by severity</span>
+          <span role="columnheader">Category</span>
+          <span role="columnheader">Severity</span>
           <span role="columnheader" className="text-right">Total</span>
-          <span role="columnheader" className="flex items-center gap-1.5">Exposure <ExposureTip align="right" /></span>
+          <span role="columnheader" className="flex items-center gap-1.5">Risk level <ExposureTip align="right" /></span>
         </div>
         {bars.map((bar) => {
           const on = selected === bar.dimension.id;

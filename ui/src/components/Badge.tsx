@@ -32,7 +32,7 @@ export function DimensionStateBadge({ state }: { state: DimensionState }) {
 const CONFIDENCE_CLASS: Record<Confidence, string> = { high: "chip-ok", medium: "chip-medium", low: "chip-muted" };
 
 export function ConfidenceBadge({ confidence }: { confidence: Confidence }) {
-  return <span className={`chip ${CONFIDENCE_CLASS[confidence]}`}>{confidence} confidence</span>;
+  return <span className={`chip ${CONFIDENCE_CLASS[confidence]}`}>Confidence: {confidence.charAt(0).toUpperCase()}{confidence.slice(1)}</span>;
 }
 
 /** Dimension assessability, labeled "confidence" for the reader. */

@@ -84,17 +84,50 @@ export const SAFEGUARD_SUBTITLE: Record<string, string> = {
 
 // --- dimensions ------------------------------------------------------------------------------
 
-/** One plain line under each dimension name. The names are Stoa's taxonomy and are never changed. */
-export const DIMENSION_SUBTITLE: Record<string, string> = {
-  "boundary-leakage": "Data crossing a boundary it should not.",
-  "mandate-overreach": "Agents can do more than they are declared to do.",
-  "injection-tamper-surface": "Places where outside input can steer the agent.",
-  "control-coverage-gap": "Expected safeguards not detected.",
-  "unreviewed-high-impact-action": "Money or system changes with no human check detected.",
-  "output-fidelity": "Whether outputs can be trusted as accurate.",
-  "conduct-variability": "How consistently the agent behaves run to run.",
-  "dependency-drift": "Models or dependencies that can change underneath you.",
+/**
+ * Display names for the eight dimensions. Ids, config keys and everything
+ * serialized in scan output keep the taxonomy's own names; only what the
+ * reader sees changes. A dimension not listed here shows its taxonomy name.
+ */
+export const DIMENSION_LABEL: Record<string, string> = {
+  "boundary-leakage": "Data leaks",
+  "mandate-overreach": "Excess access",
+  "injection-tamper-surface": "Injection risk",
+  "control-coverage-gap": "Missing safeguards",
+  "unreviewed-high-impact-action": "Unchecked actions",
+  "output-fidelity": "Unreliable output",
+  "conduct-variability": "Inconsistent behavior",
+  "dependency-drift": "Dependency drift",
 };
+
+export function dimensionLabel(id: string, fallback?: string): string {
+  return DIMENSION_LABEL[id] ?? fallback ?? id;
+}
+
+/** One plain line under each dimension name. */
+export const DIMENSION_SUBTITLE: Record<string, string> = {
+  "boundary-leakage": "Data goes where it shouldn't.",
+  "mandate-overreach": "Agents can do more than they're meant to.",
+  "injection-tamper-surface": "Outside input can steer the agent.",
+  "control-coverage-gap": "Expected protections not found.",
+  "unreviewed-high-impact-action": "Money or system changes with no human review.",
+  "output-fidelity": "Outputs may not be accurate.",
+  "conduct-variability": "Agent acts differently run to run.",
+  "dependency-drift": "Models or packages can change under you.",
+};
+
+/**
+ * The envelope with dimension display names applied wherever the producer
+ * wrote a name for the reader: the taxonomy and the register rows. Ids are
+ * untouched, so filters, links and exports still speak the scanner's names.
+ */
+export function relabelDimensions<T extends { taxonomy: { dimensions: { id: string; name: string }[] }; register: { risk_id: string; dimension_name: string }[] }>(env: T): T {
+  return {
+    ...env,
+    taxonomy: { ...env.taxonomy, dimensions: env.taxonomy.dimensions.map((d) => ({ ...d, name: dimensionLabel(d.id, d.name) })) },
+    register: env.register.map((row) => ({ ...row, dimension_name: dimensionLabel(row.risk_id.split("/")[0] ?? "", row.dimension_name) })),
+  };
+}
 
 /** Falls back to the taxonomy's own definition for a custom dimension. */
 export function dimensionSubtitle(id: string, definition?: string): string {
@@ -133,7 +166,7 @@ export function prose(text: string | null | undefined): string {
  * the scanner's sentence.
  */
 export const PLAIN_TITLE: Record<string, string> = {
-  DECL001: "Declared autonomy does not match what the code does.",
+  DECL001: "Agent has more autonomy than declared.",
   AI008: "A payment can be charged twice if a request is retried.",
   DECL006: "This agent is missing from your declaration file.",
   DECL005: "A production agent has no logging or monitoring detected.",
@@ -159,7 +192,7 @@ export const PLAIN_TITLE: Record<string, string> = {
 
 /** Why a finding matters, in one plain sentence. The consequence, not the mechanism. */
 export const PLAIN_WHY: Record<string, string> = {
-  DECL001: "The approval your policy relies on is not there. Losses from these agents would be uncontrolled and unbudgeted.",
+  DECL001: "An agent you think is supervised can act on its own.",
   AI008: "One flaky network call can pay a customer twice, and nothing in the code would notice.",
   DECL006: "An agent nobody has declared has no owner, no purpose on record and no one accountable for it.",
   DECL005: "If this agent does something wrong in production, there is no record of what it did or why.",
@@ -181,6 +214,21 @@ export const PLAIN_WHY: Record<string, string> = {
   AI007: "The same request can get a different answer each time, so decisions are hard to defend.",
   SEC001: "Anyone with the code has the credential.",
   SEC002: "Anyone with the code has the password.",
+};
+
+/** The rule's name in plain words, shown next to its id. Falls back to the scanner's title. */
+export const PLAIN_RULE_NAME: Record<string, string> = {
+  DECL001: "Declared autonomy doesn't match the code",
+};
+
+/** What the rule checks, static per rule. Rules without an entry show the scanner's title. */
+export const PLAIN_CHECK: Record<string, string> = {
+  DECL001: "Compares the autonomy an agent is declared to have with what its code actually allows. Can fail a build when confidence is high.",
+};
+
+/** The full fix, for the finding panel. Rules without an entry show the scanner's remediation text. */
+export const PLAIN_FIX: Record<string, string> = {
+  DECL001: "Add an approval step before this action. If the agent is meant to act on its own, update autonomy_intent for this agent in stoa-declared.toml instead.",
 };
 
 export const PLAIN_ACTION: Record<string, string> = {

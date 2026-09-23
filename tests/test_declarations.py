@@ -223,3 +223,21 @@ def test_stale_declared_agent_id_produces_a_warning(tmp_path):
     result = run_scan(ScanOptions(root=tmp_path, no_git=True))
     assert any("doesnotexist" in w for w in result.declaration_warnings)
     assert any("doesnotexist" in w for w in result.warnings)
+
+
+def test_engineer_slack_thread_and_integrations_are_links_only(tmp_path):
+    """New declared keys reach the registry as written, feed no rule, and are absent when unset."""
+    from stoa.declarations import Declarations, agent_declaration_to_dict
+    path = tmp_path / "stoa-declared.toml"
+    path.write_text(
+        'version = 1\n[integrations]\njira_create_url = "https://x.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=1"\n'
+        'bogus = "y"\n[agents."abc123def456"]\nname = "a"\nengineer = "Sam Lee"\nslack_thread = "https://x.slack.com/archives/C1/p1"\n'
+        '[agents."abc123def457"]\nname = "b"\n'
+    )
+    decl, warnings = Declarations.load(path)
+    assert decl.integrations == {"jira_create_url": "https://x.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=1"}
+    assert any("integrations.bogus" in w for w in warnings)
+    a = agent_declaration_to_dict(decl.agents["abc123def456"])
+    assert a["engineer"] == "Sam Lee" and a["slack_thread"] == "https://x.slack.com/archives/C1/p1"
+    b = agent_declaration_to_dict(decl.agents["abc123def457"])
+    assert "engineer" not in b and "slack_thread" not in b

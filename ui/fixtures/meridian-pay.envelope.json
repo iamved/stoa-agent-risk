@@ -207,7 +207,9 @@
           "geography": [],
           "production_status": null,
           "autonomy_intent": null,
-          "data_classes": []
+          "data_classes": [],
+          "engineer": "Arjun Mehta",
+          "slack_thread": "https://meridian.slack.com/archives/C0KNOWLDG/p1726000000000300"
         },
         "autonomy_level": {
           "level": "recommend_only",
@@ -611,7 +613,9 @@
               "amount": 250000,
               "currency": "USD"
             }
-          }
+          },
+          "engineer": "Tom Okafor",
+          "slack_thread": "https://meridian.slack.com/archives/C0ACCTACT/p1726000000000100"
         },
         "autonomy_level": {
           "level": "unrestricted_autonomous",
@@ -1072,7 +1076,9 @@
           "geography": [],
           "production_status": null,
           "autonomy_intent": null,
-          "data_classes": []
+          "data_classes": [],
+          "engineer": "Lena Ruiz",
+          "slack_thread": "https://meridian.slack.com/archives/C0FRONT01/p1726000000000200"
         },
         "autonomy_level": {
           "level": "recommend_only",
@@ -1490,7 +1496,9 @@
           "data_classes": [
             "personal",
             "financial"
-          ]
+          ],
+          "engineer": "Tom Okafor",
+          "slack_thread": "https://meridian.slack.com/archives/C0SUPPORT/p1726000000000500"
         },
         "autonomy_level": {
           "level": "unrestricted_autonomous",
@@ -1864,7 +1872,9 @@
           "geography": [],
           "production_status": null,
           "autonomy_intent": null,
-          "data_classes": []
+          "data_classes": [],
+          "engineer": "Arjun Mehta",
+          "slack_thread": "https://meridian.slack.com/archives/C0ESCALAT/p1726000000000400"
         },
         "autonomy_level": {
           "level": "recommend_only",
@@ -2126,6 +2136,10 @@
         "consumer_banking"
       ],
       "max_customer_dependency": "high"
+    },
+    "integrations": {
+      "jira_create_url": "https://meridian.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10400&issuetype=10001",
+      "slack_workspace": "https://meridian.slack.com"
     },
     "risk_register": [
       {

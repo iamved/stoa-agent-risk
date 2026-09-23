@@ -64,6 +64,21 @@ network. See [docs/dashboard.md](docs/dashboard.md).
   changed is three lines; Needs your attention rows say what the scan saw,
   why it matters and the fix, with no rule ids or dimension names.
 - Declared Scope names agents the way every other screen does.
+- Dimension display names: Data leaks, Excess access, Injection risk,
+  Missing safeguards, Unchecked actions, Unreliable output, Inconsistent
+  behavior, Dependency drift. Display only: ids, config keys, the registry
+  and the CLI keep the taxonomy's names.
+- Finding panel: "What this check does" (static per rule) is split from
+  "What we found" (generated per finding, naming the agent as the panel
+  does); plain rule name, "Confidence: High", "OWASP LLM06", no `:1` column,
+  a Declared/Found evidence box and the TOML key under How to fix for
+  DECL001. Other rules fall back to the scanner's text.
+- Overview: "Needs your attention" is "Fix this first", one finding in three
+  lines; the Insurance assessment sits under it, beside What changed.
+- New screen, Launch Safety Audit: every agent with its declared owner and
+  engineer, a Slack thread link, a prefilled Jira link and an email link.
+  New declared keys `engineer`, `slack_thread` and `[integrations]`
+  (`jira_create_url`, `slack_workspace`); links only, no rule reads them.
 - Overview, cut back: the verdict is one sentence (the rise and what went
   live). Risk Mapping is every agent on a low-to-high line, placed by its
   highest dimension score, the new one marked. Protection Level is gone

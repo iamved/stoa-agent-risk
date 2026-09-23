@@ -15,7 +15,7 @@ test.describe("overview", () => {
     await expect(main.getByText("Static scan of code and configuration", { exact: false })).toHaveCount(0);
     await expect(main.getByText("What the code makes possible, not what has happened.")).toHaveCount(0);
     await expect(main.getByRole("region", { name: "Where you stand" })).toBeVisible();
-    await expect(main.getByRole("heading", { level: 2 })).toHaveText(["Agent Inventory", "Risk Mapping", "Estimated Failures Cost", "Needs your attention", "What changed", "Insurance assessment", "Agent Risk Flow Graph"]);
+    await expect(main.getByRole("heading", { level: 2 })).toHaveText(["Agent Inventory", "Risk Mapping", "Estimated Failures Cost", "Fix this first", "Insurance assessment", "What changed", "Agent Risk Flow Graph"]);
     // Removed on purpose: the elevated-agents card, the combined money-or-write card, the long findings list.
     for (const gone of ["Agents at elevated exposure", "Can move money or write to systems", "Top findings", "Findings by dimension", "Where exposure is elevated", "Risk register", "risks recorded"]) await expect(main.getByText(gone)).toHaveCount(0);
     const targets = await main.getByRole("link").evaluateAll((links) => [...new Set(links.map((a) => (a.getAttribute("href") ?? "").split(/[/?]/)[1]))]);
@@ -59,25 +59,21 @@ test.describe("overview", () => {
     await expect(page).toHaveURL(/#\/loss/);
   });
 
-  test("attention rows name the agents and say what was seen, why it matters and the fix, with no workflow controls", async ({ page }) => {
+  test("fix this first is one finding in three lines, with no workflow controls", async ({ page }) => {
     await page.goto(url("meridian-pay"));
-    const list = page.getByRole("region", { name: "Needs your attention" });
-    await expect(list).toContainText("Highest severity first. The same problem on several agents is one item.");
-    const rows = list.getByRole("listitem");
-    await expect(rows).toHaveCount(3);
-    await expect(list).not.toContainText(/idempotency|\[agents\.|DECL00|AI008|Mandate overreach|Control coverage gap/);
-    await expect(rows.first()).toContainText("account-actions and meridian-support: declared autonomy does not match what the code does.");
-    await expect(rows.first().getByRole("term")).toHaveText(["What the scan saw", "Why it matters", "Fix"]);
-    await expect(rows.first()).toContainText("Declared: acts after human approval. In the code: acts on its own, with 4 tools that can move money and no approval step detected.");
-    await expect(rows.first()).toContainText("The approval your policy relies on is not there.");
-    await expect(rows.first()).toContainText("Add the approval step, or correct the declaration. · 1 marked for transfer · 1 being mitigated");
-    await expect(rows.nth(1)).toContainText("issue_refund is retried on failure with no unique reference per request, in tools/account_tools.py, line 17. Both agents call it.");
-    for (const row of await rows.all()) await expect(row.getByRole("term")).toHaveCount(3);
-    await expect(list.getByRole("button")).toHaveCount(0);
-    // No workflow UI. (A declared owner shown as a fact, from stoa-declared.toml, is allowed.)
+    const card = page.getByRole("region", { name: "Fix this first" });
+    await expect(card).toContainText("The highest-risk finding from this scan.");
+    await expect(card.getByRole("link", { name: "account-actions and meridian-support can move money without approval" })).toBeVisible();
+    await expect(card.getByRole("term")).toHaveText(["What we found", "Why it matters", "Fix"]);
+    await expect(card).toContainText("Both agents are declared as needing human approval, but 4 of their tools can move money with no approval step in the code.");
+    await expect(card).toContainText("Your policy assumes a person signs off on these actions. Right now nobody does, so losses would be uncontrolled.");
+    await expect(card).toContainText("Add an approval step before these tools run, or update the declaration if the agents are meant to act on their own. · 1 marked for transfer · 1 being mitigated");
+    await expect(card).not.toContainText(/idempotency|\[agents\.|DECL00|AI008|Mandate overreach|Excess access|Control coverage gap/);
+    await expect(card.getByRole("button")).toHaveCount(0);
     await expect(page.locator("main .screen-content").getByText(/assign owner|assign to|overdue|due by|due date/i)).toHaveCount(0);
-    await expect(list.getByRole("link", { name: "View all 13 findings" })).toBeVisible();
-    await rows.nth(1).getByRole("link").click();
+    await expect(card.getByRole("link", { name: "View all 13 findings" })).toBeVisible();
+    await expect(card).toContainText("3 high · 2 medium · 8 low");
+    await card.getByRole("link", { name: /can move money without approval/ }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
   });
 
@@ -103,7 +99,7 @@ test.describe("overview", () => {
     await expect(assessment).toContainText("9 of 23 answers came from your code. 8 need your confirmation.");
     await expect(assessment.getByRole("link")).toHaveText(["Continue the assessment"]);
     const nav = page.getByRole("navigation", { name: "Screens" });
-    await expect(nav.getByRole("listitem")).toHaveText([/^Overview$/, /^Agent Inventory\s*5$/, /^Findings\s*3 high$/, /^Controls & Safeguards$/, /^Financial Exposure$/, /^AI Risk Insurance$/]);
+    await expect(nav.getByRole("listitem")).toHaveText([/^Overview$/, /^Agent Inventory\s*5$/, /^Findings\s*3 high$/, /^Controls & Safeguards$/, /^Launch Safety Audit$/, /^Financial Exposure$/, /^AI Risk Insurance$/]);
     await expect(page.getByText("26", { exact: true })).toHaveCount(0);
   });
 
@@ -126,7 +122,7 @@ test.describe("overview", () => {
     await page.goto(url("no-agents"));
     await expect(page.getByRole("region", { name: "Where you stand" })).toContainText("No AI agents were found in this scan");
     await expect(page.getByText("There are no agents to model.")).toBeVisible();
-    await expect(page.getByRole("region", { name: "Needs your attention" })).toContainText("No open findings.");
+    await expect(page.getByRole("region", { name: "Fix this first" })).toContainText("No open findings.");
     await expect(page.getByRole("heading", { name: "Insurance assessment" })).toHaveCount(0);
   });
 
@@ -154,7 +150,7 @@ test.describe("overview", () => {
     await expect(flow.getByText("Risk intensity, by dimension")).toHaveCount(0);
     await diagram.getByRole("button", { name: /^Human approval, no human approval detected/ }).click();
     await expect(flow).toContainText("No human approval detected. 4 money-moving or high-impact tools can run without a person confirming.");
-    await expect(flow).toContainText("Declared autonomy does not match what the code does.");
+    await expect(flow).toContainText("Agent has more autonomy than declared.");
     await flow.getByRole("button", { name: "Clear" }).click();
     await expect(flow).toContainText("account-actions: 6 tools");
 

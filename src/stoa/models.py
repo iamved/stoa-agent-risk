@@ -198,6 +198,8 @@ class ScanResult:
     dimension_summary: Optional[dict] = None
     # Schema 1.2 (Assurance layer). None unless stoa-declared.toml exists.
     business: Optional[dict] = None
+    # Schema 1.8: `[integrations]` from stoa-declared.toml (links only).
+    integrations: Optional[dict] = None
     governance: Optional[dict] = None
     evidence: Optional[dict] = None
     # stoa-declared.toml parse/semantic warnings (also folded into `warnings`);

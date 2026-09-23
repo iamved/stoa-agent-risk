@@ -97,6 +97,10 @@ harmful_output_policy?}`. `evidence` — pointers only, grouped by category
 (`testing`, `safety_testing`, `monitoring`, `contracts`, `vendor`,
 `historical`, or any other caller-supplied category name), each entry
 `{kind, ref, date?}`. All three present only when `stoa-declared.toml` exists.
+`integrations` — `{jira_create_url?, slack_workspace?}`, links only, present
+only when declared. Per agent, `declared.engineer` and `declared.slack_thread`
+are emitted only when set. None of these feeds a rule or a score; the
+dashboard's Safety Audit shows them.
 
 ## Schema 1.3 additions (trust-standard alignment)
 

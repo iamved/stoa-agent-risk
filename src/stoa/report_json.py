@@ -182,6 +182,8 @@ def build_document(result: ScanResult, config: StoaConfig) -> dict:
         document["dimension_summary"] = result.dimension_summary
     if result.business is not None:
         document["business"] = result.business
+    if result.integrations:
+        document["integrations"] = result.integrations
     if result.governance is not None:
         document["governance"] = result.governance
     if result.evidence is not None:

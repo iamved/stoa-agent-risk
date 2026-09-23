@@ -30,6 +30,7 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
         // The badge is the number that needs someone: high-severity findings, not the size of the list.
         { id: "risk", label: "Findings", href: buildHash("findings"), screens: ["findings", "drift", "register"], alert: high ? `${high} high` : undefined, icon: "risk" },
         { id: "controls", label: "Controls & Safeguards", href: buildHash("controls"), screens: ["controls"], icon: "controls" },
+        { id: "audit", label: "Launch Safety Audit", href: buildHash("audit"), screens: ["audit"], icon: "audit" },
         { id: "loss", label: "Financial Exposure", href: buildHash("loss"), screens: ["loss"], icon: "loss" },
         { id: "insurance", label: "AI Risk Insurance", href: buildHash("evidence"), screens: ["evidence"], icon: "insurance" },
       ],

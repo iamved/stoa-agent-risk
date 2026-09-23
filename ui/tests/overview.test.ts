@@ -5,7 +5,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { Envelope } from "../src/data/types";
-import { SPECTRUM_BANDS, agentSpectrum, attention, attentionStatus, attentionTitle, audienceLine, costOutlook, elevatedDimensions, highLines, holdings, joinWords, moneyMovers, newHighLine, newestAgent, nextAction, otherDimensionsLine, protection, registerCard, scanSaw, scanSources, sentenceText, spanWords, standing, whatChanged, whyItMatters } from "../src/data/overview";
+import { SPECTRUM_BANDS, agentSpectrum, attention, fixFirst, attentionStatus, attentionTitle, audienceLine, costOutlook, elevatedDimensions, highLines, holdings, joinWords, moneyMovers, newHighLine, newestAgent, nextAction, otherDimensionsLine, protection, registerCard, scanSaw, scanSources, sentenceText, spanWords, standing, whatChanged, whyItMatters } from "../src/data/overview";
 import { PLAIN_ACTION, PLAIN_TITLE, PLAIN_WHY } from "../src/data/labels";
 import { toolRows } from "../src/data/inventory";
 import { activeFindings, countByLevel } from "../src/data/selectors";
@@ -130,9 +130,9 @@ describe("needs your attention", () => {
 
   it("names the agents in the title, a dimension the finding sits in, and the register decision", () => {
     const [first, second] = attention(demo);
-    expect(first!.title).toBe("Declared autonomy does not match what the code does.");
+    expect(first!.title).toBe("Agent has more autonomy than declared.");
     expect(first!.agents).toEqual(["account-actions", "meridian-support"]);
-    expect(attentionTitle(first!)).toBe("account-actions and meridian-support: declared autonomy does not match what the code does.");
+    expect(attentionTitle(first!)).toBe("account-actions and meridian-support: agent has more autonomy than declared.");
     expect(first!.findings).toBe(2);
     expect(attentionStatus(first!)).toContain("1 marked for transfer");
     expect(second!.ruleId).toBe("AI008");
@@ -159,6 +159,22 @@ describe("needs your attention", () => {
     // A rule with no template falls back to the scanner's first sentence.
     const other = { ...by("AI008"), ruleId: "XX999" };
     expect(scanSaw(other)).toBe("issue_refund posts a money action and is retried on failure (retry (via _post_refund)); no idempotency key or dedupe check was observed.");
+  });
+
+  it("says the one thing to fix first in three short lines", () => {
+    const first = fixFirst(demo)!;
+    expect(first.item.ruleId).toBe("DECL001");
+    expect(first.title).toBe("account-actions and meridian-support can move money without approval");
+    expect(first.found).toBe("Both agents are declared as needing human approval, but 4 of their tools can move money with no approval step in the code.");
+    expect(first.why).toBe("Your policy assumes a person signs off on these actions. Right now nobody does, so losses would be uncontrolled.");
+    expect(first.fix).toBe("Add an approval step before these tools run, or update the declaration if the agents are meant to act on their own.");
+    // Any other rule: the plain title, what the scan saw, why it matters, the next action.
+    const other = fixFirst(firstRun)!;
+    expect(other.item.ruleId).toBe("AI008");
+    // No declaration file: agents carry the scanner's names.
+    expect(other.title).toMatch(/: a payment can be charged twice if a request is retried$/);
+    expect(other.why).toBe(PLAIN_WHY["AI008"]);
+    expect(fixFirst(empty)).toBeNull();
   });
 
   it("says what the register says, and nothing when it says nothing", () => {

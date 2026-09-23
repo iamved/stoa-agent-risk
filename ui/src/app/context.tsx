@@ -1,3 +1,4 @@
+import { relabelDimensions } from "../data/labels";
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import type { Envelope } from "../data/types";
 import type { FrameworkId } from "../data/frameworks";
@@ -37,8 +38,10 @@ function writePref(id: FrameworkId): void {
   }
 }
 
-export function AppProvider({ envelope, source, children }: { envelope: Envelope; source: ScanSource; children: ReactNode }) {
+export function AppProvider({ envelope: raw, source, children }: { envelope: Envelope; source: ScanSource; children: ReactNode }) {
   const [framework, setFrameworkState] = useState<FrameworkId>(readPref);
+  // Display names for dimensions, applied once; ids and everything exported stay the scanner's.
+  const envelope = useMemo(() => relabelDimensions(raw), [raw]);
   const value = useMemo<AppState>(
     () => ({
       ...source,

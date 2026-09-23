@@ -108,7 +108,7 @@ test.describe("dashboard over file://", () => {
         expect(/\bguards?\b/i.test(text), `${fixture} ${route} says guard`).toBe(false);
       }
       await page.goto(fileUrl(fixture, "#/findings"));
-      const rows = page.getByRole("table", { name: "Findings by dimension" }).getByRole("row");
+      const rows = page.getByRole("table", { name: "Findings by category" }).getByRole("row");
       for (const row of await rows.all()) {
         const cells = await row.getByRole("cell").allTextContents();
         if (cells.length === 4 && cells[2]!.trim() === "0") expect(cells[3], cells[0]).not.toMatch(/^(Low|None observed)$/);

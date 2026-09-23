@@ -4,7 +4,7 @@
  * the scanner wrote. Tested in `tests/selectors.test.ts`.
  */
 import { uniqueAgentOf, uniqueAgents, type UniqueAgent } from "./agents";
-import { PLAIN_TITLE, prose } from "./labels";
+import { PLAIN_TITLE, dimensionLabel, prose } from "./labels";
 import type {
   Agent,
   DimensionEntry,
@@ -283,7 +283,7 @@ export function dimensionMatrix(env: Envelope, framework: FrameworkId): MatrixGr
 }
 
 export function dimensionName(env: Envelope, id: string): string {
-  return env.taxonomy.dimensions.find((d) => d.id === id)?.name ?? id;
+  return dimensionLabel(id, env.taxonomy.dimensions.find((d) => d.id === id)?.name);
 }
 
 /** Agents that carry at least one elevated dimension, with those dimensions. */

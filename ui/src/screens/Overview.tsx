@@ -6,8 +6,8 @@ import { AgentFlow } from "../components/AgentFlow";
 import { SeverityBadge } from "../components/Badge";
 import { money } from "../data/lossModel";
 import type { TrendPoint } from "../data/lossTrend";
-import { SPECTRUM_BANDS, agentSpectrum, attention, attentionStatus, attentionTitle, audienceLine, costOutlook, holdings, newestAgent, nextAction, scanSaw, standing, whatChanged, whyItMatters, type AttentionItem, type ChangeLine, type CostOutlook, type SpectrumRow } from "../data/overview";
-import { activeFindings, formatDate, overviewDeltas, pluralize } from "../data/selectors";
+import { SPECTRUM_BANDS, agentSpectrum, attentionStatus, audienceLine, costOutlook, fixFirst, holdings, newestAgent, standing, whatChanged, type ChangeLine, type CostOutlook, type SpectrumRow } from "../data/overview";
+import { activeFindings, countByLevel, formatDate, overviewDeltas, pluralize } from "../data/selectors";
 
 /** The loss model takes about a tenth of a second, so it runs after first paint. `undefined` is "not yet". */
 function useCostOutlook(): CostOutlook | null | undefined {
@@ -39,11 +39,12 @@ export function Overview() {
       </div>
 
       <div className="mt-3 grid gap-3 xl:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)] items-start">
-        <Attention />
+        <div className="grid gap-3">
+          <Attention />
+          {hasAgents ? <AssessmentCard /> : null}
+        </div>
         <Changed cost={cost} />
       </div>
-
-      {hasAgents ? <div className="mt-3"><AssessmentCard /></div> : null}
 
       {hasAgents ? <AgentFlow /> : null}
     </div>
@@ -222,46 +223,33 @@ function CostTrend({ cost }: { cost: CostOutlook }) {
 
 function Attention() {
   const { envelope } = useApp();
-  const items = useMemo(() => attention(envelope), [envelope]);
-  const total = activeFindings(envelope).length;
+  const first = useMemo(() => fixFirst(envelope), [envelope]);
+  const counts = countByLevel(activeFindings(envelope));
+  const total = counts.high + counts.medium + counts.low;
   return (
     <section className="panel" aria-labelledby="attention-title">
       <div className="px-4 pt-3 pb-2.5">
-        <h2 id="attention-title" className="m-0">Needs your attention</h2>
-        <div className="caption">Highest severity first. The same problem on several agents is one item.</div>
+        <h2 id="attention-title" className="m-0">Fix this first</h2>
+        <div className="caption">The highest-risk finding from this scan.</div>
       </div>
-      {!items.length ? <p className="caption px-4 pb-3 m-0">No open findings.</p> : (
-        <ol className="m-0 p-0 list-none divide-y divide-line/70 border-t border-line/70">
-          {items.map((item) => <AttentionRow key={item.ruleId} item={item} />)}
-        </ol>
+      {!first ? <p className="caption px-4 pb-3 m-0 border-t border-line/70 pt-3">No open findings.</p> : (
+        <div className="grid grid-cols-[68px_minmax(0,1fr)] gap-x-3 items-start px-4 py-3 border-t border-line/70">
+          <span className="pt-0.5"><SeverityBadge severity={first.item.severity} /></span>
+          <div className="min-w-0">
+            <a href={buildHash("findings", first.item.fingerprint)} className="block text-[13.5px] font-medium leading-snug text-navy no-underline hover:underline">{first.title}</a>
+            <dl className="m-0 mt-1.5 grid grid-cols-[112px_minmax(0,1fr)] gap-x-3 gap-y-1 text-[12.5px] leading-snug">
+              {([["What we found", first.found], ["Why it matters", first.why], ["Fix", first.fix]] as const).filter(([, v]) => v).map(([k, v]) => (
+                <div key={k} className="contents">
+                  <dt className="text-ink-muted">{k}</dt>
+                  <dd className="m-0 text-ink-soft">{v}{k === "Fix" && attentionStatus(first.item) ? <span className="text-ink-muted"> · {attentionStatus(first.item)}</span> : null}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </div>
       )}
-      {total ? <div className="px-4 py-2.5 border-t border-line/70"><a href={buildHash("findings")} className="text-[12.5px] font-medium text-navy no-underline hover:underline">View all {pluralize(total, "finding")} <span aria-hidden="true">→</span></a></div> : null}
+      {total ? <div className="px-4 py-2.5 border-t border-line/70 flex flex-wrap items-baseline gap-x-3"><a href={buildHash("findings")} className="text-[12.5px] font-medium text-navy no-underline hover:underline">View all {pluralize(total, "finding")} <span aria-hidden="true">→</span></a><span className="caption">{counts.high} high · {counts.medium} medium · {counts.low} low</span></div> : null}
     </section>
-  );
-}
-
-function AttentionRow({ item }: { item: AttentionItem }) {
-  const status = attentionStatus(item);
-  const parts: [string, ReactNode][] = [
-    ["What the scan saw", scanSaw(item)],
-    ["Why it matters", whyItMatters(item)],
-    ["Fix", <>{nextAction(item)}{status ? <span className="text-ink-muted"> · {status}</span> : null}</>],
-  ];
-  return (
-    <li className="grid grid-cols-[68px_minmax(0,1fr)] gap-x-3 items-start px-4 py-3">
-      <span className="pt-0.5"><SeverityBadge severity={item.severity} /></span>
-      <div className="min-w-0">
-        <a href={buildHash("findings", item.fingerprint)} className="block text-[13.5px] font-medium leading-snug text-navy no-underline hover:underline">{attentionTitle(item)}</a>
-        <dl className="m-0 mt-1.5 grid grid-cols-[112px_minmax(0,1fr)] gap-x-3 gap-y-1 text-[12.5px] leading-snug">
-          {parts.filter(([, v]) => v).map(([k, v]) => (
-            <div key={k} className="contents">
-              <dt className="text-ink-muted">{k}</dt>
-              <dd className="m-0 text-ink-soft">{v}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-    </li>
   );
 }
 
@@ -326,7 +314,7 @@ function AssessmentCard() {
       <div className="min-w-0 flex-1 basis-[36ch]">
         <h2 id="assessment-title" className="m-0">Insurance assessment</h2>
         <p className="mt-1 mb-0 text-[13px] text-ink-soft"><strong className="text-navy font-semibold">{c.prefilled} of {c.total}</strong> answers came from your code. <strong className="text-navy font-semibold">{c.to_confirm}</strong> need your confirmation.</p>
-        <div className="mt-3 flex gap-1 max-w-[520px]" role="img" aria-label={segments.map((s) => `${s.n} ${s.label.toLowerCase()}`).join(", ")}>
+        <div className="mt-3 flex gap-1" role="img" aria-label={segments.map((s) => `${s.n} ${s.label.toLowerCase()}`).join(", ")}>
           {segments.filter((s) => s.n > 0).map((s) => <span key={s.key} className={`h-1.5 rounded-full ${s.className}`} style={{ flexGrow: s.n, flexBasis: 0 }} />)}
         </div>
         <ul className="mt-2 mb-0 p-0 list-none flex flex-wrap gap-x-3 gap-y-1 caption">

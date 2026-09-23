@@ -121,6 +121,9 @@ export interface AgentDeclaration {
   autonomy_intent: string | null;
   data_classes: string[];
   economic_authority?: EconomicAuthority;
+  /** Who to ask about the code, and where it is discussed. Declared, links only. */
+  engineer?: string;
+  slack_thread?: string;
 }
 
 export interface AutonomyLevel {
@@ -211,6 +214,8 @@ export interface Registry {
     dimensions: DimensionSummaryEntry[];
   };
   business?: Record<string, unknown>;
+  /** `[integrations]` from stoa-declared.toml: links only. */
+  integrations?: { jira_create_url?: string; slack_workspace?: string };
   governance?: Record<string, unknown>;
   evidence?: Record<string, { kind: string; ref: string; date?: string }[]>;
   crosswalk?: { id: string; version: string; [extra: string]: unknown };

@@ -15,6 +15,7 @@ import { Register } from "../screens/Register";
 import { Evidence } from "../screens/Evidence";
 import { Scope } from "../screens/Scope";
 import { Controls } from "../screens/Controls";
+import { Audit } from "../screens/Audit";
 import { Loss } from "../screens/Loss";
 
 type State = { status: "loading" } | { status: "ready"; envelope: Envelope } | { status: "problem"; problem: SchemaProblem };
@@ -92,6 +93,7 @@ function Routed() {
     route.screen === "evidence" ? <Evidence /> :
     route.screen === "scope" ? <Scope /> :
     route.screen === "controls" ? <Controls /> :
+    route.screen === "audit" ? <Audit /> :
     route.screen === "loss" ? <Loss /> :
     <Overview />;
   return <Shell screen={route.screen}>{screen}</Shell>;

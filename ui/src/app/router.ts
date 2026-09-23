@@ -7,8 +7,8 @@
  */
 import { useEffect, useState } from "react";
 
-export type ScreenId = "overview" | "inventory" | "scope" | "findings" | "drift" | "register" | "controls" | "loss" | "evidence";
-export const SCREENS: ScreenId[] = ["overview", "inventory", "scope", "findings", "drift", "register", "controls", "loss", "evidence"];
+export type ScreenId = "overview" | "inventory" | "scope" | "findings" | "drift" | "register" | "controls" | "audit" | "loss" | "evidence";
+export const SCREENS: ScreenId[] = ["overview", "inventory", "scope", "findings", "drift", "register", "controls", "audit", "loss", "evidence"];
 /** Older or friendlier paths that resolve to a screen. */
 const ALIASES: Record<string, ScreenId> = { risk: "findings", insurance: "evidence", declarations: "scope" };
 

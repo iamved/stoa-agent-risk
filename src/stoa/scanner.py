@@ -420,7 +420,7 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
     declarations, decl_warnings = Declarations.load(
         options.declarations_path or (root / "stoa-declared.toml")
     )
-    business = governance = evidence = None
+    business = governance = evidence = integrations = None
     unknown_ids: list[str] = []
     risk_register: list[dict] = []
     try:
@@ -440,6 +440,8 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
                 agent.declared = agent_declaration_to_dict(decl)
         if declarations.business:
             business = declarations.business
+        if declarations.integrations:
+            integrations = dict(declarations.integrations)
         if declarations.governance is not None:
             governance = governance_to_dict(declarations.governance)
         if declarations.evidence:
@@ -527,6 +529,7 @@ def run_scan(options: ScanOptions, config: StoaConfig | None = None) -> ScanResu
         degraded_files=degraded_files,
         dimension_summary=dim_summary,
         business=business,
+        integrations=integrations,
         governance=governance,
         evidence=evidence,
         declaration_warnings=decl_warnings,

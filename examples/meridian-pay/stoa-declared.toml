@@ -4,10 +4,16 @@ industries = ["financial_services"]
 regulated_activities = ["payments", "consumer_banking"]
 max_customer_dependency = "high"
 
+[integrations]
+jira_create_url = "https://meridian.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10400&issuetype=10001"
+slack_workspace = "https://meridian.slack.com"
+
 [agents."b8f0111742fc"]      # code/agents/account_actions_agent.py
 name = "account-actions"
 owner = "digital-servicing@meridian.example"
 purpose = "Issues refunds, waives fees, updates contact details, reissues cards"
+engineer = "Tom Okafor"
+slack_thread = "https://meridian.slack.com/archives/C0ACCTACT/p1726000000000100"
 users = "customers"
 production_status = "production"
 autonomy_intent = "human_approved"
@@ -21,24 +27,32 @@ worst_case_customer_loss = { amount = 250000, currency = "USD" }
 name = "meridian-front"
 owner = "digital-servicing@meridian.example"
 purpose = "Customer conversation, identity check and routing to the specialists"
+engineer = "Lena Ruiz"
+slack_thread = "https://meridian.slack.com/archives/C0FRONT01/p1726000000000200"
 users = "customers"
 
 [agents."62007a57a832"]      # aws/agents.tf :: aws_bedrockagent_agent.knowledge
 name = "meridian-knowledge"
 owner = "platform-risk@meridian.example"
 purpose = "Answers policy and ticket questions from the knowledge base, on Bedrock"
+engineer = "Arjun Mehta"
+slack_thread = "https://meridian.slack.com/archives/C0KNOWLDG/p1726000000000300"
 users = "internal"
 
 [agents."224627e4877d"]      # databricks/infra/main.tf :: databricks_model_serving.escalation
 name = "meridian-escalation"
 owner = "platform-risk@meridian.example"
 purpose = "Drafts case notes and queues them for a person, on Databricks"
+engineer = "Arjun Mehta"
+slack_thread = "https://meridian.slack.com/archives/C0ESCALAT/p1726000000000400"
 users = "internal"
 
 [agents."bc3db1f17013"]      # code/agents/support_agent.py :: support_agent
 name = "meridian-support"
 owner = "digital-servicing@meridian.example"
 purpose = "Customer support chatbot on web chat and IVR, added September 2026"
+engineer = "Tom Okafor"
+slack_thread = "https://meridian.slack.com/archives/C0SUPPORT/p1726000000000500"
 users = "customers"
 production_status = "production"
 autonomy_intent = "human_approved"

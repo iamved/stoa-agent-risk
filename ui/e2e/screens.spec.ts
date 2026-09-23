@@ -34,13 +34,55 @@ test.describe("findings", () => {
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
     await expect(dialog.getByText("What this check does")).toBeVisible();
+    await expect(dialog.getByText("What we found")).toBeVisible();
     await expect(dialog.getByText("Why it matters")).toBeVisible();
     await expect(dialog.getByText("How to fix")).toBeVisible();
     await expect(dialog.getByText(/^OWASP LLM\d\d: /)).toBeVisible();
-    await expect(dialog.getByText("Vulnerabilities arise from compromised third-party components, external datasets, or pretrained models.").or(dialog.getByText(/The system is granted more functionality|Model output is passed to other systems|Excessive or uncontrolled use/))).toBeVisible();
+    await expect(dialog.getByText("Vulnerabilities arise from compromised third-party components, external datasets, or pretrained models.").or(dialog.getByText(/The agent has more functionality|Model output is passed to other systems|Excessive or uncontrolled use/))).toBeVisible();
+    // The location drops a column of 1; the badges read as sentences.
+    await expect(dialog.getByText("code/tools/account_tools.py:17", { exact: true })).toBeVisible();
+    await expect(dialog.getByText(/^Confidence: (High|Medium|Low)$/)).toBeVisible();
+    await expect(dialog.getByText("OWASP LLM06", { exact: true })).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
     expect(await page.evaluate(() => window.location.hash)).toBe("#/findings");
+  });
+
+  test("the DECL001 panel splits what the check does from what it found, and names the agent as the panel does", async ({ page }) => {
+    const env = envelope("meridian-pay");
+    const finding = env.registry.agents.find((a: { id: string }) => a.id === "b8f0111742fc").findings.find((f: { rule_id: string }) => f.rule_id === "DECL001");
+    await page.goto(fileUrl("meridian-pay", `#/findings/${finding.fingerprint}`));
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByRole("heading", { name: "Agent has more autonomy than declared." })).toBeVisible();
+    await expect(dialog).toContainText("DECL001 Declared autonomy doesn't match the code");
+    await expect(dialog.getByRole("definition").filter({ hasText: /^Excess accessUnchecked actions$/ })).toHaveCount(1);
+    await expect(dialog).toContainText("Declared:human_approvedFound:unrestricted_autonomous");
+    await expect(dialog).toContainText("Compares the autonomy an agent is declared to have with what its code actually allows. Can fail a build when confidence is high.");
+    await expect(dialog).toContainText("account-actions is declared as needing human approval, but its code can take actions with no approval step.");
+    await expect(dialog).not.toContainText(/`graph`|Agent graph/);
+    await expect(dialog).toContainText("An agent you think is supervised can act on its own.");
+    await expect(dialog).toContainText("People must be able to oversee the system and step in.");
+    await expect(dialog).toContainText('agents."b8f0111742fc".autonomy_intent');
+    await expect(dialog.getByText("Notes")).toHaveCount(0);
+    await expect(dialog).not.toContainText(/Mandate overreach|Unreviewed high-impact action|\u2014/);
+  });
+
+  test("the safety audit lists every agent with its people and next steps", async ({ page }) => {
+    await page.goto(fileUrl("meridian-pay", "#/audit"));
+    await expect(page.getByRole("heading", { name: "Launch Safety Audit", level: 1 })).toBeVisible();
+    const rows = page.getByRole("table").getByRole("row");
+    await expect(rows).toHaveCount(6);
+    await expect(rows.nth(1)).toContainText("account-actions");
+    await expect(rows.nth(1)).toContainText("digital-servicing@meridian.example");
+    await expect(rows.nth(1)).toContainText("Tom Okafor");
+    await expect(rows.nth(1).getByRole("link", { name: "Slack thread" })).toHaveAttribute("href", /^https:\/\/meridian\.slack\.com\/archives\//);
+    await expect(rows.nth(1).getByRole("link", { name: "Create Jira ticket" })).toHaveAttribute("href", /^https:\/\/meridian\.atlassian\.net\/.*summary=account-actions/);
+    await expect(rows.nth(1).getByRole("link", { name: "Email owner" })).toHaveAttribute("href", /^mailto:digital-servicing@meridian\.example/);
+    await expect(page.getByRole("navigation", { name: "Screens" }).getByRole("link", { name: "Launch Safety Audit" })).toHaveAttribute("aria-current", "page");
+    // Nothing declared: the table says so and no link is invented.
+    await page.goto(fileUrl("first-run", "#/audit"));
+    await expect(page.getByRole("table").getByRole("link", { name: /Slack|Jira|Email/ })).toHaveCount(0);
+    await expect(page.getByText("nothing declared").first()).toBeVisible();
   });
 
   test("hostile snippet renders as inert text inside the drawer", async ({ page }) => {
