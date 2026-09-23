@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useApp } from "../app/context";
 import { buildHash } from "../app/router";
 import { type UniqueAgent } from "../data/agents";
-import { FLOW_WIDTH, LANES, agentWorstLevel, buildFlow, flowAgents, flowCaption, worstLevel, type Flow, type FlowNode, type LaneId, type Tone } from "../data/flow";
+import { FLOW_WIDTH, LANES, agentWorstLevel, buildFlow, flowAgents, worstLevel, type Flow, type FlowNode, type LaneId, type Tone } from "../data/flow";
 import { autonomyLabel } from "../data/labels";
 import { RISK_LABEL, SEVERITY_RANK, findingTitle, pluralize, type RiskLevel } from "../data/selectors";
 import { SeverityBadge } from "./Badge";
@@ -87,7 +87,7 @@ export function AgentFlow() {
         <div className="overflow-x-auto"><Diagram flow={flow} selected={selected} onSelect={setSelected} /></div>
         <figcaption className="border-t border-line px-4 py-3 caption flex flex-col gap-2">
           <Legend />
-          {node ? <NodeNote flow={flow} node={node} onBack={() => setSelected(null)} /> : <div>{flowCaption(flow)}</div>}
+          {node ? <NodeNote flow={flow} node={node} onBack={() => setSelected(null)} /> : null}
         </figcaption>
       </figure>
     </section>

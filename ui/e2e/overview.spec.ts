@@ -144,7 +144,8 @@ test.describe("overview", () => {
     await expect(diagram).toBeVisible();
     for (const lane of ["Request arrives", "Agent decides", "Approval gate", "Tools it can call", "What it can touch"]) await expect(diagram).toContainText(lane);
     await expect(diagram.getByRole("button")).toHaveCount(1 + 3 + 1 + 2 + 1 + 6 + 1);
-    await expect(flow).toContainText("account-actions: 6 tools, 4 of them money-moving or high impact with no guardrail detected; 3 safeguards detected; 6 findings.");
+    // No summary sentence under the diagram; the legend is the only caption until a box is selected.
+    await expect(flow).not.toContainText(/6 tools|fixed reading order/);
 
     // No side panel: a selected box explains itself in one line under the diagram.
     await expect(flow.getByText("Risk intensity, by dimension")).toHaveCount(0);
@@ -152,7 +153,7 @@ test.describe("overview", () => {
     await expect(flow).toContainText("No human approval detected. 4 money-moving or high-impact tools can run without a person confirming.");
     await expect(flow).toContainText("Agent has more autonomy than declared.");
     await flow.getByRole("button", { name: "Clear" }).click();
-    await expect(flow).toContainText("account-actions: 6 tools");
+    await expect(flow).not.toContainText("Everything the agent does starts here.");
 
     await picker.getByRole("button", { name: /meridian-escalation/ }).click();
     await expect(flow.getByRole("group", { name: "Risk path for meridian-escalation" })).toContainText("No tool definitions detected");
