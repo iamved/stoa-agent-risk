@@ -173,6 +173,7 @@ def test_window_derives_from_span_timestamps_not_clock(tmp_path):
 
 def test_merge_adds_only_documented_fields_and_never_mutates_input(tmp_path):
     traces = _write_traces(tmp_path, [
+        _span(span_id="ap", agent_id="aaaaaaaaaaaa", kind="approval"),
         _span(agent_id="aaaaaaaaaaaa", capability="payment_access",
               amount=50.0, approval_span_id="ap"),
     ])
@@ -196,10 +197,11 @@ def test_merge_adds_only_documented_fields_and_never_mutates_input(tmp_path):
     assert enriched["runtime"]["agents_covered"] == 1
     assert enriched["runtime"]["agents_total"] == 2
 
-    # additivity: removing the new keys restores the original document
+    # additivity: removing the new keys (and any RT findings) restores the original document
     for agent in enriched["agents"]:
         agent.pop("runtime_evidence", None)
         agent.pop("liveness_state", None)
+        agent["findings"] = [f for f in agent["findings"] if not f["rule_id"].startswith("RT")]
     enriched.pop("runtime")
     assert enriched == registry_before
 
@@ -215,7 +217,7 @@ def test_cli_analyze_writes_output_and_exits_zero(tmp_path, monkeypatch, capsys)
                  "--out", "runtime.json"])
     assert code == 0
     document = json.loads((tmp_path / "runtime.json").read_text())
-    assert document["schema"] == "runtime-analysis/1.0"
+    assert document["schema"] == "runtime-analysis/1.1"
     assert document["header"]["generated_at"]  # wall-clock lives in the header
     assert "1 matched agent(s)" in capsys.readouterr().out
 

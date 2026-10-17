@@ -42,6 +42,8 @@ _BASELINE_FIELDS = (
     "integration_counts",
     "observed_capabilities",
     "observed_integrations",
+    "observed_models",
+    "observed_tools",
     "approval_rate_high_impact",
 )
 

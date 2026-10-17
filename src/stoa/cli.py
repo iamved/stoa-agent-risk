@@ -116,6 +116,8 @@ def build_parser() -> argparse.ArgumentParser:
                            "resolved values) instead of from .tf files")
     scan.add_argument("--taxonomy", metavar="PATH", default=None,
                       help="Custom dimension taxonomy TOML (replaces the default)")
+    scan.add_argument("--runtime-baseline", metavar="PATH", default=None,
+                      help="With --with-runtime: a runtime-baseline JSON for RT008")
     scan.add_argument("--with-runtime", metavar="TRACES_DIR", default=None,
                       help="Enrich the registry/report with local runtime traces "
                            "(stoa-trace/1.0) after the scan — additive, shadow mode")
@@ -231,7 +233,7 @@ def build_parser() -> argparse.ArgumentParser:
     # --- stoa runtime: the trace overlay (shadow mode — observe, never enforce)
     runtime = subparsers.add_parser(
         "runtime",
-        help="Analyze local runtime traces (stoa-trace/1.0) against the registry",
+        help="Analyze local runtime traces (stoa-trace/1.1) against the registry",
     )
     rt_sub = runtime.add_subparsers(dest="runtime_command")
 
@@ -260,6 +262,28 @@ def build_parser() -> argparse.ArgumentParser:
                           help="Overwrite --registry instead of writing --out")
     rt_merge.add_argument("--config", metavar="PATH", default=None,
                           help="stoa.toml with [runtime] suppression/severity settings")
+    rt_merge.add_argument("--baseline", metavar="PATH", default=None,
+                          help="runtime-baseline JSON; widens what RT008 counts as known")
+
+    rt_verify = rt_sub.add_parser(
+        "verify", help="Check every trace file's hash chain and signatures"
+    )
+    rt_verify.add_argument("traces_dir", metavar="TRACES_DIR")
+    rt_verify.add_argument("--key", metavar="SPEC", default=None,
+                           help="Signing key spec (hmac:..., file:...) for HMAC-signed traces; "
+                                "defaults to $STOA_SIGNING_KEY")
+    rt_verify.add_argument("--out", metavar="PATH", default=None,
+                           help="Write the runtime-chain/1.0 report JSON here")
+
+    rt_reconcile = rt_sub.add_parser(
+        "reconcile", help="Declared vs used vs dormant tools, per agent"
+    )
+    rt_reconcile.add_argument("traces_dir", metavar="TRACES_DIR")
+    rt_reconcile.add_argument("--registry", metavar="PATH", required=True)
+    rt_reconcile.add_argument("--since", metavar="DAYS", type=int, default=30,
+                              help="A declared tool unseen for this many days is dormant (default 30)")
+    rt_reconcile.add_argument("--out", metavar="PATH", default=None,
+                              help="Write the runtime-reconcile/1.0 JSON here")
 
     rt_baseline = rt_sub.add_parser(
         "baseline", help="Compute a behavioral baseline (commit it like approvals)"
@@ -386,7 +410,8 @@ def _run_scan_command(args: argparse.Namespace) -> int:
         )
         for warning in analysis["header"]["warnings"]:
             print(f"stoa: warning: {warning}", file=sys.stderr)
-        enriched = merge_runtime_into_registry(document, analysis, config)
+        baseline = _load_registry(args.runtime_baseline) if getattr(args, "runtime_baseline", None) else None
+        enriched = merge_runtime_into_registry(document, analysis, config, baseline)
         text = json.dumps(enriched, indent=2, ensure_ascii=False, sort_keys=False) + "\n"
         _atomic_write(json_path, text)
         write_html(result, config, html_path, document=enriched)
@@ -942,7 +967,7 @@ _RUNTIME_TOML_STUB = """\
 # Runtime trace overlay (shadow mode: observe only, never enforce).
 # All optional; delete this section and the overlay is fully dormant.
 [runtime]
-trace_dir = "stoa-traces"    # where the SDK writes stoa-trace/1.0 JSONL
+trace_dir = "stoa-traces"    # where the SDK writes stoa-trace/1.1 JSONL
 redaction = "redacted"       # "content" opts into recording payloads (redaction_hook applies)
 exporter = "jsonl"           # "otlp" is reserved for a future release
 suppress = []                # e.g. ["RT002:<agent_id>"] — counted, never hidden
@@ -966,20 +991,26 @@ opt in with capture_content=True.
 """
 from stoa import runtime as stoa_rt
 
-# agent_id: the 12-hex id from stoa-registry.json ("stoa runtime map" can
-# suggest one if you skip it). No configure() call = tracing stays dormant.
-stoa_rt.configure(trace_dir="stoa-traces", agent_id="<agent-id-from-registry>")
+# agent_id: the id or declared name from stoa-registry.json ("stoa runtime
+# map" can suggest one if you skip it). No configure() call = tracing stays
+# dormant. signing_key (or $STOA_SIGNING_KEY) signs the trace chain.
+stoa_rt.configure(trace_dir="stoa-traces", agent_id="<agent-id-from-registry>",
+                  signing_key=None)
 
 
-@stoa_rt.stoa_trace(kind="agent_run")
+@stoa_rt.guard(side_effect="payment", limit_field="amount", approval_field="approval",
+               capability="payment_access", integration="stripe")
+def issue_refund(order_id: str, amount: float, approval: str | None = None):
+    ...  # your side-effecting action; the span records tool, amount, side effect
+
+
 def handle_request(ticket):
-    with stoa_rt.stoa_span("llm_call", provider="openai", model="gpt-4o",
-                           attrs={"prompt": "recorded as hash+length only"}):
-        ...  # your model call
-    with stoa_rt.stoa_span("action", capability="payment_access",
-                           integration="stripe", amount=42.0, currency="USD",
-                           approval_span_id=None):  # link an approval span id here
-        ...  # your side-effecting action
+    with stoa_rt.session(user_ref=ticket.customer_id) as s:
+        with stoa_rt.model_call("openai", "gpt-4o") as m:
+            reply = ...  # your model call; content is never recorded
+            m.record(tokens_in=0, tokens_out=0)
+        approval = s.approval(actor="ops-oncall", channel="slack", granted=True)
+        issue_refund(ticket.order_id, 42.0, approval=approval)
 '''
 
 
@@ -1044,8 +1075,28 @@ def _run_runtime_command(args: argparse.Namespace) -> int:
     from .runtime.analysis import analyze_traces
 
     if args.runtime_command is None:
-        print("stoa runtime: choose a subcommand (analyze, map, merge)", file=sys.stderr)
+        print("stoa runtime: choose a subcommand (analyze, map, merge, baseline, drift, verify, reconcile)", file=sys.stderr)
         return EXIT_USAGE
+
+    if args.runtime_command == "verify":
+        from .runtime.chain import verify_dir
+
+        report = verify_dir(args.traces_dir, args.key)
+        if args.out:
+            _atomic_write(Path(args.out), json.dumps(report.to_dict(), indent=2) + "\n")
+        if not report.files:
+            print(f"stoa runtime verify: no trace files under {args.traces_dir}")
+            return EXIT_USAGE
+        for item in report.files:
+            grade = f"{item.key_grade}" + (f", signed {item.signed}" if item.signed else "")
+            if item.unchained:
+                print(f"  {item.file}: pre-1.1 file, no chain to verify ({item.records} record(s))")
+            elif item.ok:
+                print(f"  {item.file}: ok, {item.records} record(s), {grade}")
+            else:
+                print(f"  {item.file}: BROKEN at line {item.first_break}: {item.break_reason}")
+        print("stoa runtime verify: " + ("all chains intact" if report.ok else f"{len(report.broken)} file(s) broken"))
+        return EXIT_OK if report.ok else EXIT_GATE_FAILED
 
     registry = None
     registry_path = getattr(args, "registry", None)
@@ -1074,6 +1125,15 @@ def _run_runtime_command(args: argparse.Namespace) -> int:
             print(f"Analysis: {args.out}")
         return EXIT_OK
 
+    if args.runtime_command == "reconcile":
+        from .runtime.reconcile import reconcile, render_reconcile
+
+        doc = reconcile(registry, analysis, dormant_days=args.since, generated_at=generated_at)
+        if args.out:
+            _atomic_write(Path(args.out), json.dumps(doc, indent=2) + "\n")
+        print(render_reconcile(doc), end="")
+        return EXIT_OK
+
     if args.runtime_command == "map":
         unmatched = analysis["unmatched_agents"]
         if not unmatched:
@@ -1093,7 +1153,8 @@ def _run_runtime_command(args: argparse.Namespace) -> int:
         from .runtime.merge import merge_runtime_into_registry
 
         config = load_config(Path.cwd(), Path(args.config) if args.config else None)
-        enriched = merge_runtime_into_registry(registry, analysis, config)
+        baseline = _load_registry(args.baseline) if getattr(args, "baseline", None) else None
+        enriched = merge_runtime_into_registry(registry, analysis, config, baseline)
         out_path = Path(registry_path) if args.in_place else Path(args.out)
         text = json.dumps(enriched, indent=2, ensure_ascii=False, sort_keys=False) + "\n"
         _atomic_write(out_path, text)

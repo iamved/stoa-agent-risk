@@ -97,7 +97,8 @@ with stoa_rt.stoa_span("action", capability="payment_access",
 ```
 
 - The default JSONL path is **stdlib-only** — no new dependencies; the
-  `[runtime]` pip extra is reserved for the deferred OTLP exporter.
+  `[runtime]` pip extra adds ed25519 signing (below) and, later, the OTLP
+  exporter.
 - `capability` / `integration` / `provider` reuse the scanner's exact ids —
   never a parallel vocabulary. Custom values are recorded but flagged.
 - Unconfigured, every decorator is a pass-through. An unwritable trace
@@ -106,6 +107,69 @@ with stoa_rt.stoa_span("action", capability="payment_access",
   append; a background thread does the I/O; a full queue drops spans and
   counts the drops into the next file header).
 - `stoa init runtime` scaffolds the config and a working example.
+
+### Guard, session, model call (trace 1.1)
+
+Three thin aliases over `stoa_span`, for code that would otherwise repeat
+the same arguments:
+
+```python
+from stoa import runtime as stoa_rt
+
+stoa_rt.configure("stoa-traces", agent_id="account-actions",
+                  signing_key="hmac:...", registry_path="stoa-registry.json")
+
+@stoa_rt.guard(side_effect="payment", limit_field="amount", approval_field="approval")
+def issue_refund(order_id: str, amount: float, approval: str | None = None): ...
+
+with stoa_rt.session(user_ref="cust-8841") as s:
+    with stoa_rt.model_call("openai", "gpt-4o") as m:
+        reply = client.chat.completions.create(...)
+        m.record(tokens_in=reply.usage.prompt_tokens, tokens_out=reply.usage.completion_tokens, cost_usd=0.002)
+    ok = s.approval(actor="ops-oncall@meridian.example", channel="slack", granted=True, latency_ms=1200)
+    issue_refund("o-1", 120.0, approval=ok)
+```
+
+- `@guard` records an `action` span named after the function, with
+  `attrs.side_effect` (`read | write | payment | delete | external_send`),
+  the argument named by `limit_field` as the span's `amount`, and the
+  argument named by `approval_field` as its `approval_span_id`. Sync and
+  async functions; signature and docstring preserved; never raises.
+- `session()` opens an `agent_run` span and stamps every span inside it
+  with one `session_id`. `s.approval(...)` records an `approval` span and
+  returns its id; the actor is keyed under the signing key, never stored in
+  clear. `s.flag(name)` attaches a caller-chosen flag to the session span.
+- `model_call()` records an `llm_call` span; `record(...)` adds token
+  counts (OpenTelemetry GenAI attribute names) and `cost`.
+
+### Flags
+
+Each span carries `attrs.flags`, computed by the SDK from the agent's recent
+window (last 1,000 spans or seven days) and the last scan's
+`stoa-registry.json` (found by searching upward, or given as
+`registry_path`): `no_registry`, `undeclared_tool`, `over_declared_limit`,
+`approval_bypassed`, `new_counterparty`, `burst`, `repeat_failure`,
+`model_changed`, `integration_changed`. `analyze` counts them per agent;
+`drift` compares them. The full definitions are in `stoa/runtime/flags.py`.
+
+### Chain and signature
+
+Every record in a trace file links to the one before it (`prev_hash`,
+`hash`) and is signed under the configured key (`sig`,
+`signer_fingerprint`). The key comes from `configure(signing_key=...)` or
+`$STOA_SIGNING_KEY`, in one of three grades the header names:
+
+| Grade | Key spec | Who can verify |
+|---|---|---|
+| `none` | no key | anyone can check the chain; anyone who can edit the file can also recompute it |
+| `hmac-sha256` | `hmac:<secret>` | whoever holds the secret |
+| `ed25519` | `ed25519:<64 hex seed>` (needs `pip install stoa-agent-risk[runtime]`) | anyone: the public key travels in the header |
+
+`stoa runtime verify stoa-traces [--key hmac:...]` walks every file and
+reports the first break (a changed record, a deleted or reordered line, a
+signature that fails). A pre-1.1 file is reported as unchained, not broken.
+Chaining and signing run on the exporter's background thread, never on the
+hot path.
 
 ### Privacy: redact-by-default
 
@@ -158,7 +222,22 @@ Drift classes mirror `stoa diff`'s philosophy — report-only unless
 Thresholds live in `stoa.toml [runtime.drift]`. The baseline is committed
 and reviewed like `.stoa/approvals.toml`.
 
+## Reconcile
+
+`stoa runtime reconcile stoa-traces --registry stoa-registry.json [--since 30]`
+prints, per agent, the three columns a reviewer asks for: tools declared and
+used, tools used but undeclared (the RT006 evidence), and tools declared but
+dormant for `--since` days measured back from the end of the window.
+`--out` writes `runtime-reconcile/1.0`.
+
 ## The RT contradiction family
+
+Trace 1.1 adds three rules to the five below: **RT006** a tool observed at
+runtime that the scanned inventory does not list for the agent; **RT007** a
+money action whose `approval_span_id` does not resolve to an approval span
+in the window; **RT008** a model or integration that neither the static
+scan nor the committed baseline (`--baseline`) knew. Same shape as RT001 to
+RT005: `trace_ref`, report-only, suppressible via `[runtime].suppress`.
 
 DECL rules cross-check declared vs **scanned**; RT rules cross-check
 declared/scanned vs **observed**. Emitted only by merge, never by `stoa

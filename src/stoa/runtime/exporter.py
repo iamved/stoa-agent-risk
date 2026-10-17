@@ -13,6 +13,10 @@ broken production process.
 
 Zero telemetry: this module writes to the local filesystem only. There is no
 network code anywhere in it.
+
+Chain and signature (1.1): the writer thread links each record to the one
+before it and signs it under the configured key (chain.py, keys.py). That
+work stays off the hot path by construction: ``emit()`` only enqueues.
 """
 
 from __future__ import annotations
@@ -24,6 +28,8 @@ import threading
 import warnings
 from pathlib import Path
 
+from .chain import GENESIS, chain_record
+from .keys import Signer
 from .spans import header_record
 
 DEFAULT_MAX_FILE_BYTES = 16 * 1024 * 1024
@@ -42,11 +48,14 @@ class JSONLExporter:
         sdk_version: str,
         redaction: str = "redacted",
         max_file_bytes: int = DEFAULT_MAX_FILE_BYTES,
+        signer: Signer | None = None,
     ) -> None:
         self._trace_dir = Path(trace_dir)
         self._sdk_version = sdk_version
         self._redaction = redaction
         self._max_file_bytes = max_file_bytes
+        self._signer = signer or Signer()
+        self._prev_hash = GENESIS
         self._queue: queue.Queue[dict] = queue.Queue(maxsize=_QUEUE_MAX)
         self._dropped = 0
         self._dropped_lock = threading.Lock()
@@ -100,6 +109,8 @@ class JSONLExporter:
             for span in batch:
                 if self._handle is None or self._bytes_written >= self._max_file_bytes:
                     self._rotate()
+                chain_record(span, self._prev_hash, self._signer)
+                self._prev_hash = span["hash"]
                 line = json.dumps(span, separators=(",", ":"), sort_keys=True) + "\n"
                 encoded = line.encode("utf-8")
                 self._handle.write(encoded)
@@ -129,7 +140,13 @@ class JSONLExporter:
         self._handle = open(path, "ab")
         with self._dropped_lock:
             dropped, self._dropped = self._dropped, 0
-        header = header_record(self._sdk_version, self._redaction, dropped)
+        header = header_record(
+            self._sdk_version, self._redaction, dropped,
+            key_grade=self._signer.grade, signer_public_key=self._signer.public_key_hex,
+        )
+        # Each file is its own chain: the header is the genesis record.
+        chain_record(header, GENESIS, self._signer)
+        self._prev_hash = header["hash"]
         line = (json.dumps(header, separators=(",", ":"), sort_keys=True) + "\n").encode("utf-8")
         self._handle.write(line)
         self._bytes_written = len(line)

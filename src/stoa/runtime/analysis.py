@@ -20,7 +20,7 @@ from .. import __version__
 from ..rules import HIGH_IMPACT_CAPABILITIES
 from .reader import TraceReader
 
-ANALYSIS_SCHEMA = "runtime-analysis/1.0"
+ANALYSIS_SCHEMA = "runtime-analysis/1.1"
 
 
 class _AgentAccumulator:
@@ -32,6 +32,9 @@ class _AgentAccumulator:
         "total_amounts", "redaction_modes", "first_ts", "last_ts",
         "delegations_to", "trace_files", "first_capability_span",
         "first_unapproved_high_impact", "max_amount_span",
+        "tool_counts", "tool_last_ts", "first_tool_span", "money_actions",
+        "money_candidates", "flag_counts", "first_flag_span", "approval_ids",
+        "llm_calls", "llm_errors", "side_effect_counts", "first_external_send",
     )
 
     def __init__(self) -> None:
@@ -59,6 +62,20 @@ class _AgentAccumulator:
         self.first_capability_span: dict[str, dict] = {}
         self.first_unapproved_high_impact: dict | None = None
         self.max_amount_span: dict | None = None
+        # 1.1: tools, money actions, flags, model-call errors, side effects.
+        self.tool_counts: dict[str, int] = {}
+        self.tool_last_ts: dict[str, str] = {}
+        self.first_tool_span: dict[str, dict] = {}
+        self.money_actions = 0
+        # (ref, approval_span_id) for money actions; resolved after the pass.
+        self.money_candidates: list[tuple[dict, str | None]] = []
+        self.flag_counts: dict[str, int] = {}
+        self.first_flag_span: dict[str, dict] = {}
+        self.approval_ids: set[str] = set()
+        self.llm_calls = 0
+        self.llm_errors = 0
+        self.side_effect_counts: dict[str, int] = {}
+        self.first_external_send: dict | None = None
 
     @staticmethod
     def _ref(span: dict) -> dict:
@@ -93,6 +110,36 @@ class _AgentAccumulator:
             self.integration_counts[integ] = self.integration_counts.get(integ, 0) + 1
         if kind == "approval":
             self.approval_spans += 1
+            if span.get("span_id"):
+                self.approval_ids.add(span["span_id"])
+        if kind == "llm_call":
+            self.llm_calls += 1
+            if status == "error":
+                self.llm_errors += 1
+        attrs = span.get("attrs") or {}
+        for flag in attrs.get("flags") or []:
+            self.flag_counts[flag] = self.flag_counts.get(flag, 0) + 1
+            if flag not in self.first_flag_span:
+                self.first_flag_span[flag] = self._ref(span)
+        tool = span.get("tool")
+        if tool and kind in ("action", "tool_call"):
+            self.tool_counts[tool] = self.tool_counts.get(tool, 0) + 1
+            if span.get("end_ts") and span["end_ts"] > self.tool_last_ts.get(tool, ""):
+                self.tool_last_ts[tool] = span["end_ts"]
+            if tool not in self.first_tool_span:
+                self.first_tool_span[tool] = self._ref(span)
+        side_effect = attrs.get("side_effect")
+        if side_effect and kind in ("action", "tool_call"):
+            self.side_effect_counts[side_effect] = self.side_effect_counts.get(side_effect, 0) + 1
+            if side_effect == "external_send" and self.first_external_send is None:
+                self.first_external_send = self._ref(span)
+        money = kind in ("action", "tool_call") and (
+            side_effect == "payment"
+            or isinstance((span.get("amount") or {}).get("amount"), (int, float))
+        )
+        if money:
+            self.money_actions += 1
+            self.money_candidates.append((self._ref(span), span.get("approval_span_id")))
         if span.get("capability") in HIGH_IMPACT_CAPABILITIES and kind in ("action", "tool_call"):
             self.high_impact_actions += 1
             if span.get("approval_span_id"):
@@ -122,8 +169,21 @@ class _AgentAccumulator:
         if span.get("_trace_file"):
             self.trace_files.add(span["_trace_file"])
 
-    def summary(self) -> dict:
+    def resolve_money(self, approval_ids: set[str]) -> tuple[int, dict | None]:
+        """Money actions whose ``approval_span_id`` resolves to an approval
+        span seen anywhere in the stream; the first that does not."""
+        approved = 0
+        first_unapproved = None
+        for ref, approval_id in self.money_candidates:
+            if approval_id and approval_id in approval_ids:
+                approved += 1
+            elif first_unapproved is None:
+                first_unapproved = ref
+        return approved, first_unapproved
+
+    def summary(self, approval_ids: set[str] | None = None) -> dict:
         errors = self.status_counts.get("error", 0)
+        money_approved, first_unapproved_money = self.resolve_money(approval_ids or self.approval_ids)
         quality = (
             "mixed" if len(self.redaction_modes) > 1
             else next(iter(self.redaction_modes), "redacted")
@@ -153,10 +213,26 @@ class _AgentAccumulator:
             "last_ts": self.last_ts,
             "delegations_to": sorted(self.delegations_to),
             "trace_files": sorted(self.trace_files),
+            "observed_tools": sorted(self.tool_counts),
+            "tool_counts": dict(sorted(self.tool_counts.items())),
+            "tool_last_ts": dict(sorted(self.tool_last_ts.items())),
+            "money_actions": self.money_actions,
+            "money_actions_approved": money_approved,
+            "approval_rate_money": (
+                round(money_approved / self.money_actions, 4) if self.money_actions else None
+            ),
+            "flag_counts": dict(sorted(self.flag_counts.items())),
+            "side_effect_counts": dict(sorted(self.side_effect_counts.items())),
+            "llm_calls": self.llm_calls,
+            "llm_error_rate": round(self.llm_errors / self.llm_calls, 4) if self.llm_calls else 0.0,
             "trace_refs": {
                 "first_capability_span": dict(sorted(self.first_capability_span.items())),
                 "first_unapproved_high_impact": self.first_unapproved_high_impact,
                 "max_amount_span": self.max_amount_span,
+                "first_tool_span": dict(sorted(self.first_tool_span.items())),
+                "first_unapproved_money": first_unapproved_money,
+                "first_flag_span": dict(sorted(self.first_flag_span.items())),
+                "first_external_send": self.first_external_send,
             },
         }
 
@@ -227,6 +303,12 @@ def analyze_traces(
         bucket[key].add(span)
 
     no_evidence = sorted(known_ids - set(matched)) if registry is not None else []
+    # Approval spans may be recorded by one agent and cited by another's
+    # action (a delegated approval), so money actions resolve against every
+    # approval span in the stream.
+    all_approval_ids: set[str] = set()
+    for acc in (*matched.values(), *unmatched.values()):
+        all_approval_ids |= acc.approval_ids
 
     return {
         "schema": ANALYSIS_SCHEMA,
@@ -246,12 +328,12 @@ def analyze_traces(
             "end": window_end,
             "span_count": total_spans,
         },
-        "agents": {key: acc.summary() for key, acc in sorted(matched.items())},
+        "agents": {key: acc.summary(all_approval_ids) for key, acc in sorted(matched.items())},
         "unmatched_agents": [
             {
                 "key": key,
                 "reason": unmatched_reason[key],
-                **acc.summary(),
+                **acc.summary(all_approval_ids),
                 "suggested_matches": _suggest_matches(key, registry),
             }
             for key, acc in sorted(unmatched.items())

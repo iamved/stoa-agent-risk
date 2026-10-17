@@ -26,10 +26,21 @@ from ..config import StoaConfig
 from ..rules import DATED_MODEL_SNAPSHOT
 from .rt_rules import detect_runtime_contradictions
 
-# The two proxy dimensions the runtime tier may upgrade (design §8). Only
-# these, only for agents with runtime evidence, only for the analyzed
-# window — everything else keeps its scan-time assessment untouched.
-_RUNTIME_UPGRADEABLE = ("conduct-variability", "dependency-drift")
+# Dimensions the runtime tier may re-bucket, and the span evidence each one
+# needs before it is allowed to (1.1). A dimension whose evidence is absent
+# in the window keeps its scan-time assessment untouched; a dimension with
+# no honest runtime signal (injection-tamper-surface: redacted traces cannot
+# show what reached the prompt) is never upgraded.
+_RUNTIME_UPGRADEABLE = (
+    "conduct-variability",
+    "dependency-drift",
+    "mandate-overreach",
+    "unreviewed-high-impact-action",
+    "control-coverage-gap",
+    "boundary-leakage",
+    "output-fidelity",
+)
+_NEVER_RUNTIME = ("injection-tamper-surface",)
 
 _EVIDENCE_FIELDS = (
     "span_count",
@@ -47,13 +58,23 @@ _EVIDENCE_FIELDS = (
     "evidence_quality",
     "delegations_to",
     "trace_files",
+    "observed_tools",
+    "tool_counts",
+    "money_actions",
+    "money_actions_approved",
+    "approval_rate_money",
+    "flag_counts",
+    "side_effect_counts",
 )
 
 
 def _runtime_dimension_exposure(
-    dim_id: str, summary: dict, declared: dict, config: StoaConfig
-) -> tuple[str, dict]:
-    """Re-bucket one upgradeable dimension from observed signals.
+    dim_id: str, summary: dict, declared: dict, config: StoaConfig,
+    agent_integrations: list | None = None,
+) -> tuple[str | None, dict]:
+    """Re-bucket one upgradeable dimension from observed signals. Returns
+    ``(None, basis)`` when the window holds no evidence for that dimension,
+    in which case the scan-time assessment stands.
 
     Deliberately a small, hand-recomputable table (thresholds in
     ``[runtime.dimensions]``), never a statistic a reviewer can't verify:
@@ -69,6 +90,66 @@ def _runtime_dimension_exposure(
     Returns ``(exposure, basis)`` — the basis dict is serialized so the
     bucket is auditable from the registry alone.
     """
+    actions = (summary.get("spans_by_kind") or {}).get("action", 0) + (summary.get("spans_by_kind") or {}).get("tool_call", 0)
+    flags = summary.get("flag_counts") or {}
+
+    if dim_id == "mandate-overreach":
+        # Observed reach against the declaration: undeclared tools and amounts over the declared limit.
+        basis = {"actions": actions, "undeclared_tool": flags.get("undeclared_tool", 0), "over_declared_limit": flags.get("over_declared_limit", 0), "observed_tools": summary.get("observed_tools") or []}
+        if not actions:
+            return None, basis
+        if flags.get("over_declared_limit") or flags.get("undeclared_tool"):
+            return "elevated", basis
+        return "low", basis
+
+    if dim_id == "unreviewed-high-impact-action":
+        unapproved = summary.get("high_impact_actions", 0) - summary.get("high_impact_approved", 0)
+        unapproved_money = summary.get("money_actions", 0) - summary.get("money_actions_approved", 0)
+        basis = {"high_impact_actions": summary.get("high_impact_actions", 0), "unapproved_high_impact": unapproved, "money_actions": summary.get("money_actions", 0), "unapproved_money": unapproved_money}
+        if not (summary.get("high_impact_actions") or summary.get("money_actions")):
+            return None, basis
+        return ("elevated" if unapproved or unapproved_money else "low"), basis
+
+    if dim_id == "control-coverage-gap":
+        rate_hi = summary.get("approval_rate_high_impact")
+        rate_money = summary.get("approval_rate_money")
+        basis = {"approval_rate_high_impact": rate_hi, "approval_rate_money": rate_money, "approval_spans": summary.get("approval_spans", 0)}
+        rates = [r for r in (rate_hi, rate_money) if r is not None]
+        if not rates:
+            return None, basis
+        worst = min(rates)
+        gate = declared.get("autonomy_intent") in ("recommend_only", "human_approved")
+        if worst < 1.0 and gate:
+            return "elevated", basis
+        if worst < 1.0:
+            return "moderate", basis
+        return "low", basis
+
+    if dim_id == "boundary-leakage":
+        sends = (summary.get("side_effect_counts") or {}).get("external_send", 0)
+        static = set(agent_integrations or [])
+        outside = sorted(i for i in (summary.get("observed_integrations") or []) if i not in static)
+        basis = {"external_send": sends, "integrations_outside_scan": outside, "retrievals": (summary.get("spans_by_kind") or {}).get("retrieval", 0)}
+        if not actions and not basis["retrievals"]:
+            return None, basis
+        if sends and outside:
+            return "elevated", basis
+        if sends or outside:
+            return "moderate", basis
+        return "low", basis
+
+    if dim_id == "output-fidelity":
+        llm_calls = summary.get("llm_calls", 0)
+        llm_error_rate = summary.get("llm_error_rate") or 0.0
+        basis = {"llm_calls": llm_calls, "llm_error_rate": llm_error_rate}
+        if not llm_calls:
+            return None, basis
+        if llm_error_rate >= config.runtime_error_rate_elevated:
+            return "elevated", basis
+        if llm_error_rate >= config.runtime_error_rate_moderate:
+            return "moderate", basis
+        return "low", basis
+
     if dim_id == "dependency-drift":
         models = summary.get("observed_models") or []
         basis = {"distinct_models_observed": len(models), "models": models}
@@ -115,13 +196,20 @@ def _overlay_dimensions(agent: dict, summary: dict, config: StoaConfig) -> None:
         return  # never claim runtime assessability without a real window
     declared = agent.get("declared") or {}
     for entry in assessment.get("dimensions") or []:
-        if entry.get("id") not in _RUNTIME_UPGRADEABLE:
+        if entry.get("id") not in _RUNTIME_UPGRADEABLE or entry.get("id") in _NEVER_RUNTIME:
             continue
-        if entry.get("assessability") != "proxy":
-            continue  # custom taxonomies may tier these differently; respect that
+        # The two proxy dimensions keep the 1.4 contract: upgraded from proxy
+        # only, so a custom taxonomy that tiers them otherwise is respected.
+        # The dimensions added in 1.1 upgrade from their scan-time tier.
+        allowed = ("proxy",) if entry["id"] in ("conduct-variability", "dependency-drift") else ("strong", "partial", "proxy")
+        if entry.get("assessability") not in allowed:
+            continue
         exposure, basis = _runtime_dimension_exposure(
-            entry["id"], summary, declared, config
+            entry["id"], summary, declared, config, agent.get("integrations") or []
         )
+        if exposure is None:
+            continue  # no evidence for this dimension in the window: scan-time stands
+        entry["static_exposure"] = entry.get("exposure")
         entry["assessability"] = "runtime"
         entry["exposure"] = exposure
         entry["evidence_window"] = evidence_window
@@ -162,7 +250,8 @@ def _recompute_dimension_summary(enriched: dict) -> None:
 
 
 def merge_runtime_into_registry(
-    registry: dict, analysis: dict, config: StoaConfig | None = None
+    registry: dict, analysis: dict, config: StoaConfig | None = None,
+    baseline: dict | None = None,
 ) -> dict:
     """Return a deep-copied registry enriched with runtime evidence.
 
@@ -178,7 +267,7 @@ def merge_runtime_into_registry(
     enriched["schema_version"] = SCHEMA_VERSION
     per_agent = analysis.get("agents") or {}
     window = (analysis.get("window") or {})
-    rt_findings = detect_runtime_contradictions(registry, analysis, config)
+    rt_findings = detect_runtime_contradictions(registry, analysis, config, baseline)
 
     covered = 0
     rt_count = 0

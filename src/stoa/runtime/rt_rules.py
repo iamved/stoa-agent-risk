@@ -1,4 +1,4 @@
-"""The runtime contradiction detector (RT001–RT005) — declared/scanned vs
+"""The runtime contradiction detector (RT001–RT008) — declared/scanned vs
 **observed**.
 
 Extends the DECL-family philosophy one layer out: DECL rules cross-check
@@ -99,15 +99,18 @@ def _finding(
 
 
 def detect_runtime_contradictions(
-    registry: dict, analysis: dict, config: StoaConfig | None = None
+    registry: dict, analysis: dict, config: StoaConfig | None = None,
+    baseline: dict | None = None,
 ) -> dict[str, list[dict]]:
-    """RT001–RT005 for every registry agent, keyed by agent id.
+    """RT001–RT008 for every registry agent, keyed by agent id.
 
-    Pure function over the two documents; deterministic given identical
-    inputs. Agents with no runtime evidence produce only RT004 (whose whole
-    point is that absence).
+    Pure function over the documents; deterministic given identical inputs.
+    Agents with no runtime evidence produce only RT004 (whose whole point is
+    that absence). ``baseline`` (runtime-baseline) widens what RT008 counts
+    as known.
     """
     config = config or StoaConfig()
+    baseline_agents = (baseline or {}).get("agents") or {}
     per_agent: dict = analysis.get("agents") or {}
     no_evidence = set(analysis.get("no_runtime_evidence") or [])
     window = analysis.get("window") or {}
@@ -217,6 +220,79 @@ def detect_runtime_contradictions(
                         confidence="medium",
                         trace_ref=(refs.get("first_capability_span") or {}).get(capability),
                     ))
+
+            # RT006 — a tool the scanned inventory does not list.
+            if config.rule_enabled("RT006"):
+                listed = {t.get("name") for t in agent.get("tools") or [] if isinstance(t, dict)}
+                for tool in summary.get("observed_tools") or []:
+                    if tool in listed:
+                        continue
+                    out.append(_finding(
+                        config, "RT006", agent,
+                        f"observed tool {tool!r} absent from the scanned tool inventory",
+                        message=(
+                            f"Traces show agent `{agent['symbol']}` calling `{tool}` "
+                            f"({summary.get('tool_counts', {}).get(tool, 0)} time(s) in the "
+                            "window); the scanned tool inventory for this agent does not "
+                            "list it. The binding lives outside the scanned sources, or "
+                            "the scan is stale."
+                        ),
+                        confidence="medium" if listed else "low",
+                        trace_ref=(refs.get("first_tool_span") or {}).get(tool),
+                    ))
+
+            # RT007 — a money action whose approval does not resolve.
+            unapproved_money = summary.get("money_actions", 0) - summary.get("money_actions_approved", 0)
+            if config.rule_enabled("RT007") and unapproved_money > 0:
+                out.append(_finding(
+                    config, "RT007", agent,
+                    f"{unapproved_money} of {summary.get('money_actions')} money action(s) with no resolving approval",
+                    message=(
+                        f"{unapproved_money} of {summary.get('money_actions')} observed money "
+                        f"action(s) by agent `{agent['symbol']}` carried no approval_span_id "
+                        "that resolves to an approval span in the window. A person was not "
+                        "on the live path for those actions."
+                    ),
+                    confidence="high",
+                    trace_ref=refs.get("first_unapproved_money"),
+                    declared_ref=_declared_ref(agent_id, "autonomy_intent") if declared.get("autonomy_intent") in _OVERSIGHT_INTENTS else None,
+                ))
+
+            # RT008 — a model or integration neither the scan nor the baseline knew.
+            if config.rule_enabled("RT008"):
+                base = baseline_agents.get(agent_id) or {}
+                known_integrations = set(agent.get("integrations") or []) | set(base.get("observed_integrations") or [])
+                known_models = set(base.get("observed_models") or [])
+                integration_vocab = scanner_vocabulary()["integration"]
+                for integration in summary.get("observed_integrations") or []:
+                    if integration in known_integrations or integration not in integration_vocab:
+                        continue
+                    out.append(_finding(
+                        config, "RT008", agent,
+                        f"observed integration {integration!r} unknown to scan and baseline",
+                        message=(
+                            f"Agent `{agent['symbol']}` was observed using `{integration}`, "
+                            "which the static scan did not find for it and no committed "
+                            "baseline records."
+                        ),
+                        confidence="medium",
+                        trace_ref=(refs.get("first_capability_span") or {}).get(integration),
+                    ))
+                if baseline_agents.get(agent_id) is not None:
+                    for model in summary.get("observed_models") or []:
+                        if model in known_models:
+                            continue
+                        out.append(_finding(
+                            config, "RT008", agent,
+                            f"observed model {model!r} absent from the baseline",
+                            message=(
+                                f"Agent `{agent['symbol']}` was observed calling model "
+                                f"`{model}`; the committed baseline records "
+                                f"{sorted(known_models) or 'no model'} for it. The model "
+                                "dependency changed without a new baseline."
+                            ),
+                            confidence="medium",
+                        ))
 
             # RT005 — good news: declared-style oversight confirmed live.
             inferred = (agent.get("autonomy_level") or {}).get("level")

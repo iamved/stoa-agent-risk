@@ -347,6 +347,40 @@ RULES: dict[str, RuleSpec] = {
                      "Observability is claimed but not evidenced — instrument the "
                      "agent or correct the declaration.",
     ),
+    "RT006": RuleSpec(
+        rule_id="RT006",
+        title="Tool observed at runtime that the scan never listed for this agent",
+        category="runtime",
+        default_severity="medium",
+        gateable=False,
+        remediation="Traces show the agent calling a tool that its scanned tool "
+                     "inventory does not contain. Either the tool is bound "
+                     "outside the scanned sources (a plugin, an MCP server, a "
+                     "separate service) or the scan is stale: re-scan, and if "
+                     "the tool is real, bring its definition into scope.",
+    ),
+    "RT007": RuleSpec(
+        rule_id="RT007",
+        title="Money action observed with no approval on the live path",
+        category="runtime",
+        default_severity="high",
+        gateable=False,
+        remediation="A payment or other money action ran without an approval "
+                     "span it could point to. Record the approval with "
+                     "session.approval() and pass its id to the guarded call, "
+                     "or add the approval step the declaration promises.",
+    ),
+    "RT008": RuleSpec(
+        rule_id="RT008",
+        title="Model or integration observed that the last scan or baseline did not know",
+        category="runtime",
+        default_severity="medium",
+        gateable=False,
+        remediation="The agent is talking to a model or an integration that "
+                     "neither the static scan nor the committed baseline "
+                     "recorded. Re-scan so the registry reflects it, and "
+                     "re-baseline if the change is intended.",
+    ),
     "RT005": RuleSpec(
         rule_id="RT005",
         title="Approval gate observed firing on all high-impact actions",

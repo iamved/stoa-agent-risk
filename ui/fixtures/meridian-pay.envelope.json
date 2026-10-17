@@ -6615,6 +6615,48 @@
         "so_what": "An approval gate was observed firing on high-impact actions in the window."
       }
     },
+    "RT006": {
+      "title": "Tool observed at runtime that the scan never listed for this agent",
+      "category": "runtime",
+      "default_severity": "medium",
+      "gateable": false,
+      "remediation": "Traces show the agent calling a tool that its scanned tool inventory does not contain. Either the tool is bound outside the scanned sources (a plugin, an MCP server, a separate service) or the scan is stale: re-scan, and if the tool is real, bring its definition into scope.",
+      "canonical_name": null,
+      "crosswalk": {
+        "owasp_llm_2025": "LLM06",
+        "eu_ai_act": "Art. 9",
+        "relation": "exposure",
+        "so_what": "The agent calls a tool the scan never listed for it, so its real reach is wider than the record."
+      }
+    },
+    "RT007": {
+      "title": "Money action observed with no approval on the live path",
+      "category": "runtime",
+      "default_severity": "high",
+      "gateable": false,
+      "remediation": "A payment or other money action ran without an approval span it could point to. Record the approval with session.approval() and pass its id to the guarded call, or add the approval step the declaration promises.",
+      "canonical_name": null,
+      "crosswalk": {
+        "owasp_llm_2025": "LLM06",
+        "eu_ai_act": "Art. 14",
+        "relation": "exposure",
+        "so_what": "Money moved with no person on the live path, whatever the declaration says."
+      }
+    },
+    "RT008": {
+      "title": "Model or integration observed that the last scan or baseline did not know",
+      "category": "runtime",
+      "default_severity": "medium",
+      "gateable": false,
+      "remediation": "The agent is talking to a model or an integration that neither the static scan nor the committed baseline recorded. Re-scan so the registry reflects it, and re-baseline if the change is intended.",
+      "canonical_name": null,
+      "crosswalk": {
+        "owasp_llm_2025": "LLM03",
+        "eu_ai_act": "Art. 9",
+        "relation": "exposure",
+        "so_what": "The agent depends on a model or an integration that neither the scan nor the baseline recorded."
+      }
+    },
     "SEC001": {
       "title": "Possible hardcoded API credential",
       "category": "secret",

@@ -35,10 +35,10 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=7.4"]
 # The stoa.runtime SDK's default JSONL path is stdlib-only and needs no
-# extra. This extra is reserved for the deferred OTLP exporter (see
-# docs/design/runtime-overlay.md §10) so `pip install stoa-agent-risk[runtime]`
-# is already a stable install target.
-runtime = []
+# extra. The extra adds ed25519 signing for the trace chain (grade
+# `ed25519`; the stdlib HMAC grade needs nothing). The OTLP exporter will
+# land here too (docs/design/runtime-overlay.md §10).
+runtime = ["cryptography>=42"]
 
 [project.scripts]
 stoa = "stoa.cli:main"

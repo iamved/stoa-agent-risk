@@ -1,4 +1,4 @@
-"""Span records and constants for the ``stoa-trace/1.0`` schema.
+"""Span records and constants for the ``stoa-trace/1.1`` schema.
 
 One JSONL record per span. The first line of every trace file is a header
 record (``kind: "header"``); readers tolerate a missing header (warn, assume
@@ -12,8 +12,18 @@ recorded (the customer may have custom tools) but flagged
 ``"vocabulary": "custom"`` so analysis can report it without pretending it
 maps to a scanned capability.
 
-Reserved span fields (documented, never emitted in 1.0, consumers must
-ignore unknown fields): ``enforcement``, ``session_id``, ``cost``.
+1.1 (additive over 1.0; a 1.0 reader skips nothing it understands):
+
+- the fields 1.0 reserved are live: ``session_id`` (set by ``session()``
+  and inherited by every span inside it), ``cost`` (``{amount, currency}``
+  on ``llm_call`` spans), ``enforcement`` (``observed`` / ``allowed`` /
+  ``denied`` when a policy decision was taken on an ``action``);
+- every record, the header included, carries the chain fields
+  ``prev_hash``, ``hash``, ``sig``, ``signer_fingerprint`` (chain.py), and
+  the header names the ``key_grade`` and, for ed25519, ``signer_public_key``;
+- ``attrs.flags`` is a list of flag names the SDK computed at write time
+  (flags.py); ``attrs.side_effect`` and ``attrs.limit_field`` come from
+  ``@guard``.
 """
 
 from __future__ import annotations
@@ -22,7 +32,7 @@ import hashlib
 from datetime import datetime, timezone
 from functools import lru_cache
 
-TRACE_SCHEMA = "stoa-trace/1.0"
+TRACE_SCHEMA = "stoa-trace/1.1"
 
 SPAN_KINDS = (
     "agent_run",
@@ -36,6 +46,8 @@ SPAN_KINDS = (
 
 STATUSES = ("ok", "error")
 REDACTION_MODES = ("redacted", "content")
+ENFORCEMENTS = ("observed", "allowed", "denied")
+SIDE_EFFECTS = ("read", "write", "payment", "delete", "external_send")
 
 
 @lru_cache(maxsize=1)
@@ -64,14 +76,25 @@ def sha256_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8", "replace")).hexdigest()
 
 
-def header_record(sdk_version: str, redaction: str, dropped_spans: int = 0) -> dict:
-    return {
+def header_record(
+    sdk_version: str,
+    redaction: str,
+    dropped_spans: int = 0,
+    *,
+    key_grade: str = "none",
+    signer_public_key: str | None = None,
+) -> dict:
+    header = {
         "kind": "header",
         "schema": TRACE_SCHEMA,
         "sdk_version": sdk_version,
         "redaction": redaction,
         "dropped_spans": dropped_spans,
+        "key_grade": key_grade,
     }
+    if signer_public_key:
+        header["signer_public_key"] = signer_public_key
+    return header
 
 
 def redact_attrs(attrs: dict | None, capture_content: bool, redaction_hook) -> dict:
@@ -125,8 +148,12 @@ def build_span(
     from_agent_id: str | None = None,
     to_agent_id: str | None = None,
     attrs: dict | None = None,
+    session_id: str | None = None,
+    cost: float | None = None,
+    cost_currency: str | None = None,
+    enforcement: str | None = None,
 ) -> dict:
-    """Build one validated ``stoa-trace/1.0`` span record (a plain dict).
+    """Build one validated ``stoa-trace/1.1`` span record (a plain dict).
 
     Raises ``ValueError`` only for structurally invalid kinds/statuses — the
     SDK wraps all calls so instrumentation never raises into customer code;
@@ -136,6 +163,8 @@ def build_span(
         raise ValueError(f"unknown span kind {kind!r}; expected one of {SPAN_KINDS}")
     if status not in STATUSES:
         raise ValueError(f"unknown status {status!r}; expected one of {STATUSES}")
+    if enforcement is not None and enforcement not in ENFORCEMENTS:
+        raise ValueError(f"unknown enforcement {enforcement!r}; expected one of {ENFORCEMENTS}")
 
     span: dict = {
         "kind": kind,
@@ -179,6 +208,12 @@ def build_span(
     if kind == "delegation":
         span["from_agent_id"] = from_agent_id
         span["to_agent_id"] = to_agent_id
+    if session_id is not None:
+        span["session_id"] = session_id
+    if cost is not None:
+        span["cost"] = {"amount": cost, "currency": cost_currency or "USD"}
+    if enforcement is not None:
+        span["enforcement"] = enforcement
     if attrs:
         span["attrs"] = attrs
     return span

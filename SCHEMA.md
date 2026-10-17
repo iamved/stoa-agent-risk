@@ -140,22 +140,50 @@ from `schema_version`. See [docs/runtime.md](docs/runtime.md).
 
 **On a finding** (RT-family only): `trace_ref` — `{file, line, span_id}`,
 the trace-side evidence pointer, sibling to the DECL family's
-`declared_ref`. RT findings (`RT001`–`RT005`) are appended by merge to the
+`declared_ref`. RT findings (`RT001`–`RT008`) are appended by merge to the
 agent's `findings` list; the scan-time `summary.findings` counts are
 deliberately not rewritten (they describe the static scan) — merged RT
 findings are counted in the top-level `runtime` block instead.
 
-**On a `dimension_assessment` entry** (merge only, the two proxy dimensions
-only, and only when spans cover the agent): `assessability` may become
-`"runtime"`, accompanied by `evidence_window` (`{start, end, span_count}`,
-always non-empty — enforced by a property test) and `runtime_basis` (the
-observed signals the exposure re-bucketing used, so the bucket is auditable
-from the registry alone). Entries still labeled `proxy` remain capped at
-`moderate` exactly as before.
+**On a `dimension_assessment` entry** (merge only, and only when spans
+cover the agent): `assessability` may become `"runtime"`, accompanied by
+`evidence_window` (`{start, end, span_count}`, always non-empty — enforced
+by a property test), `runtime_basis` (the observed signals the exposure
+re-bucketing used, so the bucket is auditable from the registry alone) and,
+since trace 1.1, `static_exposure` (the scan-time bucket it replaced).
+Entries still labeled `proxy` remain capped at `moderate` exactly as before.
+
+Which dimensions, and from what evidence (trace 1.1; a dimension with no
+evidence in the window keeps its scan-time assessment):
+
+| Dimension | Upgraded from | Evidence read |
+|---|---|---|
+| `conduct-variability` | proxy | error rate; a declared gate contradicted by the observed approval rate |
+| `dependency-drift` | proxy | distinct models observed; dated pins |
+| `mandate-overreach` | any | `undeclared_tool` and `over_declared_limit` flags on actions |
+| `unreviewed-high-impact-action` | any | high-impact and money actions with no resolving approval |
+| `control-coverage-gap` | any | observed approval rates on high-impact and money actions |
+| `boundary-leakage` | any | `external_send` actions; integrations outside the scanned set |
+| `output-fidelity` | any | error rate on `llm_call` spans |
+| `injection-tamper-surface` | never | redacted traces cannot show what reached the prompt |
 
 **Top-level** (merge only): `runtime` — `{analysis_schema, window, span_count,
 agents_covered, agents_total, unmatched_agents, rt_findings,
 evidence_quality}`.
+
+**`runtime_evidence` since trace 1.1** also carries `observed_tools`,
+`tool_counts`, `money_actions`, `money_actions_approved`,
+`approval_rate_money`, `flag_counts` and `side_effect_counts`.
+
+**Trace schema `stoa-trace/1.1`** (the SDK's output, read by `stoa runtime`;
+additive over 1.0): the fields 1.0 reserved are live (`session_id`, `cost`
+as `{amount, currency}`, `enforcement` in `observed | allowed | denied`);
+every record carries `prev_hash`, `hash`, `sig`, `signer_fingerprint`
+(hash chain per file, signature under the key grade the header names in
+`key_grade`: `none`, `hmac-sha256` or `ed25519`, with `signer_public_key`
+for ed25519); `attrs.flags` lists the SDK's per-span risk flags and
+`attrs.side_effect` the guarded tool's declared effect. `stoa runtime
+verify` checks a trace directory and reports `runtime-chain/1.0`.
 
 **`stoa diff`** ignores `runtime_evidence`, `liveness_state`, and RT-family
 findings unconditionally: a diff describes call sites added or removed in

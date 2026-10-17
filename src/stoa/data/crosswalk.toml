@@ -239,6 +239,24 @@ eu_ai_act = "Art. 12"
 relation = "exposure"
 so_what = "Monitoring was declared, but runtime shows no evidence of it."
 
+[rules.RT006]
+owasp_llm_2025 = "LLM06"
+eu_ai_act = "Art. 9"
+relation = "exposure"
+so_what = "The agent calls a tool the scan never listed for it, so its real reach is wider than the record."
+
+[rules.RT007]
+owasp_llm_2025 = "LLM06"
+eu_ai_act = "Art. 14"
+relation = "exposure"
+so_what = "Money moved with no person on the live path, whatever the declaration says."
+
+[rules.RT008]
+owasp_llm_2025 = "LLM03"
+eu_ai_act = "Art. 9"
+relation = "exposure"
+so_what = "The agent depends on a model or an integration that neither the scan nor the baseline recorded."
+
 # RT005 is the one positive-evidence rule: an approval gate observed firing.
 # relation = "control-observed" so the report renders it as credit — phrased
 # "observed", never "mitigated"/"satisfied".

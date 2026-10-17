@@ -9,6 +9,31 @@ Registry schema → 1.8 (additive). `stoa scan` now also writes
 `stoa-dashboard.html`: one self-contained file, six screens, no server, no
 network. See [docs/dashboard.md](docs/dashboard.md).
 
+### Added — runtime trace overlay, `stoa-trace/1.1`
+- Every trace record is hash-chained and signed (`prev_hash`, `hash`,
+  `sig`, `signer_fingerprint`) under a key grade the header names: `none`,
+  `hmac-sha256` (stdlib) or `ed25519` (`pip install stoa-agent-risk[runtime]`).
+  `stoa runtime verify` finds the first break per file.
+- `@guard`, `session()` and `model_call()`: aliases over `stoa_span` with
+  `side_effect`, `limit_field`, `approval_field`, a session id, approval
+  spans and token/cost bookkeeping. The reserved `session_id`, `cost` and
+  `enforcement` fields are live.
+- Per-span risk flags in `attrs.flags`, computed against the last scan's
+  `stoa-registry.json`: `undeclared_tool`, `over_declared_limit`,
+  `approval_bypassed`, `new_counterparty`, `burst`, `repeat_failure`,
+  `model_changed`, `integration_changed`, `no_registry`.
+- RT006 (tool observed but not in the scanned inventory), RT007 (money
+  action with no resolving approval), RT008 (model or integration unknown to
+  scan and baseline; `stoa runtime merge --baseline`, `stoa scan
+  --runtime-baseline`).
+- `stoa runtime reconcile`: declared and used, used but undeclared, declared
+  but dormant, per agent.
+- The runtime assessability tier now reaches mandate-overreach,
+  unreviewed-high-impact-action, control-coverage-gap, boundary-leakage and
+  output-fidelity when the window holds evidence for them; never
+  injection-tamper-surface. `runtime-analysis/1.1` carries tools, money
+  actions, flags and side effects per agent.
+
 ### Added — the dashboard
 - **Six screens** over the scan: Overview (eight-dimension matrix by
   category, decomposable to the agents that produce each level; stat cards;
