@@ -74,6 +74,7 @@ class StoaConfig:
     runtime_trace_dir: str | None = None
     runtime_redaction: str = "redacted"
     runtime_exporter: str = "jsonl"
+    runtime_otlp_endpoint: str | None = None
     runtime_suppress: list[str] = field(default_factory=list)  # "RT002:<agent_id>" / "RT004:*"
     # [runtime.drift] — documented, hand-recomputable thresholds.
     runtime_drift_ratio_threshold: float = 3.0
@@ -267,12 +268,16 @@ def _load_runtime_section(config: StoaConfig, runtime: dict) -> None:
             )
         config.runtime_redaction = runtime["redaction"]
     if "exporter" in runtime:
-        if runtime["exporter"] != "jsonl":
+        if runtime["exporter"] not in ("jsonl", "otlp"):
             raise ConfigError(
-                "[runtime].exporter: only 'jsonl' is implemented today "
-                "('otlp' is reserved for a future release)"
+                "[runtime].exporter must be 'jsonl' (the default) or 'otlp' "
+                "(the JSONL file plus a mirror to your own OTLP collector)"
             )
         config.runtime_exporter = runtime["exporter"]
+    if "otlp_endpoint" in runtime:
+        if not isinstance(runtime["otlp_endpoint"], str):
+            raise ConfigError("[runtime].otlp_endpoint must be a string")
+        config.runtime_otlp_endpoint = runtime["otlp_endpoint"]
     if "suppress" in runtime:
         entries = runtime["suppress"]
         if not isinstance(entries, list) or not all(

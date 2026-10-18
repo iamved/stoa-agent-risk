@@ -244,9 +244,12 @@ def test_runtime_config_section_parses_and_validates(tmp_path):
     assert config.runtime_error_rate_elevated == 0.5
 
 
-def test_runtime_config_rejects_otlp_and_bad_values(tmp_path):
-    (tmp_path / "stoa.toml").write_text('[runtime]\nexporter = "otlp"\n')
-    with pytest.raises(ConfigError, match="reserved for a future release"):
+def test_runtime_config_accepts_otlp_and_rejects_bad_values(tmp_path):
+    (tmp_path / "stoa.toml").write_text('[runtime]\nexporter = "otlp"\notlp_endpoint = "http://collector.internal:4318"\n')
+    config = load_config(tmp_path)
+    assert config.runtime_exporter == "otlp" and config.runtime_otlp_endpoint == "http://collector.internal:4318"
+    (tmp_path / "stoa.toml").write_text('[runtime]\nexporter = "carrier-pigeon"\n')
+    with pytest.raises(ConfigError, match="must be 'jsonl'"):
         load_config(tmp_path)
     (tmp_path / "stoa.toml").write_text("[runtime.drift]\nmin_count = -1\n")
     with pytest.raises(ConfigError, match="positive number"):

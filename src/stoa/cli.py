@@ -298,6 +298,19 @@ def build_parser() -> argparse.ArgumentParser:
     rt_mcp.add_argument("--limit-field", metavar="TOOL=FIELD", action="append", default=[],
                         help="The numeric argument that is a tool's amount, e.g. issue_refund=amount")
 
+    rt_alerts = rt_sub.add_parser(
+        "alerts", help="Evaluate alert rules over a trace window and deliver them (local; no server)"
+    )
+    rt_alerts.add_argument("traces_dir", metavar="TRACES_DIR", nargs="?", default=None)
+    rt_alerts.add_argument("--registry", metavar="PATH", default=None)
+    rt_alerts.add_argument("--baseline", metavar="PATH", default=None, help="runtime-baseline JSON for drift-based rules")
+    rt_alerts.add_argument("--policy", metavar="PATH", default=None, help="stoa.policy.toml with an [alerts] block (default: search upward)")
+    rt_alerts.add_argument("--deliver", action="store_true", help="Send to the configured channels (default: print and write only)")
+    rt_alerts.add_argument("--state", metavar="PATH", default=".stoa/alerts-state.json", help="Dedupe state file")
+    rt_alerts.add_argument("--out", metavar="PATH", default=None, help="Write the runtime-alerts/1.0 JSON here")
+    rt_alerts.add_argument("--dashboard-url", metavar="URL", default=None, help="Link to put in every alert")
+    rt_alerts.add_argument("--test", metavar="RULE_ID", default=None, help="Fire one synthetic alert for RULE_ID to the configured channels")
+
     rt_reconcile = rt_sub.add_parser(
         "reconcile", help="Declared vs used vs dormant tools, per agent"
     )
@@ -1089,6 +1102,57 @@ def _run_init_runtime(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _run_runtime_alerts(args: argparse.Namespace) -> int:
+    """`stoa runtime alerts`: rules over the analysis, drift and chain; local delivery."""
+    from datetime import datetime, timezone
+
+    from .runtime.alerts import deliver, evaluate_alerts, load_alert_config, load_state, save_state, synthetic_alert
+    from .runtime.policy import find_policy
+
+    policy_path = args.policy or find_policy()
+    config = load_alert_config(policy_path)
+    for warning in config.warnings:
+        print(f"stoa: warning: {warning}", file=sys.stderr)
+    if args.test:
+        try:
+            document = synthetic_alert(args.test, config)
+        except KeyError:
+            print(f"stoa: no alert rule {args.test!r}; rules: {', '.join(r.id for r in config.rules)}", file=sys.stderr)
+            return EXIT_USAGE
+        for record in deliver(document, config, dashboard_url=args.dashboard_url):
+            print(f"  {record['channel']}: {'ok' if record['ok'] else 'failed'} ({record['detail']})")
+        return EXIT_OK
+    if not args.traces_dir:
+        print("stoa runtime alerts: TRACES_DIR is required unless --test is given", file=sys.stderr)
+        return EXIT_USAGE
+    from .runtime.analysis import analyze_traces
+    from .runtime.chain import verify_dir
+    from .runtime.drift import compute_drift
+
+    registry = _load_registry(args.registry) if args.registry else None
+    generated_at = datetime.now(timezone.utc).isoformat()
+    analysis = analyze_traces(args.traces_dir, registry, generated_at=generated_at, registry_path=args.registry)
+    drift = None
+    if args.baseline:
+        baseline = _load_registry(args.baseline)
+        cfg = load_config(Path.cwd(), None)
+        drift = compute_drift(analysis, baseline, registry, ratio_threshold=cfg.runtime_drift_ratio_threshold, min_count=cfg.runtime_drift_min_count, approval_drop=cfg.runtime_drift_approval_drop, generated_at=generated_at)
+    chain = verify_dir(args.traces_dir).to_dict()
+    state_path = Path(args.state)
+    state = load_state(state_path)
+    document = evaluate_alerts(analysis, drift=drift, chain=chain, registry=registry, config=config, state=state)
+    save_state(state_path, state)
+    if args.out:
+        _atomic_write(Path(args.out), json.dumps(document, indent=2) + "\n")
+    for alert in document["alerts"]:
+        print(f"  {alert['severity']:<8} {alert['rule_id']:<28} {alert['agent']}: {alert['summary']}")
+    print(f"stoa runtime alerts: {len(document['alerts'])} alert(s), {document['deduplicated']} deduplicated")
+    if args.deliver and document["alerts"]:
+        for record in deliver(document, config, dashboard_url=args.dashboard_url):
+            print(f"  delivered via {record['channel']}: {'ok' if record['ok'] else 'failed'} ({record['detail']})")
+    return EXIT_OK
+
+
 def _run_runtime_tail(args: argparse.Namespace) -> int:
     """Print one line per span, newest last; with --follow keep reading."""
     import time
@@ -1162,6 +1226,9 @@ def _run_runtime_command(args: argparse.Namespace) -> int:
 
     if args.runtime_command == "tail":
         return _run_runtime_tail(args)
+
+    if args.runtime_command == "alerts":
+        return _run_runtime_alerts(args)
 
     if args.runtime_command == "mcp-proxy":
         from . import runtime as stoa_rt

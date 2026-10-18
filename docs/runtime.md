@@ -260,15 +260,37 @@ approval threshold, one duplicate refund, one call to a tool the scan never
 listed), verifies the chain, reconciles the tools and prints the RT
 findings.
 
-### Deferred, explicitly
+### OTLP mirror
 
-The OTLP exporter and collector querying are deferred (file-based first);
-`exporter = "otlp"` errors clearly today. The attribute contract is fixed
-now so nothing changes shape later: spans map to OTel with `stoa.agent_id`,
-`stoa.kind`, `stoa.capability`, `stoa.integration`, `stoa.provider`,
-`stoa.model`, `stoa.amount`, `stoa.currency`, `stoa.approval_span_id`,
-`stoa.redaction` attributes — pointed only at the customer's own collector,
-never a default remote URL.
+`configure(exporter="otlp", otlp_endpoint="https://collector.example.test")`
+(or `[runtime] exporter = "otlp"` plus `otlp_endpoint`, or
+`$OTEL_EXPORTER_OTLP_ENDPOINT`) keeps the JSONL file as the record and
+mirrors every span to your own collector as an OpenTelemetry span with the
+`stoa.*` and `gen_ai.*` attributes (`stoa/runtime/otel.py`). It needs
+`pip install stoa-agent-risk[runtime]`; without the package the mirror
+warns once and the file sink carries on. There is no default remote URL.
+
+### Alerts (local)
+
+`stoa runtime alerts stoa-traces --registry stoa-registry.json
+[--baseline .stoa/baseline.json] [--deliver]` evaluates alert rules over
+the analysis, the drift and the chain report, deduplicates per agent and
+rule within `dedupe_minutes` (state in `.stoa/alerts-state.json`), prints
+the result, and with `--deliver` sends critical and high alerts one by one
+and the rest as one digest, to a signed webhook (`X-Stoa-Signature:
+sha256=<hmac>` over the body), a Slack incoming webhook, or the terminal.
+Rules and channels live under `[alerts]` in `stoa.policy.toml`; without
+that block the defaults fire for undeclared tools, approval bypassed, over
+the declared limit, new counterparty, burst, policy denied, model or
+integration changed, approval rate drop, chain broken and agent silent.
+`stoa runtime alerts --test approval-bypassed` sends one synthetic alert so
+the wiring can be confirmed. Nothing here runs a server; alerts are
+evaluated where the trace files are, as often as you run the command.
+
+### Collector querying stays deferred
+
+Reading spans back from a collector (instead of the JSONL files) is not
+implemented; the file is the record.
 
 ## Analyze, baseline, drift
 

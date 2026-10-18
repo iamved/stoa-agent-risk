@@ -46,6 +46,13 @@ network. See [docs/dashboard.md](docs/dashboard.md).
   "observed" on category rows read from traces, trace evidence in the
   finding panel. RT findings stay out of the scan's own counts. The demo
   carries committed traces (`ui/fixtures/traces/`).
+- OTLP mirror behind the `[runtime]` extra: `exporter = "otlp"` keeps the
+  JSONL record and mirrors spans to the customer's own collector; never a
+  default remote URL.
+- `stoa runtime alerts`: local alert rules over the analysis, drift and
+  chain (`[alerts]` in `stoa.policy.toml`, with defaults), dedupe and
+  digest, delivery to a signed webhook or Slack with `--deliver`, and
+  `--test RULE_ID` to confirm wiring. No server.
 - The runtime assessability tier now reaches mandate-overreach,
   unreviewed-high-impact-action, control-coverage-gap, boundary-leakage and
   output-fidelity when the window holds evidence for them; never

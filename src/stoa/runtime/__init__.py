@@ -86,6 +86,7 @@ class _State:
     policy: Policy = Policy()
     fail_open: bool = True
     approval_hook = None
+    mirror = None
 
 
 _state = _State()
@@ -103,6 +104,8 @@ def configure(
     burst_threshold: int = 20,
     policy: str | None = None,
     fail_open: bool = True,
+    exporter: str = "jsonl",
+    otlp_endpoint: str | None = None,
 ) -> None:
     """Enable tracing. ``trace_dir`` falls back to ``$STOA_TRACE_DIR``;
     with neither, the SDK stays dormant. Safe to call more than once
@@ -115,7 +118,9 @@ def configure(
     may be the registry id or the agent's declared name. ``policy`` (or
     ``$STOA_POLICY``, or a ``stoa.policy.toml`` found by searching upward)
     is evaluated on every guarded call; with ``fail_open`` (the default)
-    only rules that set ``enforce`` can deny a call.
+    only rules that set ``enforce`` can deny a call. ``exporter="otlp"``
+    keeps the JSONL file and mirrors each span to ``otlp_endpoint`` (or
+    ``$OTEL_EXPORTER_OTLP_ENDPOINT``), needing the ``[runtime]`` extra.
     """
     try:
         directory = trace_dir or os.environ.get("STOA_TRACE_DIR")
@@ -139,6 +144,12 @@ def configure(
             max_file_bytes=max_file_bytes,
             signer=_state.signer,
         )
+        if exporter == "otlp":
+            from .otel import OtlpMirror
+
+            _state.mirror = OtlpMirror(otlp_endpoint)
+            if not _state.mirror.active:
+                _state.mirror = None
         atexit.register(shutdown)
     except Exception:  # noqa: BLE001 - never raise into customer code
         _state.exporter = None
@@ -159,6 +170,9 @@ def shutdown() -> None:
         exporter, _state.exporter = _state.exporter, None
         if exporter is not None:
             exporter.close()
+        mirror, _state.mirror = _state.mirror, None
+        if mirror is not None:
+            mirror.close()
     except Exception:  # noqa: BLE001
         pass
 
@@ -270,6 +284,8 @@ def stoa_span(
             if flags or manual:
                 span.setdefault("attrs", {})["flags"] = sorted(set(flags) | set(manual))
             _state.exporter.emit(span)
+            if _state.mirror is not None:
+                _state.mirror.emit(span)
         except Exception:  # noqa: BLE001 - never raise into customer code
             pass
 

@@ -38,7 +38,7 @@ dev = ["pytest>=7.4"]
 # extra. The extra adds ed25519 signing for the trace chain (grade
 # `ed25519`; the stdlib HMAC grade needs nothing). The OTLP exporter will
 # land here too (docs/design/runtime-overlay.md §10).
-runtime = ["cryptography>=42"]
+runtime = ["cryptography>=42", "opentelemetry-sdk>=1.25", "opentelemetry-exporter-otlp-proto-http>=1.25"]
 
 [project.scripts]
 stoa = "stoa.cli:main"
