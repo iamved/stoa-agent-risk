@@ -275,6 +275,25 @@ def build_parser() -> argparse.ArgumentParser:
     rt_verify.add_argument("--out", metavar="PATH", default=None,
                            help="Write the runtime-chain/1.0 report JSON here")
 
+    rt_tail = rt_sub.add_parser(
+        "tail", help="Print spans from a trace directory as they are written"
+    )
+    rt_tail.add_argument("traces_dir", metavar="TRACES_DIR")
+    rt_tail.add_argument("--follow", "-f", action="store_true", help="Keep watching for new spans")
+    rt_tail.add_argument("--lines", "-n", type=int, default=20, help="How many recent spans to show first")
+
+    rt_mcp = rt_sub.add_parser(
+        "mcp-proxy", help="Run an MCP stdio server behind a recording, policy-applying proxy"
+    )
+    rt_mcp.add_argument("--upstream", metavar="COMMAND", required=True, help="The MCP server command to run")
+    rt_mcp.add_argument("--agent", metavar="ID_OR_NAME", default=None)
+    rt_mcp.add_argument("--trace-dir", metavar="DIR", default=None, help="Defaults to $STOA_TRACE_DIR")
+    rt_mcp.add_argument("--policy", metavar="PATH", default=None)
+    rt_mcp.add_argument("--side-effect", metavar="TOOL=EFFECT", action="append", default=[],
+                        help="Declare a tool's side effect, e.g. issue_refund=payment (repeatable)")
+    rt_mcp.add_argument("--limit-field", metavar="TOOL=FIELD", action="append", default=[],
+                        help="The numeric argument that is a tool's amount, e.g. issue_refund=amount")
+
     rt_reconcile = rt_sub.add_parser(
         "reconcile", help="Declared vs used vs dormant tools, per agent"
     )
@@ -1052,6 +1071,51 @@ def _run_init_runtime(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _run_runtime_tail(args: argparse.Namespace) -> int:
+    """Print one line per span, newest last; with --follow keep reading."""
+    import time
+
+    from .runtime.reader import TraceReader
+
+    def line_for(span: dict) -> str:
+        parts = [span.get("end_ts") or span.get("start_ts") or "", f"{span.get('kind', ''):<10}", span.get("agent_id") or "-"]
+        if span.get("tool"):
+            parts.append(span["tool"])
+        if span.get("model"):
+            parts.append(span["model"])
+        amount = span.get("amount")
+        if isinstance(amount, dict):
+            parts.append(f"{amount.get('amount')} {amount.get('currency')}")
+        if span.get("enforcement"):
+            parts.append(span["enforcement"])
+        flags = (span.get("attrs") or {}).get("flags")
+        if flags:
+            parts.append("flags=" + ",".join(flags))
+        if span.get("status") == "error":
+            parts.append("error")
+        return "  ".join(str(p) for p in parts)
+
+    seen: dict[str, int] = {}
+    first = True
+    while True:
+        reader = TraceReader(args.traces_dir)
+        fresh = []
+        for span in reader.spans():
+            key = span["_trace_file"]
+            if span["_trace_line"] > seen.get(key, 0):
+                fresh.append(span)
+                seen[key] = span["_trace_line"]
+        if first and args.lines >= 0:
+            fresh = fresh[-args.lines:]
+        for span in fresh:
+            print(line_for(span))
+        sys.stdout.flush()
+        first = False
+        if not args.follow:
+            return EXIT_OK
+        time.sleep(0.5)
+
+
 def _load_registry(path_str: str) -> dict:
     path = Path(path_str)
     if not path.is_file():
@@ -1077,6 +1141,21 @@ def _run_runtime_command(args: argparse.Namespace) -> int:
     if args.runtime_command is None:
         print("stoa runtime: choose a subcommand (analyze, map, merge, baseline, drift, verify, reconcile)", file=sys.stderr)
         return EXIT_USAGE
+
+    if args.runtime_command == "tail":
+        return _run_runtime_tail(args)
+
+    if args.runtime_command == "mcp-proxy":
+        from . import runtime as stoa_rt
+        from .runtime.integrations.mcp_proxy import McpProxy
+
+        pairs = lambda items: dict(item.split("=", 1) for item in items if "=" in item)  # noqa: E731
+        stoa_rt.configure(args.trace_dir, agent_id=args.agent, policy=args.policy)
+        proxy = McpProxy(args.upstream, agent_id=None, side_effects=pairs(args.side_effect), limit_fields=pairs(args.limit_field))
+        try:
+            return proxy.run()
+        finally:
+            stoa_rt.shutdown()
 
     if args.runtime_command == "verify":
         from .runtime.chain import verify_dir

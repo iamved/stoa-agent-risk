@@ -28,6 +28,16 @@ network. See [docs/dashboard.md](docs/dashboard.md).
   --runtime-baseline`).
 - `stoa runtime reconcile`: declared and used, used but undeclared, declared
   but dormant, per agent.
+- Local policy (`stoa.policy.toml`): rules with `when`, `expr`, `on_fail`
+  (observe, require_approval, deny) and `enforce`, evaluated on every
+  guarded call by a safe expression walker; `StoaDenied` on an enforced
+  deny; `on_approval(hook)` for `require_approval`; fail-open by default.
+- Framework adapters under `stoa.runtime.integrations`: a LangChain /
+  LangGraph callback handler (tool and model spans, `interrupt()` as a
+  pending approval and the resume as its grant), `openai.instrument(client)`,
+  `anthropic.instrument(client)`, and `stoa runtime mcp-proxy`, a stdio MCP
+  proxy that records tools and applies the policy. `stoa runtime tail`.
+  `examples/langgraph_refund_bot/` with `make demo`.
 - The runtime assessability tier now reaches mandate-overreach,
   unreviewed-high-impact-action, control-coverage-gap, boundary-leakage and
   output-fidelity when the window holds evidence for them; never

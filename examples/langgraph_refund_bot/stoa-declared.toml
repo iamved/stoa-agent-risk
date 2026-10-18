@@ -1,0 +1,12 @@
+version = 1
+
+[agents."00a262041760"]      # refund_bot.py :: graph
+name = "refund_bot"
+owner = "support-platform@example.test"
+purpose = "Refund support agent"
+users = "customers"
+production_status = "production"
+autonomy_intent = "human_approved"
+
+[agents."00a262041760".economic_authority]
+max_per_action = { amount = 500, currency = "EUR" }

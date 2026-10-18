@@ -180,6 +180,86 @@ shapes, not content. Opting in (`capture_content=True`) flips the span's
 evidence quality it had) and routes text through your `redaction_hook`
 first if you set one.
 
+### Policy (`stoa.policy.toml`)
+
+A policy is evaluated on every guarded call (and every MCP `tools/call`
+through the proxy). It is found by searching upward from the working
+directory, or given as `configure(policy=...)` / `$STOA_POLICY`. The file
+is TOML, like the rest of Stoa's configuration:
+
+```toml
+version = 1
+[defaults]
+mode = "observe"            # observe | enforce: the starting point for every rule
+
+[[rules]]
+id = "refund-cap"
+when = 'tool == "issue_refund"'
+expr = "amount <= 500"
+on_fail = "require_approval"
+
+[[rules]]
+id = "payment-needs-approval"
+when = 'side_effect == "payment"'
+expr = "approval.granted == true"
+on_fail = "deny"
+enforce = true
+
+[[rules]]
+id = "allowlist"
+when = "true"
+expr = "tool in agent.declared_tools"
+on_fail = "observe"
+```
+
+Expressions see `tool`, `args` (the redacted view: numbers and bools as
+they are, strings as hashes), `side_effect`, `amount`, `approval`
+(`granted`, `span_id`), `agent` (`id`, `name`, `declared_tools`,
+`max_per_action`) and `session`. They are evaluated by a small AST walker,
+never `eval`: names, attributes, items, comparisons including `in`, `and`,
+`or`, `not`, arithmetic. An unknown name makes the rule report `error`
+rather than raise.
+
+What a decision does: every rule records its decision in
+`attrs.policy_rules` / `attrs.policy_decisions` and the span's
+`enforcement` says `allowed`, `observed` or `denied`. Only a `deny` whose
+rule sets `enforce = true` (or every deny when the SDK is configured with
+`fail_open=False`) raises `StoaDenied` into the caller before the tool
+runs. `require_approval` calls the hook registered with
+`stoa_rt.on_approval(fn)`; a true result records an approval span the call
+then cites, false records a denial; with no hook the decision is recorded
+and the call proceeds. A missing or malformed policy file means no rules
+and one warning.
+
+### Framework adapters (`stoa.runtime.integrations`)
+
+Each adapter imports its framework lazily and degrades to a no-op with one
+warning when it is absent. None records prompt or response content.
+
+- **LangChain / LangGraph**: `StoaCallbackHandler(side_effects={...},
+  limit_fields={...})` passed in `config={"callbacks": [...]}`. Tool runs
+  become `action` spans (named after the tool, with the side effect you
+  declared for it and the numeric field you named as the amount), model
+  calls become `llm_call` spans with token usage and requested tool names.
+  A LangGraph `interrupt()` is recorded as a pending approval; the resume
+  on the same thread as a granted one the next tool span cites.
+- **OpenAI**: `instrument(client)` wraps `chat.completions.create` and
+  `responses.create` on sync and async clients.
+- **Anthropic**: `instrument(client)` wraps `messages.create`.
+- **MCP**: `stoa runtime mcp-proxy --upstream "python server.py"
+  --side-effect issue_refund=payment --limit-field issue_refund=amount`
+  runs a stdio MCP server behind a proxy that records the tools it
+  advertises, records every `tools/call` as an `action` span, and applies
+  the policy: an enforced deny is answered with a JSON-RPC error and never
+  reaches the server. Stdio only; nothing imports the `mcp` package.
+
+`stoa runtime tail stoa-traces [-f]` prints one line per span as they are
+written. `examples/langgraph_refund_bot/` is a complete worked example:
+`make demo` scans the bot, runs five traced sessions (one above the
+approval threshold, one duplicate refund, one call to a tool the scan never
+listed), verifies the chain, reconciles the tools and prints the RT
+findings.
+
 ### Deferred, explicitly
 
 The OTLP exporter and collector querying are deferred (file-based first);
@@ -188,8 +268,7 @@ now so nothing changes shape later: spans map to OTel with `stoa.agent_id`,
 `stoa.kind`, `stoa.capability`, `stoa.integration`, `stoa.provider`,
 `stoa.model`, `stoa.amount`, `stoa.currency`, `stoa.approval_span_id`,
 `stoa.redaction` attributes — pointed only at the customer's own collector,
-never a default remote URL. Framework auto-instrumentation
-(`stoa.runtime.integrations.*`) is likewise deferred.
+never a default remote URL.
 
 ## Analyze, baseline, drift
 

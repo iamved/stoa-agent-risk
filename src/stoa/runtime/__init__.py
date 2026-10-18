@@ -60,13 +60,15 @@ from .chain import ChainReport, verify_dir
 from .exporter import DEFAULT_MAX_FILE_BYTES, JSONLExporter
 from .flags import FlagEngine
 from .keys import Signer, load_signer
+from .policy import Policy, StoaDenied, decide, load_policy
 from .registry import RegistryFacts, load_registry_facts
 from .spans import SIDE_EFFECTS, build_span, redact_attrs, sha256_text, utc_now_iso
 
 __all__ = [
     "configure", "stoa_trace", "stoa_span", "guard", "session", "model_call",
-    "verify_chain", "flush", "shutdown",
+    "on_approval", "StoaDenied", "verify_chain", "flush", "shutdown",
 ]
+# ``_Late`` and ``_schema_hash`` are shared with stoa.runtime.integrations only.
 
 _ctx_trace_id: ContextVar[str | None] = ContextVar("stoa_trace_id", default=None)
 _ctx_span_id: ContextVar[str | None] = ContextVar("stoa_span_id", default=None)
@@ -81,6 +83,9 @@ class _State:
     signer: Signer = Signer()
     registry: RegistryFacts = RegistryFacts()
     flags: FlagEngine | None = None
+    policy: Policy = Policy()
+    fail_open: bool = True
+    approval_hook = None
 
 
 _state = _State()
@@ -96,6 +101,8 @@ def configure(
     signing_key: str | None = None,
     registry_path: str | None = None,
     burst_threshold: int = 20,
+    policy: str | None = None,
+    fail_open: bool = True,
 ) -> None:
     """Enable tracing. ``trace_dir`` falls back to ``$STOA_TRACE_DIR``;
     with neither, the SDK stays dormant. Safe to call more than once
@@ -105,7 +112,10 @@ def configure(
     (keys.py); ``registry_path`` points at the last scan's
     ``stoa-registry.json`` (found by searching upward when not given) so
     flags can be computed against declared tools and limits. ``agent_id``
-    may be the registry id or the agent's declared name.
+    may be the registry id or the agent's declared name. ``policy`` (or
+    ``$STOA_POLICY``, or a ``stoa.policy.toml`` found by searching upward)
+    is evaluated on every guarded call; with ``fail_open`` (the default)
+    only rules that set ``enforce`` can deny a call.
     """
     try:
         directory = trace_dir or os.environ.get("STOA_TRACE_DIR")
@@ -120,6 +130,8 @@ def configure(
         _state.redaction_hook = redaction_hook
         _state.signer = load_signer(signing_key)
         _state.flags = FlagEngine(_state.registry, burst_threshold=burst_threshold)
+        _state.policy = load_policy(policy or os.environ.get("STOA_POLICY"))
+        _state.fail_open = bool(fail_open)
         _state.exporter = JSONLExporter(
             directory,
             sdk_version=__version__,
@@ -208,8 +220,14 @@ def stoa_span(
         raise
     finally:
         try:
+            # A span closed on another thread (a callback handler, the MCP
+            # proxy's reader) cannot reset this thread's context tokens; the
+            # record is still written.
             _ctx_span_id.reset(span_token)
             _ctx_trace_id.reset(trace_token)
+        except Exception:  # noqa: BLE001
+            pass
+        try:
             capture = (
                 _state.capture_content if capture_content is None else bool(capture_content)
             )
@@ -316,11 +334,11 @@ class _Session:
         is never stored in clear: it is keyed under the signing key when
         there is one, hashed otherwise."""
         try:
-            attrs = {"granted": bool(granted), "actor_type": "human"}
+            late = _Late(attrs={"granted": bool(granted), "actor_type": "human"})
             if latency_ms is not None:
-                attrs["latency_ms"] = int(latency_ms)
+                late["attrs"]["latency_ms"] = int(latency_ms)
             with stoa_span(
-                "approval", approved_by=_actor_ref(actor), approval_method=channel, attrs=attrs,
+                "approval", approved_by=_actor_ref(actor), approval_method=channel, _late=late,
             ) as span_id:
                 return span_id
         except Exception:  # noqa: BLE001
@@ -413,6 +431,7 @@ def guard(
             late["attrs"] = {"side_effect": side_effect, "args_schema_hash": _schema_hash(values)}
             if limit_field:
                 late["attrs"]["limit_field"] = limit_field
+            approval_id = _apply_policy(late, tool_name, values, side_effect, amount, approval_id if isinstance(approval_id, str) else None)
             return late, amount, counterparty, approval_id, None
 
         if asyncio.iscoroutinefunction(func):
@@ -421,10 +440,11 @@ def guard(
                 late, amount, counterparty, approval_id, attrs = prepare(args, kwargs)
                 with stoa_span(
                     "action", tool=tool_name, capability=capability, integration=integration,
-                    amount=amount, currency=currency, approval_span_id=approval_id if isinstance(approval_id, str) else None,
+                    amount=amount, currency=currency, approval_span_id=approval_id,
                     attrs=attrs, _late=late,
                     _counterparty=sha256_text(str(counterparty))[:16] if counterparty is not None else None,
                 ):
+                    _raise_if_denied(late)
                     return await func(*args, **kwargs)
             return async_wrapper
 
@@ -433,14 +453,99 @@ def guard(
             late, amount, counterparty, approval_id, attrs = prepare(args, kwargs)
             with stoa_span(
                 "action", tool=tool_name, capability=capability, integration=integration,
-                amount=amount, currency=currency, approval_span_id=approval_id if isinstance(approval_id, str) else None,
+                amount=amount, currency=currency, approval_span_id=approval_id,
                 attrs=attrs, _late=late,
                 _counterparty=sha256_text(str(counterparty))[:16] if counterparty is not None else None,
             ):
+                _raise_if_denied(late)
                 return func(*args, **kwargs)
         return wrapper
 
     return decorate
+
+
+def on_approval(hook) -> None:
+    """Register the function a ``require_approval`` decision calls:
+    ``hook(tool, args, rule_id) -> bool``. A true result records an approval
+    span the guarded call then cites; false or an exception records a
+    denial. Without a hook the decision is recorded and the call proceeds."""
+    _state.approval_hook = hook
+
+
+def _policy_namespace(tool_name: str, values: dict, side_effect: str, amount, approval_id: str | None) -> dict:
+    facts = _state.registry.for_agent(_state.agent_id)
+    redacted_args = {}
+    for key, value in values.items():
+        if isinstance(value, bool) or isinstance(value, (int, float)) or value is None:
+            redacted_args[key] = value
+        else:
+            redacted_args[key] = sha256_text(str(value))[:16]
+    return {
+        "tool": tool_name,
+        "args": redacted_args,
+        "side_effect": side_effect,
+        "amount": amount,
+        "approval": {"granted": approval_id is not None, "span_id": approval_id},
+        "agent": {
+            "id": _state.agent_id, "name": facts.name if facts else None,
+            "declared_tools": sorted(facts.tools) if facts else [],
+            "max_per_action": facts.max_per_action if facts else None,
+        },
+        "session": {"id": _ctx_session_id.get()},
+    }
+
+
+def _apply_policy(late: _Late, tool_name: str, values: dict, side_effect: str, amount, approval_id: str | None) -> str | None:
+    """Evaluate the policy for one guarded call and write the outcome into
+    the span's attrs and ``enforcement``. Returns the approval span id the
+    call should cite (the caller's, or one minted by the approval hook).
+    Never raises; a denial is signalled through ``late["denied"]``."""
+    try:
+        if not _state.policy.rules:
+            return approval_id
+        decisions = decide(_state.policy, _policy_namespace(tool_name, values, side_effect, amount, approval_id), fail_open=_state.fail_open)
+        if not decisions:
+            return approval_id
+        attrs = late.setdefault("attrs", {})
+        attrs["policy_rules"] = ",".join(d.rule_id for d in decisions)
+        attrs["policy_decisions"] = ",".join(d.decision for d in decisions)
+        errors = [d for d in decisions if d.error]
+        if errors:
+            attrs["policy_errors"] = ";".join(f"{d.rule_id}: {d.error}" for d in errors)
+        worst = decisions[0]
+        for d in decisions:
+            if d.decision == "deny" and (d.enforced or worst.decision != "deny"):
+                worst = d
+            elif d.decision == "require_approval" and worst.decision not in ("deny",):
+                worst = d
+        if worst.decision == "require_approval" and approval_id is None and _state.approval_hook is not None:
+            try:
+                granted = bool(_state.approval_hook(tool_name, values, worst.rule_id))
+            except Exception:  # noqa: BLE001
+                granted = False
+            hook_late = _Late(attrs={"granted": granted, "actor_type": "system"})
+            with stoa_span("approval", approved_by="policy-hook", approval_method=f"hook:{worst.rule_id}", _late=hook_late) as span_id:
+                pass
+            if granted:
+                approval_id = span_id
+            else:
+                worst = type(worst)(worst.rule_id, "deny", not _state.fail_open or any(r.enforce for r in _state.policy.rules if r.id == worst.rule_id), worst.reason)
+        if worst.decision == "deny" and worst.enforced:
+            late["enforcement"] = "denied"
+            late["denied"] = (worst.rule_id, worst.reason)
+        elif worst.decision in ("deny", "require_approval", "observe"):
+            late["enforcement"] = "observed"
+        else:
+            late["enforcement"] = "allowed"
+        return approval_id
+    except Exception:  # noqa: BLE001
+        return approval_id
+
+
+def _raise_if_denied(late: _Late) -> None:
+    denied = late.get("denied")
+    if denied:
+        raise StoaDenied(denied[0], denied[1])
 
 
 def _schema_hash(values: dict) -> str:
