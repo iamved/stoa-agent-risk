@@ -10,6 +10,31 @@ the codebase.
 Stoa scans Python, JavaScript, and TypeScript repositories statically — no
 runtime hooks, no uploads, no accounts.
 
+## Runtime: what the agent actually did
+
+Three lines instrument an agent; traces stay on your filesystem, hash-chained and signed, with no content recorded.
+
+```python
+from stoa import runtime as stoa_rt
+stoa_rt.configure("stoa-traces", agent_id="account-actions", signing_key="hmac:...")
+
+@stoa_rt.guard(side_effect="payment", limit_field="amount", approval_field="approval")
+def issue_refund(order_id: str, amount: float, approval: str | None = None): ...
+```
+
+Then `stoa dashboard stoa-registry.json --runtime stoa-traces` puts what the
+traces showed beside what the code made possible: a Runtime tab, agents
+active or idle in traces, the observed approval rate, and runtime findings
+(RT001 to RT008) that point at spans. `stoa runtime verify`, `reconcile`,
+`alerts`, `tail`, and `mcp-proxy` work on the same files. A policy in
+`stoa.policy.toml` records a decision on every guarded call and, when a rule
+sets `enforce`, denies it before the tool runs.
+
+What this is not: not a gate by default (observe first, enforce per rule),
+not a consent system, not a server; nothing leaves your machine unless you
+configure an OTLP collector or an alert webhook of your own. Details in
+[docs/runtime.md](docs/runtime.md).
+
 ## What Stoa does
 
 - **Discovers likely AI agents** (LangChain, LangGraph, CrewAI, AutoGen,
