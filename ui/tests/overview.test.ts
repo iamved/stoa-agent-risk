@@ -298,7 +298,8 @@ describe("register and helpers", () => {
     expect(r.stale).toBe(1);
     // Whatever treatments the register holds, as it holds them.
     expect(Object.fromEntries(r.treatments)).toEqual({ transfer: 1, mitigate: 1 });
-    expect(otherDimensionsLine(demo)).toBe("The other 7 dimensions are moderate or lower.");
+    // With traces merged, five dimensions read elevated from the runtime window.
+    expect(otherDimensionsLine(demo)).toBe("The other 3 dimensions are moderate or lower.");
     expect(registerCard(empty)).toMatchObject({ risks: 0, awaiting: 0 });
   });
 

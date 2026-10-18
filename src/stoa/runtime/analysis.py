@@ -35,6 +35,7 @@ class _AgentAccumulator:
         "tool_counts", "tool_last_ts", "first_tool_span", "money_actions",
         "money_candidates", "flag_counts", "first_flag_span", "approval_ids",
         "llm_calls", "llm_errors", "side_effect_counts", "first_external_send",
+        "flag_events",
     )
 
     def __init__(self) -> None:
@@ -76,6 +77,8 @@ class _AgentAccumulator:
         self.llm_errors = 0
         self.side_effect_counts: dict[str, int] = {}
         self.first_external_send: dict | None = None
+        # Up to 200 flagged spans per agent, oldest first: the timeline the dashboard draws.
+        self.flag_events: list[dict] = []
 
     @staticmethod
     def _ref(span: dict) -> dict:
@@ -121,6 +124,15 @@ class _AgentAccumulator:
             self.flag_counts[flag] = self.flag_counts.get(flag, 0) + 1
             if flag not in self.first_flag_span:
                 self.first_flag_span[flag] = self._ref(span)
+        if attrs.get("flags") and len(self.flag_events) < 200:
+            self.flag_events.append({
+                "ts": span.get("end_ts") or span.get("start_ts"),
+                "flags": sorted(attrs["flags"]),
+                "kind": kind,
+                "tool": span.get("tool"),
+                "amount": span.get("amount"),
+                "trace_ref": self._ref(span),
+            })
         tool = span.get("tool")
         if tool and kind in ("action", "tool_call"):
             self.tool_counts[tool] = self.tool_counts.get(tool, 0) + 1
@@ -225,6 +237,7 @@ class _AgentAccumulator:
             "side_effect_counts": dict(sorted(self.side_effect_counts.items())),
             "llm_calls": self.llm_calls,
             "llm_error_rate": round(self.llm_errors / self.llm_calls, 4) if self.llm_calls else 0.0,
+            "flag_events": list(self.flag_events),
             "trace_refs": {
                 "first_capability_span": dict(sorted(self.first_capability_span.items())),
                 "first_unapproved_high_impact": self.first_unapproved_high_impact,

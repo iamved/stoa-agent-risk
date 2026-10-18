@@ -38,6 +38,14 @@ network. See [docs/dashboard.md](docs/dashboard.md).
   `anthropic.instrument(client)`, and `stoa runtime mcp-proxy`, a stdio MCP
   proxy that records tools and applies the policy. `stoa runtime tail`.
   `examples/langgraph_refund_bot/` with `make demo`.
+- Dashboard envelope `stoa-dashboard/1.1` (additive): a `runtime` slot
+  (`dashboard-runtime/1.0`) with the analysis, reconcile table, chain report
+  and drift, filled by `stoa dashboard --runtime TRACES` and `stoa scan
+  --with-runtime`. A Runtime tab under Findings, liveness on the Agent
+  Inventory, the observed approval rate on Controls & Safeguards,
+  "observed" on category rows read from traces, trace evidence in the
+  finding panel. RT findings stay out of the scan's own counts. The demo
+  carries committed traces (`ui/fixtures/traces/`).
 - The runtime assessability tier now reaches mandate-overreach,
   unreviewed-high-impact-action, control-coverage-gap, boundary-leakage and
   output-fidelity when the window holds evidence for them; never

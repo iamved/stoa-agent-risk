@@ -24,7 +24,7 @@ from ..underwriting import build_assessment, derive_from_registry
 from .identity import resolve_agents
 from .register import build_register
 
-ENVELOPE_SCHEMA = "stoa-dashboard/1.0"
+ENVELOPE_SCHEMA = "stoa-dashboard/1.1"
 
 # One report-level NIST AI RMF alignment — never per-rule tags (docs/crosswalk.md).
 NIST_AI_RMF = [
@@ -117,8 +117,14 @@ def build_envelope(
     underwriting: dict | None = None,
     taxonomy_path: Path | None = None,
     crosswalk_path: Path | None = None,
+    runtime: dict | None = None,
 ) -> dict:
-    """Assemble the envelope. Pure function; no I/O, no wall clock."""
+    """Assemble the envelope. Pure function; no I/O, no wall clock.
+
+    ``runtime`` (1.1) is the slot ``build_runtime_slot`` fills from local
+    traces: the analysis, reconcile table, chain report and drift document.
+    None without traces; the registry then carries no runtime fields either.
+    """
     head = (registry.get("repository") or {}).get("head_commit") or {}
     graph = build_graph(registry)
     if registry.get("runtime"):
@@ -164,6 +170,8 @@ def build_envelope(
         "rules": _rules_table(crosswalk_path),
         "taxonomy": _taxonomy_block(taxonomy_path, registry),
         "frameworks": {"nist_ai_rmf": NIST_AI_RMF},
+        # 1.1: what the traces showed, beside what the code made possible.
+        "runtime": runtime,
         # The scanner's own vocabulary, so the UI never hardcodes which
         # capabilities or integrations it treats as high impact.
         "vocabulary": {

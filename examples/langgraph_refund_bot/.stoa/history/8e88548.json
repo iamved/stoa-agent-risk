@@ -1,0 +1,158 @@
+{
+  "schema": "stoa-history-entry/1.1",
+  "git_ref": "8e88548",
+  "head_commit": {
+    "hash": "8e88548",
+    "date": "2026-10-17T17:49:08-07:00"
+  },
+  "scanner_version": "0.7.4",
+  "registry_schema_version": "1.8",
+  "agent_candidates": 1,
+  "findings": {
+    "critical": 0,
+    "high": 0,
+    "medium": 1,
+    "low": 0,
+    "info": 6
+  },
+  "dimensions": [
+    {
+      "id": "mandate-overreach",
+      "max_exposure": "elevated",
+      "agents_elevated": 1,
+      "agents_moderate": 0
+    },
+    {
+      "id": "boundary-leakage",
+      "max_exposure": "moderate",
+      "agents_elevated": 0,
+      "agents_moderate": 1
+    },
+    {
+      "id": "unreviewed-high-impact-action",
+      "max_exposure": "elevated",
+      "agents_elevated": 1,
+      "agents_moderate": 0
+    },
+    {
+      "id": "output-fidelity",
+      "max_exposure": "low",
+      "agents_elevated": 0,
+      "agents_moderate": 0
+    },
+    {
+      "id": "injection-tamper-surface",
+      "max_exposure": "low",
+      "agents_elevated": 0,
+      "agents_moderate": 0
+    },
+    {
+      "id": "conduct-variability",
+      "max_exposure": "low",
+      "agents_elevated": 0,
+      "agents_moderate": 0
+    },
+    {
+      "id": "dependency-drift",
+      "max_exposure": "low",
+      "agents_elevated": 0,
+      "agents_moderate": 0
+    },
+    {
+      "id": "control-coverage-gap",
+      "max_exposure": "elevated",
+      "agents_elevated": 1,
+      "agents_moderate": 0
+    }
+  ],
+  "agents": [
+    {
+      "id": "00a262041760",
+      "name": "graph",
+      "display_name": "refund_bot·graph",
+      "capabilities": [
+        "email_send",
+        "tool_calling"
+      ],
+      "tools": [
+        {
+          "name": "lookup_order",
+          "money_action": false,
+          "high_impact": false
+        },
+        {
+          "name": "issue_refund",
+          "money_action": true,
+          "high_impact": false
+        },
+        {
+          "name": "send_email",
+          "money_action": false,
+          "high_impact": false
+        }
+      ],
+      "autonomy_level": {
+        "level": "human_approved"
+      },
+      "declared": {
+        "economic_authority": {
+          "max_per_action": {
+            "amount": 500,
+            "currency": "EUR"
+          }
+        },
+        "data_classes": [],
+        "users": "customers",
+        "autonomy_intent": "human_approved"
+      },
+      "dimension_assessment": {
+        "dimensions": [
+          {
+            "id": "mandate-overreach",
+            "score": 0,
+            "controls_observed": [
+              "approval"
+            ]
+          },
+          {
+            "id": "boundary-leakage",
+            "score": 0,
+            "controls_observed": []
+          },
+          {
+            "id": "unreviewed-high-impact-action",
+            "score": 0,
+            "controls_observed": [
+              "approval"
+            ]
+          },
+          {
+            "id": "output-fidelity",
+            "score": 1,
+            "controls_observed": []
+          },
+          {
+            "id": "injection-tamper-surface",
+            "score": 1,
+            "controls_observed": []
+          },
+          {
+            "id": "conduct-variability",
+            "score": 1,
+            "controls_observed": []
+          },
+          {
+            "id": "dependency-drift",
+            "score": 0,
+            "controls_observed": []
+          },
+          {
+            "id": "control-coverage-gap",
+            "score": 15,
+            "controls_observed": []
+          }
+        ]
+      }
+    }
+  ]
+}

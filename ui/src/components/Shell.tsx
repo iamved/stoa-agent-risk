@@ -35,7 +35,7 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
         { id: "inventory", label: "Agent Inventory", href: buildHash("inventory"), screens: ["inventory"], count: uniqueAgents(envelope).length, icon: "inventory" },
         // Declared Scope stays reachable at #/scope but is hidden from the sidebar for now.
         // The badge is the number that needs someone: high-severity findings, not the size of the list.
-        { id: "risk", label: "Findings", href: buildHash("findings"), screens: ["findings", "drift", "register"], alert: high ? `${high} high` : undefined, icon: "risk" },
+        { id: "risk", label: "Findings", href: buildHash("findings"), screens: ["findings", "drift", "register", "runtime"], alert: high ? `${high} high` : undefined, icon: "risk" },
         { id: "controls", label: "Controls & Safeguards", href: buildHash("controls"), screens: ["controls"], icon: "controls" },
         { id: "audit", label: "Launch Safety Audit", href: buildHash("audit"), screens: ["audit"], icon: "audit" },
         { id: "loss", label: "Financial Exposure", href: buildHash("loss"), screens: ["loss"], icon: "loss" },

@@ -157,7 +157,7 @@ def test_dashboard_command_from_envelope_and_registry(fake_template, tmp_path, c
     out = tmp_path / "d.html"
     assert main(["dashboard", str(FIXTURES / "meridian-pay.envelope.json"), "--out", str(out)]) == 0
     html = out.read_text(encoding="utf-8")
-    assert '"schema":"stoa-dashboard/1.0"' in html
+    assert '"schema":"stoa-dashboard/1.1"' in html
     assert "meridian-pay" in html
 
     out2 = tmp_path / "r.html"
@@ -237,7 +237,7 @@ def test_dashboard_json_out_is_the_redacted_envelope_and_needs_no_template(monke
     written = (tmp_path / "data.json").read_text(encoding="utf-8")
     assert fake_openai_key() not in written
     data = json.loads(written)
-    assert data["schema"] == "stoa-dashboard/1.0" and "demo" not in data
+    assert data["schema"] == "stoa-dashboard/1.1" and "demo" not in data
     assert data["registry"]["repository"]["name"] == "meridian-pay"
 
 
@@ -255,7 +255,7 @@ def test_scan_writes_dashboard_json(fake_template, tmp_path, monkeypatch):
     example = str(REPO_ROOT / "examples" / "sparkwing")
     assert main(["scan", example, "--no-git", "--quiet", "--dashboard-json", "data.json"]) in (0, 1)
     data = json.loads((tmp_path / "data.json").read_text(encoding="utf-8"))
-    assert data["schema"] == "stoa-dashboard/1.0"
+    assert data["schema"] == "stoa-dashboard/1.1"
     # A customer's scan is never marked as demo data.
     assert "demo" not in data
 

@@ -47,7 +47,7 @@ export function DimensionChart({ selected, onSelect }: { selected: string | null
                 {RISK_LEVELS.filter((l) => bar.counts[l] > 0).map((l) => <span key={l} className={BAR[l]} style={{ width: `${(bar.counts[l] / max) * 100}%` }} />)}
               </span>
               <span role="cell" className="text-right tabular-nums text-[13px]">{bar.total}</span>
-              <span role="cell"><DimensionStateBadge state={dimensionState(envelope, bar.dimension, bar.maxExposure, bar.total)} /></span>
+              <span role="cell" className="flex flex-wrap items-center gap-1.5"><DimensionStateBadge state={dimensionState(envelope, bar.dimension, bar.maxExposure, bar.total)} />{bar.runtime ? <span className="chip chip-plain chip-ok text-[10px] leading-4 py-0 px-1.5" title="Read from traces in the runtime window">observed</span> : null}</span>
             </div>
           );
         })}

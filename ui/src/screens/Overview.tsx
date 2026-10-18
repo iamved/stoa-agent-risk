@@ -7,6 +7,8 @@ import { SeverityBadge } from "../components/Badge";
 import { money } from "../data/lossModel";
 import type { TrendPoint } from "../data/lossTrend";
 import { SPECTRUM_BANDS, agentSpectrum, attentionStatus, audienceLine, costOutlook, fixFirst, holdings, newestAgent, standing, whatChanged, type ChangeLine, type CostOutlook, type SpectrumRow } from "../data/overview";
+import { uniqueAgents } from "../data/agents";
+import { liveness } from "../data/runtime";
 import { activeFindings, countByLevel, formatDate, overviewDeltas, pluralize } from "../data/selectors";
 
 /** The loss model takes about a tenth of a second, so it runs after first paint. `undefined` is "not yet". */
@@ -127,6 +129,7 @@ const SPECTRUM_DOT: Record<SpectrumRow["level"], string> = { elevated: "bg-sev-h
 function FindingsTile() {
   const { envelope } = useApp();
   const rows = agentSpectrum(envelope);
+  const observedIds = new Set(uniqueAgents(envelope).filter((u) => liveness(envelope, u) === "active").map((u) => u.id));
   return (
     <Tile question="Risk Mapping" href={buildHash("findings")} action="View findings">
       {rows.length ? (
@@ -135,7 +138,7 @@ function FindingsTile() {
           <div className="flex justify-between text-[10.5px] uppercase tracking-[0.06em] text-ink-muted" aria-hidden="true"><span>Low</span><span>Medium</span><span>High</span></div>
           {rows.map((r) => (
             <div key={r.id} className="contents">
-              <div className="min-w-0 truncate"><a href={buildHash("inventory", r.id)} className="no-underline text-navy hover:underline">{r.name}</a>{r.isNew ? <span className="ml-1.5 chip chip-plain chip-high text-[10px] leading-4 py-0 px-1.5">new</span> : null}</div>
+              <div className="min-w-0 truncate"><a href={buildHash("inventory", r.id)} className="no-underline text-navy hover:underline">{r.name}</a>{r.isNew ? <span className="ml-1.5 chip chip-plain chip-high text-[10px] leading-4 py-0 px-1.5">new</span> : null}{!r.isNew && observedIds.has(r.id) ? <span className="ml-1.5 chip chip-plain chip-ok text-[10px] leading-4 py-0 px-1.5" title="This agent has runtime evidence in the window">observed</span> : null}</div>
               <div className="relative h-4">
                 <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-line-strong" />
                 <div className="absolute top-1/2 h-1.5 w-px -translate-y-1/2 bg-line-strong" style={{ left: `${SPECTRUM_BANDS.moderate}%` }} />

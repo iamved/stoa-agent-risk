@@ -85,17 +85,22 @@ export interface FindingRef {
 // --- findings -------------------------------------------------------------------
 
 /** Every scanner record once. A file-level finding is repeated on each agent in that file; the registry summary counts it once, so this does too. */
-function recordRefs(env: Envelope): FindingRef[] {
+/** RT-family findings come from traces (merge), not the scan; the static screens leave them to the Runtime screen so nothing is counted twice. */
+export const isRuntimeFinding = (finding: { rule_id: string }) => finding.rule_id.startsWith("RT");
+
+function recordRefs(env: Envelope, runtime = false): FindingRef[] {
   const registry = env.registry;
   const byFingerprint = new Map<string, FindingRef>();
   for (const agent of registry.agents) {
     for (const finding of agent.findings) {
+      if (isRuntimeFinding(finding) !== runtime) continue;
       const existing = byFingerprint.get(finding.fingerprint);
       if (existing) existing.agents.push(agent);
       else byFingerprint.set(finding.fingerprint, { finding, evidence: [finding], agent, agents: [agent], uniqueAgents: [] });
     }
   }
   for (const finding of registry.repository_findings) {
+    if (isRuntimeFinding(finding) !== runtime) continue;
     if (!byFingerprint.has(finding.fingerprint)) byFingerprint.set(finding.fingerprint, { finding, evidence: [finding], agent: null, agents: [], uniqueAgents: [] });
   }
   const refs = [...byFingerprint.values()];
@@ -121,6 +126,11 @@ const findingsCache = new WeakMap<Envelope, FindingRef[]>();
  * hits inside one record stay two findings. With no identity block every
  * record is its own agent, so nothing merges.
  */
+/** Runtime (RT-family) findings as refs, one per record, unsuppressed. Read by the Runtime screen only. */
+export function runtimeFindingRefs(env: Envelope): FindingRef[] {
+  return recordRefs(env, true).filter((r) => !r.finding.suppressed);
+}
+
 export function allFindings(env: Envelope): FindingRef[] {
   const hit = findingsCache.get(env);
   if (hit) return hit;
@@ -177,7 +187,10 @@ export function findingTitle(env: Envelope, finding: Finding): string {
 
 /** Any of a finding's evidence fingerprints resolves to it, so links made before a merge still open. */
 export function findingByFingerprint(env: Envelope, fingerprint: string): FindingRef | null {
-  return allFindings(env).find((r) => r.evidence.some((f) => f.fingerprint === fingerprint)) ?? null;
+  // A deep link may name a runtime finding (the Runtime screen's links); those open in the same panel.
+  return allFindings(env).find((r) => r.evidence.some((f) => f.fingerprint === fingerprint))
+    ?? runtimeFindingRefs(env).find((r) => r.evidence.some((f) => f.fingerprint === fingerprint))
+    ?? null;
 }
 
 /** Fingerprints new since the baseline: those the diff lists on changed agents, and every finding of an agent the diff says was added. Empty without a baseline. */
@@ -495,6 +508,8 @@ export interface DimensionBar {
   total: number;
   maxExposure: Exposure;
   agents: MatrixAgent[];
+  /** The exposure was read from traces (runtime tier), not only from the scan. */
+  runtime: boolean;
 }
 
 /** Active findings per dimension by risk level, in taxonomy order, with the org-level exposure and the agents behind it. */
@@ -504,7 +519,8 @@ export function findingsByDimension(env: Envelope): DimensionBar[] {
   return cells.map((cell) => {
     const counts: Record<RiskLevel, number> = { high: 0, medium: 0, low: 0 };
     for (const ref of active) if (ref.finding.dimensions?.includes(cell.dimension.id)) counts[riskLevel(ref.finding.severity)] += 1;
-    return { dimension: cell.dimension, counts, total: counts.high + counts.medium + counts.low, maxExposure: cell.maxExposure, agents: cell.agents };
+    const summaryRow = env.registry.dimension_summary?.dimensions.find((d) => d.id === cell.dimension.id) as { assessability?: string } | undefined;
+    return { dimension: cell.dimension, counts, total: counts.high + counts.medium + counts.low, maxExposure: cell.maxExposure, agents: cell.agents, runtime: summaryRow?.assessability === "runtime" };
   });
 }
 

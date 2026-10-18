@@ -139,6 +139,10 @@ def build_parser() -> argparse.ArgumentParser:
                            help="stoa-registry.json (or a stoa-dashboard envelope)")
     dashboard.add_argument("--baseline", metavar="REGISTRY", default=None,
                            help="Registry to diff against (drift screen)")
+    dashboard.add_argument("--runtime", metavar="TRACES_DIR", default=None,
+                           help="Local stoa-trace files: adds the Runtime screen and observed evidence")
+    dashboard.add_argument("--runtime-baseline", metavar="PATH", default=None,
+                           help="With --runtime: a committed runtime-baseline JSON for drift and RT008")
     dashboard.add_argument("--approvals", metavar="PATH", default=".stoa/approvals.toml")
     dashboard.add_argument("--root", metavar="DIR", default=".",
                            help="Repository root holding .stoa/history/ (default: .)")
@@ -418,19 +422,17 @@ def _run_scan_command(args: argparse.Namespace) -> int:
         # runtime-thin) registry — never a failed scan.
         from datetime import datetime, timezone
 
+        from .dashboard import build_runtime_slot
         from .report_json import build_document
-        from .runtime.analysis import analyze_traces
-        from .runtime.merge import merge_runtime_into_registry
 
         document = build_document(result, config)
-        analysis = analyze_traces(
-            args.with_runtime, document,
+        baseline = _load_registry(args.runtime_baseline) if getattr(args, "runtime_baseline", None) else None
+        enriched, runtime_slot = build_runtime_slot(
+            args.with_runtime, document, config, baseline=baseline,
             generated_at=datetime.now(timezone.utc).isoformat(),
         )
-        for warning in analysis["header"]["warnings"]:
+        for warning in runtime_slot["analysis"]["header"]["warnings"]:
             print(f"stoa: warning: {warning}", file=sys.stderr)
-        baseline = _load_registry(args.runtime_baseline) if getattr(args, "runtime_baseline", None) else None
-        enriched = merge_runtime_into_registry(document, analysis, config, baseline)
         text = json.dumps(enriched, indent=2, ensure_ascii=False, sort_keys=False) + "\n"
         _atomic_write(json_path, text)
         write_html(result, config, html_path, document=enriched)
@@ -457,6 +459,7 @@ def _run_scan_command(args: argparse.Namespace) -> int:
             base_doc_resolved = True
         dashboard_path, envelope = _write_scan_dashboard(
             result, config, args, document, base_doc, root.resolve(),
+            runtime_slot=runtime_slot if args.with_runtime else None,
         )
 
     for warning in result.warnings:
@@ -500,7 +503,7 @@ def _run_scan_command(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
-def _write_scan_dashboard(result, config, args, document, base_doc, root: Path):
+def _write_scan_dashboard(result, config, args, document, base_doc, root: Path, runtime_slot: dict | None = None):
     """Write stoa-dashboard.html next to the registry; never fails the scan.
 
     Returns ``(path, envelope)``; the path is None when the template is absent."""
@@ -519,6 +522,7 @@ def _write_scan_dashboard(result, config, args, document, base_doc, root: Path):
         document, diff=diff, baseline=base_doc if diff is not None else None, history=history,
         underwriting=_load_underwriting(root, args.underwriting_config),
         taxonomy_path=config.dimensions_taxonomy, crosswalk_path=config.crosswalk_path,
+        runtime=runtime_slot,
     )
     if args.dashboard_json:
         write_dashboard_json(envelope, Path(args.dashboard_json))
@@ -593,11 +597,25 @@ def _run_dashboard_command(args: argparse.Namespace) -> int:
                 return EXIT_USAGE
             base_doc = json.loads(baseline_path.read_text(encoding="utf-8"))
             diff = diff_registries(base_doc, document, Approvals.load(Path(args.approvals)))
+        runtime_slot = None
+        if args.runtime:
+            from datetime import datetime, timezone
+
+            from .dashboard import build_runtime_slot
+
+            rt_baseline = _load_registry(args.runtime_baseline) if args.runtime_baseline else None
+            document, runtime_slot = build_runtime_slot(
+                args.runtime, document, config, baseline=rt_baseline, registry_path=str(input_path),
+                generated_at=datetime.now(timezone.utc).isoformat(),
+            )
+            for warning in runtime_slot["analysis"]["header"]["warnings"]:
+                print(f"stoa: warning: {warning}", file=sys.stderr)
         envelope = build_envelope(
             document, diff=diff, baseline=base_doc, history=load_history(root),
             underwriting=_load_underwriting(root, args.underwriting_config),
             taxonomy_path=Path(args.taxonomy) if args.taxonomy else config.dimensions_taxonomy,
             crosswalk_path=config.crosswalk_path,
+            runtime=runtime_slot,
         )
 
     if args.demo:

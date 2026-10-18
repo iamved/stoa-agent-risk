@@ -32,6 +32,8 @@ def test_overview_reports_the_registrys_own_numbers():
     # Every finding is counted once even though agents in a file share them.
     total = sum(counts.values())
     assert f"Top findings (5 of {total})" in text
+    # RT findings from the merged traces are listed apart, never inside the scan's count.
+    assert "Runtime   10 finding(s) from traces, 2026-09-15 to 2026-09-21" in text
 
 
 def test_top_findings_show_one_per_rule_before_repeating():

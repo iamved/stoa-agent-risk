@@ -1,5 +1,5 @@
 {
-  "schema": "stoa-dashboard/1.0",
+  "schema": "stoa-dashboard/1.1",
   "generator": {
     "name": "stoa",
     "version": "0.7.4"
@@ -218,7 +218,8 @@
         },
         "source": "iac",
         "discovery_tier": "recognized",
-        "platform": "bedrock"
+        "platform": "bedrock",
+        "liveness_state": "idle"
       },
       {
         "id": "b8f0111742fc",
@@ -452,6 +453,102 @@
               "relation": "exposure",
               "so_what": "The agent runs in production with no observability observed."
             }
+          },
+          {
+            "fingerprint": "2157f68073a5259d",
+            "rule_id": "RT001",
+            "title": "Declared human oversight not observed at runtime",
+            "category": "runtime",
+            "severity": "critical",
+            "confidence": "high",
+            "path": "code/agents/account_actions_agent.py",
+            "line": 21,
+            "column": 1,
+            "snippet": "autonomy_intent='human_approved' vs 2 unapproved high-impact action(s)",
+            "remediation": "This agent is declared recommend-only or human-approved, but traces show high-impact actions executing with no approval span. Either the approval control is not wired into the live path, or the declaration is wrong. Fix the gate or correct the declaration.",
+            "suppressed": false,
+            "suppression_reason": null,
+            "is_new": false,
+            "message": "Agent `graph` is declared `human_approved`, but 2 of 6 observed high-impact action(s) in the analyzed window carried no approval span. The declared oversight is not observed on the live path.",
+            "trace_ref": {
+              "file": "trace-demo-0000.jsonl",
+              "line": 30,
+              "span_id": "s002d"
+            },
+            "declared_ref": {
+              "path": "stoa-declared.toml",
+              "key": "agents.\"b8f0111742fc\".autonomy_intent"
+            },
+            "crosswalk": {
+              "owasp_llm_2025": "LLM06",
+              "eu_ai_act": "Art. 14",
+              "relation": "exposure",
+              "so_what": "At runtime the declared oversight step was not observed to fire."
+            }
+          },
+          {
+            "fingerprint": "1617367eddf8cc61",
+            "rule_id": "RT002",
+            "title": "Observed monetary action exceeds declared economic authority",
+            "category": "runtime",
+            "severity": "high",
+            "confidence": "high",
+            "path": "code/agents/account_actions_agent.py",
+            "line": 21,
+            "column": 1,
+            "snippet": "observed 900.0 USD > declared max_per_action 500",
+            "remediation": "A traced action moved more money than stoa-declared.toml allows (max_per_action, or the window total vs daily_aggregate). Enforce the declared limit in code, or raise the declared authority through review.",
+            "suppressed": false,
+            "suppression_reason": null,
+            "is_new": false,
+            "message": "Agent `graph` was observed moving 900.0 USD in a single action; its declared economic authority caps a single action at 500 USD.",
+            "trace_ref": {
+              "file": "trace-demo-0000.jsonl",
+              "line": 30,
+              "span_id": "s002d"
+            },
+            "declared_ref": {
+              "path": "stoa-declared.toml",
+              "key": "agents.\"b8f0111742fc\".economic_authority.max_per_action"
+            },
+            "crosswalk": {
+              "owasp_llm_2025": "LLM06",
+              "eu_ai_act": "Art. 14",
+              "relation": "exposure",
+              "so_what": "The agent acted beyond the declared money or authority limit."
+            }
+          },
+          {
+            "fingerprint": "2434982ea636ad6c",
+            "rule_id": "RT007",
+            "title": "Money action observed with no approval on the live path",
+            "category": "runtime",
+            "severity": "high",
+            "confidence": "high",
+            "path": "code/agents/account_actions_agent.py",
+            "line": 21,
+            "column": 1,
+            "snippet": "2 of 6 money action(s) with no resolving approval",
+            "remediation": "A payment or other money action ran without an approval span it could point to. Record the approval with session.approval() and pass its id to the guarded call, or add the approval step the declaration promises.",
+            "suppressed": false,
+            "suppression_reason": null,
+            "is_new": false,
+            "message": "2 of 6 observed money action(s) by agent `graph` carried no approval_span_id that resolves to an approval span in the window. A person was not on the live path for those actions.",
+            "trace_ref": {
+              "file": "trace-demo-0000.jsonl",
+              "line": 30,
+              "span_id": "s002d"
+            },
+            "declared_ref": {
+              "path": "stoa-declared.toml",
+              "key": "agents.\"b8f0111742fc\".autonomy_intent"
+            },
+            "crosswalk": {
+              "owasp_llm_2025": "LLM06",
+              "eu_ai_act": "Art. 14",
+              "relation": "exposure",
+              "so_what": "Money moved with no person on the live path, whatever the declaration says."
+            }
           }
         ],
         "highest_severity": "critical",
@@ -464,7 +561,7 @@
             {
               "id": "mandate-overreach",
               "group": "B",
-              "assessability": "strong",
+              "assessability": "runtime",
               "exposure": "elevated",
               "score": 58,
               "score_before_controls": 58,
@@ -475,25 +572,52 @@
                 "payment_access"
               ],
               "controls_observed": [],
-              "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+              "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T12:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+              "static_exposure": "elevated",
+              "evidence_window": {
+                "start": "2026-09-15T10:00:00.000Z",
+                "end": "2026-09-20T12:01:30.000Z",
+                "span_count": 22
+              },
+              "runtime_basis": {
+                "actions": 6,
+                "undeclared_tool": 0,
+                "over_declared_limit": 1,
+                "observed_tools": [
+                  "issue_refund"
+                ]
+              }
             },
             {
               "id": "boundary-leakage",
               "group": "A",
-              "assessability": "strong",
-              "exposure": "none-observed",
+              "assessability": "runtime",
+              "exposure": "moderate",
               "score": 0,
               "score_before_controls": 0,
               "contributing_findings": [],
               "contributing_capabilities": [],
               "controls_observed": [],
-              "statement": "No exposure observed in scanned files."
+              "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T12:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+              "static_exposure": "none-observed",
+              "evidence_window": {
+                "start": "2026-09-15T10:00:00.000Z",
+                "end": "2026-09-20T12:01:30.000Z",
+                "span_count": 22
+              },
+              "runtime_basis": {
+                "external_send": 0,
+                "integrations_outside_scan": [
+                  "stripe"
+                ],
+                "retrievals": 0
+              }
             },
             {
               "id": "unreviewed-high-impact-action",
               "group": "C",
-              "assessability": "strong",
-              "exposure": "moderate",
+              "assessability": "runtime",
+              "exposure": "elevated",
               "score": 53,
               "score_before_controls": 73,
               "contributing_findings": [
@@ -506,13 +630,25 @@
               "controls_observed": [
                 "authentication"
               ],
-              "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; 1 mitigating control(s) observed."
+              "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T12:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+              "static_exposure": "moderate",
+              "evidence_window": {
+                "start": "2026-09-15T10:00:00.000Z",
+                "end": "2026-09-20T12:01:30.000Z",
+                "span_count": 22
+              },
+              "runtime_basis": {
+                "high_impact_actions": 6,
+                "unapproved_high_impact": 2,
+                "money_actions": 6,
+                "unapproved_money": 2
+              }
             },
             {
               "id": "output-fidelity",
               "group": "D",
-              "assessability": "partial",
-              "exposure": "none-observed",
+              "assessability": "runtime",
+              "exposure": "low",
               "score": 0,
               "score_before_controls": 0,
               "contributing_findings": [],
@@ -520,7 +656,17 @@
               "controls_observed": [
                 "validation"
               ],
-              "statement": "No exposure observed; controls observed: validation."
+              "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T12:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+              "static_exposure": "none-observed",
+              "evidence_window": {
+                "start": "2026-09-15T10:00:00.000Z",
+                "end": "2026-09-20T12:01:30.000Z",
+                "span_count": 22
+              },
+              "runtime_basis": {
+                "llm_calls": 6,
+                "llm_error_rate": 0.0
+              }
             },
             {
               "id": "injection-tamper-surface",
@@ -537,8 +683,8 @@
             {
               "id": "conduct-variability",
               "group": "D",
-              "assessability": "proxy",
-              "exposure": "none-observed",
+              "assessability": "runtime",
+              "exposure": "elevated",
               "score": 0,
               "score_before_controls": 2,
               "contributing_findings": [
@@ -548,13 +694,24 @@
               "controls_observed": [
                 "deterministic_sampling"
               ],
-              "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
+              "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T12:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+              "static_exposure": "none-observed",
+              "evidence_window": {
+                "start": "2026-09-15T10:00:00.000Z",
+                "end": "2026-09-20T12:01:30.000Z",
+                "span_count": 22
+              },
+              "runtime_basis": {
+                "error_rate": 0.0,
+                "approval_rate_high_impact": 0.6667,
+                "declared_gate_contradicted": true
+              }
             },
             {
               "id": "dependency-drift",
               "group": "D",
-              "assessability": "proxy",
-              "exposure": "low",
+              "assessability": "runtime",
+              "exposure": "moderate",
               "score": 10,
               "score_before_controls": 10,
               "contributing_findings": [
@@ -564,13 +721,25 @@
                 "provider:openai"
               ],
               "controls_observed": [],
-              "statement": "Proxy signals only: 1 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+              "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T12:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+              "static_exposure": "low",
+              "evidence_window": {
+                "start": "2026-09-15T10:00:00.000Z",
+                "end": "2026-09-20T12:01:30.000Z",
+                "span_count": 22
+              },
+              "runtime_basis": {
+                "distinct_models_observed": 1,
+                "models": [
+                  "gpt-4o"
+                ]
+              }
             },
             {
               "id": "control-coverage-gap",
               "group": "B",
-              "assessability": "partial",
-              "exposure": "none-observed",
+              "assessability": "runtime",
+              "exposure": "elevated",
               "score": 0,
               "score_before_controls": 28,
               "contributing_findings": [
@@ -584,7 +753,18 @@
                 "authentication",
                 "validation"
               ],
-              "statement": "No exposure observed; controls observed: authentication, validation."
+              "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T12:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+              "static_exposure": "none-observed",
+              "evidence_window": {
+                "start": "2026-09-15T10:00:00.000Z",
+                "end": "2026-09-20T12:01:30.000Z",
+                "span_count": 22
+              },
+              "runtime_basis": {
+                "approval_rate_high_impact": 0.6667,
+                "approval_rate_money": 0.6667,
+                "approval_spans": 4
+              }
             }
           ]
         },
@@ -821,7 +1001,66 @@
             "idempotency_key": false,
             "resolved": true
           }
-        ]
+        ],
+        "runtime_evidence": {
+          "window": {
+            "start": "2026-09-15T10:00:00.000Z",
+            "end": "2026-09-20T12:01:30.000Z"
+          },
+          "span_count": 22,
+          "spans_by_kind": {
+            "action": 6,
+            "agent_run": 6,
+            "approval": 4,
+            "llm_call": 6
+          },
+          "error_rate": 0.0,
+          "observed_capabilities": [
+            "payment_access"
+          ],
+          "observed_integrations": [
+            "stripe"
+          ],
+          "observed_providers": [
+            "openai"
+          ],
+          "observed_models": [
+            "gpt-4o"
+          ],
+          "high_impact_actions": 6,
+          "high_impact_approved": 4,
+          "approval_rate_high_impact": 0.6667,
+          "max_observed_amount": {
+            "amount": 900.0,
+            "currency": "USD"
+          },
+          "window_total_amounts": {
+            "USD": 1895.0
+          },
+          "evidence_quality": "redacted",
+          "delegations_to": [],
+          "trace_files": [
+            "trace-demo-0000.jsonl"
+          ],
+          "observed_tools": [
+            "issue_refund"
+          ],
+          "tool_counts": {
+            "issue_refund": 6
+          },
+          "money_actions": 6,
+          "money_actions_approved": 4,
+          "approval_rate_money": 0.6667,
+          "flag_counts": {
+            "approval_bypassed": 2,
+            "new_counterparty": 4,
+            "over_declared_limit": 1
+          },
+          "side_effect_counts": {
+            "payment": 6
+          }
+        },
+        "liveness_state": "active"
       },
       {
         "id": "2a61ffb1db0d",
@@ -947,8 +1186,8 @@
             {
               "id": "mandate-overreach",
               "group": "B",
-              "assessability": "strong",
-              "exposure": "none-observed",
+              "assessability": "runtime",
+              "exposure": "low",
               "score": 0,
               "score_before_controls": 18,
               "contributing_findings": [],
@@ -958,12 +1197,26 @@
               "controls_observed": [
                 "approval"
               ],
-              "statement": "No exposure observed; controls observed: approval."
+              "statement": "Assessed from traces: 2026-09-15T09:00:00.000Z → 2026-09-20T09:00:04.000Z, 24 span(s). Observed in this window — not a claim about future behavior.",
+              "static_exposure": "none-observed",
+              "evidence_window": {
+                "start": "2026-09-15T09:00:00.000Z",
+                "end": "2026-09-20T09:00:04.000Z",
+                "span_count": 24
+              },
+              "runtime_basis": {
+                "actions": 6,
+                "undeclared_tool": 0,
+                "over_declared_limit": 0,
+                "observed_tools": [
+                  "verify_identity"
+                ]
+              }
             },
             {
               "id": "boundary-leakage",
               "group": "A",
-              "assessability": "strong",
+              "assessability": "runtime",
               "exposure": "low",
               "score": 18,
               "score_before_controls": 18,
@@ -972,7 +1225,18 @@
                 "external_http"
               ],
               "controls_observed": [],
-              "statement": "0 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+              "statement": "Assessed from traces: 2026-09-15T09:00:00.000Z → 2026-09-20T09:00:04.000Z, 24 span(s). Observed in this window — not a claim about future behavior.",
+              "static_exposure": "low",
+              "evidence_window": {
+                "start": "2026-09-15T09:00:00.000Z",
+                "end": "2026-09-20T09:00:04.000Z",
+                "span_count": 24
+              },
+              "runtime_basis": {
+                "external_send": 0,
+                "integrations_outside_scan": [],
+                "retrievals": 0
+              }
             },
             {
               "id": "unreviewed-high-impact-action",
@@ -994,8 +1258,8 @@
             {
               "id": "output-fidelity",
               "group": "D",
-              "assessability": "partial",
-              "exposure": "none-observed",
+              "assessability": "runtime",
+              "exposure": "low",
               "score": 0,
               "score_before_controls": 0,
               "contributing_findings": [],
@@ -1003,7 +1267,17 @@
               "controls_observed": [
                 "validation"
               ],
-              "statement": "No exposure observed; controls observed: validation."
+              "statement": "Assessed from traces: 2026-09-15T09:00:00.000Z → 2026-09-20T09:00:04.000Z, 24 span(s). Observed in this window — not a claim about future behavior.",
+              "static_exposure": "none-observed",
+              "evidence_window": {
+                "start": "2026-09-15T09:00:00.000Z",
+                "end": "2026-09-20T09:00:04.000Z",
+                "span_count": 24
+              },
+              "runtime_basis": {
+                "llm_calls": 6,
+                "llm_error_rate": 0.0
+              }
             },
             {
               "id": "injection-tamper-surface",
@@ -1020,8 +1294,8 @@
             {
               "id": "conduct-variability",
               "group": "D",
-              "assessability": "proxy",
-              "exposure": "none-observed",
+              "assessability": "runtime",
+              "exposure": "low",
               "score": 0,
               "score_before_controls": 2,
               "contributing_findings": [
@@ -1031,13 +1305,24 @@
               "controls_observed": [
                 "deterministic_sampling"
               ],
-              "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
+              "statement": "Assessed from traces: 2026-09-15T09:00:00.000Z → 2026-09-20T09:00:04.000Z, 24 span(s). Observed in this window — not a claim about future behavior.",
+              "static_exposure": "none-observed",
+              "evidence_window": {
+                "start": "2026-09-15T09:00:00.000Z",
+                "end": "2026-09-20T09:00:04.000Z",
+                "span_count": 24
+              },
+              "runtime_basis": {
+                "error_rate": 0.0,
+                "approval_rate_high_impact": null,
+                "declared_gate_contradicted": false
+              }
             },
             {
               "id": "dependency-drift",
               "group": "D",
-              "assessability": "proxy",
-              "exposure": "low",
+              "assessability": "runtime",
+              "exposure": "moderate",
               "score": 10,
               "score_before_controls": 10,
               "contributing_findings": [
@@ -1047,7 +1332,19 @@
                 "provider:bedrock"
               ],
               "controls_observed": [],
-              "statement": "Proxy signals only: 1 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+              "statement": "Assessed from traces: 2026-09-15T09:00:00.000Z → 2026-09-20T09:00:04.000Z, 24 span(s). Observed in this window — not a claim about future behavior.",
+              "static_exposure": "low",
+              "evidence_window": {
+                "start": "2026-09-15T09:00:00.000Z",
+                "end": "2026-09-20T09:00:04.000Z",
+                "span_count": 24
+              },
+              "runtime_basis": {
+                "distinct_models_observed": 1,
+                "models": [
+                  "gpt-4o"
+                ]
+              }
             },
             {
               "id": "control-coverage-gap",
@@ -1110,7 +1407,55 @@
             "idempotency_key": false,
             "resolved": true
           }
-        ]
+        ],
+        "runtime_evidence": {
+          "window": {
+            "start": "2026-09-15T09:00:00.000Z",
+            "end": "2026-09-20T09:00:04.000Z"
+          },
+          "span_count": 24,
+          "spans_by_kind": {
+            "action": 6,
+            "agent_run": 6,
+            "delegation": 6,
+            "llm_call": 6
+          },
+          "error_rate": 0.0,
+          "observed_capabilities": [],
+          "observed_integrations": [],
+          "observed_providers": [
+            "openai"
+          ],
+          "observed_models": [
+            "gpt-4o"
+          ],
+          "high_impact_actions": 0,
+          "high_impact_approved": 0,
+          "approval_rate_high_impact": null,
+          "max_observed_amount": null,
+          "window_total_amounts": {},
+          "evidence_quality": "redacted",
+          "delegations_to": [
+            "b8f0111742fc"
+          ],
+          "trace_files": [
+            "trace-demo-0000.jsonl"
+          ],
+          "observed_tools": [
+            "verify_identity"
+          ],
+          "tool_counts": {
+            "verify_identity": 6
+          },
+          "money_actions": 0,
+          "money_actions_approved": 0,
+          "approval_rate_money": null,
+          "flag_counts": {},
+          "side_effect_counts": {
+            "read": 6
+          }
+        },
+        "liveness_state": "active"
       },
       {
         "id": "bc3db1f17013",
@@ -1349,6 +1694,200 @@
               "relation": "exposure",
               "so_what": "The agent runs in production with no observability observed."
             }
+          },
+          {
+            "fingerprint": "fe1afa5b5205d587",
+            "rule_id": "RT001",
+            "title": "Declared human oversight not observed at runtime",
+            "category": "runtime",
+            "severity": "critical",
+            "confidence": "high",
+            "path": "code/agents/support_agent.py",
+            "line": 24,
+            "column": 1,
+            "snippet": "autonomy_intent='human_approved' vs 7 unapproved high-impact action(s)",
+            "remediation": "This agent is declared recommend-only or human-approved, but traces show high-impact actions executing with no approval span. Either the approval control is not wired into the live path, or the declaration is wrong. Fix the gate or correct the declaration.",
+            "suppressed": false,
+            "suppression_reason": null,
+            "is_new": false,
+            "message": "Agent `support_agent` is declared `human_approved`, but 7 of 7 observed high-impact action(s) in the analyzed window carried no approval span. The declared oversight is not observed on the live path.",
+            "trace_ref": {
+              "file": "trace-demo-0000.jsonl",
+              "line": 11,
+              "span_id": "s0010"
+            },
+            "declared_ref": {
+              "path": "stoa-declared.toml",
+              "key": "agents.\"bc3db1f17013\".autonomy_intent"
+            },
+            "crosswalk": {
+              "owasp_llm_2025": "LLM06",
+              "eu_ai_act": "Art. 14",
+              "relation": "exposure",
+              "so_what": "At runtime the declared oversight step was not observed to fire."
+            }
+          },
+          {
+            "fingerprint": "e8e89dc0c67a47dd",
+            "rule_id": "RT003",
+            "title": "Observed capability absent from both registry and declarations",
+            "category": "runtime",
+            "severity": "high",
+            "confidence": "medium",
+            "path": "code/agents/support_agent.py",
+            "line": 24,
+            "column": 1,
+            "snippet": "observed capability 'email_send' absent from static registry",
+            "remediation": "Traces show this agent exercising a capability the static scan never found and no declaration covers — its real reach exceeds everything on paper. Locate the code path (it may be in an unscanned dependency or service) and bring it under scan or declaration.",
+            "suppressed": false,
+            "suppression_reason": null,
+            "is_new": false,
+            "message": "Traces show agent `support_agent` exercising `email_send`, which the static scan never found for this agent and no declaration covers — its observed reach exceeds everything on paper. The code path may live in an unscanned dependency or a separate service.",
+            "trace_ref": {
+              "file": "trace-demo-0000.jsonl",
+              "line": 23,
+              "span_id": "s0022"
+            },
+            "crosswalk": {
+              "owasp_llm_2025": "LLM06",
+              "eu_ai_act": "Art. 14",
+              "relation": "exposure",
+              "so_what": "Observed runtime reach exceeded the declared scope."
+            }
+          },
+          {
+            "fingerprint": "44e4d176842c4e51",
+            "rule_id": "RT006",
+            "title": "Tool observed at runtime that the scan never listed for this agent",
+            "category": "runtime",
+            "severity": "medium",
+            "confidence": "medium",
+            "path": "code/agents/support_agent.py",
+            "line": 24,
+            "column": 1,
+            "snippet": "observed tool 'export_transcript' absent from the scanned tool inventory",
+            "remediation": "Traces show the agent calling a tool that its scanned tool inventory does not contain. Either the tool is bound outside the scanned sources (a plugin, an MCP server, a separate service) or the scan is stale: re-scan, and if the tool is real, bring its definition into scope.",
+            "suppressed": false,
+            "suppression_reason": null,
+            "is_new": false,
+            "message": "Traces show agent `support_agent` calling `export_transcript` (1 time(s) in the window); the scanned tool inventory for this agent does not list it. The binding lives outside the scanned sources, or the scan is stale.",
+            "trace_ref": {
+              "file": "trace-demo-0000.jsonl",
+              "line": 45,
+              "span_id": "s0044"
+            },
+            "crosswalk": {
+              "owasp_llm_2025": "LLM06",
+              "eu_ai_act": "Art. 9",
+              "relation": "exposure",
+              "so_what": "The agent calls a tool the scan never listed for it, so its real reach is wider than the record."
+            }
+          },
+          {
+            "fingerprint": "b6e5bff1b9985855",
+            "rule_id": "RT006",
+            "title": "Tool observed at runtime that the scan never listed for this agent",
+            "category": "runtime",
+            "severity": "medium",
+            "confidence": "medium",
+            "path": "code/agents/support_agent.py",
+            "line": 24,
+            "column": 1,
+            "snippet": "observed tool 'send_email' absent from the scanned tool inventory",
+            "remediation": "Traces show the agent calling a tool that its scanned tool inventory does not contain. Either the tool is bound outside the scanned sources (a plugin, an MCP server, a separate service) or the scan is stale: re-scan, and if the tool is real, bring its definition into scope.",
+            "suppressed": false,
+            "suppression_reason": null,
+            "is_new": false,
+            "message": "Traces show agent `support_agent` calling `send_email` (1 time(s) in the window); the scanned tool inventory for this agent does not list it. The binding lives outside the scanned sources, or the scan is stale.",
+            "trace_ref": {
+              "file": "trace-demo-0000.jsonl",
+              "line": 23,
+              "span_id": "s0022"
+            },
+            "crosswalk": {
+              "owasp_llm_2025": "LLM06",
+              "eu_ai_act": "Art. 9",
+              "relation": "exposure",
+              "so_what": "The agent calls a tool the scan never listed for it, so its real reach is wider than the record."
+            }
+          },
+          {
+            "fingerprint": "11be01a3a72d000d",
+            "rule_id": "RT007",
+            "title": "Money action observed with no approval on the live path",
+            "category": "runtime",
+            "severity": "high",
+            "confidence": "high",
+            "path": "code/agents/support_agent.py",
+            "line": 24,
+            "column": 1,
+            "snippet": "6 of 6 money action(s) with no resolving approval",
+            "remediation": "A payment or other money action ran without an approval span it could point to. Record the approval with session.approval() and pass its id to the guarded call, or add the approval step the declaration promises.",
+            "suppressed": false,
+            "suppression_reason": null,
+            "is_new": false,
+            "message": "6 of 6 observed money action(s) by agent `support_agent` carried no approval_span_id that resolves to an approval span in the window. A person was not on the live path for those actions.",
+            "trace_ref": {
+              "file": "trace-demo-0000.jsonl",
+              "line": 11,
+              "span_id": "s0010"
+            },
+            "declared_ref": {
+              "path": "stoa-declared.toml",
+              "key": "agents.\"bc3db1f17013\".autonomy_intent"
+            },
+            "crosswalk": {
+              "owasp_llm_2025": "LLM06",
+              "eu_ai_act": "Art. 14",
+              "relation": "exposure",
+              "so_what": "Money moved with no person on the live path, whatever the declaration says."
+            }
+          },
+          {
+            "fingerprint": "26c6bd9796e0a76c",
+            "rule_id": "RT008",
+            "title": "Model or integration observed that the last scan or baseline did not know",
+            "category": "runtime",
+            "severity": "medium",
+            "confidence": "medium",
+            "path": "code/agents/support_agent.py",
+            "line": 24,
+            "column": 1,
+            "snippet": "observed integration 'sendgrid' unknown to scan and baseline",
+            "remediation": "The agent is talking to a model or an integration that neither the static scan nor the committed baseline recorded. Re-scan so the registry reflects it, and re-baseline if the change is intended.",
+            "suppressed": false,
+            "suppression_reason": null,
+            "is_new": false,
+            "message": "Agent `support_agent` was observed using `sendgrid`, which the static scan did not find for it and no committed baseline records.",
+            "crosswalk": {
+              "owasp_llm_2025": "LLM03",
+              "eu_ai_act": "Art. 9",
+              "relation": "exposure",
+              "so_what": "The agent depends on a model or an integration that neither the scan nor the baseline recorded."
+            }
+          },
+          {
+            "fingerprint": "c661c4f227b23f92",
+            "rule_id": "RT008",
+            "title": "Model or integration observed that the last scan or baseline did not know",
+            "category": "runtime",
+            "severity": "medium",
+            "confidence": "medium",
+            "path": "code/agents/support_agent.py",
+            "line": 24,
+            "column": 1,
+            "snippet": "observed integration 'stripe' unknown to scan and baseline",
+            "remediation": "The agent is talking to a model or an integration that neither the static scan nor the committed baseline recorded. Re-scan so the registry reflects it, and re-baseline if the change is intended.",
+            "suppressed": false,
+            "suppression_reason": null,
+            "is_new": false,
+            "message": "Agent `support_agent` was observed using `stripe`, which the static scan did not find for it and no committed baseline records.",
+            "crosswalk": {
+              "owasp_llm_2025": "LLM03",
+              "eu_ai_act": "Art. 9",
+              "relation": "exposure",
+              "so_what": "The agent depends on a model or an integration that neither the scan nor the baseline recorded."
+            }
           }
         ],
         "highest_severity": "critical",
@@ -1361,7 +1900,7 @@
             {
               "id": "mandate-overreach",
               "group": "B",
-              "assessability": "strong",
+              "assessability": "runtime",
               "exposure": "elevated",
               "score": 58,
               "score_before_controls": 58,
@@ -1372,25 +1911,56 @@
                 "payment_access"
               ],
               "controls_observed": [],
-              "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files."
+              "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T13:01:30.000Z, 20 span(s). Observed in this window — not a claim about future behavior.",
+              "static_exposure": "elevated",
+              "evidence_window": {
+                "start": "2026-09-15T11:00:00.000Z",
+                "end": "2026-09-21T13:01:30.000Z",
+                "span_count": 20
+              },
+              "runtime_basis": {
+                "actions": 8,
+                "undeclared_tool": 2,
+                "over_declared_limit": 0,
+                "observed_tools": [
+                  "export_transcript",
+                  "issue_refund",
+                  "send_email",
+                  "waive_fee"
+                ]
+              }
             },
             {
               "id": "boundary-leakage",
               "group": "A",
-              "assessability": "strong",
-              "exposure": "none-observed",
+              "assessability": "runtime",
+              "exposure": "elevated",
               "score": 0,
               "score_before_controls": 0,
               "contributing_findings": [],
               "contributing_capabilities": [],
               "controls_observed": [],
-              "statement": "No exposure observed in scanned files."
+              "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T13:01:30.000Z, 20 span(s). Observed in this window — not a claim about future behavior.",
+              "static_exposure": "none-observed",
+              "evidence_window": {
+                "start": "2026-09-15T11:00:00.000Z",
+                "end": "2026-09-21T13:01:30.000Z",
+                "span_count": 20
+              },
+              "runtime_basis": {
+                "external_send": 2,
+                "integrations_outside_scan": [
+                  "sendgrid",
+                  "stripe"
+                ],
+                "retrievals": 0
+              }
             },
             {
               "id": "unreviewed-high-impact-action",
               "group": "C",
-              "assessability": "strong",
-              "exposure": "moderate",
+              "assessability": "runtime",
+              "exposure": "elevated",
               "score": 53,
               "score_before_controls": 73,
               "contributing_findings": [
@@ -1403,13 +1973,25 @@
               "controls_observed": [
                 "authentication"
               ],
-              "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; 1 mitigating control(s) observed."
+              "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T13:01:30.000Z, 20 span(s). Observed in this window — not a claim about future behavior.",
+              "static_exposure": "moderate",
+              "evidence_window": {
+                "start": "2026-09-15T11:00:00.000Z",
+                "end": "2026-09-21T13:01:30.000Z",
+                "span_count": 20
+              },
+              "runtime_basis": {
+                "high_impact_actions": 7,
+                "unapproved_high_impact": 7,
+                "money_actions": 6,
+                "unapproved_money": 6
+              }
             },
             {
               "id": "output-fidelity",
               "group": "D",
-              "assessability": "partial",
-              "exposure": "none-observed",
+              "assessability": "runtime",
+              "exposure": "low",
               "score": 0,
               "score_before_controls": 0,
               "contributing_findings": [],
@@ -1417,7 +1999,17 @@
               "controls_observed": [
                 "validation"
               ],
-              "statement": "No exposure observed; controls observed: validation."
+              "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T13:01:30.000Z, 20 span(s). Observed in this window — not a claim about future behavior.",
+              "static_exposure": "none-observed",
+              "evidence_window": {
+                "start": "2026-09-15T11:00:00.000Z",
+                "end": "2026-09-21T13:01:30.000Z",
+                "span_count": 20
+              },
+              "runtime_basis": {
+                "llm_calls": 6,
+                "llm_error_rate": 0.0
+              }
             },
             {
               "id": "injection-tamper-surface",
@@ -1434,8 +2026,8 @@
             {
               "id": "conduct-variability",
               "group": "D",
-              "assessability": "proxy",
-              "exposure": "none-observed",
+              "assessability": "runtime",
+              "exposure": "elevated",
               "score": 0,
               "score_before_controls": 2,
               "contributing_findings": [
@@ -1445,13 +2037,24 @@
               "controls_observed": [
                 "deterministic_sampling"
               ],
-              "statement": "Proxy signals only: no adverse config signal observed. Runtime evaluation required for direct assessment."
+              "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T13:01:30.000Z, 20 span(s). Observed in this window — not a claim about future behavior.",
+              "static_exposure": "none-observed",
+              "evidence_window": {
+                "start": "2026-09-15T11:00:00.000Z",
+                "end": "2026-09-21T13:01:30.000Z",
+                "span_count": 20
+              },
+              "runtime_basis": {
+                "error_rate": 0.0,
+                "approval_rate_high_impact": 0.0,
+                "declared_gate_contradicted": true
+              }
             },
             {
               "id": "dependency-drift",
               "group": "D",
-              "assessability": "proxy",
-              "exposure": "low",
+              "assessability": "runtime",
+              "exposure": "moderate",
               "score": 10,
               "score_before_controls": 10,
               "contributing_findings": [
@@ -1461,13 +2064,25 @@
                 "provider:openai"
               ],
               "controls_observed": [],
-              "statement": "Proxy signals only: 1 finding(s) and 1 capability signal(s) contribute. Runtime evaluation required for direct assessment."
+              "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T13:01:30.000Z, 20 span(s). Observed in this window — not a claim about future behavior.",
+              "static_exposure": "low",
+              "evidence_window": {
+                "start": "2026-09-15T11:00:00.000Z",
+                "end": "2026-09-21T13:01:30.000Z",
+                "span_count": 20
+              },
+              "runtime_basis": {
+                "distinct_models_observed": 1,
+                "models": [
+                  "gpt-4o-mini"
+                ]
+              }
             },
             {
               "id": "control-coverage-gap",
               "group": "B",
-              "assessability": "partial",
-              "exposure": "none-observed",
+              "assessability": "runtime",
+              "exposure": "elevated",
               "score": 0,
               "score_before_controls": 28,
               "contributing_findings": [
@@ -1481,7 +2096,18 @@
                 "authentication",
                 "validation"
               ],
-              "statement": "No exposure observed; controls observed: authentication, validation."
+              "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T13:01:30.000Z, 20 span(s). Observed in this window — not a claim about future behavior.",
+              "static_exposure": "none-observed",
+              "evidence_window": {
+                "start": "2026-09-15T11:00:00.000Z",
+                "end": "2026-09-21T13:01:30.000Z",
+                "span_count": 20
+              },
+              "runtime_basis": {
+                "approval_rate_high_impact": 0.0,
+                "approval_rate_money": 0.0,
+                "approval_spans": 0
+              }
             }
           ]
         },
@@ -1704,7 +2330,75 @@
             "idempotency_key": false,
             "resolved": true
           }
-        ]
+        ],
+        "runtime_evidence": {
+          "window": {
+            "start": "2026-09-15T11:00:00.000Z",
+            "end": "2026-09-21T13:01:30.000Z"
+          },
+          "span_count": 20,
+          "spans_by_kind": {
+            "action": 8,
+            "agent_run": 6,
+            "llm_call": 6
+          },
+          "error_rate": 0.0,
+          "observed_capabilities": [
+            "email_send",
+            "payment_access"
+          ],
+          "observed_integrations": [
+            "sendgrid",
+            "stripe"
+          ],
+          "observed_providers": [
+            "openai"
+          ],
+          "observed_models": [
+            "gpt-4o-mini"
+          ],
+          "high_impact_actions": 7,
+          "high_impact_approved": 0,
+          "approval_rate_high_impact": 0.0,
+          "max_observed_amount": {
+            "amount": 500.0,
+            "currency": "USD"
+          },
+          "window_total_amounts": {
+            "USD": 1040.0
+          },
+          "evidence_quality": "redacted",
+          "delegations_to": [],
+          "trace_files": [
+            "trace-demo-0000.jsonl"
+          ],
+          "observed_tools": [
+            "export_transcript",
+            "issue_refund",
+            "send_email",
+            "waive_fee"
+          ],
+          "tool_counts": {
+            "export_transcript": 1,
+            "issue_refund": 5,
+            "send_email": 1,
+            "waive_fee": 1
+          },
+          "money_actions": 6,
+          "money_actions_approved": 0,
+          "approval_rate_money": 0.0,
+          "flag_counts": {
+            "approval_bypassed": 8,
+            "integration_changed": 1,
+            "new_counterparty": 4,
+            "undeclared_tool": 2
+          },
+          "side_effect_counts": {
+            "external_send": 2,
+            "payment": 6
+          }
+        },
+        "liveness_state": "active"
       },
       {
         "id": "224627e4877d",
@@ -1883,7 +2577,8 @@
         },
         "source": "iac",
         "discovery_tier": "recognized",
-        "platform": "databricks"
+        "platform": "databricks",
+        "liveness_state": "idle"
       }
     ],
     "repository_findings": [
@@ -2001,7 +2696,7 @@
           "id": "mandate-overreach",
           "name": "Mandate overreach",
           "group": "B",
-          "assessability": "strong",
+          "assessability": "runtime",
           "max_exposure": "elevated",
           "agents_elevated": 2,
           "agents_moderate": 0,
@@ -2018,10 +2713,10 @@
           "id": "boundary-leakage",
           "name": "Boundary leakage",
           "group": "A",
-          "assessability": "strong",
-          "max_exposure": "low",
-          "agents_elevated": 0,
-          "agents_moderate": 0,
+          "assessability": "runtime",
+          "max_exposure": "elevated",
+          "agents_elevated": 1,
+          "agents_moderate": 1,
           "crosswalk": {
             "owasp_llm_2025": [],
             "eu_ai_act": []
@@ -2031,10 +2726,10 @@
           "id": "unreviewed-high-impact-action",
           "name": "Unreviewed high-impact action",
           "group": "C",
-          "assessability": "strong",
-          "max_exposure": "moderate",
-          "agents_elevated": 0,
-          "agents_moderate": 2,
+          "assessability": "runtime",
+          "max_exposure": "elevated",
+          "agents_elevated": 2,
+          "agents_moderate": 0,
           "crosswalk": {
             "owasp_llm_2025": [
               "LLM06"
@@ -2049,8 +2744,8 @@
           "id": "output-fidelity",
           "name": "Output fidelity",
           "group": "D",
-          "assessability": "partial",
-          "max_exposure": "none-observed",
+          "assessability": "runtime",
+          "max_exposure": "low",
           "agents_elevated": 0,
           "agents_moderate": 0,
           "crosswalk": {
@@ -2075,9 +2770,9 @@
           "id": "conduct-variability",
           "name": "Conduct variability",
           "group": "D",
-          "assessability": "proxy",
-          "max_exposure": "none-observed",
-          "agents_elevated": 0,
+          "assessability": "runtime",
+          "max_exposure": "elevated",
+          "agents_elevated": 2,
           "agents_moderate": 0,
           "crosswalk": {
             "owasp_llm_2025": [
@@ -2092,10 +2787,10 @@
           "id": "dependency-drift",
           "name": "Dependency drift",
           "group": "D",
-          "assessability": "proxy",
-          "max_exposure": "low",
+          "assessability": "runtime",
+          "max_exposure": "moderate",
           "agents_elevated": 0,
-          "agents_moderate": 0,
+          "agents_moderate": 3,
           "crosswalk": {
             "owasp_llm_2025": [
               "LLM03"
@@ -2109,9 +2804,9 @@
           "id": "control-coverage-gap",
           "name": "Control coverage gap",
           "group": "B",
-          "assessability": "partial",
-          "max_exposure": "none-observed",
-          "agents_elevated": 0,
+          "assessability": "runtime",
+          "max_exposure": "elevated",
+          "agents_elevated": 2,
           "agents_moderate": 0,
           "crosswalk": {
             "owasp_llm_2025": [
@@ -2170,6 +2865,21 @@
       "version": "1.0",
       "owasp_llm_version": "2025",
       "eu_ai_act_reference": "Regulation (EU) 2024/1689 (EU AI Act)"
+    },
+    "runtime": {
+      "analysis_schema": "runtime-analysis/1.1",
+      "window": {
+        "start": "2026-09-15T09:00:00.000Z",
+        "end": "2026-09-21T13:01:30.000Z"
+      },
+      "span_count": 66,
+      "agents_covered": 3,
+      "agents_total": 5,
+      "unmatched_agents": 0,
+      "rt_findings": 10,
+      "evidence_quality": [
+        "redacted"
+      ]
     }
   },
   "diff": {
@@ -3535,12 +4245,161 @@
   ],
   "register": [
     {
+      "risk_id": "boundary-leakage/bc3db1f17013",
+      "source": "scanned",
+      "dimension_id": "boundary-leakage",
+      "dimension_name": "Boundary leakage",
+      "group": "A",
+      "assessability": "runtime",
+      "agent_id": "bc3db1f17013",
+      "agent_name": "support_agent",
+      "agent_path": "code/agents/support_agent.py",
+      "inherent": {
+        "score": 0,
+        "level": "none-observed"
+      },
+      "residual": {
+        "score": 0,
+        "level": "elevated"
+      },
+      "controls_observed": [],
+      "contributing_findings": [],
+      "contributing_capabilities": [],
+      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T13:01:30.000Z, 20 span(s). Observed in this window — not a claim about future behavior.",
+      "declared": null,
+      "unmatched": false
+    },
+    {
+      "risk_id": "conduct-variability/b8f0111742fc",
+      "source": "scanned",
+      "dimension_id": "conduct-variability",
+      "dimension_name": "Conduct variability",
+      "group": "D",
+      "assessability": "runtime",
+      "agent_id": "b8f0111742fc",
+      "agent_name": "account_actions_agent·graph",
+      "agent_path": "code/agents/account_actions_agent.py",
+      "inherent": {
+        "score": 2,
+        "level": "low"
+      },
+      "residual": {
+        "score": 0,
+        "level": "elevated"
+      },
+      "controls_observed": [
+        "deterministic_sampling"
+      ],
+      "contributing_findings": [
+        "AI005-3cf3cd059c6d"
+      ],
+      "contributing_capabilities": [],
+      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T12:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+      "declared": null,
+      "unmatched": false
+    },
+    {
+      "risk_id": "conduct-variability/bc3db1f17013",
+      "source": "scanned",
+      "dimension_id": "conduct-variability",
+      "dimension_name": "Conduct variability",
+      "group": "D",
+      "assessability": "runtime",
+      "agent_id": "bc3db1f17013",
+      "agent_name": "support_agent",
+      "agent_path": "code/agents/support_agent.py",
+      "inherent": {
+        "score": 2,
+        "level": "low"
+      },
+      "residual": {
+        "score": 0,
+        "level": "elevated"
+      },
+      "controls_observed": [
+        "deterministic_sampling"
+      ],
+      "contributing_findings": [
+        "AI005-842660a36a09"
+      ],
+      "contributing_capabilities": [],
+      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T13:01:30.000Z, 20 span(s). Observed in this window — not a claim about future behavior.",
+      "declared": null,
+      "unmatched": false
+    },
+    {
+      "risk_id": "control-coverage-gap/b8f0111742fc",
+      "source": "scanned",
+      "dimension_id": "control-coverage-gap",
+      "dimension_name": "Control coverage gap",
+      "group": "B",
+      "assessability": "runtime",
+      "agent_id": "b8f0111742fc",
+      "agent_name": "account_actions_agent·graph",
+      "agent_path": "code/agents/account_actions_agent.py",
+      "inherent": {
+        "score": 28,
+        "level": "moderate"
+      },
+      "residual": {
+        "score": 0,
+        "level": "elevated"
+      },
+      "controls_observed": [
+        "authentication",
+        "validation"
+      ],
+      "contributing_findings": [
+        "1b5760feca23bde6",
+        "77d4c36eaa0b4850",
+        "AI008-c0e7b0d45a69",
+        "CTRL004-9d9a33f2fd7f"
+      ],
+      "contributing_capabilities": [],
+      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T12:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+      "declared": null,
+      "unmatched": false
+    },
+    {
+      "risk_id": "control-coverage-gap/bc3db1f17013",
+      "source": "scanned",
+      "dimension_id": "control-coverage-gap",
+      "dimension_name": "Control coverage gap",
+      "group": "B",
+      "assessability": "runtime",
+      "agent_id": "bc3db1f17013",
+      "agent_name": "support_agent",
+      "agent_path": "code/agents/support_agent.py",
+      "inherent": {
+        "score": 28,
+        "level": "moderate"
+      },
+      "residual": {
+        "score": 0,
+        "level": "elevated"
+      },
+      "controls_observed": [
+        "authentication",
+        "validation"
+      ],
+      "contributing_findings": [
+        "417973c8cdee50be",
+        "AI008-c0e7b0d45a69",
+        "CTRL004-d3aa4f31715f",
+        "a80d048a4b0f4297"
+      ],
+      "contributing_capabilities": [],
+      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T13:01:30.000Z, 20 span(s). Observed in this window — not a claim about future behavior.",
+      "declared": null,
+      "unmatched": false
+    },
+    {
       "risk_id": "mandate-overreach/b8f0111742fc",
       "source": "scanned",
       "dimension_id": "mandate-overreach",
       "dimension_name": "Mandate overreach",
       "group": "B",
-      "assessability": "strong",
+      "assessability": "runtime",
       "agent_id": "b8f0111742fc",
       "agent_name": "account_actions_agent·graph",
       "agent_path": "code/agents/account_actions_agent.py",
@@ -3559,7 +4418,7 @@
       "contributing_capabilities": [
         "payment_access"
       ],
-      "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files.",
+      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T12:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
       "declared": null,
       "unmatched": false
     },
@@ -3569,7 +4428,7 @@
       "dimension_id": "mandate-overreach",
       "dimension_name": "Mandate overreach",
       "group": "B",
-      "assessability": "strong",
+      "assessability": "runtime",
       "agent_id": "bc3db1f17013",
       "agent_name": "support_agent",
       "agent_path": "code/agents/support_agent.py",
@@ -3588,7 +4447,7 @@
       "contributing_capabilities": [
         "payment_access"
       ],
-      "statement": "1 finding(s) and 1 capability signal(s) contribute exposure; no mitigating control observed in scanned files.",
+      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T13:01:30.000Z, 20 span(s). Observed in this window — not a claim about future behavior.",
       "declared": {
         "risk_id": "mandate-overreach/bc3db1f17013",
         "owner": "platform-risk@meridian.example",
@@ -3605,7 +4464,7 @@
       "dimension_id": "unreviewed-high-impact-action",
       "dimension_name": "Unreviewed high-impact action",
       "group": "C",
-      "assessability": "strong",
+      "assessability": "runtime",
       "agent_id": "b8f0111742fc",
       "agent_name": "account_actions_agent·graph",
       "agent_path": "code/agents/account_actions_agent.py",
@@ -3615,7 +4474,7 @@
       },
       "residual": {
         "score": 53,
-        "level": "moderate"
+        "level": "elevated"
       },
       "controls_observed": [
         "authentication"
@@ -3627,7 +4486,7 @@
       "contributing_capabilities": [
         "payment_access"
       ],
-      "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; 1 mitigating control(s) observed.",
+      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T12:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
       "declared": {
         "risk_id": "unreviewed-high-impact-action/b8f0111742fc",
         "owner": "digital-servicing@meridian.example",
@@ -3644,7 +4503,7 @@
       "dimension_id": "unreviewed-high-impact-action",
       "dimension_name": "Unreviewed high-impact action",
       "group": "C",
-      "assessability": "strong",
+      "assessability": "runtime",
       "agent_id": "bc3db1f17013",
       "agent_name": "support_agent",
       "agent_path": "code/agents/support_agent.py",
@@ -3654,7 +4513,7 @@
       },
       "residual": {
         "score": 53,
-        "level": "moderate"
+        "level": "elevated"
       },
       "controls_observed": [
         "authentication"
@@ -3666,7 +4525,119 @@
       "contributing_capabilities": [
         "payment_access"
       ],
-      "statement": "2 finding(s) and 1 capability signal(s) contribute exposure; 1 mitigating control(s) observed.",
+      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T13:01:30.000Z, 20 span(s). Observed in this window — not a claim about future behavior.",
+      "declared": null,
+      "unmatched": false
+    },
+    {
+      "risk_id": "boundary-leakage/b8f0111742fc",
+      "source": "scanned",
+      "dimension_id": "boundary-leakage",
+      "dimension_name": "Boundary leakage",
+      "group": "A",
+      "assessability": "runtime",
+      "agent_id": "b8f0111742fc",
+      "agent_name": "account_actions_agent·graph",
+      "agent_path": "code/agents/account_actions_agent.py",
+      "inherent": {
+        "score": 0,
+        "level": "none-observed"
+      },
+      "residual": {
+        "score": 0,
+        "level": "moderate"
+      },
+      "controls_observed": [],
+      "contributing_findings": [],
+      "contributing_capabilities": [],
+      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T12:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+      "declared": null,
+      "unmatched": false
+    },
+    {
+      "risk_id": "dependency-drift/b8f0111742fc",
+      "source": "scanned",
+      "dimension_id": "dependency-drift",
+      "dimension_name": "Dependency drift",
+      "group": "D",
+      "assessability": "runtime",
+      "agent_id": "b8f0111742fc",
+      "agent_name": "account_actions_agent·graph",
+      "agent_path": "code/agents/account_actions_agent.py",
+      "inherent": {
+        "score": 10,
+        "level": "low"
+      },
+      "residual": {
+        "score": 10,
+        "level": "moderate"
+      },
+      "controls_observed": [],
+      "contributing_findings": [
+        "AI005-3cf3cd059c6d"
+      ],
+      "contributing_capabilities": [
+        "provider:openai"
+      ],
+      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T12:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+      "declared": null,
+      "unmatched": false
+    },
+    {
+      "risk_id": "dependency-drift/2a61ffb1db0d",
+      "source": "scanned",
+      "dimension_id": "dependency-drift",
+      "dimension_name": "Dependency drift",
+      "group": "D",
+      "assessability": "runtime",
+      "agent_id": "2a61ffb1db0d",
+      "agent_name": "front_agent·graph",
+      "agent_path": "code/agents/front_agent.py",
+      "inherent": {
+        "score": 10,
+        "level": "low"
+      },
+      "residual": {
+        "score": 10,
+        "level": "moderate"
+      },
+      "controls_observed": [],
+      "contributing_findings": [
+        "AI005-22c29130660d"
+      ],
+      "contributing_capabilities": [
+        "provider:bedrock"
+      ],
+      "statement": "Assessed from traces: 2026-09-15T09:00:00.000Z → 2026-09-20T09:00:04.000Z, 24 span(s). Observed in this window — not a claim about future behavior.",
+      "declared": null,
+      "unmatched": false
+    },
+    {
+      "risk_id": "dependency-drift/bc3db1f17013",
+      "source": "scanned",
+      "dimension_id": "dependency-drift",
+      "dimension_name": "Dependency drift",
+      "group": "D",
+      "assessability": "runtime",
+      "agent_id": "bc3db1f17013",
+      "agent_name": "support_agent",
+      "agent_path": "code/agents/support_agent.py",
+      "inherent": {
+        "score": 10,
+        "level": "low"
+      },
+      "residual": {
+        "score": 10,
+        "level": "moderate"
+      },
+      "controls_observed": [],
+      "contributing_findings": [
+        "AI005-842660a36a09"
+      ],
+      "contributing_capabilities": [
+        "provider:openai"
+      ],
+      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T13:01:30.000Z, 20 span(s). Observed in this window — not a claim about future behavior.",
       "declared": null,
       "unmatched": false
     },
@@ -3909,6 +4880,27 @@
             "path": "code/agents/account_actions_agent.py",
             "line": 21,
             "message": "Agent `graph` is declared production, but no observability construct was observed (CTRL004)."
+          },
+          {
+            "rule_id": "RT001",
+            "severity": "critical",
+            "path": "code/agents/account_actions_agent.py",
+            "line": 21,
+            "message": "Agent `graph` is declared `human_approved`, but 2 of 6 observed high-impact action(s) in the analyzed window carried no approval span. The declared oversight is not observed on the live path."
+          },
+          {
+            "rule_id": "RT002",
+            "severity": "high",
+            "path": "code/agents/account_actions_agent.py",
+            "line": 21,
+            "message": "Agent `graph` was observed moving 900.0 USD in a single action; its declared economic authority caps a single action at 500 USD."
+          },
+          {
+            "rule_id": "RT007",
+            "severity": "high",
+            "path": "code/agents/account_actions_agent.py",
+            "line": 21,
+            "message": "2 of 6 observed money action(s) by agent `graph` carried no approval_span_id that resolves to an approval span in the window. A person was not on the live path for those actions."
           }
         ]
       },
@@ -3972,6 +4964,55 @@
             "path": "code/agents/support_agent.py",
             "line": 24,
             "message": "Agent `support_agent` is declared production, but no observability construct was observed (CTRL004)."
+          },
+          {
+            "rule_id": "RT001",
+            "severity": "critical",
+            "path": "code/agents/support_agent.py",
+            "line": 24,
+            "message": "Agent `support_agent` is declared `human_approved`, but 7 of 7 observed high-impact action(s) in the analyzed window carried no approval span. The declared oversight is not observed on the live path."
+          },
+          {
+            "rule_id": "RT003",
+            "severity": "high",
+            "path": "code/agents/support_agent.py",
+            "line": 24,
+            "message": "Traces show agent `support_agent` exercising `email_send`, which the static scan never found for this agent and no declaration covers — its observed reach exceeds everything on paper. The code path may live in an unscanned dependency or a separate service."
+          },
+          {
+            "rule_id": "RT006",
+            "severity": "medium",
+            "path": "code/agents/support_agent.py",
+            "line": 24,
+            "message": "Traces show agent `support_agent` calling `export_transcript` (1 time(s) in the window); the scanned tool inventory for this agent does not list it. The binding lives outside the scanned sources, or the scan is stale."
+          },
+          {
+            "rule_id": "RT006",
+            "severity": "medium",
+            "path": "code/agents/support_agent.py",
+            "line": 24,
+            "message": "Traces show agent `support_agent` calling `send_email` (1 time(s) in the window); the scanned tool inventory for this agent does not list it. The binding lives outside the scanned sources, or the scan is stale."
+          },
+          {
+            "rule_id": "RT007",
+            "severity": "high",
+            "path": "code/agents/support_agent.py",
+            "line": 24,
+            "message": "6 of 6 observed money action(s) by agent `support_agent` carried no approval_span_id that resolves to an approval span in the window. A person was not on the live path for those actions."
+          },
+          {
+            "rule_id": "RT008",
+            "severity": "medium",
+            "path": "code/agents/support_agent.py",
+            "line": 24,
+            "message": "Agent `support_agent` was observed using `sendgrid`, which the static scan did not find for it and no committed baseline records."
+          },
+          {
+            "rule_id": "RT008",
+            "severity": "medium",
+            "path": "code/agents/support_agent.py",
+            "line": 24,
+            "message": "Agent `support_agent` was observed using `stripe`, which the static scan did not find for it and no committed baseline records."
           }
         ]
       },
@@ -4001,6 +5042,17 @@
         "id": "resource_database_write",
         "type": "resource",
         "label": "Database write",
+        "dimension_scores": {},
+        "display_severity": null,
+        "path": null,
+        "symbol": null,
+        "autonomy_level": null,
+        "findings": []
+      },
+      {
+        "id": "resource_email_send",
+        "type": "resource",
+        "label": "Email send",
         "dimension_scores": {},
         "display_severity": null,
         "path": null,
@@ -4095,6 +5147,28 @@
         "symbol": null,
         "autonomy_level": null,
         "findings": []
+      },
+      {
+        "id": "tool_sendgrid",
+        "type": "tool",
+        "label": "sendgrid",
+        "dimension_scores": {},
+        "display_severity": null,
+        "path": null,
+        "symbol": null,
+        "autonomy_level": null,
+        "findings": []
+      },
+      {
+        "id": "tool_stripe",
+        "type": "tool",
+        "label": "stripe",
+        "dimension_scores": {},
+        "display_severity": null,
+        "path": null,
+        "symbol": null,
+        "autonomy_level": null,
+        "findings": []
       }
     ],
     "edges": [
@@ -4121,6 +5195,15 @@
         "target": "tool_databricks",
         "kind": "tool_call",
         "provenance": "declared",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "2a61ffb1db0d",
+        "target": "b8f0111742fc",
+        "kind": "delegates",
+        "provenance": "observed",
         "max_severity": null,
         "weight": 1,
         "findings": []
@@ -4246,7 +5329,8 @@
         "provenance": "declared",
         "max_severity": null,
         "weight": 1,
-        "findings": []
+        "findings": [],
+        "observed": true
       },
       {
         "source": "b8f0111742fc",
@@ -4266,13 +5350,32 @@
         ]
       },
       {
+        "source": "b8f0111742fc",
+        "target": "tool_stripe",
+        "kind": "tool_call",
+        "provenance": "observed",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "bc3db1f17013",
+        "target": "resource_email_send",
+        "kind": "network",
+        "provenance": "observed",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
         "source": "bc3db1f17013",
         "target": "resource_payment_access",
         "kind": "writes",
         "provenance": "declared",
         "max_severity": null,
         "weight": 1,
-        "findings": []
+        "findings": [],
+        "observed": true
       },
       {
         "source": "bc3db1f17013",
@@ -4290,6 +5393,24 @@
             "message": "Model string `gpt-4o` (line 16) is a floating alias that can resolve to different model versions over time (OWASP LLM05). Consider pinning a dated snapshot for reproducibility."
           }
         ]
+      },
+      {
+        "source": "bc3db1f17013",
+        "target": "tool_sendgrid",
+        "kind": "tool_call",
+        "provenance": "observed",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
+      },
+      {
+        "source": "bc3db1f17013",
+        "target": "tool_stripe",
+        "kind": "tool_call",
+        "provenance": "observed",
+        "max_severity": null,
+        "weight": 1,
+        "findings": []
       }
     ]
   },
@@ -4309,7 +5430,7 @@
         "low": 3,
         "info": 5
       },
-      "contradiction_count": 6
+      "contradiction_count": 16
     },
     "contradictions": [
       {
@@ -4383,6 +5504,151 @@
           "key": "agents.\"bc3db1f17013\".production_status"
         },
         "message": "Agent `support_agent` is declared production, but no observability construct was observed (CTRL004)."
+      },
+      {
+        "rule_id": "RT001",
+        "severity": "critical",
+        "title": "Declared human oversight not observed at runtime",
+        "path": "code/agents/account_actions_agent.py",
+        "line": 21,
+        "declared_ref": {
+          "path": "stoa-declared.toml",
+          "key": "agents.\"b8f0111742fc\".autonomy_intent"
+        },
+        "message": "Agent `graph` is declared `human_approved`, but 2 of 6 observed high-impact action(s) in the analyzed window carried no approval span. The declared oversight is not observed on the live path.",
+        "trace_ref": {
+          "file": "trace-demo-0000.jsonl",
+          "line": 30,
+          "span_id": "s002d"
+        }
+      },
+      {
+        "rule_id": "RT001",
+        "severity": "critical",
+        "title": "Declared human oversight not observed at runtime",
+        "path": "code/agents/support_agent.py",
+        "line": 24,
+        "declared_ref": {
+          "path": "stoa-declared.toml",
+          "key": "agents.\"bc3db1f17013\".autonomy_intent"
+        },
+        "message": "Agent `support_agent` is declared `human_approved`, but 7 of 7 observed high-impact action(s) in the analyzed window carried no approval span. The declared oversight is not observed on the live path.",
+        "trace_ref": {
+          "file": "trace-demo-0000.jsonl",
+          "line": 11,
+          "span_id": "s0010"
+        }
+      },
+      {
+        "rule_id": "RT002",
+        "severity": "high",
+        "title": "Observed monetary action exceeds declared economic authority",
+        "path": "code/agents/account_actions_agent.py",
+        "line": 21,
+        "declared_ref": {
+          "path": "stoa-declared.toml",
+          "key": "agents.\"b8f0111742fc\".economic_authority.max_per_action"
+        },
+        "message": "Agent `graph` was observed moving 900.0 USD in a single action; its declared economic authority caps a single action at 500 USD.",
+        "trace_ref": {
+          "file": "trace-demo-0000.jsonl",
+          "line": 30,
+          "span_id": "s002d"
+        }
+      },
+      {
+        "rule_id": "RT003",
+        "severity": "high",
+        "title": "Observed capability absent from both registry and declarations",
+        "path": "code/agents/support_agent.py",
+        "line": 24,
+        "declared_ref": null,
+        "message": "Traces show agent `support_agent` exercising `email_send`, which the static scan never found for this agent and no declaration covers — its observed reach exceeds everything on paper. The code path may live in an unscanned dependency or a separate service.",
+        "trace_ref": {
+          "file": "trace-demo-0000.jsonl",
+          "line": 23,
+          "span_id": "s0022"
+        }
+      },
+      {
+        "rule_id": "RT006",
+        "severity": "medium",
+        "title": "Tool observed at runtime that the scan never listed for this agent",
+        "path": "code/agents/support_agent.py",
+        "line": 24,
+        "declared_ref": null,
+        "message": "Traces show agent `support_agent` calling `export_transcript` (1 time(s) in the window); the scanned tool inventory for this agent does not list it. The binding lives outside the scanned sources, or the scan is stale.",
+        "trace_ref": {
+          "file": "trace-demo-0000.jsonl",
+          "line": 45,
+          "span_id": "s0044"
+        }
+      },
+      {
+        "rule_id": "RT006",
+        "severity": "medium",
+        "title": "Tool observed at runtime that the scan never listed for this agent",
+        "path": "code/agents/support_agent.py",
+        "line": 24,
+        "declared_ref": null,
+        "message": "Traces show agent `support_agent` calling `send_email` (1 time(s) in the window); the scanned tool inventory for this agent does not list it. The binding lives outside the scanned sources, or the scan is stale.",
+        "trace_ref": {
+          "file": "trace-demo-0000.jsonl",
+          "line": 23,
+          "span_id": "s0022"
+        }
+      },
+      {
+        "rule_id": "RT007",
+        "severity": "high",
+        "title": "Money action observed with no approval on the live path",
+        "path": "code/agents/account_actions_agent.py",
+        "line": 21,
+        "declared_ref": {
+          "path": "stoa-declared.toml",
+          "key": "agents.\"b8f0111742fc\".autonomy_intent"
+        },
+        "message": "2 of 6 observed money action(s) by agent `graph` carried no approval_span_id that resolves to an approval span in the window. A person was not on the live path for those actions.",
+        "trace_ref": {
+          "file": "trace-demo-0000.jsonl",
+          "line": 30,
+          "span_id": "s002d"
+        }
+      },
+      {
+        "rule_id": "RT007",
+        "severity": "high",
+        "title": "Money action observed with no approval on the live path",
+        "path": "code/agents/support_agent.py",
+        "line": 24,
+        "declared_ref": {
+          "path": "stoa-declared.toml",
+          "key": "agents.\"bc3db1f17013\".autonomy_intent"
+        },
+        "message": "6 of 6 observed money action(s) by agent `support_agent` carried no approval_span_id that resolves to an approval span in the window. A person was not on the live path for those actions.",
+        "trace_ref": {
+          "file": "trace-demo-0000.jsonl",
+          "line": 11,
+          "span_id": "s0010"
+        }
+      },
+      {
+        "rule_id": "RT008",
+        "severity": "medium",
+        "title": "Model or integration observed that the last scan or baseline did not know",
+        "path": "code/agents/support_agent.py",
+        "line": 24,
+        "declared_ref": null,
+        "message": "Agent `support_agent` was observed using `sendgrid`, which the static scan did not find for it and no committed baseline records."
+      },
+      {
+        "rule_id": "RT008",
+        "severity": "medium",
+        "title": "Model or integration observed that the last scan or baseline did not know",
+        "path": "code/agents/support_agent.py",
+        "line": 24,
+        "declared_ref": null,
+        "message": "Agent `support_agent` was observed using `stripe`, which the static scan did not find for it and no committed baseline records."
       }
     ],
     "areas": {
@@ -5559,7 +6825,7 @@
                 "field": "output-fidelity",
                 "status": "scanned",
                 "evidence": {
-                  "value": "none-observed",
+                  "value": "low",
                   "score": 0
                 }
               },
@@ -5567,7 +6833,7 @@
                 "field": "conduct-variability",
                 "status": "scanned",
                 "evidence": {
-                  "value": "none-observed",
+                  "value": "elevated",
                   "score": 0
                 }
               },
@@ -5575,7 +6841,7 @@
                 "field": "dependency-drift",
                 "status": "scanned",
                 "evidence": {
-                  "value": "low",
+                  "value": "moderate",
                   "score": 10
                 }
               }
@@ -5589,7 +6855,7 @@
                 "field": "output-fidelity",
                 "status": "scanned",
                 "evidence": {
-                  "value": "none-observed",
+                  "value": "low",
                   "score": 0
                 }
               },
@@ -5597,7 +6863,7 @@
                 "field": "conduct-variability",
                 "status": "scanned",
                 "evidence": {
-                  "value": "none-observed",
+                  "value": "low",
                   "score": 0
                 }
               },
@@ -5605,7 +6871,7 @@
                 "field": "dependency-drift",
                 "status": "scanned",
                 "evidence": {
-                  "value": "low",
+                  "value": "moderate",
                   "score": 10
                 }
               }
@@ -5619,7 +6885,7 @@
                 "field": "output-fidelity",
                 "status": "scanned",
                 "evidence": {
-                  "value": "none-observed",
+                  "value": "low",
                   "score": 0
                 }
               },
@@ -5627,7 +6893,7 @@
                 "field": "conduct-variability",
                 "status": "scanned",
                 "evidence": {
-                  "value": "none-observed",
+                  "value": "elevated",
                   "score": 0
                 }
               },
@@ -5635,7 +6901,7 @@
                 "field": "dependency-drift",
                 "status": "scanned",
                 "evidence": {
-                  "value": "low",
+                  "value": "moderate",
                   "score": 10
                 }
               }
@@ -5704,6 +6970,17 @@
             "field": "monitoring",
             "status": "not_provided",
             "evidence": null
+          },
+          {
+            "field": "runtime_traces",
+            "status": "observed",
+            "evidence": {
+              "window_start": "2026-09-15T09:00:00.000Z",
+              "window_end": "2026-09-21T13:01:30.000Z",
+              "span_count": 66,
+              "agents_covered": 3,
+              "agents_total": 5
+            }
           }
         ],
         "agents": [
@@ -5715,6 +6992,13 @@
                 "field": "observability",
                 "status": "scanned",
                 "evidence": null
+              },
+              "runtime_traces": {
+                "field": "runtime_traces",
+                "status": "not_provided",
+                "evidence": {
+                  "note": "no spans for this agent in the analyzed window"
+                }
               }
             }
           },
@@ -5730,6 +7014,15 @@
                   "path": "code/agents/account_actions_agent.py",
                   "line": 21
                 }
+              },
+              "runtime_traces": {
+                "field": "runtime_traces",
+                "status": "observed",
+                "evidence": {
+                  "window_start": "2026-09-15T10:00:00.000Z",
+                  "window_end": "2026-09-20T12:01:30.000Z",
+                  "span_count": 22
+                }
               }
             }
           },
@@ -5741,6 +7034,15 @@
                 "field": "observability",
                 "status": "scanned",
                 "evidence": null
+              },
+              "runtime_traces": {
+                "field": "runtime_traces",
+                "status": "observed",
+                "evidence": {
+                  "window_start": "2026-09-15T09:00:00.000Z",
+                  "window_end": "2026-09-20T09:00:04.000Z",
+                  "span_count": 24
+                }
               }
             }
           },
@@ -5756,6 +7058,15 @@
                   "path": "code/agents/support_agent.py",
                   "line": 24
                 }
+              },
+              "runtime_traces": {
+                "field": "runtime_traces",
+                "status": "observed",
+                "evidence": {
+                  "window_start": "2026-09-15T11:00:00.000Z",
+                  "window_end": "2026-09-21T13:01:30.000Z",
+                  "span_count": 20
+                }
               }
             }
           },
@@ -5767,6 +7078,13 @@
                 "field": "observability",
                 "status": "scanned",
                 "evidence": null
+              },
+              "runtime_traces": {
+                "field": "runtime_traces",
+                "status": "not_provided",
+                "evidence": {
+                  "note": "no spans for this agent in the analyzed window"
+                }
               }
             }
           }
@@ -5883,9 +7201,155 @@
         "rows": [
           {
             "field": "traces_and_runtime_evidence",
-            "status": "not_provided",
+            "status": "observed",
             "evidence": {
-              "note": "no runtime trace evidence merged into this registry ('observed' provenance requires the runtime overlay)"
+              "window_start": "2026-09-15T09:00:00.000Z",
+              "window_end": "2026-09-21T13:01:30.000Z",
+              "span_count": 66,
+              "agents_covered": 3,
+              "evidence_quality": [
+                "redacted"
+              ]
+            }
+          },
+          {
+            "field": "RT001",
+            "status": "observed",
+            "evidence": {
+              "agent_id": "b8f0111742fc",
+              "title": "Declared human oversight not observed at runtime",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 30,
+                "span_id": "s002d"
+              }
+            }
+          },
+          {
+            "field": "RT002",
+            "status": "observed",
+            "evidence": {
+              "agent_id": "b8f0111742fc",
+              "title": "Observed monetary action exceeds declared economic authority",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 30,
+                "span_id": "s002d"
+              }
+            }
+          },
+          {
+            "field": "RT007",
+            "status": "observed",
+            "evidence": {
+              "agent_id": "b8f0111742fc",
+              "title": "Money action observed with no approval on the live path",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 30,
+                "span_id": "s002d"
+              }
+            }
+          },
+          {
+            "field": "RT001",
+            "status": "observed",
+            "evidence": {
+              "agent_id": "bc3db1f17013",
+              "title": "Declared human oversight not observed at runtime",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 11,
+                "span_id": "s0010"
+              }
+            }
+          },
+          {
+            "field": "RT003",
+            "status": "observed",
+            "evidence": {
+              "agent_id": "bc3db1f17013",
+              "title": "Observed capability absent from both registry and declarations",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 23,
+                "span_id": "s0022"
+              }
+            }
+          },
+          {
+            "field": "RT006",
+            "status": "observed",
+            "evidence": {
+              "agent_id": "bc3db1f17013",
+              "title": "Tool observed at runtime that the scan never listed for this agent",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 45,
+                "span_id": "s0044"
+              }
+            }
+          },
+          {
+            "field": "RT006",
+            "status": "observed",
+            "evidence": {
+              "agent_id": "bc3db1f17013",
+              "title": "Tool observed at runtime that the scan never listed for this agent",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 23,
+                "span_id": "s0022"
+              }
+            }
+          },
+          {
+            "field": "RT007",
+            "status": "observed",
+            "evidence": {
+              "agent_id": "bc3db1f17013",
+              "title": "Money action observed with no approval on the live path",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 11,
+                "span_id": "s0010"
+              }
+            }
+          },
+          {
+            "field": "RT008",
+            "status": "observed",
+            "evidence": {
+              "agent_id": "bc3db1f17013",
+              "title": "Model or integration observed that the last scan or baseline did not know"
+            }
+          },
+          {
+            "field": "RT008",
+            "status": "observed",
+            "evidence": {
+              "agent_id": "bc3db1f17013",
+              "title": "Model or integration observed that the last scan or baseline did not know"
+            }
+          },
+          {
+            "field": "approval_gate_log",
+            "status": "observed",
+            "evidence": {
+              "agent_id": "b8f0111742fc",
+              "high_impact_actions": 6,
+              "approved": 4,
+              "approval_rate": 0.6667
+            }
+          },
+          {
+            "field": "approval_gate_log",
+            "status": "observed",
+            "evidence": {
+              "agent_id": "bc3db1f17013",
+              "high_impact_actions": 7,
+              "approved": 0,
+              "approval_rate": 0.0
             }
           }
         ]
@@ -5894,18 +7358,24 @@
   },
   "underwriting": {
     "agent_count": 5,
-    "critical_count": 4,
+    "critical_count": 6,
     "robustness": false,
     "code_quality": true,
     "monitoring": false,
     "drift": true,
     "has_declarations": true,
-    "econ_findings": [],
-    "elevated_dims": [
-      "Mandate overreach"
+    "econ_findings": [
+      "RT002"
     ],
-    "limit": "US$ 10,000,000",
-    "deductible": "US$ 50,000",
+    "elevated_dims": [
+      "Mandate overreach",
+      "Boundary leakage",
+      "Unreviewed high-impact action",
+      "Conduct variability",
+      "Control coverage gap"
+    ],
+    "limit": "US$ 25,000,000",
+    "deductible": "US$ 100,000",
     "trigger": "Unexpected High Number of Errors above the Exhibit B threshold in the covered model's decisions"
   },
   "assessment": {
@@ -6015,7 +7485,7 @@
           {
             "key": "critical",
             "label": "Critical findings at development time",
-            "value": "4",
+            "value": "6",
             "source": "scan",
             "note": ""
           }
@@ -6086,28 +7556,28 @@
       {
         "key": "elevated_dims",
         "label": "Elevated-exposure dimensions",
-        "value": "Mandate overreach",
+        "value": "Mandate overreach, Boundary leakage, Unreviewed high-impact action, Conduct variability, Control coverage gap",
         "source": "scan",
         "note": ""
       },
       {
         "key": "econ_findings",
         "label": "Economic-authority findings",
-        "value": "none observed",
+        "value": "RT002",
         "source": "scan",
         "note": ""
       },
       {
         "key": "policy_limit",
         "label": "Policy limit (aggregate)",
-        "value": "US$ 10,000,000",
+        "value": "US$ 25,000,000",
         "source": "indicative",
         "note": ""
       },
       {
         "key": "sublimit_own_losses",
         "label": "Sublimit: own financial losses",
-        "value": "US$ 10,000,000",
+        "value": "US$ 25,000,000",
         "source": "indicative",
         "note": ""
       },
@@ -6121,7 +7591,7 @@
       {
         "key": "aggregate_deductible",
         "label": "Aggregate deductible",
-        "value": "US$ 50,000",
+        "value": "US$ 100,000",
         "source": "indicative",
         "note": ""
       },
@@ -6159,18 +7629,24 @@
     },
     "derived": {
       "agent_count": 5,
-      "critical_count": 4,
+      "critical_count": 6,
       "robustness": false,
       "code_quality": true,
       "monitoring": false,
       "drift": true,
       "has_declarations": true,
-      "econ_findings": [],
-      "elevated_dims": [
-        "Mandate overreach"
+      "econ_findings": [
+        "RT002"
       ],
-      "limit": "US$ 10,000,000",
-      "deductible": "US$ 50,000",
+      "elevated_dims": [
+        "Mandate overreach",
+        "Boundary leakage",
+        "Unreviewed high-impact action",
+        "Conduct variability",
+        "Control coverage gap"
+      ],
+      "limit": "US$ 25,000,000",
+      "deductible": "US$ 100,000",
       "trigger": "Unexpected High Number of Errors above the Exhibit B threshold in the covered model's decisions"
     }
   },
@@ -6790,6 +8266,832 @@
         "stoa": "An organizational function outside a static scan's view; not assessed."
       }
     ]
+  },
+  "runtime": {
+    "schema": "dashboard-runtime/1.0",
+    "traces_dir": "stoa-traces",
+    "analysis": {
+      "schema": "runtime-analysis/1.1",
+      "header": {
+        "generated_at": null,
+        "stoa_version": "0.7.4",
+        "registry": "stoa-registry.json",
+        "files_read": 1,
+        "files_skipped": 0,
+        "bad_lines": 0,
+        "headers_missing": 0,
+        "dropped_spans_reported": 0,
+        "warnings": []
+      },
+      "window": {
+        "start": "2026-09-15T09:00:00.000Z",
+        "end": "2026-09-21T13:01:30.000Z",
+        "span_count": 66
+      },
+      "agents": {
+        "2a61ffb1db0d": {
+          "span_count": 24,
+          "spans_by_kind": {
+            "action": 6,
+            "agent_run": 6,
+            "delegation": 6,
+            "llm_call": 6
+          },
+          "status_counts": {
+            "ok": 24
+          },
+          "error_rate": 0.0,
+          "observed_capabilities": [],
+          "observed_integrations": [],
+          "observed_providers": [
+            "openai"
+          ],
+          "observed_models": [
+            "gpt-4o"
+          ],
+          "capability_counts": {},
+          "integration_counts": {},
+          "high_impact_actions": 0,
+          "high_impact_approved": 0,
+          "approval_rate_high_impact": null,
+          "approval_spans": 0,
+          "max_observed_amount": null,
+          "window_total_amounts": {},
+          "evidence_quality": "redacted",
+          "first_ts": "2026-09-15T09:00:00.000Z",
+          "last_ts": "2026-09-20T09:00:04.000Z",
+          "delegations_to": [
+            "b8f0111742fc"
+          ],
+          "trace_files": [
+            "trace-demo-0000.jsonl"
+          ],
+          "observed_tools": [
+            "verify_identity"
+          ],
+          "tool_counts": {
+            "verify_identity": 6
+          },
+          "tool_last_ts": {
+            "verify_identity": "2026-09-20T09:00:02.200Z"
+          },
+          "money_actions": 0,
+          "money_actions_approved": 0,
+          "approval_rate_money": null,
+          "flag_counts": {},
+          "side_effect_counts": {
+            "read": 6
+          },
+          "llm_calls": 6,
+          "llm_error_rate": 0.0,
+          "flag_events": [],
+          "trace_refs": {
+            "first_capability_span": {},
+            "first_unapproved_high_impact": null,
+            "max_amount_span": null,
+            "first_tool_span": {
+              "verify_identity": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 3,
+                "span_id": "s0004"
+              }
+            },
+            "first_unapproved_money": null,
+            "first_flag_span": {},
+            "first_external_send": null
+          }
+        },
+        "b8f0111742fc": {
+          "span_count": 22,
+          "spans_by_kind": {
+            "action": 6,
+            "agent_run": 6,
+            "approval": 4,
+            "llm_call": 6
+          },
+          "status_counts": {
+            "ok": 22
+          },
+          "error_rate": 0.0,
+          "observed_capabilities": [
+            "payment_access"
+          ],
+          "observed_integrations": [
+            "stripe"
+          ],
+          "observed_providers": [
+            "openai"
+          ],
+          "observed_models": [
+            "gpt-4o"
+          ],
+          "capability_counts": {
+            "payment_access": 6
+          },
+          "integration_counts": {
+            "stripe": 6
+          },
+          "high_impact_actions": 6,
+          "high_impact_approved": 4,
+          "approval_rate_high_impact": 0.6667,
+          "approval_spans": 4,
+          "max_observed_amount": {
+            "amount": 900.0,
+            "currency": "USD"
+          },
+          "window_total_amounts": {
+            "USD": 1895.0
+          },
+          "evidence_quality": "redacted",
+          "first_ts": "2026-09-15T10:00:00.000Z",
+          "last_ts": "2026-09-20T12:01:30.000Z",
+          "delegations_to": [],
+          "trace_files": [
+            "trace-demo-0000.jsonl"
+          ],
+          "observed_tools": [
+            "issue_refund"
+          ],
+          "tool_counts": {
+            "issue_refund": 6
+          },
+          "tool_last_ts": {
+            "issue_refund": "2026-09-20T12:01:02.300Z"
+          },
+          "money_actions": 6,
+          "money_actions_approved": 4,
+          "approval_rate_money": 0.6667,
+          "flag_counts": {
+            "approval_bypassed": 2,
+            "new_counterparty": 4,
+            "over_declared_limit": 1
+          },
+          "side_effect_counts": {
+            "payment": 6
+          },
+          "llm_calls": 6,
+          "llm_error_rate": 0.0,
+          "flag_events": [
+            {
+              "ts": "2026-09-16T12:01:02.300Z",
+              "flags": [
+                "new_counterparty"
+              ],
+              "kind": "action",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 420.0,
+                "currency": "USD"
+              },
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 19,
+                "span_id": "s001c"
+              }
+            },
+            {
+              "ts": "2026-09-17T10:01:02.300Z",
+              "flags": [
+                "approval_bypassed",
+                "new_counterparty",
+                "over_declared_limit"
+              ],
+              "kind": "action",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 900.0,
+                "currency": "USD"
+              },
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 30,
+                "span_id": "s002d"
+              }
+            },
+            {
+              "ts": "2026-09-18T12:01:02.300Z",
+              "flags": [
+                "new_counterparty"
+              ],
+              "kind": "action",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 95.0,
+                "currency": "USD"
+              },
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 41,
+                "span_id": "s003e"
+              }
+            },
+            {
+              "ts": "2026-09-19T10:01:02.300Z",
+              "flags": [
+                "approval_bypassed",
+                "new_counterparty"
+              ],
+              "kind": "action",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 70.0,
+                "currency": "USD"
+              },
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 52,
+                "span_id": "s004f"
+              }
+            }
+          ],
+          "trace_refs": {
+            "first_capability_span": {
+              "payment_access": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 8,
+                "span_id": "s000b"
+              }
+            },
+            "first_unapproved_high_impact": {
+              "file": "trace-demo-0000.jsonl",
+              "line": 30,
+              "span_id": "s002d"
+            },
+            "max_amount_span": {
+              "file": "trace-demo-0000.jsonl",
+              "line": 30,
+              "span_id": "s002d"
+            },
+            "first_tool_span": {
+              "issue_refund": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 8,
+                "span_id": "s000b"
+              }
+            },
+            "first_unapproved_money": {
+              "file": "trace-demo-0000.jsonl",
+              "line": 30,
+              "span_id": "s002d"
+            },
+            "first_flag_span": {
+              "approval_bypassed": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 30,
+                "span_id": "s002d"
+              },
+              "new_counterparty": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 19,
+                "span_id": "s001c"
+              },
+              "over_declared_limit": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 30,
+                "span_id": "s002d"
+              }
+            },
+            "first_external_send": null
+          }
+        },
+        "bc3db1f17013": {
+          "span_count": 20,
+          "spans_by_kind": {
+            "action": 8,
+            "agent_run": 6,
+            "llm_call": 6
+          },
+          "status_counts": {
+            "ok": 20
+          },
+          "error_rate": 0.0,
+          "observed_capabilities": [
+            "email_send",
+            "payment_access"
+          ],
+          "observed_integrations": [
+            "sendgrid",
+            "stripe"
+          ],
+          "observed_providers": [
+            "openai"
+          ],
+          "observed_models": [
+            "gpt-4o-mini"
+          ],
+          "capability_counts": {
+            "email_send": 1,
+            "payment_access": 6
+          },
+          "integration_counts": {
+            "sendgrid": 1,
+            "stripe": 6
+          },
+          "high_impact_actions": 7,
+          "high_impact_approved": 0,
+          "approval_rate_high_impact": 0.0,
+          "approval_spans": 0,
+          "max_observed_amount": {
+            "amount": 500.0,
+            "currency": "USD"
+          },
+          "window_total_amounts": {
+            "USD": 1040.0
+          },
+          "evidence_quality": "redacted",
+          "first_ts": "2026-09-15T11:00:00.000Z",
+          "last_ts": "2026-09-21T13:01:30.000Z",
+          "delegations_to": [],
+          "trace_files": [
+            "trace-demo-0000.jsonl"
+          ],
+          "observed_tools": [
+            "export_transcript",
+            "issue_refund",
+            "send_email",
+            "waive_fee"
+          ],
+          "tool_counts": {
+            "export_transcript": 1,
+            "issue_refund": 5,
+            "send_email": 1,
+            "waive_fee": 1
+          },
+          "tool_last_ts": {
+            "export_transcript": "2026-09-18T13:01:06.000Z",
+            "issue_refund": "2026-09-21T13:01:02.300Z",
+            "send_email": "2026-09-16T13:01:11.000Z",
+            "waive_fee": "2026-09-19T11:01:02.300Z"
+          },
+          "money_actions": 6,
+          "money_actions_approved": 0,
+          "approval_rate_money": 0.0,
+          "flag_counts": {
+            "approval_bypassed": 8,
+            "integration_changed": 1,
+            "new_counterparty": 4,
+            "undeclared_tool": 2
+          },
+          "side_effect_counts": {
+            "external_send": 2,
+            "payment": 6
+          },
+          "llm_calls": 6,
+          "llm_error_rate": 0.0,
+          "flag_events": [
+            {
+              "ts": "2026-09-15T11:01:02.300Z",
+              "flags": [
+                "approval_bypassed"
+              ],
+              "kind": "action",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 60.0,
+                "currency": "USD"
+              },
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 11,
+                "span_id": "s0010"
+              }
+            },
+            {
+              "ts": "2026-09-16T13:01:02.300Z",
+              "flags": [
+                "approval_bypassed",
+                "new_counterparty"
+              ],
+              "kind": "action",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 240.0,
+                "currency": "USD"
+              },
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 22,
+                "span_id": "s0021"
+              }
+            },
+            {
+              "ts": "2026-09-16T13:01:11.000Z",
+              "flags": [
+                "approval_bypassed",
+                "integration_changed",
+                "undeclared_tool"
+              ],
+              "kind": "action",
+              "tool": "send_email",
+              "amount": null,
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 23,
+                "span_id": "s0022"
+              }
+            },
+            {
+              "ts": "2026-09-17T11:01:02.300Z",
+              "flags": [
+                "approval_bypassed",
+                "new_counterparty"
+              ],
+              "kind": "action",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 35.0,
+                "currency": "USD"
+              },
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 33,
+                "span_id": "s0032"
+              }
+            },
+            {
+              "ts": "2026-09-18T13:01:02.300Z",
+              "flags": [
+                "approval_bypassed",
+                "new_counterparty"
+              ],
+              "kind": "action",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 500.0,
+                "currency": "USD"
+              },
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 44,
+                "span_id": "s0043"
+              }
+            },
+            {
+              "ts": "2026-09-18T13:01:06.000Z",
+              "flags": [
+                "approval_bypassed",
+                "undeclared_tool"
+              ],
+              "kind": "action",
+              "tool": "export_transcript",
+              "amount": null,
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 45,
+                "span_id": "s0044"
+              }
+            },
+            {
+              "ts": "2026-09-19T11:01:02.300Z",
+              "flags": [
+                "approval_bypassed",
+                "new_counterparty"
+              ],
+              "kind": "action",
+              "tool": "waive_fee",
+              "amount": {
+                "amount": 120.0,
+                "currency": "USD"
+              },
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 55,
+                "span_id": "s0054"
+              }
+            },
+            {
+              "ts": "2026-09-21T13:01:02.300Z",
+              "flags": [
+                "approval_bypassed"
+              ],
+              "kind": "action",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 85.0,
+                "currency": "USD"
+              },
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 66,
+                "span_id": "s0065"
+              }
+            }
+          ],
+          "trace_refs": {
+            "first_capability_span": {
+              "email_send": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 23,
+                "span_id": "s0022"
+              },
+              "payment_access": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 11,
+                "span_id": "s0010"
+              }
+            },
+            "first_unapproved_high_impact": {
+              "file": "trace-demo-0000.jsonl",
+              "line": 11,
+              "span_id": "s0010"
+            },
+            "max_amount_span": {
+              "file": "trace-demo-0000.jsonl",
+              "line": 44,
+              "span_id": "s0043"
+            },
+            "first_tool_span": {
+              "export_transcript": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 45,
+                "span_id": "s0044"
+              },
+              "issue_refund": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 11,
+                "span_id": "s0010"
+              },
+              "send_email": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 23,
+                "span_id": "s0022"
+              },
+              "waive_fee": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 55,
+                "span_id": "s0054"
+              }
+            },
+            "first_unapproved_money": {
+              "file": "trace-demo-0000.jsonl",
+              "line": 11,
+              "span_id": "s0010"
+            },
+            "first_flag_span": {
+              "approval_bypassed": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 11,
+                "span_id": "s0010"
+              },
+              "integration_changed": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 23,
+                "span_id": "s0022"
+              },
+              "new_counterparty": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 22,
+                "span_id": "s0021"
+              },
+              "undeclared_tool": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 23,
+                "span_id": "s0022"
+              }
+            },
+            "first_external_send": {
+              "file": "trace-demo-0000.jsonl",
+              "line": 23,
+              "span_id": "s0022"
+            }
+          }
+        }
+      },
+      "unmatched_agents": [],
+      "no_runtime_evidence": [
+        "224627e4877d",
+        "62007a57a832"
+      ]
+    },
+    "reconcile": {
+      "schema": "runtime-reconcile/1.0",
+      "generated_at": null,
+      "window": {
+        "start": "2026-09-15T09:00:00.000Z",
+        "end": "2026-09-21T13:01:30.000Z",
+        "span_count": 66
+      },
+      "dormant_days": 30,
+      "totals": {
+        "declared_and_used": 4,
+        "used_but_undeclared": 2,
+        "declared_but_dormant": 9
+      },
+      "agents": [
+        {
+          "agent_id": "62007a57a832",
+          "name": "meridian-knowledge",
+          "has_runtime_evidence": false,
+          "declared_and_used": [],
+          "used_but_undeclared": [],
+          "declared_but_dormant": []
+        },
+        {
+          "agent_id": "b8f0111742fc",
+          "name": "account-actions",
+          "has_runtime_evidence": true,
+          "declared_and_used": [
+            {
+              "tool": "issue_refund",
+              "calls": 6,
+              "last_seen": "2026-09-20T12:01:02.300Z"
+            }
+          ],
+          "used_but_undeclared": [],
+          "declared_but_dormant": [
+            {
+              "tool": "change_payout_account",
+              "last_seen": null
+            },
+            {
+              "tool": "place_travel_notice",
+              "last_seen": null
+            },
+            {
+              "tool": "reissue_card",
+              "last_seen": null
+            },
+            {
+              "tool": "update_contact_info",
+              "last_seen": null
+            },
+            {
+              "tool": "waive_fee",
+              "last_seen": null
+            }
+          ]
+        },
+        {
+          "agent_id": "2a61ffb1db0d",
+          "name": "meridian-front",
+          "has_runtime_evidence": true,
+          "declared_and_used": [
+            {
+              "tool": "verify_identity",
+              "calls": 6,
+              "last_seen": "2026-09-20T09:00:02.200Z"
+            }
+          ],
+          "used_but_undeclared": [],
+          "declared_but_dormant": []
+        },
+        {
+          "agent_id": "bc3db1f17013",
+          "name": "meridian-support",
+          "has_runtime_evidence": true,
+          "declared_and_used": [
+            {
+              "tool": "issue_refund",
+              "calls": 5,
+              "last_seen": "2026-09-21T13:01:02.300Z"
+            },
+            {
+              "tool": "waive_fee",
+              "calls": 1,
+              "last_seen": "2026-09-19T11:01:02.300Z"
+            }
+          ],
+          "used_but_undeclared": [
+            {
+              "tool": "export_transcript",
+              "calls": 1,
+              "last_seen": "2026-09-18T13:01:06.000Z"
+            },
+            {
+              "tool": "send_email",
+              "calls": 1,
+              "last_seen": "2026-09-16T13:01:11.000Z"
+            }
+          ],
+          "declared_but_dormant": [
+            {
+              "tool": "change_payout_account",
+              "last_seen": null
+            },
+            {
+              "tool": "place_travel_notice",
+              "last_seen": null
+            },
+            {
+              "tool": "reissue_card",
+              "last_seen": null
+            },
+            {
+              "tool": "update_contact_info",
+              "last_seen": null
+            }
+          ]
+        },
+        {
+          "agent_id": "224627e4877d",
+          "name": "meridian-escalation",
+          "has_runtime_evidence": false,
+          "declared_and_used": [],
+          "used_but_undeclared": [],
+          "declared_but_dormant": []
+        }
+      ]
+    },
+    "chain": {
+      "schema": "runtime-chain/1.0",
+      "directory": "stoa-traces",
+      "ok": true,
+      "records": 67,
+      "files": [
+        {
+          "file": "trace-demo-0000.jsonl",
+          "ok": true,
+          "records": 67,
+          "signed": 67,
+          "key_grade": "hmac-sha256",
+          "signer_fingerprints": [
+            "46c139250575bda7"
+          ],
+          "first_break": null,
+          "break_reason": null,
+          "unchained": false
+        }
+      ]
+    },
+    "drift": {
+      "schema": "runtime-drift/1.0",
+      "header": {
+        "generated_at": null,
+        "baseline_window": {
+          "start": "2026-08-18T09:00:00.000Z",
+          "end": "2026-08-25T12:01:30.000Z",
+          "span_count": 48
+        },
+        "analysis_window": {
+          "start": "2026-09-15T09:00:00.000Z",
+          "end": "2026-09-21T13:01:30.000Z",
+          "span_count": 66
+        }
+      },
+      "summary": {
+        "events": 6,
+        "by_class": {
+          "high": 3,
+          "medium": 3,
+          "info": 0
+        },
+        "max_drift_class": "high"
+      },
+      "events": [
+        {
+          "class": "high",
+          "kind": "approval_rate_drop",
+          "agent_id": "b8f0111742fc",
+          "rate_baseline": 1.0,
+          "rate_now": 0.6667
+        },
+        {
+          "class": "high",
+          "kind": "amount_exceeds_declared_max_per_action",
+          "agent_id": "b8f0111742fc",
+          "observed": {
+            "amount": 900.0,
+            "currency": "USD"
+          },
+          "declared": {
+            "amount": 500,
+            "currency": "USD"
+          }
+        },
+        {
+          "class": "high",
+          "kind": "new_high_impact_capability",
+          "agent_id": "bc3db1f17013",
+          "capability": "email_send",
+          "absent_from": "baseline and static registry"
+        },
+        {
+          "class": "medium",
+          "kind": "new_capability",
+          "agent_id": "bc3db1f17013",
+          "capability": "payment_access",
+          "high_impact": true
+        },
+        {
+          "class": "medium",
+          "kind": "new_integration",
+          "agent_id": "bc3db1f17013",
+          "integration": "sendgrid"
+        },
+        {
+          "class": "medium",
+          "kind": "new_integration",
+          "agent_id": "bc3db1f17013",
+          "integration": "stripe"
+        }
+      ],
+      "thresholds": {
+        "ratio_threshold": 3.0,
+        "min_count": 20,
+        "approval_drop": 0.1
+      }
+    },
+    "baseline_present": true
   },
   "vocabulary": {
     "high_impact_capabilities": [

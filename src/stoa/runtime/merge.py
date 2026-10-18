@@ -249,6 +249,20 @@ def _recompute_dimension_summary(enriched: dict) -> None:
             row["assessability"] = "runtime"
 
 
+def _annotate(rt_findings: dict[str, list[dict]], config: StoaConfig) -> None:
+    """Stamp the crosswalk entry on RT findings, as report_json does for the
+    scan's own findings. Skipped silently when the crosswalk cannot load."""
+    from ..crosswalk import CrosswalkError, load_crosswalk
+
+    try:
+        crosswalk = load_crosswalk(config.crosswalk_path)
+    except CrosswalkError:
+        return
+    for findings in rt_findings.values():
+        for finding in findings:
+            finding["crosswalk"] = crosswalk.entry(finding["rule_id"]).to_dict()
+
+
 def merge_runtime_into_registry(
     registry: dict, analysis: dict, config: StoaConfig | None = None,
     baseline: dict | None = None,
@@ -268,6 +282,7 @@ def merge_runtime_into_registry(
     per_agent = analysis.get("agents") or {}
     window = (analysis.get("window") or {})
     rt_findings = detect_runtime_contradictions(registry, analysis, config, baseline)
+    _annotate(rt_findings, config)
 
     covered = 0
     rt_count = 0

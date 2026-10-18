@@ -17,3 +17,4 @@ score. The scanner is the source of truth.
 from .envelope import ENVELOPE_SCHEMA, build_envelope  # noqa: F401
 from .history import HISTORY_SCHEMA, entry_from_registry, load_history, record_history  # noqa: F401
 from .register import build_register  # noqa: F401
+from .runtime_slot import build_runtime_slot  # noqa: F401

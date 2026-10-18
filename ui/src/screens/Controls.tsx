@@ -4,7 +4,8 @@ import { SeverityBadge } from "../components/Badge";
 import { Section } from "../components/Section";
 import { definedIn } from "../data/agents";
 import { COVERAGE_CONTROLS, SAFEGUARD_STATE_LABEL, controlLabel, recommendations, safeguardCoverage, safeguardRows, type SafeguardState } from "../data/controls";
-import { pluralize } from "../data/selectors";
+import { observedApproval, runtimeWindow } from "../data/runtime";
+import { formatDate, pluralize } from "../data/selectors";
 
 const STATE_CLASS: Record<SafeguardState, string> = {
   detected: "border-navy/30 bg-navy-100 text-navy",
@@ -18,6 +19,8 @@ export function Controls() {
   const rows = safeguardRows(envelope);
   const coverage = safeguardCoverage(envelope);
   const recommended = recommendations(envelope);
+  const observed = observedApproval(envelope);
+  const window = runtimeWindow(envelope);
 
   return (
     <div>
@@ -25,6 +28,7 @@ export function Controls() {
         <h1 className="m-0">Controls & Safeguards</h1>
         <div className="caption">What the scan detected in the scanned sources. Detection is not proof that a safeguard works.</div>
       </div>
+      {observed ? <p className="mt-2 mb-0 text-[13px]"><span className="chip chip-plain chip-ok mr-2">observed</span>Approval on <strong className="text-navy">{observed.approved} of {pluralize(observed.total, "money action")}</strong> in traces, {formatDate(window?.start)} to {formatDate(window?.end)}. <a href={buildHash("runtime")} className="link">Runtime</a></p> : null}
 
       <Section title="Safeguards detected" caption="Counted against the agents each safeguard is relevant to.">
         <div className="panel divide-y divide-line/70">

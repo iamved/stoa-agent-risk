@@ -47,6 +47,7 @@ export function FindingDrawer({ ref, onClose, backQuery }: { ref: FindingRef | n
             </span>
           ) },
           { k: "Categories", v: <Chips items={(f.dimensions ?? []).map((d) => ({ label: dimensionName(envelope, d) }))} /> },
+          ...(f.trace_ref?.file ? [{ k: "Trace evidence", v: <span className="mono">{f.trace_ref.file}:{f.trace_ref.line}{f.trace_ref.span_id ? ` (span ${f.trace_ref.span_id})` : ""}</span> }] : []),
         ]}
       />
 

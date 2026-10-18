@@ -1,5 +1,6 @@
 import { useApp } from "../app/context";
 import { buildHash, type ScreenId } from "../app/router";
+import { hasRuntime, runtimeFindings } from "../data/runtime";
 import { activeFindings } from "../data/selectors";
 
 /** Findings, drift and the register are three views of one model. */
@@ -10,6 +11,7 @@ export function RiskTabs({ current }: { current: ScreenId }) {
     { id: "findings", label: "Findings", count: activeFindings(envelope).length },
     { id: "drift", label: "Drift", count: drift },
     { id: "register", label: "Risk register", count: envelope.register.length },
+    { id: "runtime", label: "Runtime", count: hasRuntime(envelope) ? runtimeFindings(envelope).length : null },
   ];
   return (
     <div className="mb-4">

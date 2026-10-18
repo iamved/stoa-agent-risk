@@ -60,6 +60,19 @@ limit        = 5000000
 ai_exclusion = true
 ```
 
+## Runtime (traces)
+
+`stoa dashboard stoa-registry.json --runtime stoa-traces` (or `stoa scan
+--with-runtime stoa-traces`) adds what the traces showed beside what the
+code made possible: a Runtime tab under Findings (tools declared against
+used, runtime findings pointing at spans, flags by day, drift since the
+committed baseline given with `--runtime-baseline`), "active in traces" on
+the Agent Inventory, the observed approval rate on Controls & Safeguards,
+"observed" on category rows whose exposure was read from traces, and the
+trace evidence row in the finding panel. The chain and signatures of every
+trace file are verified when the page is built. Runtime findings (RT001 to
+RT008) stay out of the scan's own counts so nothing is counted twice.
+
 Without it the page says so and runs on placeholder context, with the
 snippet to save. Everything can be adjusted on the page; edits stay in
 memory. The model is seeded, so the same inputs always give the same

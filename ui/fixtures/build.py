@@ -23,6 +23,8 @@ Outputs (all deterministic):
                                 stoa-declared.toml, no .stoa/underwriting.toml,
                                 no baseline, no history
 * no-agents.envelope.json     — a scan that finds no agent candidates at all
+* traces/                     — stoa-trace/1.1 files the runtime slot of the
+                                Meridian Pay envelope is built from (traces_demo.py)
 * two-stacks.envelope.json    — the example plus twins/account_actions.tf, so
                                 account-actions is defined twice (code and a
                                 Bedrock agent) and resolves to one agent; its
@@ -42,10 +44,14 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # traces_demo.py, next to this file
 
 from stoa.cli import _load_underwriting  # noqa: E402
 from stoa.config import load_config  # noqa: E402
-from stoa.dashboard import build_envelope, entry_from_registry  # noqa: E402
+from stoa.dashboard import build_envelope, build_runtime_slot, entry_from_registry  # noqa: E402
+from stoa.runtime.analysis import analyze_traces  # noqa: E402
+from stoa.runtime.drift import build_baseline  # noqa: E402
+from traces_demo import DEMO_KEY, write_demo_traces  # noqa: E402
 from stoa.registry_diff import diff_registries  # noqa: E402
 from stoa.report_json import build_document  # noqa: E402
 from stoa.scanner import ScanOptions, run_scan  # noqa: E402
@@ -223,7 +229,23 @@ def build(out: Path = OUT) -> None:
 
     diff = diff_registries(baseline, head)
     history = [entry_from_registry(r) for r in (baseline, middle, head)]
-    envelope = build_envelope(head, diff=diff, baseline=baseline, history=history, underwriting=underwriting)
+    # Runtime: the committed demo traces (traces_demo.py), a baseline from the
+    # August traces, and the September traces as the head window. The
+    # enriched registry carries runtime_evidence, liveness and RT findings.
+    traces_out = out / "traces"
+    out.mkdir(parents=True, exist_ok=True)
+    head_registry_path = out / ".head-registry.json"
+    head_registry_path.write_text(json.dumps(head))
+    try:
+        august_dir, september_dir = write_demo_traces(traces_out, head_registry_path)
+    finally:
+        head_registry_path.unlink(missing_ok=True)
+    runtime_baseline = build_baseline(analyze_traces(august_dir, head))
+    head, runtime_slot = build_runtime_slot(september_dir, head, baseline=runtime_baseline, registry_path="stoa-registry.json", key=DEMO_KEY)
+    runtime_slot["traces_dir"] = "stoa-traces"
+    runtime_slot["chain"]["directory"] = "stoa-traces"
+    runtime_slot["analysis"]["header"]["registry"] = "stoa-registry.json"
+    envelope = build_envelope(head, diff=diff, baseline=baseline, history=history, underwriting=underwriting, runtime=runtime_slot)
 
     _write(out, "meridian-pay.baseline.json", baseline)
     _write(out, "meridian-pay.envelope.json", envelope)

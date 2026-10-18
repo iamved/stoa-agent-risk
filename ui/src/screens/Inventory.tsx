@@ -8,6 +8,7 @@ import { GraphView } from "../components/GraphView";
 import { Chips } from "../components/KeyValue";
 import { ExposureTip } from "../components/InfoTip";
 import { autonomyOf, definedIn, exposureOf, uniqueAgentById, uniqueAgents, type UniqueAgent } from "../data/agents";
+import { liveness } from "../data/runtime";
 import { agentCapabilities, agentFindingCount, agentSource, categories, codeAgents, contradictions, declaredAgents, filterAgents, filterUniqueAgents, iacAgents, integrationRows, providerRows, spendingAuthority, toolRows, uniqueAgentFindingCount, worstExposure, type CategoryId, type NameRow, type ToolRow } from "../data/inventory";
 import { CAPABILITY_LABEL, CAPABILITY_ORDER, autonomyLabel, type CapabilityId } from "../data/labels";
 import { EXPOSURE_RANK, agentById, agentLabel } from "../data/selectors";
@@ -134,7 +135,7 @@ function UniqueAgentsTable({ query, onQuery, onOpen, sort, onSort }: { query: UR
       <span className="block min-w-0">
         <span className="block font-medium text-navy truncate">{a.name}</span>
         <span className="mono caption block truncate" title={a.records.map((r) => `${agentLabel(r)} (${r.path})`).join("\n")}>{a.records.map(agentLabel).join(" · ")}</span>
-        <span className="caption block">{definedIn(a)}</span>
+        <span className="caption block">{definedIn(a)}{liveness(envelope, a) ? <span className={`ml-1.5 chip chip-plain text-[10px] leading-4 py-0 px-1.5 ${liveness(envelope, a) === "active" ? "chip-ok" : "chip-muted"}`}>{liveness(envelope, a) === "active" ? "active in traces" : "idle in traces"}</span> : null}</span>
       </span>
     ), sortValue: (a) => a.name.toLowerCase() },
     { id: "capabilities", header: "Capabilities", width: "minmax(136px, 1.2fr)", cell: (a) => <Chips items={agentCapabilities(a).map((id) => ({ label: CAPABILITY_LABEL[id], hot: id === "payments" }))} empty="none detected" />, sortValue: (a) => agentCapabilities(a).length },

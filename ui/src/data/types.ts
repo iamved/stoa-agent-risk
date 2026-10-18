@@ -55,8 +55,81 @@ export interface Finding {
   evidence_tags?: string[];
   message?: string | null;
   declared_ref?: { path: string; key: string } | null;
+  /** RT-family findings: the trace-side evidence pointer. */
+  trace_ref?: TraceRef | null;
   crosswalk?: CrosswalkTag;
   [extra: string]: unknown;
+}
+
+// --- runtime overlay (stoa-trace/1.1, dashboard-runtime/1.0) -----------------
+
+export interface TraceRef { file: string | null; line: number | null; span_id: string | null }
+
+export interface RuntimeEvidence {
+  window: { start: string | null; end: string | null };
+  span_count: number;
+  spans_by_kind: Record<string, number>;
+  error_rate: number;
+  observed_capabilities: string[];
+  observed_integrations: string[];
+  observed_providers: string[];
+  observed_models: string[];
+  high_impact_actions: number;
+  high_impact_approved: number;
+  approval_rate_high_impact: number | null;
+  max_observed_amount: { amount: number; currency: string } | null;
+  window_total_amounts: Record<string, number>;
+  evidence_quality: string;
+  delegations_to: string[];
+  trace_files: string[];
+  observed_tools?: string[];
+  tool_counts?: Record<string, number>;
+  money_actions?: number;
+  money_actions_approved?: number;
+  approval_rate_money?: number | null;
+  flag_counts?: Record<string, number>;
+  side_effect_counts?: Record<string, number>;
+}
+
+export interface FlagEvent { ts: string | null; flags: string[]; kind: string; tool: string | null; amount: { amount: number; currency: string } | null; trace_ref: TraceRef }
+
+export interface RuntimeAgentSummary extends RuntimeEvidence {
+  first_ts: string | null;
+  last_ts: string | null;
+  llm_calls?: number;
+  llm_error_rate?: number;
+  flag_events?: FlagEvent[];
+  tool_last_ts?: Record<string, string>;
+  trace_refs: Record<string, unknown>;
+}
+
+export interface RuntimeAnalysis {
+  schema: string;
+  header: { generated_at: string | null; stoa_version: string; registry: string | null; files_read: number; files_skipped: number; bad_lines: number; headers_missing: number; dropped_spans_reported: number; warnings: string[] };
+  window: { start: string | null; end: string | null; span_count: number };
+  agents: Record<string, RuntimeAgentSummary>;
+  unmatched_agents: ({ key: string; reason: string; suggested_matches: { agent_id: string; name: string; path: string }[] } & RuntimeAgentSummary)[];
+  no_runtime_evidence: string[];
+}
+
+export interface ReconcileTool { tool: string; calls?: number; last_seen: string | null }
+export interface ReconcileRow { agent_id: string; name: string; has_runtime_evidence: boolean; declared_and_used: ReconcileTool[]; used_but_undeclared: ReconcileTool[]; declared_but_dormant: ReconcileTool[] }
+export interface ReconcileDoc { schema: string; window: RuntimeAnalysis["window"]; dormant_days: number; totals: { declared_and_used: number; used_but_undeclared: number; declared_but_dormant: number }; agents: ReconcileRow[] }
+
+export interface ChainFile { file: string; ok: boolean; records: number; signed: number; key_grade: string; signer_fingerprints: string[]; first_break: number | null; break_reason: string | null; unchained: boolean }
+export interface ChainReport { schema: string; directory: string; ok: boolean; records: number; files: ChainFile[] }
+
+export interface RuntimeDriftEvent { class: "info" | "medium" | "high"; kind: string; agent_id: string; [extra: string]: unknown }
+export interface RuntimeDrift { schema: string; events: RuntimeDriftEvent[]; summary?: Record<string, unknown>; [extra: string]: unknown }
+
+export interface RuntimeSlot {
+  schema: string;
+  traces_dir: string;
+  analysis: RuntimeAnalysis;
+  reconcile: ReconcileDoc;
+  chain: ChainReport;
+  drift: RuntimeDrift | null;
+  baseline_present: boolean;
 }
 
 export interface Evidence {
@@ -82,6 +155,10 @@ export interface DimensionEntry {
   contributing_capabilities: string[];
   controls_observed: string[];
   statement: string;
+  /** Runtime tier (merge only): the window the exposure was read from, the signals, and the scan-time bucket it replaced. */
+  evidence_window?: { start: string | null; end: string | null; span_count: number | null };
+  runtime_basis?: Record<string, unknown>;
+  static_exposure?: Exposure;
 }
 
 export interface DimensionAssessment {
@@ -157,6 +234,9 @@ export interface Agent {
   declared?: AgentDeclaration;
   autonomy_level?: AutonomyLevel;
   tools?: ToolRecord[];
+  /** Runtime overlay (merge only): what traces showed for this agent in the window. */
+  runtime_evidence?: RuntimeEvidence;
+  liveness_state?: "active" | "idle" | "deprecated";
   /** Schema 1.6: only present for agents not discovered in application code. */
   source?: "code" | "iac";
   discovery_tier?: "full" | "recognized" | "inferred";
@@ -542,4 +622,6 @@ export interface Envelope {
   taxonomy: TaxonomyBlock;
   frameworks: { nist_ai_rmf: { function: string; stoa: string }[] };
   vocabulary: { high_impact_capabilities: string[]; sensitive_integrations: string[] };
+  /** 1.1: what the traces showed. Null or absent without traces. */
+  runtime?: RuntimeSlot | null;
 }

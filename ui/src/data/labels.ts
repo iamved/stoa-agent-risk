@@ -214,6 +214,14 @@ export const PLAIN_WHY: Record<string, string> = {
   AI007: "The same request can get a different answer each time, so decisions are hard to defend.",
   SEC001: "Anyone with the code has the credential.",
   SEC002: "Anyone with the code has the password.",
+  RT001: "The oversight your declaration promises is not happening in production.",
+  RT002: "The declared limit is not holding; losses are not bounded where you think they are.",
+  RT003: "The agent can do more in production than the record says, so the record is wrong.",
+  RT004: "Nothing is watching this agent, whatever the declaration says.",
+  RT005: "What you declared is what happens, in the window observed.",
+  RT006: "A tool nobody reviewed is in use; its reach and limits are unknown.",
+  RT007: "A person was not on the path for real money movements.",
+  RT008: "The agent's dependencies changed under you without a new scan.",
 };
 
 /** The rule's name in plain words, shown next to its id. Falls back to the scanner's title. */

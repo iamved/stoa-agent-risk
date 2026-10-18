@@ -19,12 +19,15 @@ def _plural(n: int, singular: str, plural: str | None = None) -> str:
     return f"{n} {singular if n == 1 else (plural or singular + 's')}"
 
 
-def _active_findings(registry: dict) -> list[dict]:
-    """Unsuppressed findings, once each: agents in one file share its findings."""
+def _active_findings(registry: dict, runtime: bool = False) -> list[dict]:
+    """Unsuppressed findings, once each: agents in one file share its findings.
+    Runtime (RT) findings come from traces and are listed apart from the scan's."""
     seen: set[str] = set()
     out: list[dict] = []
     agents = registry.get("agents") or []
     for finding in [f for a in agents for f in a.get("findings") or []] + (registry.get("repository_findings") or []):
+        if str(finding.get("rule_id", "")).startswith("RT") != runtime:
+            continue
         if finding.get("suppressed") or finding.get("fingerprint") in seen:
             continue
         seen.add(finding.get("fingerprint"))
@@ -124,6 +127,11 @@ def render_overview(envelope: dict, dashboard_path: str | None = None, *,
         for f in shown:
             lines.append(f"  {f.get('severity', ''):<8}  {f.get('rule_id', ''):<7}  {f.get('path', '')}:{f.get('line', 0)}")
             lines.append(f"            {f.get('title', '')}")
+    runtime_findings = _active_findings(registry, runtime=True)
+    if runtime_findings:
+        window = (registry.get("runtime") or {}).get("window") or {}
+        lines += ["", f"Runtime   {len(runtime_findings)} finding(s) from traces, "
+                      f"{window.get('start', '?')[:10]} to {window.get('end', '?')[:10]} (RT rules; the dashboard's Runtime tab)"]
 
     steps = _next_steps(envelope) if next_steps else []
     if steps:

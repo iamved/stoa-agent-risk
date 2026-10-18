@@ -14,7 +14,7 @@ const envelope = load("meridian-pay");
 describe("meridian-pay fixture matches the consumed contract", () => {
   it("passes the schema check", () => {
     expect(checkEnvelope(envelope)).toBeNull();
-    expect(envelope.schema).toBe("stoa-dashboard/1.0");
+    expect(envelope.schema).toBe("stoa-dashboard/1.1");
   });
 
   it("carries the registry fields screens read", () => {
@@ -30,7 +30,7 @@ describe("meridian-pay fixture matches the consumed contract", () => {
         expect(typeof d.score).toBe("number");
         expect(typeof d.score_before_controls).toBe("number");
         expect(d.score_before_controls!).toBeGreaterThanOrEqual(d.score);
-        expect(["strong", "partial", "proxy"]).toContain(d.assessability);
+        expect(["strong", "partial", "proxy", "runtime"]).toContain(d.assessability);
       }
       for (const f of agent.findings) {
         expect(f.crosswalk?.so_what).toBeTypeOf("string");

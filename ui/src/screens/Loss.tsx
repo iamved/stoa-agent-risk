@@ -5,6 +5,7 @@ import { Chips } from "../components/KeyValue";
 import { Section } from "../components/Section";
 import { CATS, EVENTS, STATUS_LABEL, catName, money, pct, type Comparable, type GapStatus, type Indication, type Intake, type ModelAgent, type Policy, type WhatIf } from "../data/lossModel";
 import { indicationFor } from "../data/lossCache";
+import { observedMonthlyVolume } from "../data/runtime";
 import { agentToModel, candidateAgents, intakeFromEnvelope, intakeToToml } from "../data/lossInputs";
 import { uniqueAgentOf } from "../data/agents";
 import { LOSS_SEED } from "../data/overview";
@@ -23,6 +24,9 @@ export function Loss() {
   const initial = useMemo(() => intakeFromEnvelope(envelope), [envelope]);
   const [agentId, setAgentId] = useState<string>(route.query.get("agent") ?? agents[0]?.id ?? "");
   const [intake, setIntake] = useState<Intake>(initial.intake);
+  // What the trace window implies per month, shown beside the declared volume the model runs on. A
+  // trace sample is not production volume, so it informs the reader and never replaces the input.
+  const observedVolume = useMemo(() => observedMonthlyVolume(envelope), [envelope]);
   const [volume, setVolume] = useState(initial.monthlyVolume);
   const [overrides, setOverrides] = useState<Partial<ModelAgent["capabilities"]>>({});
   const [adjusting, setAdjusting] = useState(!initial.declared);
@@ -61,7 +65,8 @@ export function Loss() {
     intake.jurisdictions.join(" and "),
     c.financial_authority.enabled ? "moves money, up to " + money(c.financial_authority.max_per_action_usd) + " per action" : "cannot move money",
     c.human_in_loop === "none" ? "no human review detected" : "human review: " + c.human_in_loop.replace(/_/g, " "),
-  ].filter(Boolean);
+    observedVolume !== null ? `traces show about ${observedVolume.toLocaleString("en-US")} actions a month` : null,
+  ].filter((label): label is string => Boolean(label));
   const owner = uniqueAgentOf(envelope, agent.id);
 
   return (

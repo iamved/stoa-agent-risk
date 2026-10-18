@@ -16,7 +16,7 @@ export function Audit() {
         <div className="caption">Owners and links are from stoa-declared.toml.</div>
       </div>
       {rows.length ? (
-        <div className="panel overflow-x-auto">
+        <div className="panel overflow-x-auto" tabIndex={0}>
           <table className="tbl w-full">
             <thead><tr><th>Agent</th><th>Owner</th><th>Engineer</th><th>Findings</th><th>Next step</th></tr></thead>
             <tbody>

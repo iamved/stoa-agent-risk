@@ -67,6 +67,48 @@ test.describe("findings", () => {
     await expect(dialog).not.toContainText(/Mandate overreach|Unreviewed high-impact action|\u2014/);
   });
 
+  test("the runtime tab shows what the traces showed, and the static screens stay the scan's", async ({ page }) => {
+    await page.goto(fileUrl("meridian-pay", "#/runtime"));
+    await expect(page.getByRole("tab", { name: /Runtime/ })).toHaveAttribute("aria-selected", "true");
+    const main = page.locator("main .screen-content");
+    await expect(main).toContainText("Chain intact");
+    await expect(main).toContainText(/Observed 15 Sep 2026 to 21 Sep 2026 · \d+ spans · 3 of 5 agents active/);
+    // declared vs used: the support chatbot calls a tool the scan never listed
+    const tools = page.getByRole("table").first();
+    await expect(tools).toContainText("meridian-support");
+    await expect(tools.getByText("export_transcript", { exact: false })).toBeVisible();
+    // runtime findings point at a span, and open in the finding panel with trace evidence
+    const findings = page.getByRole("heading", { name: "Runtime findings" }).locator("xpath=ancestor::section[1]");
+    await expect(findings).toContainText("Money moved with no person on the live path");
+    await findings.getByRole("link", { name: /no person on the live path/ }).first().click();
+    await expect(page.getByRole("dialog")).toContainText("Trace evidence");
+    await expect(page.getByRole("dialog")).toContainText("trace-demo-0000.jsonl");
+    await page.keyboard.press("Escape");
+    // closing the panel lands on Findings; back to the tab for the rest
+    await page.goto(fileUrl("meridian-pay", "#/runtime"));
+    // flags by day and drift since the baseline
+    await expect(main).toContainText("Money moved with no approval");
+    await expect(main).toContainText("Approval rate fell");
+    // the static counts did not change: 13 scan findings, 3 high
+    await expect(page.getByRole("navigation", { name: "Screens" })).toContainText("3 high");
+    await expect(page.getByRole("tab", { name: /^Findings/ })).toContainText("13");
+    // no traces: the tab says so
+    await page.goto(fileUrl("first-run", "#/runtime"));
+    await expect(main).toContainText("No traces in this scan");
+  });
+
+  test("observed evidence shows beside the scan on the other screens", async ({ page }) => {
+    await page.goto(fileUrl("meridian-pay", "#/inventory"));
+    await expect(page.getByText("active in traces").first()).toBeVisible();
+    await expect(page.getByText("idle in traces").first()).toBeVisible();
+    await page.goto(fileUrl("meridian-pay", "#/controls"));
+    await expect(page.getByText(/Approval on \d+ of \d+ money actions in traces/)).toBeVisible();
+    await page.goto(fileUrl("meridian-pay", "#/findings"));
+    await expect(page.getByRole("table", { name: "Findings by category" }).getByText("observed").first()).toBeVisible();
+    await page.goto(fileUrl("meridian-pay", "#/overview"));
+    await expect(page.getByRole("heading", { name: "Risk Mapping" }).locator("xpath=ancestor::section[1]").getByText("observed").first()).toBeVisible();
+  });
+
   test("the safety audit lists every agent with its people and next steps", async ({ page }) => {
     await page.goto(fileUrl("meridian-pay", "#/audit"));
     await expect(page.getByRole("heading", { name: "Launch Safety Audit", level: 1 })).toBeVisible();

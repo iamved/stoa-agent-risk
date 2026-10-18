@@ -1,5 +1,5 @@
 {
-  "schema": "stoa-dashboard/1.0",
+  "schema": "stoa-dashboard/1.1",
   "generator": {
     "name": "stoa",
     "version": "0.7.4"
@@ -4749,6 +4749,7 @@
       }
     ]
   },
+  "runtime": null,
   "vocabulary": {
     "high_impact_capabilities": [
       "cloud_resource_access",
