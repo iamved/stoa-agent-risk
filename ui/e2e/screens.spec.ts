@@ -126,6 +126,45 @@ test.describe("findings", () => {
     await expect(main).toContainText("No policy file in this scan");
   });
 
+  test("passports list every agent and open as a printable page", async ({ page }) => {
+    await page.goto(fileUrl("meridian-pay", "#/passports"));
+    await expect(page.getByRole("heading", { name: "Passports", level: 1 })).toBeVisible();
+    const main = page.locator("main .screen-content");
+    await expect(main).toContainText("5 agents, 1 lapsed");
+    const rows = page.getByRole("table").getByRole("row");
+    await expect(rows).toHaveCount(6);
+    const support = rows.filter({ hasText: "meridian-support" });
+    await expect(support).toContainText("Erroneous Transactions");
+    await expect(support).toContainText("lapsed");
+    await expect(support).toContainText("drift high since the baseline");
+    await support.getByRole("link", { name: "meridian-support" }).click();
+    await expect(page.getByRole("heading", { name: "Agent passport: meridian-support" })).toBeVisible();
+    const verdict = page.getByRole("region", { name: "Verdict" });
+    await expect(verdict).toContainText("Erroneous Transactions driven by excess access (elevated)");
+    await expect(verdict).toContainText("passport lapsed");
+    await expect(main).toContainText("meridian-support can move money, through 4 money-moving tools");
+    await expect(main).toContainText("stopped in 1.8s");
+    await expect(main).toContainText("5 scenarios, 5 matched, 0 false positives");
+    await expect(main).toContainText("POL-FIN-002-BC3DB1");
+    await expect(main).toContainText(/Verify hash [0-9a-f]{16}/);
+    await expect(main).not.toContainText("\u2014");
+  });
+
+  test("the agent drawer and findings carry the plain-words risk type and evidence levels", async ({ page }) => {
+    await page.goto(fileUrl("meridian-pay", "#/inventory/bc3db1f17013"));
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toContainText("In plain words");
+    await expect(dialog).toContainText("Erroneous Transactions");
+    await expect(dialog).toContainText("Most likely failure: money or account changes go out wrong");
+    await page.goto(fileUrl("meridian-pay", "#/findings?evidence=declared"));
+    await expect(page.getByText(/\d+ of 13 shown \(filtered\)/)).toBeVisible();
+    const table = page.getByRole("table", { name: "Findings", exact: true });
+    await expect(table).toContainText("DECL001");
+    await expect(table).not.toContainText("AI008");
+    await page.goto(fileUrl("meridian-pay", "#/findings?evidence=static"));
+    await expect(page.getByRole("table", { name: "Findings", exact: true })).toContainText("AI008");
+  });
+
   test("the flow graph marks tools protected by a policy", async ({ page }) => {
     await page.goto(fileUrl("meridian-pay", "#/overview"));
     const flow = page.getByRole("region", { name: "Agent Risk Flow Graph" });

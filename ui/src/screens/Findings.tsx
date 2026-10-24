@@ -10,7 +10,8 @@ import { DimensionChart } from "../components/DimensionChart";
 import { SeverityTip } from "../components/InfoTip";
 import { uniqueAgents } from "../data/agents";
 import { RISK_LABEL, RISK_LEVELS, RISK_SEVERITIES, SEVERITY_RANK, activeFindings, countByLevel, allFindings, findingByFingerprint, findingTag, findingTitle, frameworkClasses, pluralize, recordCount, tagLabel, type FindingRef } from "../data/selectors";
-import type { Severity } from "../data/types";
+import { EVIDENCE_LEVELS, type Severity } from "../data/types";
+import { EVIDENCE_LABEL } from "../data/labels";
 
 /** A table row: a rule with everything it fired on, or, inside an open rule, one finding. */
 type Row = { kind: "group"; key: string; ruleId: string; refs: FindingRef[]; open: boolean } | { kind: "finding"; key: string; ref: FindingRef };
@@ -147,6 +148,7 @@ export function Findings() {
           <input value={draft ?? filters.q} onChange={(e) => setDraft(e.target.value)} onBlur={() => { if (draft !== null) { update({ ...filters, q: draft }); setDraft(null); } }} onKeyDown={(e) => { if (e.key === "Enter" && draft !== null) { update({ ...filters, q: draft }); setDraft(null); } }} placeholder="finding, rule, path, agent" className="field w-56" />
         </label>
         <Select label="Agent" value={filters.agent ?? ""} onChange={(v) => update({ ...filters, agent: v || null })} options={[{ value: "", label: "All agents" }, ...agents.map((a) => ({ value: a.id, label: a.name }))]} />
+        <Select label="Evidence" value={filters.evidence ?? ""} onChange={(v) => update({ ...filters, evidence: v || null })} options={[{ value: "", label: "Any" }, ...EVIDENCE_LEVELS.filter((l) => l !== "observed" && l !== "tested").map((l) => ({ value: l, label: EVIDENCE_LABEL[l] ?? l }))]} />
         {framework !== "nist" ? <Select label={framework === "owasp" ? "OWASP class" : "EU AI Act article"} value={filters.cls ?? ""} onChange={(v) => update({ ...filters, cls: v || null })} options={[{ value: "", label: "Any" }, ...classes.map((c) => ({ value: c.id, label: `${c.id} ${c.name}` }))]} /> : null}
         {expandable.length ? <button type="button" onClick={() => setOpenRules(allOpen ? new Set() : new Set(expandable.map((g) => g.ruleId)))} className="btn btn-sm">{allOpen ? "Collapse all" : "Expand all"}</button> : null}
         {isFiltered(filters) || sort ? (

@@ -133,7 +133,8 @@
               "eu_ai_act": "Art. 14",
               "relation": "exposure",
               "so_what": "Declared autonomy does not match what the code does."
-            }
+            },
+            "evidence_level": "declared"
           }
         ],
         "highest_severity": "critical",
@@ -428,7 +429,27 @@
         ],
         "source": "iac",
         "discovery_tier": "recognized",
-        "platform": "bedrock"
+        "platform": "bedrock",
+        "capability_evidence": {
+          "database_read": "reachable",
+          "database_write": "reachable",
+          "email_send": "reachable",
+          "tool_calling": "reachable"
+        },
+        "risk_type": {
+          "primary": "Erroneous Transactions",
+          "driver": "mandate-overreach",
+          "driver_exposure": "elevated",
+          "driver_score": 76,
+          "confidence": "high"
+        },
+        "explanation": {
+          "can_do": "meridian-account-actions can change records, read records and send email, through 4 money-moving tools (issue_refund, waive_fee, reissue_card, ...).",
+          "could_go_wrong": "Most likely failure: money or account changes go out wrong, twice, or without anyone deciding. Driven by excess access (elevated). 1 high-severity finding points there.",
+          "protects": "No safeguard was detected on this agent.",
+          "missing": "Missing: a person approves before it acts, a kill switch, logging, a rate limit and a declared spending limit.",
+          "evidence": "Evidence: 2 declared, 4 reachable. Nothing observed at runtime yet."
+        }
       },
       {
         "id": "62007a57a832",
@@ -606,7 +627,24 @@
         },
         "source": "iac",
         "discovery_tier": "recognized",
-        "platform": "bedrock"
+        "platform": "bedrock",
+        "capability_evidence": {
+          "vector_search": "reachable"
+        },
+        "risk_type": {
+          "primary": "Prompt Injections",
+          "driver": "injection-tamper-surface",
+          "driver_exposure": "low",
+          "driver_score": 18,
+          "confidence": "high"
+        },
+        "explanation": {
+          "can_do": "meridian-knowledge can search documents.",
+          "could_go_wrong": "Most likely failure: text from a user or a document steers what the agent does. Driven by injection risk (low).",
+          "protects": "No safeguard was detected on this agent.",
+          "missing": "Missing: a kill switch and logging.",
+          "evidence": "Evidence: 1 declared, 1 reachable. Nothing observed at runtime yet."
+        }
       },
       {
         "id": "b8f0111742fc",
@@ -683,7 +721,8 @@
               "eu_ai_act": "Art. 15",
               "relation": "exposure",
               "so_what": "The model reference is unpinned, so behavior can change under you silently."
-            }
+            },
+            "evidence_level": "static"
           },
           {
             "fingerprint": "c0e7b0d45a6967b7",
@@ -720,7 +759,8 @@
               "eu_ai_act": "Art. 9",
               "relation": "exposure",
               "so_what": "A retried money action with no idempotency key can post twice, and each attempt stays under the per-call limit."
-            }
+            },
+            "evidence_level": "static"
           },
           {
             "fingerprint": "a2f94531c7770b68",
@@ -751,7 +791,8 @@
               "eu_ai_act": "Art. 14",
               "relation": "exposure",
               "so_what": "Declared autonomy does not match what the code does."
-            }
+            },
+            "evidence_level": "declared"
           },
           {
             "fingerprint": "9d9a33f2fd7ff254",
@@ -783,7 +824,8 @@
               "eu_ai_act": "Art. 12",
               "relation": "exposure",
               "so_what": "Without logging you cannot reconstruct what the agent did."
-            }
+            },
+            "evidence_level": "static"
           },
           {
             "fingerprint": "77d4c36eaa0b4850",
@@ -809,7 +851,8 @@
               "eu_ai_act": "Art. 14",
               "relation": "exposure",
               "so_what": "No kill-switch signal was observed to halt the agent mid-run."
-            }
+            },
+            "evidence_level": "static"
           },
           {
             "fingerprint": "1b5760feca23bde6",
@@ -839,7 +882,8 @@
               "eu_ai_act": "Art. 12",
               "relation": "exposure",
               "so_what": "The agent runs in production with no observability observed."
-            }
+            },
+            "evidence_level": "declared"
           }
         ],
         "highest_severity": "critical",
@@ -1209,7 +1253,25 @@
             "idempotency_key": false,
             "resolved": true
           }
-        ]
+        ],
+        "capability_evidence": {
+          "payment_access": "static",
+          "tool_calling": "static"
+        },
+        "risk_type": {
+          "primary": "Erroneous Transactions",
+          "driver": "mandate-overreach",
+          "driver_exposure": "elevated",
+          "driver_score": 58,
+          "confidence": "high"
+        },
+        "explanation": {
+          "can_do": "account-actions can move money, through 4 money-moving tools (issue_refund, waive_fee, reissue_card, ...).",
+          "could_go_wrong": "Most likely failure: money or account changes go out wrong, twice, or without anyone deciding. Driven by excess access (elevated). 2 high-severity findings point there.",
+          "protects": "Detected: callers are signed in, fixed model settings and inputs are checked.",
+          "missing": "Missing: a person approves before it acts, a kill switch, logging and a rate limit.",
+          "evidence": "Evidence: 3 declared, 6 static. Nothing observed at runtime yet."
+        }
       },
       {
         "id": "2a61ffb1db0d",
@@ -1296,7 +1358,8 @@
               "eu_ai_act": "Art. 15",
               "relation": "exposure",
               "so_what": "The model reference is unpinned, so behavior can change under you silently."
-            }
+            },
+            "evidence_level": "static"
           },
           {
             "fingerprint": "d373f238bf601384",
@@ -1322,7 +1385,8 @@
               "eu_ai_act": "Art. 14",
               "relation": "exposure",
               "so_what": "No kill-switch signal was observed to halt the agent mid-run."
-            }
+            },
+            "evidence_level": "static"
           }
         ],
         "highest_severity": "low",
@@ -1498,7 +1562,26 @@
             "idempotency_key": false,
             "resolved": true
           }
-        ]
+        ],
+        "capability_evidence": {
+          "cloud_resource_access": "static",
+          "external_http": "static",
+          "tool_calling": "static"
+        },
+        "risk_type": {
+          "primary": "Data Leakage",
+          "driver": "boundary-leakage",
+          "driver_exposure": "low",
+          "driver_score": 18,
+          "confidence": "high"
+        },
+        "explanation": {
+          "can_do": "meridian-front can call outside services and change cloud resources.",
+          "could_go_wrong": "Most likely failure: data the agent can read ends up where it should not. Driven by data leaks (low).",
+          "protects": "Detected: a person approves before it acts, callers are signed in, fixed model settings and inputs are checked.",
+          "missing": "Missing: a kill switch and logging.",
+          "evidence": "Evidence: 1 declared, 5 static. Nothing observed at runtime yet."
+        }
       },
       {
         "id": "bc3db1f17013",
@@ -1580,7 +1663,8 @@
               "eu_ai_act": "Art. 15",
               "relation": "exposure",
               "so_what": "The model reference is unpinned, so behavior can change under you silently."
-            }
+            },
+            "evidence_level": "static"
           },
           {
             "fingerprint": "c0e7b0d45a6967b7",
@@ -1617,7 +1701,8 @@
               "eu_ai_act": "Art. 9",
               "relation": "exposure",
               "so_what": "A retried money action with no idempotency key can post twice, and each attempt stays under the per-call limit."
-            }
+            },
+            "evidence_level": "static"
           },
           {
             "fingerprint": "beea59d6e4f92d41",
@@ -1648,7 +1733,8 @@
               "eu_ai_act": "Art. 14",
               "relation": "exposure",
               "so_what": "Declared autonomy does not match what the code does."
-            }
+            },
+            "evidence_level": "declared"
           },
           {
             "fingerprint": "d3aa4f31715fea22",
@@ -1680,7 +1766,8 @@
               "eu_ai_act": "Art. 12",
               "relation": "exposure",
               "so_what": "Without logging you cannot reconstruct what the agent did."
-            }
+            },
+            "evidence_level": "static"
           },
           {
             "fingerprint": "417973c8cdee50be",
@@ -1706,7 +1793,8 @@
               "eu_ai_act": "Art. 14",
               "relation": "exposure",
               "so_what": "No kill-switch signal was observed to halt the agent mid-run."
-            }
+            },
+            "evidence_level": "static"
           },
           {
             "fingerprint": "a80d048a4b0f4297",
@@ -1736,7 +1824,8 @@
               "eu_ai_act": "Art. 12",
               "relation": "exposure",
               "so_what": "The agent runs in production with no observability observed."
-            }
+            },
+            "evidence_level": "declared"
           }
         ],
         "highest_severity": "critical",
@@ -2092,7 +2181,24 @@
             "idempotency_key": false,
             "resolved": true
           }
-        ]
+        ],
+        "capability_evidence": {
+          "payment_access": "static"
+        },
+        "risk_type": {
+          "primary": "Erroneous Transactions",
+          "driver": "mandate-overreach",
+          "driver_exposure": "elevated",
+          "driver_score": 58,
+          "confidence": "high"
+        },
+        "explanation": {
+          "can_do": "meridian-support can move money, through 4 money-moving tools (issue_refund, waive_fee, reissue_card, ...).",
+          "could_go_wrong": "Most likely failure: money or account changes go out wrong, twice, or without anyone deciding. Driven by excess access (elevated). 2 high-severity findings point there.",
+          "protects": "Detected: callers are signed in, fixed model settings and inputs are checked.",
+          "missing": "Missing: a person approves before it acts, a kill switch, logging, a rate limit and a declared spending limit.",
+          "evidence": "Evidence: 3 declared, 5 static. Nothing observed at runtime yet."
+        }
       },
       {
         "id": "224627e4877d",
@@ -2271,7 +2377,25 @@
         },
         "source": "iac",
         "discovery_tier": "recognized",
-        "platform": "databricks"
+        "platform": "databricks",
+        "capability_evidence": {
+          "database_read": "reachable",
+          "database_write": "reachable"
+        },
+        "risk_type": {
+          "primary": "Data Loss & Corruption",
+          "driver": "mandate-overreach",
+          "driver_exposure": "low",
+          "driver_score": 18,
+          "confidence": "high"
+        },
+        "explanation": {
+          "can_do": "meridian-escalation can change records and read records.",
+          "could_go_wrong": "Most likely failure: records or systems are changed or lost without a check. Driven by excess access (low).",
+          "protects": "Detected: logging and a rate limit.",
+          "missing": "Missing: a kill switch.",
+          "evidence": "Evidence: 1 declared, 2 reachable. Nothing observed at runtime yet."
+        }
       }
     ],
     "repository_findings": [
@@ -2310,7 +2434,8 @@
           "eu_ai_act": "Art. 9",
           "relation": "exposure",
           "so_what": "A retried money action with no idempotency key can post twice, and each attempt stays under the per-call limit."
-        }
+        },
+        "evidence_level": "static"
       },
       {
         "fingerprint": "a2f94531c7770b68",
@@ -2341,7 +2466,8 @@
           "eu_ai_act": "Art. 14",
           "relation": "exposure",
           "so_what": "Declared autonomy does not match what the code does."
-        }
+        },
+        "evidence_level": "declared"
       },
       {
         "fingerprint": "beea59d6e4f92d41",
@@ -2372,7 +2498,8 @@
           "eu_ai_act": "Art. 14",
           "relation": "exposure",
           "so_what": "Declared autonomy does not match what the code does."
-        }
+        },
+        "evidence_level": "declared"
       }
     ],
     "skipped_files": [],
@@ -7528,6 +7655,969 @@
     ]
   },
   "runtime": null,
+  "passports": [
+    {
+      "schema": "stoa-passport/0.1",
+      "agent": {
+        "id": "b8f0111742fc",
+        "name": "account-actions",
+        "owner": "digital-servicing@meridian.example",
+        "purpose": "Issues refunds, waives fees, updates contact details, reissues cards",
+        "production_status": "production",
+        "users": "customers",
+        "declared_autonomy": "human_approved",
+        "inferred_autonomy": "unrestricted_autonomous",
+        "defined_in": "code/agents/account_actions_agent.py",
+        "source": "code",
+        "platform": null
+      },
+      "capabilities": [
+        {
+          "id": "payment_access",
+          "evidence_level": "static"
+        },
+        {
+          "id": "tool_calling",
+          "evidence_level": "static"
+        }
+      ],
+      "tools": [
+        {
+          "name": "issue_refund",
+          "money_action": true,
+          "high_impact": true,
+          "guardrails": []
+        },
+        {
+          "name": "waive_fee",
+          "money_action": true,
+          "high_impact": true,
+          "guardrails": []
+        },
+        {
+          "name": "update_contact_info",
+          "money_action": false,
+          "high_impact": false,
+          "guardrails": []
+        },
+        {
+          "name": "reissue_card",
+          "money_action": true,
+          "high_impact": true,
+          "guardrails": []
+        },
+        {
+          "name": "place_travel_notice",
+          "money_action": false,
+          "high_impact": false,
+          "guardrails": []
+        },
+        {
+          "name": "change_payout_account",
+          "money_action": true,
+          "high_impact": true,
+          "guardrails": []
+        }
+      ],
+      "reach": {
+        "reachable": [],
+        "static": [
+          "payment_access",
+          "tool_calling"
+        ],
+        "observed": []
+      },
+      "dimensions": [
+        {
+          "id": "mandate-overreach",
+          "exposure": "elevated",
+          "score": 58,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "boundary-leakage",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "unreviewed-high-impact-action",
+          "exposure": "moderate",
+          "score": 53,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "output-fidelity",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        },
+        {
+          "id": "injection-tamper-surface",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        },
+        {
+          "id": "conduct-variability",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "proxy",
+          "static_exposure": null
+        },
+        {
+          "id": "dependency-drift",
+          "exposure": "low",
+          "score": 10,
+          "assessability": "proxy",
+          "static_exposure": null
+        },
+        {
+          "id": "control-coverage-gap",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        }
+      ],
+      "risk_type": {
+        "primary": "Erroneous Transactions",
+        "driver": "mandate-overreach",
+        "driver_exposure": "elevated",
+        "driver_score": 58,
+        "confidence": "high"
+      },
+      "explanation": {
+        "can_do": "account-actions can move money, through 4 money-moving tools (issue_refund, waive_fee, reissue_card, ...).",
+        "could_go_wrong": "Most likely failure: money or account changes go out wrong, twice, or without anyone deciding. Driven by excess access (elevated). 2 high-severity findings point there.",
+        "protects": "Detected: callers are signed in, fixed model settings and inputs are checked.",
+        "missing": "Missing: a person approves before it acts, a kill switch, logging and a rate limit.",
+        "evidence": "Evidence: 3 declared, 6 static. Nothing observed at runtime yet."
+      },
+      "controls_observed": [
+        "authentication",
+        "deterministic_sampling",
+        "validation"
+      ],
+      "policies": {
+        "mode": null,
+        "attached": []
+      },
+      "drift": {
+        "status": "unchanged",
+        "severity": null,
+        "detail": "vs b7c8d9e"
+      },
+      "evidence_mix": {
+        "declared": 3,
+        "static": 6,
+        "reachable": 0,
+        "observed": 0,
+        "tested": 0
+      },
+      "runtime": null,
+      "killswitch_drill": null,
+      "policy_test": null,
+      "registry_hash": "348156644db718bd",
+      "scanner_version": "0.7.4",
+      "scan_date": "2026-09-15",
+      "validity": {
+        "rule": "lapses on drift above medium, or 90 days after the scan",
+        "expires": "2026-12-14",
+        "status": "valid",
+        "reason": null
+      },
+      "verify_hash": "f798fc52707c99db"
+    },
+    {
+      "schema": "stoa-passport/0.1",
+      "agent": {
+        "id": "ddb08fa73da1",
+        "name": "meridian-account-actions",
+        "owner": "digital-servicing@meridian.example",
+        "purpose": "Account actions on Bedrock",
+        "production_status": "production",
+        "users": "customers",
+        "declared_autonomy": "human_approved",
+        "inferred_autonomy": "unrestricted_autonomous",
+        "defined_in": "aws/account_actions.tf",
+        "source": "iac",
+        "platform": "bedrock"
+      },
+      "capabilities": [
+        {
+          "id": "database_read",
+          "evidence_level": "reachable"
+        },
+        {
+          "id": "database_write",
+          "evidence_level": "reachable"
+        },
+        {
+          "id": "email_send",
+          "evidence_level": "reachable"
+        },
+        {
+          "id": "tool_calling",
+          "evidence_level": "reachable"
+        }
+      ],
+      "tools": [
+        {
+          "name": "issue_refund",
+          "money_action": true,
+          "high_impact": true,
+          "guardrails": []
+        },
+        {
+          "name": "waive_fee",
+          "money_action": true,
+          "high_impact": true,
+          "guardrails": []
+        },
+        {
+          "name": "update_contact_info",
+          "money_action": false,
+          "high_impact": true,
+          "guardrails": []
+        },
+        {
+          "name": "reissue_card",
+          "money_action": true,
+          "high_impact": true,
+          "guardrails": []
+        },
+        {
+          "name": "place_travel_notice",
+          "money_action": false,
+          "high_impact": true,
+          "guardrails": []
+        },
+        {
+          "name": "change_payout_account",
+          "money_action": true,
+          "high_impact": true,
+          "guardrails": []
+        }
+      ],
+      "reach": {
+        "reachable": [
+          "database_read",
+          "database_write",
+          "email_send",
+          "tool_calling"
+        ],
+        "static": [],
+        "observed": []
+      },
+      "dimensions": [
+        {
+          "id": "mandate-overreach",
+          "exposure": "elevated",
+          "score": 76,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "boundary-leakage",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "unreviewed-high-impact-action",
+          "exposure": "elevated",
+          "score": 76,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "output-fidelity",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        },
+        {
+          "id": "injection-tamper-surface",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        },
+        {
+          "id": "conduct-variability",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "proxy",
+          "static_exposure": null
+        },
+        {
+          "id": "dependency-drift",
+          "exposure": "low",
+          "score": 8,
+          "assessability": "proxy",
+          "static_exposure": null
+        },
+        {
+          "id": "control-coverage-gap",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        }
+      ],
+      "risk_type": {
+        "primary": "Erroneous Transactions",
+        "driver": "mandate-overreach",
+        "driver_exposure": "elevated",
+        "driver_score": 76,
+        "confidence": "high"
+      },
+      "explanation": {
+        "can_do": "meridian-account-actions can change records, read records and send email, through 4 money-moving tools (issue_refund, waive_fee, reissue_card, ...).",
+        "could_go_wrong": "Most likely failure: money or account changes go out wrong, twice, or without anyone deciding. Driven by excess access (elevated). 1 high-severity finding points there.",
+        "protects": "No safeguard was detected on this agent.",
+        "missing": "Missing: a person approves before it acts, a kill switch, logging, a rate limit and a declared spending limit.",
+        "evidence": "Evidence: 2 declared, 4 reachable. Nothing observed at runtime yet."
+      },
+      "controls_observed": [],
+      "policies": {
+        "mode": null,
+        "attached": []
+      },
+      "drift": {
+        "status": "changed",
+        "severity": "high",
+        "detail": "4 unapproved addition(s)"
+      },
+      "evidence_mix": {
+        "declared": 2,
+        "static": 0,
+        "reachable": 4,
+        "observed": 0,
+        "tested": 0
+      },
+      "runtime": null,
+      "killswitch_drill": null,
+      "policy_test": null,
+      "registry_hash": "348156644db718bd",
+      "scanner_version": "0.7.4",
+      "scan_date": "2026-09-15",
+      "validity": {
+        "rule": "lapses on drift above medium, or 90 days after the scan",
+        "expires": "2026-12-14",
+        "status": "lapsed",
+        "reason": "drift high since the baseline"
+      },
+      "verify_hash": "649771f93d945f68"
+    },
+    {
+      "schema": "stoa-passport/0.1",
+      "agent": {
+        "id": "224627e4877d",
+        "name": "meridian-escalation",
+        "owner": "platform-risk@meridian.example",
+        "purpose": "Drafts case notes and queues them for a person, on Databricks",
+        "production_status": null,
+        "users": "internal",
+        "declared_autonomy": null,
+        "inferred_autonomy": "recommend_only",
+        "defined_in": "databricks/infra/main.tf",
+        "source": "iac",
+        "platform": "databricks"
+      },
+      "capabilities": [
+        {
+          "id": "database_read",
+          "evidence_level": "reachable"
+        },
+        {
+          "id": "database_write",
+          "evidence_level": "reachable"
+        }
+      ],
+      "tools": [],
+      "reach": {
+        "reachable": [
+          "database_read",
+          "database_write"
+        ],
+        "static": [],
+        "observed": []
+      },
+      "dimensions": [
+        {
+          "id": "mandate-overreach",
+          "exposure": "low",
+          "score": 18,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "boundary-leakage",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "unreviewed-high-impact-action",
+          "exposure": "low",
+          "score": 18,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "output-fidelity",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        },
+        {
+          "id": "injection-tamper-surface",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        },
+        {
+          "id": "conduct-variability",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "proxy",
+          "static_exposure": null
+        },
+        {
+          "id": "dependency-drift",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "proxy",
+          "static_exposure": null
+        },
+        {
+          "id": "control-coverage-gap",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        }
+      ],
+      "risk_type": {
+        "primary": "Data Loss & Corruption",
+        "driver": "mandate-overreach",
+        "driver_exposure": "low",
+        "driver_score": 18,
+        "confidence": "high"
+      },
+      "explanation": {
+        "can_do": "meridian-escalation can change records and read records.",
+        "could_go_wrong": "Most likely failure: records or systems are changed or lost without a check. Driven by excess access (low).",
+        "protects": "Detected: logging and a rate limit.",
+        "missing": "Missing: a kill switch.",
+        "evidence": "Evidence: 1 declared, 2 reachable. Nothing observed at runtime yet."
+      },
+      "controls_observed": [
+        "observability",
+        "rate_limit"
+      ],
+      "policies": {
+        "mode": null,
+        "attached": []
+      },
+      "drift": {
+        "status": "unchanged",
+        "severity": null,
+        "detail": "vs b7c8d9e"
+      },
+      "evidence_mix": {
+        "declared": 1,
+        "static": 0,
+        "reachable": 2,
+        "observed": 0,
+        "tested": 0
+      },
+      "runtime": null,
+      "killswitch_drill": null,
+      "policy_test": null,
+      "registry_hash": "348156644db718bd",
+      "scanner_version": "0.7.4",
+      "scan_date": "2026-09-15",
+      "validity": {
+        "rule": "lapses on drift above medium, or 90 days after the scan",
+        "expires": "2026-12-14",
+        "status": "valid",
+        "reason": null
+      },
+      "verify_hash": "6a5a2fcd3c9c423a"
+    },
+    {
+      "schema": "stoa-passport/0.1",
+      "agent": {
+        "id": "2a61ffb1db0d",
+        "name": "meridian-front",
+        "owner": "digital-servicing@meridian.example",
+        "purpose": "Customer conversation, identity check and routing to the specialists",
+        "production_status": null,
+        "users": "customers",
+        "declared_autonomy": null,
+        "inferred_autonomy": "recommend_only",
+        "defined_in": "code/agents/front_agent.py",
+        "source": "code",
+        "platform": null
+      },
+      "capabilities": [
+        {
+          "id": "cloud_resource_access",
+          "evidence_level": "static"
+        },
+        {
+          "id": "external_http",
+          "evidence_level": "static"
+        },
+        {
+          "id": "tool_calling",
+          "evidence_level": "static"
+        }
+      ],
+      "tools": [
+        {
+          "name": "verify_identity",
+          "money_action": false,
+          "high_impact": false,
+          "guardrails": []
+        }
+      ],
+      "reach": {
+        "reachable": [],
+        "static": [
+          "cloud_resource_access",
+          "external_http",
+          "tool_calling"
+        ],
+        "observed": []
+      },
+      "dimensions": [
+        {
+          "id": "mandate-overreach",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "boundary-leakage",
+          "exposure": "low",
+          "score": 18,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "unreviewed-high-impact-action",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "output-fidelity",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        },
+        {
+          "id": "injection-tamper-surface",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        },
+        {
+          "id": "conduct-variability",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "proxy",
+          "static_exposure": null
+        },
+        {
+          "id": "dependency-drift",
+          "exposure": "low",
+          "score": 10,
+          "assessability": "proxy",
+          "static_exposure": null
+        },
+        {
+          "id": "control-coverage-gap",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        }
+      ],
+      "risk_type": {
+        "primary": "Data Leakage",
+        "driver": "boundary-leakage",
+        "driver_exposure": "low",
+        "driver_score": 18,
+        "confidence": "high"
+      },
+      "explanation": {
+        "can_do": "meridian-front can call outside services and change cloud resources.",
+        "could_go_wrong": "Most likely failure: data the agent can read ends up where it should not. Driven by data leaks (low).",
+        "protects": "Detected: a person approves before it acts, callers are signed in, fixed model settings and inputs are checked.",
+        "missing": "Missing: a kill switch and logging.",
+        "evidence": "Evidence: 1 declared, 5 static. Nothing observed at runtime yet."
+      },
+      "controls_observed": [
+        "approval",
+        "authentication",
+        "deterministic_sampling",
+        "validation"
+      ],
+      "policies": {
+        "mode": null,
+        "attached": []
+      },
+      "drift": {
+        "status": "unchanged",
+        "severity": null,
+        "detail": "vs b7c8d9e"
+      },
+      "evidence_mix": {
+        "declared": 1,
+        "static": 5,
+        "reachable": 0,
+        "observed": 0,
+        "tested": 0
+      },
+      "runtime": null,
+      "killswitch_drill": null,
+      "policy_test": null,
+      "registry_hash": "348156644db718bd",
+      "scanner_version": "0.7.4",
+      "scan_date": "2026-09-15",
+      "validity": {
+        "rule": "lapses on drift above medium, or 90 days after the scan",
+        "expires": "2026-12-14",
+        "status": "valid",
+        "reason": null
+      },
+      "verify_hash": "d057dfc0bea77419"
+    },
+    {
+      "schema": "stoa-passport/0.1",
+      "agent": {
+        "id": "62007a57a832",
+        "name": "meridian-knowledge",
+        "owner": "platform-risk@meridian.example",
+        "purpose": "Answers policy and ticket questions from the knowledge base, on Bedrock",
+        "production_status": null,
+        "users": "internal",
+        "declared_autonomy": null,
+        "inferred_autonomy": "recommend_only",
+        "defined_in": "aws/agents.tf",
+        "source": "iac",
+        "platform": "bedrock"
+      },
+      "capabilities": [
+        {
+          "id": "vector_search",
+          "evidence_level": "reachable"
+        }
+      ],
+      "tools": [],
+      "reach": {
+        "reachable": [
+          "vector_search"
+        ],
+        "static": [],
+        "observed": []
+      },
+      "dimensions": [
+        {
+          "id": "mandate-overreach",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "boundary-leakage",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "unreviewed-high-impact-action",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "output-fidelity",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        },
+        {
+          "id": "injection-tamper-surface",
+          "exposure": "low",
+          "score": 18,
+          "assessability": "partial",
+          "static_exposure": null
+        },
+        {
+          "id": "conduct-variability",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "proxy",
+          "static_exposure": null
+        },
+        {
+          "id": "dependency-drift",
+          "exposure": "low",
+          "score": 8,
+          "assessability": "proxy",
+          "static_exposure": null
+        },
+        {
+          "id": "control-coverage-gap",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        }
+      ],
+      "risk_type": {
+        "primary": "Prompt Injections",
+        "driver": "injection-tamper-surface",
+        "driver_exposure": "low",
+        "driver_score": 18,
+        "confidence": "high"
+      },
+      "explanation": {
+        "can_do": "meridian-knowledge can search documents.",
+        "could_go_wrong": "Most likely failure: text from a user or a document steers what the agent does. Driven by injection risk (low).",
+        "protects": "No safeguard was detected on this agent.",
+        "missing": "Missing: a kill switch and logging.",
+        "evidence": "Evidence: 1 declared, 1 reachable. Nothing observed at runtime yet."
+      },
+      "controls_observed": [],
+      "policies": {
+        "mode": null,
+        "attached": []
+      },
+      "drift": {
+        "status": "unchanged",
+        "severity": null,
+        "detail": "vs b7c8d9e"
+      },
+      "evidence_mix": {
+        "declared": 1,
+        "static": 0,
+        "reachable": 1,
+        "observed": 0,
+        "tested": 0
+      },
+      "runtime": null,
+      "killswitch_drill": null,
+      "policy_test": null,
+      "registry_hash": "348156644db718bd",
+      "scanner_version": "0.7.4",
+      "scan_date": "2026-09-15",
+      "validity": {
+        "rule": "lapses on drift above medium, or 90 days after the scan",
+        "expires": "2026-12-14",
+        "status": "valid",
+        "reason": null
+      },
+      "verify_hash": "f48c53d78e1a4f86"
+    },
+    {
+      "schema": "stoa-passport/0.1",
+      "agent": {
+        "id": "bc3db1f17013",
+        "name": "meridian-support",
+        "owner": "digital-servicing@meridian.example",
+        "purpose": "Customer support chatbot on web chat and IVR, added September 2026",
+        "production_status": "production",
+        "users": "customers",
+        "declared_autonomy": "human_approved",
+        "inferred_autonomy": "unrestricted_autonomous",
+        "defined_in": "code/agents/support_agent.py",
+        "source": "code",
+        "platform": null
+      },
+      "capabilities": [
+        {
+          "id": "payment_access",
+          "evidence_level": "static"
+        }
+      ],
+      "tools": [
+        {
+          "name": "issue_refund",
+          "money_action": true,
+          "high_impact": true,
+          "guardrails": []
+        },
+        {
+          "name": "waive_fee",
+          "money_action": true,
+          "high_impact": true,
+          "guardrails": []
+        },
+        {
+          "name": "update_contact_info",
+          "money_action": false,
+          "high_impact": false,
+          "guardrails": []
+        },
+        {
+          "name": "reissue_card",
+          "money_action": true,
+          "high_impact": true,
+          "guardrails": []
+        },
+        {
+          "name": "place_travel_notice",
+          "money_action": false,
+          "high_impact": false,
+          "guardrails": []
+        },
+        {
+          "name": "change_payout_account",
+          "money_action": true,
+          "high_impact": true,
+          "guardrails": []
+        }
+      ],
+      "reach": {
+        "reachable": [],
+        "static": [
+          "payment_access"
+        ],
+        "observed": []
+      },
+      "dimensions": [
+        {
+          "id": "mandate-overreach",
+          "exposure": "elevated",
+          "score": 58,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "boundary-leakage",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "unreviewed-high-impact-action",
+          "exposure": "moderate",
+          "score": 53,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "output-fidelity",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        },
+        {
+          "id": "injection-tamper-surface",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        },
+        {
+          "id": "conduct-variability",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "proxy",
+          "static_exposure": null
+        },
+        {
+          "id": "dependency-drift",
+          "exposure": "low",
+          "score": 10,
+          "assessability": "proxy",
+          "static_exposure": null
+        },
+        {
+          "id": "control-coverage-gap",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        }
+      ],
+      "risk_type": {
+        "primary": "Erroneous Transactions",
+        "driver": "mandate-overreach",
+        "driver_exposure": "elevated",
+        "driver_score": 58,
+        "confidence": "high"
+      },
+      "explanation": {
+        "can_do": "meridian-support can move money, through 4 money-moving tools (issue_refund, waive_fee, reissue_card, ...).",
+        "could_go_wrong": "Most likely failure: money or account changes go out wrong, twice, or without anyone deciding. Driven by excess access (elevated). 2 high-severity findings point there.",
+        "protects": "Detected: callers are signed in, fixed model settings and inputs are checked.",
+        "missing": "Missing: a person approves before it acts, a kill switch, logging, a rate limit and a declared spending limit.",
+        "evidence": "Evidence: 3 declared, 5 static. Nothing observed at runtime yet."
+      },
+      "controls_observed": [
+        "authentication",
+        "deterministic_sampling",
+        "validation"
+      ],
+      "policies": {
+        "mode": null,
+        "attached": []
+      },
+      "drift": {
+        "status": "unchanged",
+        "severity": null,
+        "detail": "vs b7c8d9e"
+      },
+      "evidence_mix": {
+        "declared": 3,
+        "static": 5,
+        "reachable": 0,
+        "observed": 0,
+        "tested": 0
+      },
+      "runtime": null,
+      "killswitch_drill": null,
+      "policy_test": null,
+      "registry_hash": "348156644db718bd",
+      "scanner_version": "0.7.4",
+      "scan_date": "2026-09-15",
+      "validity": {
+        "rule": "lapses on drift above medium, or 90 days after the scan",
+        "expires": "2026-12-14",
+        "status": "valid",
+        "reason": null
+      },
+      "verify_hash": "5a2c2c923ca1d6b4"
+    }
+  ],
   "vocabulary": {
     "high_impact_capabilities": [
       "cloud_resource_access",

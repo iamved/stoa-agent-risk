@@ -219,6 +219,23 @@
         "source": "iac",
         "discovery_tier": "recognized",
         "platform": "bedrock",
+        "capability_evidence": {
+          "vector_search": "reachable"
+        },
+        "risk_type": {
+          "primary": "Prompt Injections",
+          "driver": "injection-tamper-surface",
+          "driver_exposure": "low",
+          "driver_score": 18,
+          "confidence": "high"
+        },
+        "explanation": {
+          "can_do": "meridian-knowledge can search documents.",
+          "could_go_wrong": "Most likely failure: text from a user or a document steers what the agent does. Driven by injection risk (low).",
+          "protects": "No safeguard was detected on this agent.",
+          "missing": "Missing: a kill switch and logging.",
+          "evidence": "Evidence: 1 declared, 1 reachable. Nothing observed at runtime yet."
+        },
         "liveness_state": "idle"
       },
       {
@@ -296,7 +313,8 @@
               "eu_ai_act": "Art. 15",
               "relation": "exposure",
               "so_what": "The model reference is unpinned, so behavior can change under you silently."
-            }
+            },
+            "evidence_level": "static"
           },
           {
             "fingerprint": "c0e7b0d45a6967b7",
@@ -333,7 +351,8 @@
               "eu_ai_act": "Art. 9",
               "relation": "exposure",
               "so_what": "A retried money action with no idempotency key can post twice, and each attempt stays under the per-call limit."
-            }
+            },
+            "evidence_level": "static"
           },
           {
             "fingerprint": "a2f94531c7770b68",
@@ -364,7 +383,8 @@
               "eu_ai_act": "Art. 14",
               "relation": "exposure",
               "so_what": "Declared autonomy does not match what the code does."
-            }
+            },
+            "evidence_level": "declared"
           },
           {
             "fingerprint": "9d9a33f2fd7ff254",
@@ -396,7 +416,8 @@
               "eu_ai_act": "Art. 12",
               "relation": "exposure",
               "so_what": "Without logging you cannot reconstruct what the agent did."
-            }
+            },
+            "evidence_level": "static"
           },
           {
             "fingerprint": "77d4c36eaa0b4850",
@@ -422,7 +443,8 @@
               "eu_ai_act": "Art. 14",
               "relation": "exposure",
               "so_what": "No kill-switch signal was observed to halt the agent mid-run."
-            }
+            },
+            "evidence_level": "static"
           },
           {
             "fingerprint": "1b5760feca23bde6",
@@ -452,7 +474,8 @@
               "eu_ai_act": "Art. 12",
               "relation": "exposure",
               "so_what": "The agent runs in production with no observability observed."
-            }
+            },
+            "evidence_level": "declared"
           },
           {
             "fingerprint": "2157f68073a5259d",
@@ -484,7 +507,8 @@
               "eu_ai_act": "Art. 14",
               "relation": "exposure",
               "so_what": "At runtime the declared oversight step was not observed to fire."
-            }
+            },
+            "evidence_level": "observed"
           },
           {
             "fingerprint": "1617367eddf8cc61",
@@ -516,7 +540,8 @@
               "eu_ai_act": "Art. 14",
               "relation": "exposure",
               "so_what": "The agent acted beyond the declared money or authority limit."
-            }
+            },
+            "evidence_level": "observed"
           },
           {
             "fingerprint": "2434982ea636ad6c",
@@ -548,7 +573,8 @@
               "eu_ai_act": "Art. 14",
               "relation": "exposure",
               "so_what": "Money moved with no person on the live path, whatever the declaration says."
-            }
+            },
+            "evidence_level": "observed"
           }
         ],
         "highest_severity": "critical",
@@ -1002,6 +1028,24 @@
             "resolved": true
           }
         ],
+        "capability_evidence": {
+          "payment_access": "observed",
+          "tool_calling": "static"
+        },
+        "risk_type": {
+          "primary": "Erroneous Transactions",
+          "driver": "mandate-overreach",
+          "driver_exposure": "elevated",
+          "driver_score": 58,
+          "confidence": "low"
+        },
+        "explanation": {
+          "can_do": "account-actions can move money, through 4 money-moving tools (issue_refund, waive_fee, reissue_card, ...).",
+          "could_go_wrong": "Most likely failure: money or account changes go out wrong, twice, or without anyone deciding. Driven by excess access (elevated). 2 high-severity findings point there.",
+          "protects": "Detected: callers are signed in, fixed model settings and inputs are checked.",
+          "missing": "Missing: a person approves before it acts, a kill switch, logging and a rate limit.",
+          "evidence": "Evidence: 3 declared, 5 static, 4 observed. Observed over 22 spans."
+        },
         "runtime_evidence": {
           "window": {
             "start": "2026-09-15T10:00:00.000Z",
@@ -1147,7 +1191,8 @@
               "eu_ai_act": "Art. 15",
               "relation": "exposure",
               "so_what": "The model reference is unpinned, so behavior can change under you silently."
-            }
+            },
+            "evidence_level": "static"
           },
           {
             "fingerprint": "d373f238bf601384",
@@ -1173,7 +1218,8 @@
               "eu_ai_act": "Art. 14",
               "relation": "exposure",
               "so_what": "No kill-switch signal was observed to halt the agent mid-run."
-            }
+            },
+            "evidence_level": "static"
           }
         ],
         "highest_severity": "low",
@@ -1408,6 +1454,25 @@
             "resolved": true
           }
         ],
+        "capability_evidence": {
+          "cloud_resource_access": "static",
+          "external_http": "static",
+          "tool_calling": "static"
+        },
+        "risk_type": {
+          "primary": "Performance Failure",
+          "driver": "dependency-drift",
+          "driver_exposure": "moderate",
+          "driver_score": 10,
+          "confidence": "high"
+        },
+        "explanation": {
+          "can_do": "meridian-front can call outside services and change cloud resources.",
+          "could_go_wrong": "Most likely failure: the agent stops working or behaves differently after a change nobody made on purpose. Driven by dependency drift (moderate).",
+          "protects": "Detected: a person approves before it acts, callers are signed in, fixed model settings and inputs are checked.",
+          "missing": "Missing: a kill switch and logging.",
+          "evidence": "Evidence: 1 declared, 5 static. Observed over 24 spans."
+        },
         "runtime_evidence": {
           "window": {
             "start": "2026-09-15T09:00:00.000Z",
@@ -1537,7 +1602,8 @@
               "eu_ai_act": "Art. 15",
               "relation": "exposure",
               "so_what": "The model reference is unpinned, so behavior can change under you silently."
-            }
+            },
+            "evidence_level": "static"
           },
           {
             "fingerprint": "c0e7b0d45a6967b7",
@@ -1574,7 +1640,8 @@
               "eu_ai_act": "Art. 9",
               "relation": "exposure",
               "so_what": "A retried money action with no idempotency key can post twice, and each attempt stays under the per-call limit."
-            }
+            },
+            "evidence_level": "static"
           },
           {
             "fingerprint": "beea59d6e4f92d41",
@@ -1605,7 +1672,8 @@
               "eu_ai_act": "Art. 14",
               "relation": "exposure",
               "so_what": "Declared autonomy does not match what the code does."
-            }
+            },
+            "evidence_level": "declared"
           },
           {
             "fingerprint": "d3aa4f31715fea22",
@@ -1637,7 +1705,8 @@
               "eu_ai_act": "Art. 12",
               "relation": "exposure",
               "so_what": "Without logging you cannot reconstruct what the agent did."
-            }
+            },
+            "evidence_level": "static"
           },
           {
             "fingerprint": "417973c8cdee50be",
@@ -1663,7 +1732,8 @@
               "eu_ai_act": "Art. 14",
               "relation": "exposure",
               "so_what": "No kill-switch signal was observed to halt the agent mid-run."
-            }
+            },
+            "evidence_level": "static"
           },
           {
             "fingerprint": "a80d048a4b0f4297",
@@ -1693,7 +1763,8 @@
               "eu_ai_act": "Art. 12",
               "relation": "exposure",
               "so_what": "The agent runs in production with no observability observed."
-            }
+            },
+            "evidence_level": "declared"
           },
           {
             "fingerprint": "d0ed0235786e0c03",
@@ -1725,7 +1796,8 @@
               "eu_ai_act": "Art. 14",
               "relation": "exposure",
               "so_what": "At runtime the declared oversight step was not observed to fire."
-            }
+            },
+            "evidence_level": "observed"
           },
           {
             "fingerprint": "e8e89dc0c67a47dd",
@@ -1753,7 +1825,8 @@
               "eu_ai_act": "Art. 14",
               "relation": "exposure",
               "so_what": "Observed runtime reach exceeded the declared scope."
-            }
+            },
+            "evidence_level": "observed"
           },
           {
             "fingerprint": "44e4d176842c4e51",
@@ -1781,7 +1854,8 @@
               "eu_ai_act": "Art. 9",
               "relation": "exposure",
               "so_what": "The agent calls a tool the scan never listed for it, so its real reach is wider than the record."
-            }
+            },
+            "evidence_level": "observed"
           },
           {
             "fingerprint": "b6e5bff1b9985855",
@@ -1809,7 +1883,8 @@
               "eu_ai_act": "Art. 9",
               "relation": "exposure",
               "so_what": "The agent calls a tool the scan never listed for it, so its real reach is wider than the record."
-            }
+            },
+            "evidence_level": "observed"
           },
           {
             "fingerprint": "b713037b31087c0f",
@@ -1841,7 +1916,8 @@
               "eu_ai_act": "Art. 14",
               "relation": "exposure",
               "so_what": "Money moved with no person on the live path, whatever the declaration says."
-            }
+            },
+            "evidence_level": "observed"
           },
           {
             "fingerprint": "26c6bd9796e0a76c",
@@ -1864,7 +1940,8 @@
               "eu_ai_act": "Art. 9",
               "relation": "exposure",
               "so_what": "The agent depends on a model or an integration that neither the scan nor the baseline recorded."
-            }
+            },
+            "evidence_level": "observed"
           },
           {
             "fingerprint": "c661c4f227b23f92",
@@ -1887,7 +1964,8 @@
               "eu_ai_act": "Art. 9",
               "relation": "exposure",
               "so_what": "The agent depends on a model or an integration that neither the scan nor the baseline recorded."
-            }
+            },
+            "evidence_level": "observed"
           }
         ],
         "highest_severity": "critical",
@@ -2331,6 +2409,24 @@
             "resolved": true
           }
         ],
+        "capability_evidence": {
+          "email_send": "observed",
+          "payment_access": "observed"
+        },
+        "risk_type": {
+          "primary": "Erroneous Transactions",
+          "driver": "mandate-overreach",
+          "driver_exposure": "elevated",
+          "driver_score": 58,
+          "confidence": "low"
+        },
+        "explanation": {
+          "can_do": "meridian-support can move money, through 4 money-moving tools (issue_refund, waive_fee, reissue_card, ...).",
+          "could_go_wrong": "Most likely failure: money or account changes go out wrong, twice, or without anyone deciding. Driven by excess access (elevated). 2 high-severity findings point there.",
+          "protects": "Detected: callers are signed in, fixed model settings and inputs are checked.",
+          "missing": "Missing: a person approves before it acts, a kill switch, logging, a rate limit and a declared spending limit.",
+          "evidence": "Evidence: 3 declared, 4 static, 9 observed. Observed over 31 spans."
+        },
         "runtime_evidence": {
           "window": {
             "start": "2026-09-15T11:00:00.000Z",
@@ -2578,6 +2674,24 @@
         "source": "iac",
         "discovery_tier": "recognized",
         "platform": "databricks",
+        "capability_evidence": {
+          "database_read": "reachable",
+          "database_write": "reachable"
+        },
+        "risk_type": {
+          "primary": "Data Loss & Corruption",
+          "driver": "mandate-overreach",
+          "driver_exposure": "low",
+          "driver_score": 18,
+          "confidence": "high"
+        },
+        "explanation": {
+          "can_do": "meridian-escalation can change records and read records.",
+          "could_go_wrong": "Most likely failure: records or systems are changed or lost without a check. Driven by excess access (low).",
+          "protects": "Detected: logging and a rate limit.",
+          "missing": "Missing: a kill switch.",
+          "evidence": "Evidence: 1 declared, 2 reachable. Nothing observed at runtime yet."
+        },
         "liveness_state": "idle"
       }
     ],
@@ -2617,7 +2731,8 @@
           "eu_ai_act": "Art. 9",
           "relation": "exposure",
           "so_what": "A retried money action with no idempotency key can post twice, and each attempt stays under the per-call limit."
-        }
+        },
+        "evidence_level": "static"
       },
       {
         "fingerprint": "a2f94531c7770b68",
@@ -2648,7 +2763,8 @@
           "eu_ai_act": "Art. 14",
           "relation": "exposure",
           "so_what": "Declared autonomy does not match what the code does."
-        }
+        },
+        "evidence_level": "declared"
       },
       {
         "fingerprint": "beea59d6e4f92d41",
@@ -2679,7 +2795,8 @@
           "eu_ai_act": "Art. 14",
           "relation": "exposure",
           "so_what": "Declared autonomy does not match what the code does."
-        }
+        },
+        "evidence_level": "declared"
       }
     ],
     "skipped_files": [],
@@ -9166,7 +9283,223 @@
             "span_id": "s0079"
           }
         }
-      ]
+      ],
+      "test": {
+        "schema": "policy-test/0.1",
+        "generated_at": null,
+        "policy_file": "/private/tmp/claude-501/-Users-ved-Desktop-claude-apps-Stoa/95aa0385-38a4-478d-81f1-299d126e9198/scratchpad/pp/examples/meridian-pay/stoa.policy.toml",
+        "mode": "observe",
+        "evidence_level": "tested",
+        "scenarios": 7,
+        "matched": 7,
+        "expected": 7,
+        "false_positives": 0,
+        "policies": {
+          "POL-BASE-001": {
+            "evaluated": 7,
+            "fired": 0,
+            "decided": 0,
+            "would_decide": 0,
+            "matched": 0,
+            "mismatched": 0,
+            "false_positives": 0,
+            "enforced": false
+          },
+          "POL-BASE-002": {
+            "evaluated": 7,
+            "fired": 0,
+            "decided": 0,
+            "would_decide": 0,
+            "matched": 0,
+            "mismatched": 0,
+            "false_positives": 0,
+            "enforced": false
+          },
+          "POL-BASE-003": {
+            "evaluated": 7,
+            "fired": 1,
+            "decided": 0,
+            "would_decide": 1,
+            "matched": 1,
+            "mismatched": 0,
+            "false_positives": 0,
+            "enforced": false
+          },
+          "POL-FIN-001-B8F011": {
+            "evaluated": 2,
+            "fired": 1,
+            "decided": 0,
+            "would_decide": 1,
+            "matched": 1,
+            "mismatched": 0,
+            "false_positives": 0,
+            "enforced": false
+          },
+          "POL-FIN-001-BC3DB1": {
+            "evaluated": 5,
+            "fired": 4,
+            "decided": 0,
+            "would_decide": 4,
+            "matched": 4,
+            "mismatched": 0,
+            "false_positives": 0,
+            "enforced": false
+          },
+          "POL-FIN-002-B8F011": {
+            "evaluated": 2,
+            "fired": 0,
+            "decided": 0,
+            "would_decide": 0,
+            "matched": 0,
+            "mismatched": 0,
+            "false_positives": 0,
+            "enforced": false
+          },
+          "POL-FIN-002-BC3DB1": {
+            "evaluated": 5,
+            "fired": 1,
+            "decided": 1,
+            "would_decide": 0,
+            "matched": 1,
+            "mismatched": 0,
+            "false_positives": 0,
+            "enforced": true
+          },
+          "POL-PAY-001-B8F011": {
+            "evaluated": 2,
+            "fired": 1,
+            "decided": 0,
+            "would_decide": 0,
+            "matched": 0,
+            "mismatched": 0,
+            "false_positives": 0,
+            "enforced": false
+          }
+        },
+        "agents": {
+          "account-actions": {
+            "scenarios": 2,
+            "matched": 2,
+            "false_positives": 0,
+            "blocked": 0,
+            "escalated": 0
+          },
+          "meridian-support": {
+            "scenarios": 5,
+            "matched": 5,
+            "false_positives": 0,
+            "blocked": 1,
+            "escalated": 0
+          }
+        },
+        "results": [
+          {
+            "line": 5,
+            "agent": "account-actions",
+            "tool": "issue_refund",
+            "amount": 900,
+            "expect": "allow",
+            "actual": "allow",
+            "decided_by": null,
+            "expect_would": "block",
+            "would": "block",
+            "would_by": "POL-FIN-001-B8F011",
+            "matched": true,
+            "false_positive": false,
+            "note": "above the declared 500 with no approval: escalation recorded in observe mode"
+          },
+          {
+            "line": 6,
+            "agent": "account-actions",
+            "tool": "issue_refund",
+            "amount": 900,
+            "expect": "allow",
+            "actual": "allow",
+            "decided_by": null,
+            "expect_would": "allow",
+            "would": "allow",
+            "would_by": null,
+            "matched": true,
+            "false_positive": false,
+            "note": "the same refund after a person approved it"
+          },
+          {
+            "line": 1,
+            "agent": "meridian-support",
+            "tool": "issue_refund",
+            "amount": 60,
+            "expect": "allow",
+            "actual": "allow",
+            "decided_by": null,
+            "expect_would": "block",
+            "would": "block",
+            "would_by": "POL-FIN-001-BC3DB1",
+            "matched": true,
+            "false_positive": false,
+            "note": "a normal refund: allowed today, blocked once approval-on-every-movement is enforced"
+          },
+          {
+            "line": 2,
+            "agent": "meridian-support",
+            "tool": "issue_refund",
+            "amount": 60,
+            "expect": "allow",
+            "actual": "allow",
+            "decided_by": null,
+            "expect_would": null,
+            "would": "block",
+            "would_by": "POL-FIN-001-BC3DB1",
+            "matched": true,
+            "false_positive": false,
+            "note": "the same request again: the duplicate-refund path no policy catches yet"
+          },
+          {
+            "line": 3,
+            "agent": "meridian-support",
+            "tool": "issue_refund",
+            "amount": 260,
+            "expect": "allow",
+            "actual": "allow",
+            "decided_by": null,
+            "expect_would": null,
+            "would": "block",
+            "would_by": "POL-FIN-001-BC3DB1",
+            "matched": true,
+            "false_positive": false,
+            "note": "under the 800 cap"
+          },
+          {
+            "line": 4,
+            "agent": "meridian-support",
+            "tool": "issue_refund",
+            "amount": 500,
+            "expect": "block",
+            "actual": "block",
+            "decided_by": "POL-FIN-002-BC3DB1",
+            "expect_would": null,
+            "would": "block",
+            "would_by": "POL-FIN-001-BC3DB1",
+            "matched": true,
+            "false_positive": false,
+            "note": "60+60+260+500 is over the enforced 800 daily cap"
+          },
+          {
+            "line": 7,
+            "agent": "meridian-support",
+            "tool": "export_transcript",
+            "amount": null,
+            "expect": "allow",
+            "actual": "allow",
+            "decided_by": null,
+            "expect_would": "block",
+            "would": "block",
+            "would_by": "POL-BASE-003",
+            "matched": true,
+            "false_positive": false,
+            "note": "a tool the scan never listed"
+          }
+        ]
+      }
     },
     "analysis": {
       "schema": "runtime-analysis/1.1",
@@ -10654,6 +10987,1254 @@
     },
     "baseline_present": true
   },
+  "passports": [
+    {
+      "schema": "stoa-passport/0.1",
+      "agent": {
+        "id": "b8f0111742fc",
+        "name": "account-actions",
+        "owner": "digital-servicing@meridian.example",
+        "purpose": "Issues refunds, waives fees, updates contact details, reissues cards",
+        "production_status": "production",
+        "users": "customers",
+        "declared_autonomy": "human_approved",
+        "inferred_autonomy": "unrestricted_autonomous",
+        "defined_in": "code/agents/account_actions_agent.py",
+        "source": "code",
+        "platform": null
+      },
+      "capabilities": [
+        {
+          "id": "payment_access",
+          "evidence_level": "observed"
+        },
+        {
+          "id": "tool_calling",
+          "evidence_level": "static"
+        }
+      ],
+      "tools": [
+        {
+          "name": "issue_refund",
+          "money_action": true,
+          "high_impact": true,
+          "guardrails": []
+        },
+        {
+          "name": "waive_fee",
+          "money_action": true,
+          "high_impact": true,
+          "guardrails": []
+        },
+        {
+          "name": "update_contact_info",
+          "money_action": false,
+          "high_impact": false,
+          "guardrails": []
+        },
+        {
+          "name": "reissue_card",
+          "money_action": true,
+          "high_impact": true,
+          "guardrails": []
+        },
+        {
+          "name": "place_travel_notice",
+          "money_action": false,
+          "high_impact": false,
+          "guardrails": []
+        },
+        {
+          "name": "change_payout_account",
+          "money_action": true,
+          "high_impact": true,
+          "guardrails": []
+        }
+      ],
+      "reach": {
+        "reachable": [],
+        "static": [
+          "tool_calling"
+        ],
+        "observed": [
+          "payment_access"
+        ]
+      },
+      "dimensions": [
+        {
+          "id": "mandate-overreach",
+          "exposure": "elevated",
+          "score": 58,
+          "assessability": "runtime",
+          "static_exposure": "elevated"
+        },
+        {
+          "id": "boundary-leakage",
+          "exposure": "moderate",
+          "score": 0,
+          "assessability": "runtime",
+          "static_exposure": "none-observed"
+        },
+        {
+          "id": "unreviewed-high-impact-action",
+          "exposure": "elevated",
+          "score": 53,
+          "assessability": "runtime",
+          "static_exposure": "moderate"
+        },
+        {
+          "id": "output-fidelity",
+          "exposure": "low",
+          "score": 0,
+          "assessability": "runtime",
+          "static_exposure": "none-observed"
+        },
+        {
+          "id": "injection-tamper-surface",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        },
+        {
+          "id": "conduct-variability",
+          "exposure": "elevated",
+          "score": 0,
+          "assessability": "runtime",
+          "static_exposure": "none-observed"
+        },
+        {
+          "id": "dependency-drift",
+          "exposure": "moderate",
+          "score": 10,
+          "assessability": "runtime",
+          "static_exposure": "low"
+        },
+        {
+          "id": "control-coverage-gap",
+          "exposure": "elevated",
+          "score": 0,
+          "assessability": "runtime",
+          "static_exposure": "none-observed"
+        }
+      ],
+      "risk_type": {
+        "primary": "Erroneous Transactions",
+        "driver": "mandate-overreach",
+        "driver_exposure": "elevated",
+        "driver_score": 58,
+        "confidence": "low"
+      },
+      "explanation": {
+        "can_do": "account-actions can move money, through 4 money-moving tools (issue_refund, waive_fee, reissue_card, ...).",
+        "could_go_wrong": "Most likely failure: money or account changes go out wrong, twice, or without anyone deciding. Driven by excess access (elevated). 2 high-severity findings point there.",
+        "protects": "Detected: callers are signed in, fixed model settings and inputs are checked.",
+        "missing": "Missing: a person approves before it acts, a kill switch, logging and a rate limit.",
+        "evidence": "Evidence: 3 declared, 5 static, 4 observed. Observed over 22 spans."
+      },
+      "controls_observed": [
+        "authentication",
+        "deterministic_sampling",
+        "validation"
+      ],
+      "policies": {
+        "mode": "observe",
+        "attached": [
+          {
+            "id": "POL-BASE-001",
+            "title": "Kill switch",
+            "action": "block",
+            "enforced": true,
+            "condition": "kill switch set",
+            "counts": {
+              "evaluated": 24,
+              "allowed": 23,
+              "blocked": 1,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            }
+          },
+          {
+            "id": "POL-BASE-002",
+            "title": "Every tool call is logged",
+            "action": "log",
+            "enforced": false,
+            "condition": "true",
+            "counts": {
+              "evaluated": 24,
+              "allowed": 0,
+              "blocked": 0,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 24,
+              "error": 0
+            }
+          },
+          {
+            "id": "POL-BASE-003",
+            "title": "Only declared tools",
+            "action": "block",
+            "enforced": false,
+            "condition": "tool not in agent.declared_tools",
+            "counts": {
+              "evaluated": 24,
+              "allowed": 22,
+              "blocked": 0,
+              "would_block": 2,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            }
+          },
+          {
+            "id": "POL-PAY-001-B8F011",
+            "title": "Approval required above threshold",
+            "action": "escalate",
+            "enforced": false,
+            "condition": "amount > 500 and no approval on the call",
+            "counts": {
+              "evaluated": 6,
+              "allowed": 5,
+              "blocked": 0,
+              "would_block": 0,
+              "escalated": 1,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            }
+          },
+          {
+            "id": "POL-FIN-001-B8F011",
+            "title": "Approval on every money movement",
+            "action": "block",
+            "enforced": false,
+            "condition": "side_effect == 'payment' and no approval on the call",
+            "counts": {
+              "evaluated": 6,
+              "allowed": 4,
+              "blocked": 0,
+              "would_block": 2,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            }
+          },
+          {
+            "id": "POL-FIN-002-B8F011",
+            "title": "Daily aggregate cap, tight",
+            "action": "block",
+            "enforced": false,
+            "condition": "sum(amount) over 24h > 25000.0",
+            "counts": {
+              "evaluated": 6,
+              "allowed": 6,
+              "blocked": 0,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            }
+          }
+        ]
+      },
+      "drift": {
+        "status": "unchanged",
+        "severity": null,
+        "detail": "vs a1b2c3d"
+      },
+      "evidence_mix": {
+        "declared": 3,
+        "static": 5,
+        "reachable": 0,
+        "observed": 4,
+        "tested": 2
+      },
+      "runtime": {
+        "window": {
+          "start": "2026-09-15T10:00:00.000Z",
+          "end": "2026-09-20T10:01:30.000Z"
+        },
+        "span_count": 22,
+        "money_actions": 6,
+        "approval_rate_money": 0.6667,
+        "flag_counts": {
+          "approval_bypassed": 2,
+          "new_counterparty": 4,
+          "over_declared_limit": 1
+        }
+      },
+      "killswitch_drill": {
+        "ts": "2026-09-21T16:00:03.000Z",
+        "seconds_to_stop": 1.8,
+        "by": "platform-risk",
+        "trace_ref": {
+          "file": "trace-demo-0000.jsonl",
+          "line": 78,
+          "span_id": "s0079"
+        }
+      },
+      "policy_test": {
+        "scenarios": 2,
+        "matched": 2,
+        "false_positives": 0,
+        "blocked": 0,
+        "escalated": 0
+      },
+      "registry_hash": "7583a9f2da602474",
+      "scanner_version": "0.7.4",
+      "scan_date": "2026-09-15",
+      "validity": {
+        "rule": "lapses on drift above medium, or 90 days after the scan",
+        "expires": "2026-12-14",
+        "status": "valid",
+        "reason": null
+      },
+      "verify_hash": "8291f9e3673bc8b7"
+    },
+    {
+      "schema": "stoa-passport/0.1",
+      "agent": {
+        "id": "224627e4877d",
+        "name": "meridian-escalation",
+        "owner": "platform-risk@meridian.example",
+        "purpose": "Drafts case notes and queues them for a person, on Databricks",
+        "production_status": null,
+        "users": "internal",
+        "declared_autonomy": null,
+        "inferred_autonomy": "recommend_only",
+        "defined_in": "databricks/infra/main.tf",
+        "source": "iac",
+        "platform": "databricks"
+      },
+      "capabilities": [
+        {
+          "id": "database_read",
+          "evidence_level": "reachable"
+        },
+        {
+          "id": "database_write",
+          "evidence_level": "reachable"
+        }
+      ],
+      "tools": [],
+      "reach": {
+        "reachable": [
+          "database_read",
+          "database_write"
+        ],
+        "static": [],
+        "observed": []
+      },
+      "dimensions": [
+        {
+          "id": "mandate-overreach",
+          "exposure": "low",
+          "score": 18,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "boundary-leakage",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "unreviewed-high-impact-action",
+          "exposure": "low",
+          "score": 18,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "output-fidelity",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        },
+        {
+          "id": "injection-tamper-surface",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        },
+        {
+          "id": "conduct-variability",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "proxy",
+          "static_exposure": null
+        },
+        {
+          "id": "dependency-drift",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "proxy",
+          "static_exposure": null
+        },
+        {
+          "id": "control-coverage-gap",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        }
+      ],
+      "risk_type": {
+        "primary": "Data Loss & Corruption",
+        "driver": "mandate-overreach",
+        "driver_exposure": "low",
+        "driver_score": 18,
+        "confidence": "high"
+      },
+      "explanation": {
+        "can_do": "meridian-escalation can change records and read records.",
+        "could_go_wrong": "Most likely failure: records or systems are changed or lost without a check. Driven by excess access (low).",
+        "protects": "Detected: logging and a rate limit.",
+        "missing": "Missing: a kill switch.",
+        "evidence": "Evidence: 1 declared, 2 reachable. Nothing observed at runtime yet."
+      },
+      "controls_observed": [
+        "observability",
+        "rate_limit"
+      ],
+      "policies": {
+        "mode": "observe",
+        "attached": [
+          {
+            "id": "POL-BASE-001",
+            "title": "Kill switch",
+            "action": "block",
+            "enforced": true,
+            "condition": "kill switch set",
+            "counts": {
+              "evaluated": 24,
+              "allowed": 23,
+              "blocked": 1,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            }
+          },
+          {
+            "id": "POL-BASE-002",
+            "title": "Every tool call is logged",
+            "action": "log",
+            "enforced": false,
+            "condition": "true",
+            "counts": {
+              "evaluated": 24,
+              "allowed": 0,
+              "blocked": 0,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 24,
+              "error": 0
+            }
+          },
+          {
+            "id": "POL-BASE-003",
+            "title": "Only declared tools",
+            "action": "block",
+            "enforced": false,
+            "condition": "tool not in agent.declared_tools",
+            "counts": {
+              "evaluated": 24,
+              "allowed": 22,
+              "blocked": 0,
+              "would_block": 2,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            }
+          },
+          {
+            "id": "POL-DATA-002-224627",
+            "title": "Outside sends only to the allow-list",
+            "action": "block",
+            "enforced": false,
+            "condition": "side_effect == 'external_send' and to_domain not in the allow-list",
+            "counts": {}
+          }
+        ]
+      },
+      "drift": {
+        "status": "unchanged",
+        "severity": null,
+        "detail": "vs a1b2c3d"
+      },
+      "evidence_mix": {
+        "declared": 1,
+        "static": 0,
+        "reachable": 2,
+        "observed": 0,
+        "tested": 0
+      },
+      "runtime": null,
+      "killswitch_drill": {
+        "ts": "2026-09-21T16:00:03.000Z",
+        "seconds_to_stop": 1.8,
+        "by": "platform-risk",
+        "trace_ref": {
+          "file": "trace-demo-0000.jsonl",
+          "line": 78,
+          "span_id": "s0079"
+        }
+      },
+      "policy_test": null,
+      "registry_hash": "7583a9f2da602474",
+      "scanner_version": "0.7.4",
+      "scan_date": "2026-09-15",
+      "validity": {
+        "rule": "lapses on drift above medium, or 90 days after the scan",
+        "expires": "2026-12-14",
+        "status": "valid",
+        "reason": null
+      },
+      "verify_hash": "f724e6e8d7f30b45"
+    },
+    {
+      "schema": "stoa-passport/0.1",
+      "agent": {
+        "id": "2a61ffb1db0d",
+        "name": "meridian-front",
+        "owner": "digital-servicing@meridian.example",
+        "purpose": "Customer conversation, identity check and routing to the specialists",
+        "production_status": null,
+        "users": "customers",
+        "declared_autonomy": null,
+        "inferred_autonomy": "recommend_only",
+        "defined_in": "code/agents/front_agent.py",
+        "source": "code",
+        "platform": null
+      },
+      "capabilities": [
+        {
+          "id": "cloud_resource_access",
+          "evidence_level": "static"
+        },
+        {
+          "id": "external_http",
+          "evidence_level": "static"
+        },
+        {
+          "id": "tool_calling",
+          "evidence_level": "static"
+        }
+      ],
+      "tools": [
+        {
+          "name": "verify_identity",
+          "money_action": false,
+          "high_impact": false,
+          "guardrails": []
+        }
+      ],
+      "reach": {
+        "reachable": [],
+        "static": [
+          "cloud_resource_access",
+          "external_http",
+          "tool_calling"
+        ],
+        "observed": []
+      },
+      "dimensions": [
+        {
+          "id": "mandate-overreach",
+          "exposure": "low",
+          "score": 0,
+          "assessability": "runtime",
+          "static_exposure": "none-observed"
+        },
+        {
+          "id": "boundary-leakage",
+          "exposure": "low",
+          "score": 18,
+          "assessability": "runtime",
+          "static_exposure": "low"
+        },
+        {
+          "id": "unreviewed-high-impact-action",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "output-fidelity",
+          "exposure": "low",
+          "score": 0,
+          "assessability": "runtime",
+          "static_exposure": "none-observed"
+        },
+        {
+          "id": "injection-tamper-surface",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        },
+        {
+          "id": "conduct-variability",
+          "exposure": "low",
+          "score": 0,
+          "assessability": "runtime",
+          "static_exposure": "none-observed"
+        },
+        {
+          "id": "dependency-drift",
+          "exposure": "moderate",
+          "score": 10,
+          "assessability": "runtime",
+          "static_exposure": "low"
+        },
+        {
+          "id": "control-coverage-gap",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        }
+      ],
+      "risk_type": {
+        "primary": "Performance Failure",
+        "driver": "dependency-drift",
+        "driver_exposure": "moderate",
+        "driver_score": 10,
+        "confidence": "high"
+      },
+      "explanation": {
+        "can_do": "meridian-front can call outside services and change cloud resources.",
+        "could_go_wrong": "Most likely failure: the agent stops working or behaves differently after a change nobody made on purpose. Driven by dependency drift (moderate).",
+        "protects": "Detected: a person approves before it acts, callers are signed in, fixed model settings and inputs are checked.",
+        "missing": "Missing: a kill switch and logging.",
+        "evidence": "Evidence: 1 declared, 5 static. Observed over 24 spans."
+      },
+      "controls_observed": [
+        "approval",
+        "authentication",
+        "deterministic_sampling",
+        "validation"
+      ],
+      "policies": {
+        "mode": "observe",
+        "attached": [
+          {
+            "id": "POL-BASE-001",
+            "title": "Kill switch",
+            "action": "block",
+            "enforced": true,
+            "condition": "kill switch set",
+            "counts": {
+              "evaluated": 24,
+              "allowed": 23,
+              "blocked": 1,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            }
+          },
+          {
+            "id": "POL-BASE-002",
+            "title": "Every tool call is logged",
+            "action": "log",
+            "enforced": false,
+            "condition": "true",
+            "counts": {
+              "evaluated": 24,
+              "allowed": 0,
+              "blocked": 0,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 24,
+              "error": 0
+            }
+          },
+          {
+            "id": "POL-BASE-003",
+            "title": "Only declared tools",
+            "action": "block",
+            "enforced": false,
+            "condition": "tool not in agent.declared_tools",
+            "counts": {
+              "evaluated": 24,
+              "allowed": 22,
+              "blocked": 0,
+              "would_block": 2,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            }
+          },
+          {
+            "id": "POL-DATA-002-2A61FF",
+            "title": "Outside sends only to the allow-list",
+            "action": "block",
+            "enforced": false,
+            "condition": "side_effect == 'external_send' and to_domain not in the allow-list",
+            "counts": {
+              "evaluated": 6,
+              "allowed": 6,
+              "blocked": 0,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            }
+          }
+        ]
+      },
+      "drift": {
+        "status": "unchanged",
+        "severity": null,
+        "detail": "vs a1b2c3d"
+      },
+      "evidence_mix": {
+        "declared": 1,
+        "static": 5,
+        "reachable": 0,
+        "observed": 0,
+        "tested": 0
+      },
+      "runtime": {
+        "window": {
+          "start": "2026-09-15T09:00:00.000Z",
+          "end": "2026-09-20T09:00:04.000Z"
+        },
+        "span_count": 24,
+        "money_actions": 0,
+        "approval_rate_money": null,
+        "flag_counts": {}
+      },
+      "killswitch_drill": {
+        "ts": "2026-09-21T16:00:03.000Z",
+        "seconds_to_stop": 1.8,
+        "by": "platform-risk",
+        "trace_ref": {
+          "file": "trace-demo-0000.jsonl",
+          "line": 78,
+          "span_id": "s0079"
+        }
+      },
+      "policy_test": null,
+      "registry_hash": "7583a9f2da602474",
+      "scanner_version": "0.7.4",
+      "scan_date": "2026-09-15",
+      "validity": {
+        "rule": "lapses on drift above medium, or 90 days after the scan",
+        "expires": "2026-12-14",
+        "status": "valid",
+        "reason": null
+      },
+      "verify_hash": "3b6b16aa5fdde5d0"
+    },
+    {
+      "schema": "stoa-passport/0.1",
+      "agent": {
+        "id": "62007a57a832",
+        "name": "meridian-knowledge",
+        "owner": "platform-risk@meridian.example",
+        "purpose": "Answers policy and ticket questions from the knowledge base, on Bedrock",
+        "production_status": null,
+        "users": "internal",
+        "declared_autonomy": null,
+        "inferred_autonomy": "recommend_only",
+        "defined_in": "aws/agents.tf",
+        "source": "iac",
+        "platform": "bedrock"
+      },
+      "capabilities": [
+        {
+          "id": "vector_search",
+          "evidence_level": "reachable"
+        }
+      ],
+      "tools": [],
+      "reach": {
+        "reachable": [
+          "vector_search"
+        ],
+        "static": [],
+        "observed": []
+      },
+      "dimensions": [
+        {
+          "id": "mandate-overreach",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "boundary-leakage",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "unreviewed-high-impact-action",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "strong",
+          "static_exposure": null
+        },
+        {
+          "id": "output-fidelity",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        },
+        {
+          "id": "injection-tamper-surface",
+          "exposure": "low",
+          "score": 18,
+          "assessability": "partial",
+          "static_exposure": null
+        },
+        {
+          "id": "conduct-variability",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "proxy",
+          "static_exposure": null
+        },
+        {
+          "id": "dependency-drift",
+          "exposure": "low",
+          "score": 8,
+          "assessability": "proxy",
+          "static_exposure": null
+        },
+        {
+          "id": "control-coverage-gap",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        }
+      ],
+      "risk_type": {
+        "primary": "Prompt Injections",
+        "driver": "injection-tamper-surface",
+        "driver_exposure": "low",
+        "driver_score": 18,
+        "confidence": "high"
+      },
+      "explanation": {
+        "can_do": "meridian-knowledge can search documents.",
+        "could_go_wrong": "Most likely failure: text from a user or a document steers what the agent does. Driven by injection risk (low).",
+        "protects": "No safeguard was detected on this agent.",
+        "missing": "Missing: a kill switch and logging.",
+        "evidence": "Evidence: 1 declared, 1 reachable. Nothing observed at runtime yet."
+      },
+      "controls_observed": [],
+      "policies": {
+        "mode": "observe",
+        "attached": [
+          {
+            "id": "POL-BASE-001",
+            "title": "Kill switch",
+            "action": "block",
+            "enforced": true,
+            "condition": "kill switch set",
+            "counts": {
+              "evaluated": 24,
+              "allowed": 23,
+              "blocked": 1,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            }
+          },
+          {
+            "id": "POL-BASE-002",
+            "title": "Every tool call is logged",
+            "action": "log",
+            "enforced": false,
+            "condition": "true",
+            "counts": {
+              "evaluated": 24,
+              "allowed": 0,
+              "blocked": 0,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 24,
+              "error": 0
+            }
+          },
+          {
+            "id": "POL-BASE-003",
+            "title": "Only declared tools",
+            "action": "block",
+            "enforced": false,
+            "condition": "tool not in agent.declared_tools",
+            "counts": {
+              "evaluated": 24,
+              "allowed": 22,
+              "blocked": 0,
+              "would_block": 2,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            }
+          }
+        ]
+      },
+      "drift": {
+        "status": "unchanged",
+        "severity": null,
+        "detail": "vs a1b2c3d"
+      },
+      "evidence_mix": {
+        "declared": 1,
+        "static": 0,
+        "reachable": 1,
+        "observed": 0,
+        "tested": 0
+      },
+      "runtime": null,
+      "killswitch_drill": {
+        "ts": "2026-09-21T16:00:03.000Z",
+        "seconds_to_stop": 1.8,
+        "by": "platform-risk",
+        "trace_ref": {
+          "file": "trace-demo-0000.jsonl",
+          "line": 78,
+          "span_id": "s0079"
+        }
+      },
+      "policy_test": null,
+      "registry_hash": "7583a9f2da602474",
+      "scanner_version": "0.7.4",
+      "scan_date": "2026-09-15",
+      "validity": {
+        "rule": "lapses on drift above medium, or 90 days after the scan",
+        "expires": "2026-12-14",
+        "status": "valid",
+        "reason": null
+      },
+      "verify_hash": "38f0e902c23dd336"
+    },
+    {
+      "schema": "stoa-passport/0.1",
+      "agent": {
+        "id": "bc3db1f17013",
+        "name": "meridian-support",
+        "owner": "digital-servicing@meridian.example",
+        "purpose": "Customer support chatbot on web chat and IVR, added September 2026",
+        "production_status": "production",
+        "users": "customers",
+        "declared_autonomy": "human_approved",
+        "inferred_autonomy": "unrestricted_autonomous",
+        "defined_in": "code/agents/support_agent.py",
+        "source": "code",
+        "platform": null
+      },
+      "capabilities": [
+        {
+          "id": "email_send",
+          "evidence_level": "observed"
+        },
+        {
+          "id": "payment_access",
+          "evidence_level": "observed"
+        }
+      ],
+      "tools": [
+        {
+          "name": "issue_refund",
+          "money_action": true,
+          "high_impact": true,
+          "guardrails": []
+        },
+        {
+          "name": "waive_fee",
+          "money_action": true,
+          "high_impact": true,
+          "guardrails": []
+        },
+        {
+          "name": "update_contact_info",
+          "money_action": false,
+          "high_impact": false,
+          "guardrails": []
+        },
+        {
+          "name": "reissue_card",
+          "money_action": true,
+          "high_impact": true,
+          "guardrails": []
+        },
+        {
+          "name": "place_travel_notice",
+          "money_action": false,
+          "high_impact": false,
+          "guardrails": []
+        },
+        {
+          "name": "change_payout_account",
+          "money_action": true,
+          "high_impact": true,
+          "guardrails": []
+        }
+      ],
+      "reach": {
+        "reachable": [],
+        "static": [],
+        "observed": [
+          "email_send",
+          "payment_access"
+        ]
+      },
+      "dimensions": [
+        {
+          "id": "mandate-overreach",
+          "exposure": "elevated",
+          "score": 58,
+          "assessability": "runtime",
+          "static_exposure": "elevated"
+        },
+        {
+          "id": "boundary-leakage",
+          "exposure": "elevated",
+          "score": 0,
+          "assessability": "runtime",
+          "static_exposure": "none-observed"
+        },
+        {
+          "id": "unreviewed-high-impact-action",
+          "exposure": "elevated",
+          "score": 53,
+          "assessability": "runtime",
+          "static_exposure": "moderate"
+        },
+        {
+          "id": "output-fidelity",
+          "exposure": "low",
+          "score": 0,
+          "assessability": "runtime",
+          "static_exposure": "none-observed"
+        },
+        {
+          "id": "injection-tamper-surface",
+          "exposure": "none-observed",
+          "score": 0,
+          "assessability": "partial",
+          "static_exposure": null
+        },
+        {
+          "id": "conduct-variability",
+          "exposure": "elevated",
+          "score": 0,
+          "assessability": "runtime",
+          "static_exposure": "none-observed"
+        },
+        {
+          "id": "dependency-drift",
+          "exposure": "moderate",
+          "score": 10,
+          "assessability": "runtime",
+          "static_exposure": "low"
+        },
+        {
+          "id": "control-coverage-gap",
+          "exposure": "elevated",
+          "score": 0,
+          "assessability": "runtime",
+          "static_exposure": "none-observed"
+        }
+      ],
+      "risk_type": {
+        "primary": "Erroneous Transactions",
+        "driver": "mandate-overreach",
+        "driver_exposure": "elevated",
+        "driver_score": 58,
+        "confidence": "low"
+      },
+      "explanation": {
+        "can_do": "meridian-support can move money, through 4 money-moving tools (issue_refund, waive_fee, reissue_card, ...).",
+        "could_go_wrong": "Most likely failure: money or account changes go out wrong, twice, or without anyone deciding. Driven by excess access (elevated). 2 high-severity findings point there.",
+        "protects": "Detected: callers are signed in, fixed model settings and inputs are checked.",
+        "missing": "Missing: a person approves before it acts, a kill switch, logging, a rate limit and a declared spending limit.",
+        "evidence": "Evidence: 3 declared, 4 static, 9 observed. Observed over 31 spans."
+      },
+      "controls_observed": [
+        "authentication",
+        "deterministic_sampling",
+        "validation"
+      ],
+      "policies": {
+        "mode": "observe",
+        "attached": [
+          {
+            "id": "POL-BASE-001",
+            "title": "Kill switch",
+            "action": "block",
+            "enforced": true,
+            "condition": "kill switch set",
+            "counts": {
+              "evaluated": 24,
+              "allowed": 23,
+              "blocked": 1,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            }
+          },
+          {
+            "id": "POL-BASE-002",
+            "title": "Every tool call is logged",
+            "action": "log",
+            "enforced": false,
+            "condition": "true",
+            "counts": {
+              "evaluated": 24,
+              "allowed": 0,
+              "blocked": 0,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 24,
+              "error": 0
+            }
+          },
+          {
+            "id": "POL-BASE-003",
+            "title": "Only declared tools",
+            "action": "block",
+            "enforced": false,
+            "condition": "tool not in agent.declared_tools",
+            "counts": {
+              "evaluated": 24,
+              "allowed": 22,
+              "blocked": 0,
+              "would_block": 2,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            }
+          },
+          {
+            "id": "POL-FIN-001-BC3DB1",
+            "title": "Approval on every money movement",
+            "action": "block",
+            "enforced": false,
+            "condition": "side_effect == 'payment' and no approval on the call",
+            "counts": {
+              "evaluated": 12,
+              "allowed": 2,
+              "blocked": 0,
+              "would_block": 10,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            }
+          },
+          {
+            "id": "POL-FIN-002-BC3DB1",
+            "title": "Daily aggregate cap, tight",
+            "action": "block",
+            "enforced": true,
+            "condition": "sum(amount) over 24h > 800",
+            "counts": {
+              "evaluated": 12,
+              "allowed": 11,
+              "blocked": 1,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            }
+          }
+        ]
+      },
+      "drift": {
+        "status": "added",
+        "severity": "high",
+        "detail": "new agent binds high-impact capability payment_access"
+      },
+      "evidence_mix": {
+        "declared": 3,
+        "static": 4,
+        "reachable": 0,
+        "observed": 9,
+        "tested": 5
+      },
+      "runtime": {
+        "window": {
+          "start": "2026-09-15T11:00:00.000Z",
+          "end": "2026-09-21T16:00:03.000Z"
+        },
+        "span_count": 31,
+        "money_actions": 10,
+        "approval_rate_money": 0.0,
+        "flag_counts": {
+          "approval_bypassed": 12,
+          "integration_changed": 1,
+          "new_counterparty": 4,
+          "undeclared_tool": 2
+        }
+      },
+      "killswitch_drill": {
+        "ts": "2026-09-21T16:00:03.000Z",
+        "seconds_to_stop": 1.8,
+        "by": "platform-risk",
+        "trace_ref": {
+          "file": "trace-demo-0000.jsonl",
+          "line": 78,
+          "span_id": "s0079"
+        }
+      },
+      "policy_test": {
+        "scenarios": 5,
+        "matched": 5,
+        "false_positives": 0,
+        "blocked": 1,
+        "escalated": 0
+      },
+      "registry_hash": "7583a9f2da602474",
+      "scanner_version": "0.7.4",
+      "scan_date": "2026-09-15",
+      "validity": {
+        "rule": "lapses on drift above medium, or 90 days after the scan",
+        "expires": "2026-12-14",
+        "status": "lapsed",
+        "reason": "drift high since the baseline"
+      },
+      "verify_hash": "502c3f3815084fbe"
+    }
+  ],
   "vocabulary": {
     "high_impact_capabilities": [
       "cloud_resource_access",

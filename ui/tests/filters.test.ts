@@ -15,7 +15,7 @@ describe("finding filters round-trip through the URL", () => {
   it("parses and serializes every filter", () => {
     const q = new URLSearchParams("severity=critical,high&dimension=mandate-overreach&class=LLM06&agent=abc&confidence=high&status=new&rule=AI&q=refund&sort=severity&dir=asc");
     const f = filtersFromQuery(q);
-    expect(f).toEqual({ severity: ["critical", "high"], dimension: "mandate-overreach", cls: "LLM06", agent: "abc", confidence: "high", status: "new", rule: "AI", q: "refund" });
+    expect(f).toEqual({ severity: ["critical", "high"], dimension: "mandate-overreach", cls: "LLM06", agent: "abc", confidence: "high", status: "new", rule: "AI", evidence: null, q: "refund" });
     expect(sortFromQuery(q)).toEqual({ column: "severity", dir: "asc" });
     expect(filtersToQuery(f, { column: "severity", dir: "asc" }).toString()).toBe(q.toString());
     expect(filtersToQuery(EMPTY_FILTERS, null).toString()).toBe("");

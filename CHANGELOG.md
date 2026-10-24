@@ -9,6 +9,21 @@ Registry schema → 1.8 (additive). `stoa scan` now also writes
 `stoa-dashboard.html`: one self-contained file, six screens, no server, no
 network. See [docs/dashboard.md](docs/dashboard.md).
 
+### Added — evidence levels, risk types, passports
+- Every finding carries `evidence_level` (declared, static, reachable,
+  observed, tested) and every agent `capability_evidence`; the Findings
+  screen filters by it.
+- Every agent carries `risk_type` (one of the eight customer-facing types,
+  with the category that drove it and a confidence) and a five-line
+  `explanation` built from templates; shown on the Agent Inventory drawer.
+- `stoa passport --agent-id` writes `stoa-passport/0.1` as HTML or JSON;
+  the envelope carries one passport per agent and the dashboard gains a
+  Passports screen. A passport lapses on drift above medium or 90 days
+  after the scan, and names the registry hash it was built from.
+- `stoa policy test scenarios.jsonl`: replays calls through the policies,
+  reports actual versus would-be outcomes per policy, and attaches to the
+  passport as `tested` evidence. Declarations is back in the navigation.
+
 ### Added — policy preview (`stoa-policy/0.1`)
 - `stoa.policy.toml`: structured policies with scope, trigger, condition,
   action (allow, block, escalate, mask, log), fail semantics and

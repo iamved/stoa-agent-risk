@@ -311,6 +311,12 @@ def merge_runtime_into_registry(
             )
 
     _recompute_dimension_summary(enriched)
+    # Evidence levels and risk types move with the overlay: observed capabilities, re-bucketed dimensions.
+    from ..evidence import annotate_evidence_levels
+    from ..risk_type import annotate_risk_types
+
+    annotate_evidence_levels(enriched)
+    annotate_risk_types(enriched)
 
     policy_summary = analysis.get("policy_summary") or {}
     if policy_summary.get("policies") or policy_summary.get("killswitch_drills"):

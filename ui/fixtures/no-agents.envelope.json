@@ -1290,6 +1290,7 @@
     ]
   },
   "runtime": null,
+  "passports": [],
   "vocabulary": {
     "high_impact_capabilities": [
       "cloud_resource_access",

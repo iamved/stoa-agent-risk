@@ -18,10 +18,12 @@ export interface FindingFilters {
   confidence: string | null;
   status: StatusFilter | null;
   rule: string | null;
+  /** How the finding was established: declared, static, reachable, observed, tested. */
+  evidence: string | null;
   q: string;
 }
 
-export const EMPTY_FILTERS: FindingFilters = { severity: [], dimension: null, cls: null, agent: null, confidence: null, status: null, rule: null, q: "" };
+export const EMPTY_FILTERS: FindingFilters = { severity: [], dimension: null, cls: null, agent: null, confidence: null, status: null, rule: null, evidence: null, q: "" };
 
 const SEVERITIES = new Set<string>(["critical", "high", "medium", "low", "info"]);
 
@@ -36,6 +38,7 @@ export function filtersFromQuery(query: URLSearchParams): FindingFilters {
     confidence: query.get("confidence") || null,
     status: status === "new" || status === "existing" || status === "suppressed" ? status : null,
     rule: query.get("rule") || null,
+    evidence: query.get("evidence") || null,
     q: query.get("q") ?? "",
   };
 }
@@ -49,6 +52,7 @@ export function filtersToQuery(filters: FindingFilters, sort: SortState | null):
   if (filters.confidence) query.set("confidence", filters.confidence);
   if (filters.status) query.set("status", filters.status);
   if (filters.rule) query.set("rule", filters.rule);
+  if (filters.evidence) query.set("evidence", filters.evidence);
   if (filters.q) query.set("q", filters.q);
   if (sort) {
     query.set("sort", sort.column);
@@ -64,7 +68,7 @@ export function sortFromQuery(query: URLSearchParams): SortState | null {
 }
 
 export function isFiltered(filters: FindingFilters): boolean {
-  return filters.severity.length > 0 || Boolean(filters.dimension || filters.cls || filters.agent || filters.confidence || filters.status || filters.rule || filters.q);
+  return filters.severity.length > 0 || Boolean(filters.dimension || filters.cls || filters.agent || filters.confidence || filters.status || filters.rule || filters.evidence || filters.q);
 }
 
 export function applyFilters(env: Envelope, filters: FindingFilters, framework: FrameworkId): FindingRef[] {
@@ -87,6 +91,7 @@ export function applyFilters(env: Envelope, filters: FindingFilters, framework: 
     if (filters.status === "new" && !finding.is_new) return false;
     if (filters.status === "existing" && (finding.is_new || finding.suppressed)) return false;
     if (filters.rule && !finding.rule_id.startsWith(filters.rule)) return false;
+    if (filters.evidence && (finding.evidence_level ?? "static") !== filters.evidence) return false;
     if (q) {
       const hay = `${finding.rule_id} ${finding.title} ${finding.path} ${finding.snippet} ${finding.remediation} ${finding.crosswalk?.so_what ?? ""} ${finding.canonical_name ?? ""} ${agents.map((a) => a.display_name || a.name).join(" ")} ${uniqueAgents.map((u) => u.name).join(" ")}`.toLowerCase();
       if (!hay.includes(q)) return false;

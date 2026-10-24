@@ -22,6 +22,9 @@ export const Icon = {
   policies: () => (
     <svg {...base}><path d="M5 4h14v6c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10z" /><path d="M9 11h6M9 14.5h4" /></svg>
   ),
+  passports: () => (
+    <svg {...base}><rect x="4" y="3" width="16" height="18" rx="2" /><circle cx="12" cy="10" r="2.5" /><path d="M8 17c.8-2 2.2-3 4-3s3.2 1 4 3" /></svg>
+  ),
   audit: () => (
     <svg {...base}><path d="M9 3h6l1 2h3v16H5V5h3z" /><path d="M9 12l2 2 4-4" /><path d="M9 3v2h6V3" /></svg>
   ),

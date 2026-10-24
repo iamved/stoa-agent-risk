@@ -60,6 +60,16 @@ limit        = 5000000
 ai_exclusion = true
 ```
 
+## Policies and passports
+
+**Policies** lists `stoa.policy.toml`, each policy's outcomes in the trace
+window, the money-moving and high-impact tools with no block or escalate
+policy, every decision that changed or would have changed a call, and the
+kill-switch drills ([docs/policy.md](policy.md)). **Passports** lists one
+passport per agent and opens each as a printable page
+([docs/passport.md](passport.md)). **Declarations** is the declared-scope
+editor.
+
 ## Runtime (traces)
 
 `stoa dashboard stoa-registry.json --runtime stoa-traces` (or `stoa scan

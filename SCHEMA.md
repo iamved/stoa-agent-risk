@@ -171,6 +171,14 @@ evidence in the window keeps its scan-time assessment):
 agents_covered, agents_total, unmatched_agents, rt_findings,
 evidence_quality}`.
 
+**Evidence and risk type (0.8.0, additive within 1.8):** every finding
+carries `evidence_level` (`declared | static | reachable | observed |
+tested`); every agent carries `capability_evidence` (capability id to
+level), `risk_type` (`{primary, driver, driver_exposure, driver_score,
+confidence}`) and `explanation` (`{can_do, could_go_wrong, protects,
+missing, evidence}`). The dashboard envelope carries `passports`
+(`stoa-passport/0.1`, [docs/passport.md](docs/passport.md)).
+
 **Top-level `policies`** (merge only, trace 1.1 with a policy file):
 `{window, policies: {<policy id>: {evaluated, allowed, blocked, would_block,
 escalated, masked, logged, error, last_decision}}, killswitch_drills}`. The

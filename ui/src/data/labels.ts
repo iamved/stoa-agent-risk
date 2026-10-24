@@ -263,3 +263,16 @@ export const PLAIN_ACTION: Record<string, string> = {
   SEC001: "Load the credential from a secret manager.",
   SEC002: "Load the password from a secret manager.",
 };
+
+
+// --- evidence levels and risk types (0.8.0) ------------------------------------------------------
+
+export const EVIDENCE_LABEL: Record<string, string> = {
+  declared: "Declared",
+  static: "Found in code",
+  reachable: "Reachable from infrastructure",
+  observed: "Observed at runtime",
+  tested: "Tested",
+};
+
+export const EVIDENCE_SHORT: Record<string, string> = { declared: "declared", static: "code", reachable: "infra", observed: "observed", tested: "tested" };

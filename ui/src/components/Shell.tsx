@@ -34,11 +34,12 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
       items: [
         { id: "overview", label: "Overview", href: buildHash("overview"), screens: ["overview"], icon: "overview" },
         { id: "inventory", label: "Agent Inventory", href: buildHash("inventory"), screens: ["inventory"], count: uniqueAgents(envelope).length, icon: "inventory" },
-        // Declared Scope stays reachable at #/scope but is hidden from the sidebar for now.
+        { id: "scope", label: "Declarations", href: buildHash("scope"), screens: ["scope"], icon: "scope" },
         // The badge is the number that needs someone: high-severity findings, not the size of the list.
         { id: "risk", label: "Findings", href: buildHash("findings"), screens: ["findings", "drift", "register", "runtime"], alert: high ? `${high} high` : undefined, icon: "risk" },
         { id: "controls", label: "Controls & Safeguards", href: buildHash("controls"), screens: ["controls"], icon: "controls" },
         { id: "policies", label: "Policies", href: buildHash("policies"), screens: ["policies"], icon: "policies", count: hasPolicies(envelope) ? policyRows(envelope).length : undefined },
+        { id: "passports", label: "Passports", href: buildHash("passports"), screens: ["passports"], icon: "passports", count: envelope.passports?.length || undefined },
         { id: "audit", label: "Launch Safety Audit", href: buildHash("audit"), screens: ["audit"], icon: "audit" },
         { id: "loss", label: "Financial Exposure", href: buildHash("loss"), screens: ["loss"], icon: "loss" },
         { id: "insurance", label: "AI Risk Insurance", href: buildHash("evidence"), screens: ["evidence"], icon: "insurance" },

@@ -5,6 +5,7 @@ import { Drawer } from "./Drawer";
 import { Chips, KeyValue } from "./KeyValue";
 import { Snippet } from "./Snippet";
 import { agentLabel, dimensionName, findingTitle, pluralize, tagLabel, type FindingRef } from "../data/selectors";
+import { EVIDENCE_LABEL } from "../data/labels";
 import { evidenceLines, howToFix, locationText, ruleName, whatThisCheckDoes, whatWeFound, whyItMatters } from "../data/findingCopy";
 import { euArticleDescription, euArticleName, owaspDescription, owaspName } from "../data/frameworks";
 
@@ -26,6 +27,7 @@ export function FindingDrawer({ ref, onClose, backQuery }: { ref: FindingRef | n
         {f.is_new ? <Pill tone="gold">new since base</Pill> : null}
         {f.suppressed ? <Pill tone="neutral" title={f.suppression_reason ?? ""}>suppressed</Pill> : null}
         {f.gate_eligible ? <Pill tone="navy" title="Can fail a build at high confidence">gate eligible</Pill> : null}
+        {f.evidence_level ? <Pill tone="neutral" title="How this finding was established">{EVIDENCE_LABEL[f.evidence_level] ?? f.evidence_level}</Pill> : null}
         {tag ? <Pill tone="neutral" title={tagLabel(tag, framework)}>{framework === "owasp" ? "OWASP " : framework === "eu" ? "EU AI Act " : ""}{tag}</Pill> : null}
       </div>
 

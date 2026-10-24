@@ -191,6 +191,12 @@ def build_document(result: ScanResult, config: StoaConfig) -> dict:
     if result.risk_register:
         document["risk_register"] = result.risk_register
     _annotate_crosswalk(document, config)
+    # Evidence levels and the per-agent risk type and explanation (0.8.0, additive).
+    from .evidence import annotate_evidence_levels
+    from .risk_type import annotate_risk_types
+
+    annotate_evidence_levels(document)
+    annotate_risk_types(document)
     validate_document(document)
     return document
 

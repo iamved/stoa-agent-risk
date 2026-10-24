@@ -23,6 +23,7 @@ from ..rules import HIGH_IMPACT_CAPABILITIES, RULES, SENSITIVE_INTEGRATIONS
 from ..underwriting import build_assessment, derive_from_registry
 from .identity import resolve_agents
 from .register import build_register
+from ..passport import build_passports
 
 ENVELOPE_SCHEMA = "stoa-dashboard/1.1"
 
@@ -172,6 +173,8 @@ def build_envelope(
         "frameworks": {"nist_ai_rmf": NIST_AI_RMF},
         # 1.1: what the traces showed, beside what the code made possible.
         "runtime": runtime,
+        # 0.8.0: one passport per agent (stoa-passport/0.1), from the same facts.
+        "passports": build_passports(registry, diff=diff, policies=(runtime or {}).get("policies")),
         # The scanner's own vocabulary, so the UI never hardcodes which
         # capabilities or integrations it treats as high impact.
         "vocabulary": {

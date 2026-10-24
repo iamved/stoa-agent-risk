@@ -99,7 +99,7 @@ test.describe("overview", () => {
     await expect(assessment).toContainText("9 of 23 answers came from your code. 8 need your confirmation.");
     await expect(assessment.getByRole("link")).toHaveText(["Continue the assessment"]);
     const nav = page.getByRole("navigation", { name: "Screens" });
-    await expect(nav.getByRole("listitem")).toHaveText([/^Overview$/, /^Agent Inventory\s*5$/, /^Findings\s*3 high$/, /^Controls & Safeguards$/, /^Policies\s*20$/, /^Launch Safety Audit$/, /^Financial Exposure$/, /^AI Risk Insurance$/]);
+    await expect(nav.getByRole("listitem")).toHaveText([/^Overview$/, /^Agent Inventory\s*5$/, /^Declarations$/, /^Findings\s*3 high$/, /^Controls & Safeguards$/, /^Policies\s*20$/, /^Passports\s*5$/, /^Launch Safety Audit$/, /^Financial Exposure$/, /^AI Risk Insurance$/]);
     await expect(page.getByText("26", { exact: true })).toHaveCount(0);
   });
 

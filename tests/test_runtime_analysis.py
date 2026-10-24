@@ -199,9 +199,11 @@ def test_merge_adds_only_documented_fields_and_never_mutates_input(tmp_path):
 
     # additivity: removing the new keys (and any RT findings) restores the original document
     for agent in enriched["agents"]:
-        agent.pop("runtime_evidence", None)
-        agent.pop("liveness_state", None)
+        for key in ("runtime_evidence", "liveness_state", "capability_evidence", "risk_type", "explanation"):
+            agent.pop(key, None)
         agent["findings"] = [f for f in agent["findings"] if not f["rule_id"].startswith("RT")]
+        for finding in agent["findings"]:
+            finding.pop("evidence_level", None)
     enriched.pop("runtime")
     assert enriched == registry_before
 

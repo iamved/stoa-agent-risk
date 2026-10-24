@@ -354,8 +354,24 @@ def build_parser() -> argparse.ArgumentParser:
     pol_recommend.add_argument("--out", metavar="PATH", default="stoa.policy.toml")
     pol_recommend.add_argument("--mode", choices=["observe", "enforce"], default="observe")
     pol_recommend.add_argument("--force", action="store_true", help="Overwrite an existing file")
+    pol_test = pol_sub.add_parser("test", help="Replay scenarios (JSONL) through the policies and report per policy")
+    pol_test.add_argument("scenarios", metavar="SCENARIOS.jsonl")
+    pol_test.add_argument("--policies", metavar="PATH", default="stoa.policy.toml")
+    pol_test.add_argument("--registry", metavar="PATH", default=None)
+    pol_test.add_argument("--out", metavar="PATH", default=".stoa/policy-test.json", help="Write the policy-test/0.1 result here (the passport reads it)")
+    pol_test.add_argument("--fail-on-mismatch", action="store_true", help="Exit 1 when any expectation is not met")
     pol_packs = pol_sub.add_parser("packs", help="List the shipped policy packs")
     pol_packs.add_argument("name", nargs="?", default=None, help="Print one pack's policies")
+
+    # --- stoa passport: one page per agent
+    passport = subparsers.add_parser("passport", help="Write an agent passport (stoa-passport/0.1) as HTML or JSON")
+    passport.add_argument("--agent-id", metavar="ID_OR_NAME", required=True)
+    passport.add_argument("--registry", metavar="PATH", default="stoa-registry.json")
+    passport.add_argument("--runtime", metavar="TRACES_DIR", default=None, help="Local traces, for the observed section and policy outcomes")
+    passport.add_argument("--policy", metavar="PATH", default=None)
+    passport.add_argument("--baseline", metavar="REGISTRY", default=None, help="Registry to diff against, for the drift section")
+    passport.add_argument("--out", metavar="PATH", default=None, help="Default: passport-<agent>.html")
+    passport.add_argument("--json", action="store_true", help="Write JSON instead of HTML")
 
     # --- stoa kill: the kill switch state file the SDK reads
     kill = subparsers.add_parser("kill", help="Set, release or drill the kill switch for an agent")
@@ -398,6 +414,8 @@ def main(argv: list[str] | None = None) -> int:
             return _run_runtime_command(args)
         if args.command == "policy":
             return _run_policy_command(args)
+        if args.command == "passport":
+            return _run_passport_command(args)
         if args.command == "kill":
             return _run_kill_command(args)
     except ConfigError as exc:
@@ -1163,6 +1181,27 @@ def _run_policy_command(args: argparse.Namespace) -> int:
         print()
         print(render_gaps(gaps), end="")
         return EXIT_OK
+    if args.policy_command == "test":
+        from datetime import datetime, timezone
+
+        from .policy.test import load_scenarios, render_policy_test, run_policy_test
+
+        scenarios, problems = load_scenarios(args.scenarios)
+        for problem in problems:
+            print(f"stoa policy test: warning: {problem}", file=sys.stderr)
+        registry_path = args.registry or ("stoa-registry.json" if Path("stoa-registry.json").is_file() else None)
+        if args.registry and not Path(args.registry).is_file():
+            print(f"stoa policy test: registry not found: {args.registry}", file=sys.stderr)
+            return EXIT_USAGE
+        if registry_path is None:
+            print("stoa policy test: warning: no registry; declared tools and limits are unknown, so allow-list policies fire on every call", file=sys.stderr)
+        doc = run_policy_test(scenarios, args.policies, registry_path=registry_path, generated_at=datetime.now(timezone.utc).isoformat())
+        if args.out:
+            _atomic_write(Path(args.out), json.dumps(doc, indent=2) + "\n")
+        print(render_policy_test(doc), end="")
+        if args.fail_on_mismatch and doc["matched"] < doc["expected"]:
+            return EXIT_GATE_FAILED
+        return EXIT_OK
     if args.policy_command == "packs":
         names = [args.name] if args.name else list(PACK_NAMES)
         for name in names:
@@ -1176,8 +1215,37 @@ def _run_policy_command(args: argparse.Namespace) -> int:
                 if args.name:
                     print(f"      {p.rationale}")
         return EXIT_OK
-    print("stoa policy: choose a subcommand (validate, recommend, packs)", file=sys.stderr)
+    print("stoa policy: choose a subcommand (validate, recommend, test, packs)", file=sys.stderr)
     return EXIT_USAGE
+
+
+def _run_passport_command(args: argparse.Namespace) -> int:
+    from datetime import datetime, timezone
+
+    from .dashboard import build_runtime_slot
+    from .passport import build_passport, render_passport_html
+
+    registry = _load_registry(args.registry)
+    policies = None
+    if args.runtime:
+        config = load_config(Path.cwd(), None)
+        registry, slot = build_runtime_slot(args.runtime, registry, config, registry_path=args.registry, generated_at=datetime.now(timezone.utc).isoformat(), policy_path=args.policy)
+        policies = slot.get("policies")
+    diff = None
+    if args.baseline:
+        diff = diff_registries(_load_registry(args.baseline), registry, Approvals.load(Path(".stoa/approvals.toml")))
+    agents = registry.get("agents") or []
+    match = next((a for a in agents if a["id"] == args.agent_id or (a.get("declared") or {}).get("name") == args.agent_id or a.get("name") == args.agent_id or a.get("display_name") == args.agent_id), None)
+    if match is None:
+        print(f"stoa passport: no agent {args.agent_id!r}; agents: {', '.join((a.get('declared') or {}).get('name') or a.get('display_name') or a['id'] for a in agents)}", file=sys.stderr)
+        return EXIT_USAGE
+    passport = build_passport(registry, match["id"], diff=diff, policies=policies)
+    name = passport["agent"]["name"]
+    out = Path(args.out) if args.out else Path(f"passport-{name}.{'json' if args.json else 'html'}")
+    company = (_load_underwriting(Path.cwd(), None) or {}).get("identity", {}).get("company")
+    _atomic_write(out, json.dumps(passport, indent=2, ensure_ascii=False) + "\n" if args.json else render_passport_html(passport, company=company))
+    print(f"stoa passport: wrote {out} ({passport['validity']['status']}, verify {passport['verify_hash']})")
+    return EXIT_OK
 
 
 def _run_kill_command(args: argparse.Namespace) -> int:

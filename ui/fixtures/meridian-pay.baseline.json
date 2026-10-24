@@ -212,7 +212,24 @@
       },
       "source": "iac",
       "discovery_tier": "recognized",
-      "platform": "bedrock"
+      "platform": "bedrock",
+      "capability_evidence": {
+        "vector_search": "reachable"
+      },
+      "risk_type": {
+        "primary": "Prompt Injections",
+        "driver": "injection-tamper-surface",
+        "driver_exposure": "low",
+        "driver_score": 18,
+        "confidence": "high"
+      },
+      "explanation": {
+        "can_do": "meridian-knowledge can search documents.",
+        "could_go_wrong": "Most likely failure: text from a user or a document steers what the agent does. Driven by injection risk (low).",
+        "protects": "No safeguard was detected on this agent.",
+        "missing": "Missing: a kill switch and logging.",
+        "evidence": "Evidence: 1 declared, 1 reachable. Nothing observed at runtime yet."
+      }
     },
     {
       "id": "b8f0111742fc",
@@ -289,7 +306,8 @@
             "eu_ai_act": "Art. 15",
             "relation": "exposure",
             "so_what": "The model reference is unpinned, so behavior can change under you silently."
-          }
+          },
+          "evidence_level": "static"
         },
         {
           "fingerprint": "c0e7b0d45a6967b7",
@@ -326,7 +344,8 @@
             "eu_ai_act": "Art. 9",
             "relation": "exposure",
             "so_what": "A retried money action with no idempotency key can post twice, and each attempt stays under the per-call limit."
-          }
+          },
+          "evidence_level": "static"
         },
         {
           "fingerprint": "a2f94531c7770b68",
@@ -357,7 +376,8 @@
             "eu_ai_act": "Art. 14",
             "relation": "exposure",
             "so_what": "Declared autonomy does not match what the code does."
-          }
+          },
+          "evidence_level": "declared"
         },
         {
           "fingerprint": "9d9a33f2fd7ff254",
@@ -389,7 +409,8 @@
             "eu_ai_act": "Art. 12",
             "relation": "exposure",
             "so_what": "Without logging you cannot reconstruct what the agent did."
-          }
+          },
+          "evidence_level": "static"
         },
         {
           "fingerprint": "77d4c36eaa0b4850",
@@ -415,7 +436,8 @@
             "eu_ai_act": "Art. 14",
             "relation": "exposure",
             "so_what": "No kill-switch signal was observed to halt the agent mid-run."
-          }
+          },
+          "evidence_level": "static"
         },
         {
           "fingerprint": "1b5760feca23bde6",
@@ -445,7 +467,8 @@
             "eu_ai_act": "Art. 12",
             "relation": "exposure",
             "so_what": "The agent runs in production with no observability observed."
-          }
+          },
+          "evidence_level": "declared"
         }
       ],
       "highest_severity": "critical",
@@ -780,7 +803,25 @@
           "idempotency_key": false,
           "resolved": true
         }
-      ]
+      ],
+      "capability_evidence": {
+        "payment_access": "static",
+        "tool_calling": "static"
+      },
+      "risk_type": {
+        "primary": "Erroneous Transactions",
+        "driver": "mandate-overreach",
+        "driver_exposure": "elevated",
+        "driver_score": 58,
+        "confidence": "high"
+      },
+      "explanation": {
+        "can_do": "account-actions can move money, through 3 money-moving tools (issue_refund, waive_fee, reissue_card).",
+        "could_go_wrong": "Most likely failure: money or account changes go out wrong, twice, or without anyone deciding. Driven by excess access (elevated). 2 high-severity findings point there.",
+        "protects": "Detected: callers are signed in, fixed model settings and inputs are checked.",
+        "missing": "Missing: a person approves before it acts, a kill switch, logging and a rate limit.",
+        "evidence": "Evidence: 3 declared, 6 static. Nothing observed at runtime yet."
+      }
     },
     {
       "id": "2a61ffb1db0d",
@@ -867,7 +908,8 @@
             "eu_ai_act": "Art. 15",
             "relation": "exposure",
             "so_what": "The model reference is unpinned, so behavior can change under you silently."
-          }
+          },
+          "evidence_level": "static"
         },
         {
           "fingerprint": "d373f238bf601384",
@@ -893,7 +935,8 @@
             "eu_ai_act": "Art. 14",
             "relation": "exposure",
             "so_what": "No kill-switch signal was observed to halt the agent mid-run."
-          }
+          },
+          "evidence_level": "static"
         }
       ],
       "highest_severity": "low",
@@ -1069,7 +1112,26 @@
           "idempotency_key": false,
           "resolved": true
         }
-      ]
+      ],
+      "capability_evidence": {
+        "cloud_resource_access": "static",
+        "external_http": "static",
+        "tool_calling": "static"
+      },
+      "risk_type": {
+        "primary": "Data Leakage",
+        "driver": "boundary-leakage",
+        "driver_exposure": "low",
+        "driver_score": 18,
+        "confidence": "high"
+      },
+      "explanation": {
+        "can_do": "meridian-front can call outside services and change cloud resources.",
+        "could_go_wrong": "Most likely failure: data the agent can read ends up where it should not. Driven by data leaks (low).",
+        "protects": "Detected: a person approves before it acts, callers are signed in, fixed model settings and inputs are checked.",
+        "missing": "Missing: a kill switch and logging.",
+        "evidence": "Evidence: 1 declared, 5 static. Nothing observed at runtime yet."
+      }
     },
     {
       "id": "224627e4877d",
@@ -1248,7 +1310,25 @@
       },
       "source": "iac",
       "discovery_tier": "recognized",
-      "platform": "databricks"
+      "platform": "databricks",
+      "capability_evidence": {
+        "database_read": "reachable",
+        "database_write": "reachable"
+      },
+      "risk_type": {
+        "primary": "Data Loss & Corruption",
+        "driver": "mandate-overreach",
+        "driver_exposure": "low",
+        "driver_score": 18,
+        "confidence": "high"
+      },
+      "explanation": {
+        "can_do": "meridian-escalation can change records and read records.",
+        "could_go_wrong": "Most likely failure: records or systems are changed or lost without a check. Driven by excess access (low).",
+        "protects": "Detected: logging and a rate limit.",
+        "missing": "Missing: a kill switch.",
+        "evidence": "Evidence: 1 declared, 2 reachable. Nothing observed at runtime yet."
+      }
     }
   ],
   "repository_findings": [
@@ -1287,7 +1367,8 @@
         "eu_ai_act": "Art. 9",
         "relation": "exposure",
         "so_what": "A retried money action with no idempotency key can post twice, and each attempt stays under the per-call limit."
-      }
+      },
+      "evidence_level": "static"
     },
     {
       "fingerprint": "a2f94531c7770b68",
@@ -1318,7 +1399,8 @@
         "eu_ai_act": "Art. 14",
         "relation": "exposure",
         "so_what": "Declared autonomy does not match what the code does."
-      }
+      },
+      "evidence_level": "declared"
     }
   ],
   "skipped_files": [],

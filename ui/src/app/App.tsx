@@ -18,6 +18,7 @@ import { Controls } from "../screens/Controls";
 import { Audit } from "../screens/Audit";
 import { Runtime } from "../screens/Runtime";
 import { Policies } from "../screens/Policies";
+import { Passports } from "../screens/Passports";
 import { Loss } from "../screens/Loss";
 
 type State = { status: "loading" } | { status: "ready"; envelope: Envelope } | { status: "problem"; problem: SchemaProblem };
@@ -93,6 +94,7 @@ function Routed() {
     route.screen === "drift" ? <Drift /> :
     route.screen === "runtime" ? <Runtime /> :
     route.screen === "policies" ? <Policies /> :
+    route.screen === "passports" ? <Passports /> :
     route.screen === "register" ? <Register /> :
     route.screen === "evidence" ? <Evidence /> :
     route.screen === "scope" ? <Scope /> :

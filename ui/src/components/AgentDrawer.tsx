@@ -4,6 +4,7 @@ import { AssessabilityBadge, ConfidenceBadge, ExposureBadge, Pill, SeverityBadge
 import { Drawer } from "./Drawer";
 import { ExposureTip } from "./InfoTip";
 import { Chips, KeyValue } from "./KeyValue";
+import { dimensionLabel } from "../data/labels";
 import { agentFindingCount, agentSource, contradictions } from "../data/inventory";
 import { definedIn, uniqueAgentOf } from "../data/agents";
 import { CAPABILITY_LABEL, autonomyLabel, businessCapabilities, prose } from "../data/labels";
@@ -66,6 +67,19 @@ export function AgentDrawer({ agent, onClose }: { agent: Agent | null; onClose: 
           { k: "Code owners", v: <Chips items={agent.codeowners.map((c) => ({ label: c }))} empty="none" /> },
         ]}
       />
+
+      {agent.risk_type || agent.explanation ? (
+        <Section title="In plain words">
+          {agent.risk_type?.primary ? <div className="flex flex-wrap items-center gap-1.5 mb-2"><Pill tone={agent.risk_type.driver_exposure === "elevated" ? "warn" : "navy"}>{agent.risk_type.primary}</Pill>{agent.risk_type.driver ? <span className="caption">driven by {dimensionLabel(agent.risk_type.driver).toLowerCase()} ({agent.risk_type.driver_exposure}) · confidence {agent.risk_type.confidence}</span> : <span className="caption">no exposure in this scan</span>}</div> : null}
+          {agent.explanation ? <div className="text-[13px] flex flex-col gap-1">
+            <p className="m-0">{agent.explanation.can_do}</p>
+            <p className="m-0">{agent.explanation.could_go_wrong}</p>
+            <p className="m-0">{agent.explanation.protects}</p>
+            <p className="m-0">{agent.explanation.missing}</p>
+            <p className="m-0 caption">{agent.explanation.evidence}</p>
+          </div> : null}
+        </Section>
+      ) : null}
 
       <Section title="What it can do">
         <Chips items={agent.capabilities.map((c) => ({ label: c, hot: highImpact.has(c), title: highImpact.has(c) ? "high-impact capability" : "" }))} empty="no capability signals" />

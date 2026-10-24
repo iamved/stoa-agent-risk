@@ -241,7 +241,17 @@ def build(out: Path = OUT) -> None:
     finally:
         head_registry_path.unlink(missing_ok=True)
     runtime_baseline = build_baseline(analyze_traces(august_dir, head))
-    head, runtime_slot = build_runtime_slot(september_dir, head, baseline=runtime_baseline, registry_path="stoa-registry.json", key=DEMO_KEY, policy_path=EXAMPLE / "stoa.policy.toml")
+    # The committed scenarios replayed through the committed policy file: tested evidence for the passports.
+    from stoa.policy.test import load_scenarios, run_policy_test
+    test_path = out / ".policy-test.json"
+    scenarios, _ = load_scenarios(EXAMPLE / "scenarios.jsonl")
+    head_registry_path.write_text(json.dumps(head))
+    try:
+        test_path.write_text(json.dumps(run_policy_test(scenarios, EXAMPLE / "stoa.policy.toml", registry_path=head_registry_path)))
+        head, runtime_slot = build_runtime_slot(september_dir, head, baseline=runtime_baseline, registry_path="stoa-registry.json", key=DEMO_KEY, policy_path=EXAMPLE / "stoa.policy.toml", test_path=test_path)
+    finally:
+        head_registry_path.unlink(missing_ok=True)
+        test_path.unlink(missing_ok=True)
     runtime_slot["traces_dir"] = "stoa-traces"
     runtime_slot["chain"]["directory"] = "stoa-traces"
     runtime_slot["analysis"]["header"]["registry"] = "stoa-registry.json"

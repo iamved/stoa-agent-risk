@@ -57,9 +57,17 @@ export interface Finding {
   declared_ref?: { path: string; key: string } | null;
   /** RT-family findings: the trace-side evidence pointer. */
   trace_ref?: TraceRef | null;
+  /** How the fact was established (0.8.0): declared, static, reachable, observed, tested. */
+  evidence_level?: EvidenceLevel;
   crosswalk?: CrosswalkTag;
   [extra: string]: unknown;
 }
+
+export type EvidenceLevel = "declared" | "static" | "reachable" | "observed" | "tested";
+export const EVIDENCE_LEVELS: EvidenceLevel[] = ["declared", "static", "reachable", "observed", "tested"];
+
+export interface RiskType { primary: string; driver: string | null; driver_exposure: Exposure | null; driver_score: number; confidence: "high" | "medium" | "low"; note?: string }
+export interface Explanation { can_do: string; could_go_wrong: string; protects: string; missing: string; evidence: string }
 
 // --- runtime overlay (stoa-trace/1.1, dashboard-runtime/1.0) -----------------
 
@@ -147,10 +155,37 @@ export interface PolicyCounts { evaluated: number; allowed: number; blocked: num
 export interface PolicyEvent { ts: string | null; policy_id: string; outcome: string; action: string | null; tool: string | null; amount: { amount: number; currency: string } | null; enforcement: string | null; trace_ref: TraceRef }
 export interface KillSwitchDrill { ts?: string | null; seconds_to_stop: number | null; by?: string | null; agent_id?: string; timed_out?: boolean; trace_ref?: TraceRef; source?: string }
 
+export interface PolicyTestResult { line: number | null; agent: string; tool: string; amount: number | null; expect: string | null; actual: string; decided_by: string | null; expect_would: string | null; would: string; would_by: string | null; matched: boolean; false_positive: boolean; note?: string | null }
+export interface PolicyTest { schema: string; policy_file: string; mode: string; evidence_level: "tested"; scenarios: number; matched: number; expected: number; false_positives: number; policies: Record<string, { evaluated: number; fired: number; decided: number; would_decide: number; matched: number; mismatched: number; false_positives: number; enforced: boolean }>; agents: Record<string, { scenarios: number; matched: number; false_positives: number; blocked: number; escalated: number }>; results: PolicyTestResult[] }
+
 export interface PolicyBlock {
   document: { path: string; mode: "observe" | "enforce"; problems: { at: string; message: string }[]; policies: PolicySpecRecord[] } | null;
   summary: Record<string, PolicyCounts>;
   killswitch_drills: KillSwitchDrill[];
+  test?: PolicyTest | null;
+}
+
+export interface Passport {
+  schema: string;
+  agent: { id: string; name: string; owner: string | null; purpose: string | null; production_status: string | null; users: string | null; declared_autonomy: string | null; inferred_autonomy: string | null; defined_in: string | null; source: string; platform: string | null };
+  capabilities: { id: string; evidence_level: EvidenceLevel }[];
+  tools: { name: string; money_action: boolean; high_impact: boolean; guardrails: string[] }[];
+  reach: { reachable: string[]; static: string[]; observed: string[] };
+  dimensions: { id: string; exposure: Exposure; score: number; assessability: string; static_exposure?: Exposure | null }[];
+  risk_type: RiskType | Record<string, never>;
+  explanation: Explanation;
+  controls_observed: string[];
+  policies: { mode: string | null; attached: { id: string; title: string; action: string; enforced: boolean; condition: string; counts: Record<string, number> }[] };
+  drift: { status: string; severity: string | null; detail: string };
+  evidence_mix: Record<EvidenceLevel, number>;
+  runtime: { window: { start: string | null; end: string | null } | null; span_count: number; money_actions: number | null; approval_rate_money: number | null; flag_counts: Record<string, number> | null } | null;
+  killswitch_drill: KillSwitchDrill | null;
+  policy_test: { scenarios: number; matched: number; false_positives: number; blocked: number; escalated: number } | null;
+  registry_hash: string;
+  scanner_version: string;
+  scan_date: string | null;
+  validity: { rule: string; expires: string | null; status: "valid" | "lapsed"; reason: string | null };
+  verify_hash: string;
 }
 
 export interface RuntimeSlot {
@@ -267,6 +302,10 @@ export interface Agent {
   declared?: AgentDeclaration;
   autonomy_level?: AutonomyLevel;
   tools?: ToolRecord[];
+  /** 0.8.0: evidence level per capability, the primary risk type, and the plain-English explanation. */
+  capability_evidence?: Record<string, EvidenceLevel>;
+  risk_type?: RiskType;
+  explanation?: Explanation;
   /** Runtime overlay (merge only): what traces showed for this agent in the window. */
   runtime_evidence?: RuntimeEvidence;
   liveness_state?: "active" | "idle" | "deprecated";
@@ -657,4 +696,6 @@ export interface Envelope {
   vocabulary: { high_impact_capabilities: string[]; sensitive_integrations: string[] };
   /** 1.1: what the traces showed. Null or absent without traces. */
   runtime?: RuntimeSlot | null;
+  /** 0.8.0: one passport per agent (stoa-passport/0.1). */
+  passports?: Passport[];
 }

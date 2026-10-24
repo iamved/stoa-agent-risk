@@ -10,6 +10,7 @@ registry; nothing is scored again.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from ..config import StoaConfig
@@ -22,7 +23,7 @@ from ..runtime.reconcile import reconcile
 RUNTIME_SLOT_SCHEMA = "dashboard-runtime/1.0"
 
 
-def _policy_block(policy_path: str | Path | None, analysis: dict) -> dict | None:
+def _policy_block(policy_path: str | Path | None, analysis: dict, test_path: str | Path | None = None) -> dict | None:
     from ..policy.conditions import condition_text
     from ..policy.killswitch import find_state
     from ..policy.schema import find_policy_file, load_policy_document
@@ -45,9 +46,18 @@ def _policy_block(policy_path: str | Path | None, analysis: dict) -> dict | None
         drills += [{**d, "source": "state"} for d in recorded_drills(find_state()) if d not in drills]
     except Exception:  # noqa: BLE001
         pass
+    test = None
+    for candidate in ([Path(test_path)] if test_path else []) + ([path.parent / ".stoa" / "policy-test.json"] if path else []):
+        if candidate.is_file():
+            try:
+                test = json.loads(candidate.read_text(encoding="utf-8"))
+                test = {k: v for k, v in test.items() if k != "results"} | {"results": test.get("results", [])[:50]}
+                break
+            except (OSError, ValueError):
+                test = None
     if document is None and not summary.get("policies"):
         return None
-    return {"document": document, "summary": summary.get("policies") or {}, "killswitch_drills": drills}
+    return {"document": document, "summary": summary.get("policies") or {}, "killswitch_drills": drills, "test": test}
 
 
 def build_runtime_slot(
@@ -61,6 +71,7 @@ def build_runtime_slot(
     dormant_days: int = 30,
     key: str | None = None,
     policy_path: str | Path | None = None,
+    test_path: str | Path | None = None,
 ) -> tuple[dict, dict]:
     """Returns ``(enriched_registry, slot)``. ``policy_path`` (or a
     ``stoa.policy.toml`` found by searching upward) puts the policy document
@@ -83,7 +94,7 @@ def build_runtime_slot(
     slot = {
         "schema": RUNTIME_SLOT_SCHEMA,
         "traces_dir": str(traces_dir),
-        "policies": _policy_block(policy_path, analysis),
+        "policies": _policy_block(policy_path, analysis, test_path),
         "analysis": analysis,
         "reconcile": reconcile(registry, analysis, dormant_days=dormant_days, generated_at=generated_at),
         "chain": verify_dir(traces_dir, key).to_dict(),
