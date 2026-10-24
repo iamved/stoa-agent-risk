@@ -68,8 +68,10 @@ else:  # pragma: no cover
     import tomli as tomllib
 
 POLICY_NAME = "stoa.policy.toml"
-DECISIONS = ("allow", "deny", "require_approval", "observe")
+DECISIONS = ("allow", "deny", "require_approval", "observe", "mask")
 ON_FAIL = ("observe", "require_approval", "deny")
+# A structured policy's action, as the decision the runtime acts on.
+_ON_FAIL_FOR = {"block": "deny", "escalate": "require_approval", "mask": "mask", "log": "observe", "allow": "allow"}
 
 
 class StoaDenied(Exception):
@@ -89,6 +91,9 @@ class Rule:
     on_fail: str = "observe"
     enforce: bool = False
     reason: str = ""
+    # A structured policy (stoa-policy/0.1) carries its spec; the expression
+    # fields above are then unused and the condition decides.
+    spec: object | None = None
 
 
 @dataclass
@@ -106,10 +111,12 @@ class Policy:
 @dataclass
 class Decision:
     rule_id: str
-    decision: str  # allow | deny | require_approval | observe
+    decision: str  # allow | deny | require_approval | observe | mask
     enforced: bool
     reason: str = ""
     error: str | None = None
+    # The policy's own action word (allow | block | escalate | mask | log) for structured policies.
+    action: str | None = None
 
 
 # --- safe expression evaluation ---------------------------------------------------------
@@ -224,6 +231,14 @@ def load_policy(path: str | Path | None = None) -> Policy:
     policy = Policy(path=str(resolved))
     mode = (data.get("defaults") or {}).get("mode", "observe")
     policy.mode = mode if mode in ("observe", "enforce") else "observe"
+    if data.get("policies"):
+        from ..policy.schema import parse_policy_document
+
+        document = parse_policy_document(data, str(resolved))
+        for problem in document.problems:
+            policy.warnings.append(f"{problem['at']}: {problem['message']}")
+        for spec in document.policies:
+            policy.rules.append(Rule(id=spec.id, on_fail=_ON_FAIL_FOR[spec.action], enforce=spec.enforced(policy.mode), reason=spec.rationale, spec=spec))
     for index, raw in enumerate(data.get("rules") or []):
         if not isinstance(raw, dict) or not raw.get("id"):
             policy.warnings.append(f"rules[{index}]: missing id; ignored")
@@ -252,13 +267,42 @@ def load_policy(path: str | Path | None = None) -> Policy:
 # --- evaluation ---------------------------------------------------------------------------
 
 
-def decide(policy: Policy, namespace: dict, *, fail_open: bool = True) -> list[Decision]:
+def _scoped(spec, namespace: dict, trigger: str) -> bool:
+    scope = spec.scope or {}
+    agent = namespace.get("agent") or {}
+    wanted = scope.get("agent", "*")
+    if wanted not in ("*", agent.get("id"), agent.get("name")):
+        return False
+    if scope.get("tool") and scope["tool"] != namespace.get("tool"):
+        return False
+    return spec.trigger in ("any", trigger)
+
+
+def decide(policy: Policy, namespace: dict, *, fail_open: bool = True, trigger: str = "tool_call", store=None, killswitch=None, now=None) -> list[Decision]:
     """Every rule's decision for one call, in file order. A rule that does
-    not apply (``when`` false) is left out. ``enforced`` is true only when
-    the rule says ``enforce`` (or the SDK runs fail-closed) and the decision
-    is ``deny``; everything else is recorded, never acted on."""
+    not apply (``when`` false, or a structured policy out of scope) is left
+    out. ``enforced`` is true only when the rule says ``enforce`` (or the
+    SDK runs fail-closed) and the decision is ``deny`` or ``require_approval``;
+    everything else is recorded, never acted on."""
     out: list[Decision] = []
     for rule in policy.rules:
+        spec = rule.spec
+        if spec is not None:
+            if not _scoped(spec, namespace, trigger):
+                continue
+            from ..policy.conditions import evaluate_condition
+
+            fired, reason = evaluate_condition(spec.condition, {**namespace, "_scope_tool": bool((spec.scope or {}).get("tool"))}, store=store, killswitch=killswitch, now=now, expr_eval=evaluate)
+            if fired is None:
+                out.append(Decision(rule.id, "observe", False, rule.reason, error=reason, action=spec.action))
+                continue
+            if not fired:
+                out.append(Decision(rule.id, "allow", False, reason, action="allow"))
+                continue
+            decision = _ON_FAIL_FOR[spec.action]
+            enforced = decision in ("deny", "require_approval") and (rule.enforce or not fail_open)
+            out.append(Decision(rule.id, decision, enforced, reason or rule.reason, action=spec.action))
+            continue
         try:
             if not evaluate(rule.when, namespace):
                 continue

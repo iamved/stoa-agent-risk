@@ -22,6 +22,34 @@ from ..runtime.reconcile import reconcile
 RUNTIME_SLOT_SCHEMA = "dashboard-runtime/1.0"
 
 
+def _policy_block(policy_path: str | Path | None, analysis: dict) -> dict | None:
+    from ..policy.conditions import condition_text
+    from ..policy.killswitch import find_state
+    from ..policy.schema import find_policy_file, load_policy_document
+
+    path = Path(policy_path) if policy_path else find_policy_file()
+    summary = analysis.get("policy_summary") or {}
+    document = None
+    if path is not None and path.is_file():
+        doc = load_policy_document(path)
+        document = {
+            "path": path.name,
+            "mode": doc.mode,
+            "problems": doc.problems,
+            "policies": [{**p.to_dict(), "condition_text": condition_text(p.condition), "enforced": p.enforced(doc.mode)} for p in doc.policies],
+        }
+    drills = list(summary.get("killswitch_drills") or [])
+    try:
+        from ..policy.killswitch import drills as recorded_drills
+
+        drills += [{**d, "source": "state"} for d in recorded_drills(find_state()) if d not in drills]
+    except Exception:  # noqa: BLE001
+        pass
+    if document is None and not summary.get("policies"):
+        return None
+    return {"document": document, "summary": summary.get("policies") or {}, "killswitch_drills": drills}
+
+
 def build_runtime_slot(
     traces_dir: str | Path,
     registry: dict,
@@ -32,8 +60,11 @@ def build_runtime_slot(
     generated_at: str | None = None,
     dormant_days: int = 30,
     key: str | None = None,
+    policy_path: str | Path | None = None,
 ) -> tuple[dict, dict]:
-    """Returns ``(enriched_registry, slot)``."""
+    """Returns ``(enriched_registry, slot)``. ``policy_path`` (or a
+    ``stoa.policy.toml`` found by searching upward) puts the policy document
+    beside the outcomes so the dashboard can show both."""
     config = config or StoaConfig()
     analysis = analyze_traces(traces_dir, registry, generated_at=generated_at, registry_path=registry_path)
     enriched = merge_runtime_into_registry(registry, analysis, config, baseline)
@@ -52,6 +83,7 @@ def build_runtime_slot(
     slot = {
         "schema": RUNTIME_SLOT_SCHEMA,
         "traces_dir": str(traces_dir),
+        "policies": _policy_block(policy_path, analysis),
         "analysis": analysis,
         "reconcile": reconcile(registry, analysis, dormant_days=dormant_days, generated_at=generated_at),
         "chain": verify_dir(traces_dir, key).to_dict(),

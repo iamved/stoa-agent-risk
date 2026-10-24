@@ -1,0 +1,38 @@
+# baseline: what every agent gets. Observe by default; the kill switch is enforced.
+version = "stoa-policy/0.1"
+[defaults]
+mode = "observe"
+
+[[policies]]
+id = "POL-BASE-001"
+title = "Kill switch"
+scope = { agent = "*" }
+trigger = "any"
+condition = { killswitch = true }
+action = "block"
+fail = "closed"
+enforce = true
+maps_to = { dimension = "control-coverage-gap", owasp_llm = "LLM06", eu_ai_act = "Art. 14" }
+rationale = "A way to stop an agent without a deploy. CTRL007 looks for one in code; this policy is one."
+
+[[policies]]
+id = "POL-BASE-002"
+title = "Every tool call is logged"
+scope = { agent = "*" }
+trigger = "tool_call"
+condition = { expr = "true" }
+action = "log"
+fail = "open"
+maps_to = { dimension = "control-coverage-gap", owasp_llm = "LLM10", eu_ai_act = "Art. 12" }
+rationale = "CTRL004 and DECL005: a record of what the agent did, written by the SDK."
+
+[[policies]]
+id = "POL-BASE-003"
+title = "Only declared tools"
+scope = { agent = "*" }
+trigger = "tool_call"
+condition = { expr = "tool not in agent.declared_tools" }
+action = "block"
+fail = "open"
+maps_to = { dimension = "mandate-overreach", owasp_llm = "LLM06", eu_ai_act = "Art. 9" }
+rationale = "The scanned tool inventory is the allow-list; RT006 reports what falls outside it."

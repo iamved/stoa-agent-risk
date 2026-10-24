@@ -100,6 +100,9 @@ export interface RuntimeAgentSummary extends RuntimeEvidence {
   llm_error_rate?: number;
   flag_events?: FlagEvent[];
   tool_last_ts?: Record<string, string>;
+  policy_counts?: Record<string, PolicyCounts>;
+  policy_events?: PolicyEvent[];
+  killswitch_drills?: KillSwitchDrill[];
   trace_refs: Record<string, unknown>;
 }
 
@@ -122,9 +125,39 @@ export interface ChainReport { schema: string; directory: string; ok: boolean; r
 export interface RuntimeDriftEvent { class: "info" | "medium" | "high"; kind: string; agent_id: string; [extra: string]: unknown }
 export interface RuntimeDrift { schema: string; events: RuntimeDriftEvent[]; summary?: Record<string, unknown>; [extra: string]: unknown }
 
+export interface PolicySpecRecord {
+  id: string;
+  title: string;
+  scope: { agent: string; tool?: string };
+  trigger: "input" | "tool_call" | "output" | "any";
+  condition: Record<string, unknown>;
+  condition_text: string;
+  action: "allow" | "block" | "escalate" | "mask" | "log";
+  escalate_to?: string;
+  fail: "open" | "closed";
+  enforced: boolean;
+  evidence?: string[];
+  maps_to?: { dimension?: string; owasp_llm?: string; eu_ai_act?: string };
+  rationale?: string;
+  recommended_because?: string[];
+  pack?: string;
+}
+
+export interface PolicyCounts { evaluated: number; allowed: number; blocked: number; would_block: number; escalated: number; masked: number; logged: number; error: number; last_decision?: string | null }
+export interface PolicyEvent { ts: string | null; policy_id: string; outcome: string; action: string | null; tool: string | null; amount: { amount: number; currency: string } | null; enforcement: string | null; trace_ref: TraceRef }
+export interface KillSwitchDrill { ts?: string | null; seconds_to_stop: number | null; by?: string | null; agent_id?: string; timed_out?: boolean; trace_ref?: TraceRef; source?: string }
+
+export interface PolicyBlock {
+  document: { path: string; mode: "observe" | "enforce"; problems: { at: string; message: string }[]; policies: PolicySpecRecord[] } | null;
+  summary: Record<string, PolicyCounts>;
+  killswitch_drills: KillSwitchDrill[];
+}
+
 export interface RuntimeSlot {
   schema: string;
   traces_dir: string;
+  /** The policy document and its observed outcomes (stoa-policy/0.1). Null without either. */
+  policies?: PolicyBlock | null;
   analysis: RuntimeAnalysis;
   reconcile: ReconcileDoc;
   chain: ChainReport;

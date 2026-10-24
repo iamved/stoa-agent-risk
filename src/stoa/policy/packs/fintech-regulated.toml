@@ -1,0 +1,39 @@
+# fintech-regulated: the payments and data packs with stricter defaults, enforced.
+version = "stoa-policy/0.1"
+[defaults]
+mode = "enforce"
+
+[[policies]]
+id = "POL-FIN-001"
+title = "Approval on every money movement"
+scope = { agent = "*" }
+trigger = "tool_call"
+condition = { all = [{ expr = "side_effect == 'payment'" }, { approval_missing = true }] }
+action = "block"
+fail = "closed"
+evidence = ["amount", "currency", "approval_span_id"]
+maps_to = { dimension = "unreviewed-high-impact-action", owasp_llm = "LLM06", eu_ai_act = "Art. 14" }
+rationale = "Regulated payments: a person on the path for every movement, not only above a threshold."
+
+[[policies]]
+id = "POL-FIN-002"
+title = "Daily aggregate cap, tight"
+scope = { agent = "*" }
+trigger = "tool_call"
+condition = { window_sum_gt = { field = "amount", window = "24h", value = 2500 } }
+action = "block"
+fail = "closed"
+evidence = ["amount", "currency"]
+maps_to = { dimension = "mandate-overreach", owasp_llm = "LLM06", eu_ai_act = "Art. 9" }
+rationale = "Half the default aggregate until the control history justifies more."
+
+[[policies]]
+id = "POL-FIN-003"
+title = "Personal data never leaves in clear"
+scope = { agent = "*" }
+trigger = "output"
+condition = { classifier = { name = "pii", threshold = 0.3 } }
+action = "mask"
+fail = "closed"
+maps_to = { dimension = "boundary-leakage", owasp_llm = "LLM02", eu_ai_act = "Art. 10" }
+rationale = "GLBA and PCI: masking is the floor, not the policy."

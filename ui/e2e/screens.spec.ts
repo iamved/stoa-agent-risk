@@ -97,6 +97,44 @@ test.describe("findings", () => {
     await expect(main).toContainText("No traces in this scan");
   });
 
+  test("the policies screen shows the file, each policy's outcomes, unprotected tools and the drill", async ({ page }) => {
+    await page.goto(fileUrl("meridian-pay", "#/policies"));
+    await expect(page.getByRole("heading", { name: "Policies", level: 1 })).toBeVisible();
+    const main = page.locator("main .screen-content");
+    await expect(main).toContainText("stoa.policy.toml");
+    await expect(main).toContainText(/20 policies, \d+ enforced\. In the window: 2 blocked, \d+ would block, 1 escalated/);
+    const table = page.getByRole("table").first();
+    const cap = table.getByRole("row").filter({ hasText: "POL-FIN-002-BC3DB1" });
+    await expect(cap).toContainText("meridian-support");
+    await expect(cap).toContainText("sum(amount) over 24h > 800");
+    await expect(cap).toContainText("enforced");
+    await expect(cap.getByRole("cell").nth(6)).toHaveText("1"); // blocked
+    const approval = table.getByRole("row").filter({ hasText: "POL-FIN-001-BC3DB1" });
+    await expect(approval).toContainText("observe");
+    await expect(approval.getByRole("cell").nth(7)).toHaveText("10"); // would block
+    // unprotected: the chatbot's non-refund money tools have only the agent-wide policies, which count as protection; the list is about tools with none
+    await expect(main.getByRole("heading", { name: "Unprotected money and high-impact tools" })).toBeVisible();
+    // decisions: the enforced block on the 500 refund
+    const decisions = main.getByRole("heading", { name: "Decisions in the window" }).locator("xpath=ancestor::section[1]");
+    await expect(decisions).toContainText("blocked");
+    await expect(decisions).toContainText("POL-FIN-002-BC3DB1");
+    await expect(decisions).toContainText("$500");
+    // the drill
+    await expect(main).toContainText("stopped in 1.8s");
+    // no policy file: the screen says what to run
+    await page.goto(fileUrl("first-run", "#/policies"));
+    await expect(main).toContainText("No policy file in this scan");
+  });
+
+  test("the flow graph marks tools protected by a policy", async ({ page }) => {
+    await page.goto(fileUrl("meridian-pay", "#/overview"));
+    const flow = page.getByRole("region", { name: "Agent Risk Flow Graph" });
+    await flow.scrollIntoViewIfNeeded();
+    await flow.getByRole("group", { name: "Agents" }).getByRole("button", { name: /meridian-support/ }).click();
+    const diagram = flow.getByRole("group", { name: "Risk path for meridian-support" });
+    await expect(diagram.getByRole("button", { name: /^issue_refund, .*policy POL-FIN-001-BC3DB1, POL-FIN-002-BC3DB1/ })).toBeVisible();
+  });
+
   test("observed evidence shows beside the scan on the other screens", async ({ page }) => {
     await page.goto(fileUrl("meridian-pay", "#/inventory"));
     await expect(page.getByText("active in traces").first()).toBeVisible();

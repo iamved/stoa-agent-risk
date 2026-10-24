@@ -1,0 +1,54 @@
+# payments: for agents that move money. Block and escalate are fail-closed.
+version = "stoa-policy/0.1"
+[defaults]
+mode = "observe"
+
+[[policies]]
+id = "POL-PAY-001"
+title = "Approval required above threshold"
+scope = { agent = "*" }
+trigger = "tool_call"
+condition = { all = [{ amount_gt = 200 }, { approval_missing = true }] }
+action = "escalate"
+escalate_to = "console"
+fail = "closed"
+evidence = ["amount", "currency", "approval_span_id"]
+maps_to = { dimension = "unreviewed-high-impact-action", owasp_llm = "LLM06", eu_ai_act = "Art. 14" }
+rationale = "A person confirms money movements above the threshold; the threshold comes from the declared economic authority."
+
+[[policies]]
+id = "POL-PAY-002"
+title = "Daily aggregate cap"
+scope = { agent = "*" }
+trigger = "tool_call"
+condition = { window_sum_gt = { field = "amount", window = "24h", value = 5000 } }
+action = "block"
+fail = "closed"
+evidence = ["amount", "currency"]
+maps_to = { dimension = "mandate-overreach", owasp_llm = "LLM06", eu_ai_act = "Art. 9" }
+rationale = "The declared daily aggregate, enforced where the money moves rather than in a prompt."
+
+[[policies]]
+id = "POL-PAY-003"
+title = "Per-action limit"
+scope = { agent = "*" }
+trigger = "tool_call"
+condition = { amount_gt = 500 }
+action = "block"
+fail = "closed"
+evidence = ["amount", "currency"]
+maps_to = { dimension = "mandate-overreach", owasp_llm = "LLM06", eu_ai_act = "Art. 9" }
+rationale = "The declared per-action limit; DECL002 fires when the code does not enforce it."
+
+[[policies]]
+id = "POL-PAY-004"
+title = "No repeated refund inside a day"
+scope = { agent = "*" }
+trigger = "tool_call"
+condition = { window_count_gt = { window = "24h", value = 1 } }
+action = "escalate"
+escalate_to = "console"
+fail = "closed"
+evidence = ["order_id"]
+maps_to = { dimension = "unreviewed-high-impact-action", owasp_llm = "LLM06", eu_ai_act = "Art. 14" }
+rationale = "AI008: a retried or repeated refund on one order is the double-charge path."

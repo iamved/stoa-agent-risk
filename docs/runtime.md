@@ -182,6 +182,11 @@ first if you set one.
 
 ### Policy (`stoa.policy.toml`)
 
+Structured policies (`stoa-policy/0.1`: scope, trigger, condition, action,
+packs, recommendation, kill switch) are described in
+[docs/policy.md](policy.md). The expression rules below remain valid in the
+same file.
+
 A policy is evaluated on every guarded call (and every MCP `tools/call`
 through the proxy). It is found by searching upward from the working
 directory, or given as `configure(policy=...)` / `$STOA_POLICY`. The file

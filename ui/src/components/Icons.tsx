@@ -19,6 +19,9 @@ export const Icon = {
   controls: () => (
     <svg {...base}><path d="M12 3l8 3v6c0 4.5-3.5 8-8 9-4.5-1-8-4.5-8-9V6z" /><path d="M9 12l2 2 4-4" /></svg>
   ),
+  policies: () => (
+    <svg {...base}><path d="M5 4h14v6c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10z" /><path d="M9 11h6M9 14.5h4" /></svg>
+  ),
   audit: () => (
     <svg {...base}><path d="M9 3h6l1 2h3v16H5V5h3z" /><path d="M9 12l2 2 4-4" /><path d="M9 3v2h6V3" /></svg>
   ),

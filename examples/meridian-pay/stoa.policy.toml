@@ -1,0 +1,283 @@
+# Written by stoa policy recommend from the September scan, then edited by hand:
+# POL-FIN-002-BC3DB1 lowered to 800 a day and enforced while meridian-support is new;
+# POL-PAY-001-B8F011 added so refunds above the declared limit escalate to a person.
+# Everything else observes. Validate with: stoa policy validate
+
+version = "stoa-policy/0.1"
+
+[defaults]
+mode = "observe"
+
+[[policies]]
+id = "POL-BASE-001"
+title = "Kill switch"
+scope = { agent = "*" }
+trigger = "any"
+condition = { killswitch = true }
+action = "block"
+fail = "closed"
+maps_to = { dimension = "control-coverage-gap", owasp_llm = "LLM06", eu_ai_act = "Art. 14" }
+rationale = "A way to stop an agent without a deploy. CTRL007 looks for one in code; this policy is one."
+recommended_because = ["every agent"]
+pack = "baseline"
+enforce = true
+
+[[policies]]
+id = "POL-BASE-002"
+title = "Every tool call is logged"
+scope = { agent = "*" }
+trigger = "tool_call"
+condition = { expr = "true" }
+action = "log"
+fail = "open"
+maps_to = { dimension = "control-coverage-gap", owasp_llm = "LLM10", eu_ai_act = "Art. 12" }
+rationale = "CTRL004 and DECL005: a record of what the agent did, written by the SDK."
+recommended_because = ["every agent"]
+pack = "baseline"
+
+[[policies]]
+id = "POL-BASE-003"
+title = "Only declared tools"
+scope = { agent = "*" }
+trigger = "tool_call"
+condition = { expr = "tool not in agent.declared_tools" }
+action = "block"
+fail = "open"
+maps_to = { dimension = "mandate-overreach", owasp_llm = "LLM06", eu_ai_act = "Art. 9" }
+rationale = "The scanned tool inventory is the allow-list; RT006 reports what falls outside it."
+recommended_because = ["every agent"]
+pack = "baseline"
+
+[[policies]]
+id = "POL-DATA-001-224627"
+title = "Mask personal data in outputs"
+scope = { agent = "meridian-escalation" }
+trigger = "output"
+condition = { classifier = { name = "pii", threshold = 0.5 } }
+action = "mask"
+fail = "open"
+maps_to = { dimension = "boundary-leakage", owasp_llm = "LLM02", eu_ai_act = "Art. 10" }
+rationale = "AI004 and AI006: identifiers in what the agent says leave the boundary."
+recommended_because = ["integrations databricks"]
+pack = "data"
+
+[[policies]]
+id = "POL-DATA-002-224627"
+title = "Outside sends only to the allow-list"
+scope = { agent = "meridian-escalation" }
+trigger = "tool_call"
+condition = { all = [{ expr = "side_effect == 'external_send'" }, { field_not_in = { field = "to_domain", values = ["databricks"] } }] }
+action = "block"
+fail = "open"
+evidence = ["to_domain"]
+maps_to = { dimension = "boundary-leakage", owasp_llm = "LLM02", eu_ai_act = "Art. 10" }
+rationale = "Egress to a destination nobody listed; fill values with the hosts AI006 found."
+recommended_because = ["integrations databricks"]
+pack = "data"
+
+[[policies]]
+id = "POL-DATA-003-224627"
+title = "Prompt injection on inputs"
+scope = { agent = "meridian-escalation" }
+trigger = "input"
+condition = { classifier = { name = "prompt_injection", threshold = 0.5 } }
+action = "escalate"
+fail = "open"
+escalate_to = "console"
+maps_to = { dimension = "injection-tamper-surface", owasp_llm = "LLM01", eu_ai_act = "Art. 15" }
+rationale = "AI001: instruction-override patterns in untrusted text, caught by local heuristics."
+recommended_because = ["integrations databricks"]
+pack = "data"
+
+[[policies]]
+id = "POL-DATA-001-2A61FF"
+title = "Mask personal data in outputs"
+scope = { agent = "meridian-front" }
+trigger = "output"
+condition = { classifier = { name = "pii", threshold = 0.5 } }
+action = "mask"
+fail = "open"
+maps_to = { dimension = "boundary-leakage", owasp_llm = "LLM02", eu_ai_act = "Art. 10" }
+rationale = "AI004 and AI006: identifiers in what the agent says leave the boundary."
+recommended_because = ["integrations databricks"]
+pack = "data"
+
+[[policies]]
+id = "POL-DATA-002-2A61FF"
+title = "Outside sends only to the allow-list"
+scope = { agent = "meridian-front" }
+trigger = "tool_call"
+condition = { all = [{ expr = "side_effect == 'external_send'" }, { field_not_in = { field = "to_domain", values = ["databricks"] } }] }
+action = "block"
+fail = "open"
+evidence = ["to_domain"]
+maps_to = { dimension = "boundary-leakage", owasp_llm = "LLM02", eu_ai_act = "Art. 10" }
+rationale = "Egress to a destination nobody listed; fill values with the hosts AI006 found."
+recommended_because = ["integrations databricks"]
+pack = "data"
+
+[[policies]]
+id = "POL-DATA-003-2A61FF"
+title = "Prompt injection on inputs"
+scope = { agent = "meridian-front" }
+trigger = "input"
+condition = { classifier = { name = "prompt_injection", threshold = 0.5 } }
+action = "escalate"
+fail = "open"
+escalate_to = "console"
+maps_to = { dimension = "injection-tamper-surface", owasp_llm = "LLM01", eu_ai_act = "Art. 15" }
+rationale = "AI001: instruction-override patterns in untrusted text, caught by local heuristics."
+recommended_because = ["integrations databricks"]
+pack = "data"
+
+[[policies]]
+id = "POL-PAY-001-B8F011"
+title = "Approval required above threshold"
+scope = { agent = "account-actions" }
+trigger = "tool_call"
+condition = { all = [{ amount_gt = 500 }, { approval_missing = true }] }
+action = "escalate"
+fail = "closed"
+escalate_to = "console"
+evidence = ["amount", "currency", "approval_span_id"]
+maps_to = { dimension = "unreviewed-high-impact-action", owasp_llm = "LLM06", eu_ai_act = "Art. 14" }
+rationale = "Above the declared per-action limit a person decides, even while the approval-on-every-movement policy is still in observe."
+recommended_because = ["economic_authority.max_per_action 500", "DECL001"]
+pack = "payments"
+
+[[policies]]
+id = "POL-FIN-001-B8F011"
+title = "Approval on every money movement"
+scope = { agent = "account-actions" }
+trigger = "tool_call"
+condition = { all = [{ expr = "side_effect == 'payment'" }, { approval_missing = true }] }
+action = "block"
+fail = "closed"
+evidence = ["amount", "currency", "approval_span_id"]
+maps_to = { dimension = "unreviewed-high-impact-action", owasp_llm = "LLM06", eu_ai_act = "Art. 14" }
+rationale = "Regulated payments: a person on the path for every movement, not only above a threshold."
+recommended_because = ["capability payment_access", "AI008", "DECL001", "RT001", "RT002", "RT007", "unreviewed-high-impact-action elevated", "declared autonomy_intent human_approved"]
+pack = "fintech-regulated"
+
+[[policies]]
+id = "POL-FIN-002-B8F011"
+title = "Daily aggregate cap, tight"
+scope = { agent = "account-actions" }
+trigger = "tool_call"
+condition = { window_sum_gt = { field = "amount", window = "24h", value = 25000.0 } }
+action = "block"
+fail = "closed"
+evidence = ["amount", "currency"]
+maps_to = { dimension = "mandate-overreach", owasp_llm = "LLM06", eu_ai_act = "Art. 9" }
+rationale = "Half the default aggregate until the control history justifies more."
+recommended_because = ["capability payment_access", "AI008", "DECL001", "RT001", "RT002", "RT007", "unreviewed-high-impact-action elevated", "aggregate from economic_authority.daily_aggregate 25000"]
+pack = "fintech-regulated"
+
+[[policies]]
+id = "POL-FIN-003-B8F011"
+title = "Personal data never leaves in clear"
+scope = { agent = "account-actions" }
+trigger = "output"
+condition = { classifier = { name = "pii", threshold = 0.3 } }
+action = "mask"
+fail = "closed"
+maps_to = { dimension = "boundary-leakage", owasp_llm = "LLM02", eu_ai_act = "Art. 10" }
+rationale = "GLBA and PCI: masking is the floor, not the policy."
+recommended_because = ["capability payment_access", "AI008", "DECL001", "RT001", "RT002", "RT007", "unreviewed-high-impact-action elevated"]
+pack = "fintech-regulated"
+
+[[policies]]
+id = "POL-DATA-001-B8F011"
+title = "Mask personal data in outputs"
+scope = { agent = "account-actions" }
+trigger = "output"
+condition = { classifier = { name = "pii", threshold = 0.5 } }
+action = "mask"
+fail = "open"
+maps_to = { dimension = "boundary-leakage", owasp_llm = "LLM02", eu_ai_act = "Art. 10" }
+rationale = "AI004 and AI006: identifiers in what the agent says leave the boundary."
+recommended_because = ["declared data_classes financial, personal"]
+pack = "data"
+
+[[policies]]
+id = "POL-DATA-003-B8F011"
+title = "Prompt injection on inputs"
+scope = { agent = "account-actions" }
+trigger = "input"
+condition = { classifier = { name = "prompt_injection", threshold = 0.5 } }
+action = "escalate"
+fail = "open"
+escalate_to = "console"
+maps_to = { dimension = "injection-tamper-surface", owasp_llm = "LLM01", eu_ai_act = "Art. 15" }
+rationale = "AI001: instruction-override patterns in untrusted text, caught by local heuristics."
+recommended_because = ["declared data_classes financial, personal"]
+pack = "data"
+
+[[policies]]
+id = "POL-FIN-001-BC3DB1"
+title = "Approval on every money movement"
+scope = { agent = "meridian-support" }
+trigger = "tool_call"
+condition = { all = [{ expr = "side_effect == 'payment'" }, { approval_missing = true }] }
+action = "block"
+fail = "closed"
+evidence = ["amount", "currency", "approval_span_id"]
+maps_to = { dimension = "unreviewed-high-impact-action", owasp_llm = "LLM06", eu_ai_act = "Art. 14" }
+rationale = "Regulated payments: a person on the path for every movement, not only above a threshold."
+recommended_because = ["capability payment_access", "AI008", "DECL001", "RT001", "RT007", "unreviewed-high-impact-action elevated", "declared autonomy_intent human_approved"]
+pack = "fintech-regulated"
+
+[[policies]]
+id = "POL-FIN-002-BC3DB1"
+title = "Daily aggregate cap, tight"
+scope = { agent = "meridian-support" }
+trigger = "tool_call"
+condition = { window_sum_gt = { field = "amount", window = "24h", value = 800 } }
+action = "block"
+fail = "closed"
+evidence = ["amount", "currency"]
+maps_to = { dimension = "mandate-overreach", owasp_llm = "LLM06", eu_ai_act = "Art. 9" }
+rationale = "The chatbot is new: a lower daily cap than account-actions until its control history justifies more."
+recommended_because = ["capability payment_access", "AI008", "DECL001", "RT001", "RT007", "unreviewed-high-impact-action elevated", "aggregate: pack default 2500"]
+pack = "fintech-regulated"
+enforce = true
+
+[[policies]]
+id = "POL-FIN-003-BC3DB1"
+title = "Personal data never leaves in clear"
+scope = { agent = "meridian-support" }
+trigger = "output"
+condition = { classifier = { name = "pii", threshold = 0.3 } }
+action = "mask"
+fail = "closed"
+maps_to = { dimension = "boundary-leakage", owasp_llm = "LLM02", eu_ai_act = "Art. 10" }
+rationale = "GLBA and PCI: masking is the floor, not the policy."
+recommended_because = ["capability payment_access", "AI008", "DECL001", "RT001", "RT007", "unreviewed-high-impact-action elevated"]
+pack = "fintech-regulated"
+
+[[policies]]
+id = "POL-DATA-001-BC3DB1"
+title = "Mask personal data in outputs"
+scope = { agent = "meridian-support" }
+trigger = "output"
+condition = { classifier = { name = "pii", threshold = 0.5 } }
+action = "mask"
+fail = "open"
+maps_to = { dimension = "boundary-leakage", owasp_llm = "LLM02", eu_ai_act = "Art. 10" }
+rationale = "AI004 and AI006: identifiers in what the agent says leave the boundary."
+recommended_because = ["declared data_classes financial, personal"]
+pack = "data"
+
+[[policies]]
+id = "POL-DATA-003-BC3DB1"
+title = "Prompt injection on inputs"
+scope = { agent = "meridian-support" }
+trigger = "input"
+condition = { classifier = { name = "prompt_injection", threshold = 0.5 } }
+action = "escalate"
+fail = "open"
+escalate_to = "console"
+maps_to = { dimension = "injection-tamper-surface", owasp_llm = "LLM01", eu_ai_act = "Art. 15" }
+rationale = "AI001: instruction-override patterns in untrusted text, caught by local heuristics."
+recommended_because = ["declared data_classes financial, personal"]
+pack = "data"

@@ -1,0 +1,39 @@
+# data: for agents that handle personal data. Mask on output, allow-list egress.
+version = "stoa-policy/0.1"
+[defaults]
+mode = "observe"
+
+[[policies]]
+id = "POL-DATA-001"
+title = "Mask personal data in outputs"
+scope = { agent = "*" }
+trigger = "output"
+condition = { classifier = { name = "pii", threshold = 0.5 } }
+action = "mask"
+fail = "open"
+maps_to = { dimension = "boundary-leakage", owasp_llm = "LLM02", eu_ai_act = "Art. 10" }
+rationale = "AI004 and AI006: identifiers in what the agent says leave the boundary."
+
+[[policies]]
+id = "POL-DATA-002"
+title = "Outside sends only to the allow-list"
+scope = { agent = "*" }
+trigger = "tool_call"
+condition = { all = [{ expr = "side_effect == 'external_send'" }, { field_not_in = { field = "to_domain", values = [] } }] }
+action = "block"
+fail = "open"
+evidence = ["to_domain"]
+maps_to = { dimension = "boundary-leakage", owasp_llm = "LLM02", eu_ai_act = "Art. 10" }
+rationale = "Egress to a destination nobody listed; fill values with the hosts AI006 found."
+
+[[policies]]
+id = "POL-DATA-003"
+title = "Prompt injection on inputs"
+scope = { agent = "*" }
+trigger = "input"
+condition = { classifier = { name = "prompt_injection", threshold = 0.5 } }
+action = "escalate"
+escalate_to = "console"
+fail = "open"
+maps_to = { dimension = "injection-tamper-surface", owasp_llm = "LLM01", eu_ai_act = "Art. 15" }
+rationale = "AI001: instruction-override patterns in untrusted text, caught by local heuristics."

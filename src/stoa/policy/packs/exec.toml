@@ -1,0 +1,27 @@
+# exec: for agents that run code or shell commands.
+version = "stoa-policy/0.1"
+[defaults]
+mode = "observe"
+
+[[policies]]
+id = "POL-EXEC-001"
+title = "Shell blocked"
+scope = { agent = "*" }
+trigger = "tool_call"
+condition = { expr = "side_effect == 'write' and tool in ['shell', 'bash', 'run_command', 'execute']" }
+action = "block"
+fail = "closed"
+maps_to = { dimension = "unreviewed-high-impact-action", owasp_llm = "LLM06", eu_ai_act = "Art. 15" }
+rationale = "CTRL006 and AI002: a shell is the whole host; nothing the agent does needs it in production."
+
+[[policies]]
+id = "POL-EXEC-002"
+title = "Code execution needs a sandbox"
+scope = { agent = "*" }
+trigger = "tool_call"
+condition = { expr = "'exec' in tool or 'eval' in tool" }
+action = "escalate"
+escalate_to = "console"
+fail = "closed"
+maps_to = { dimension = "unreviewed-high-impact-action", owasp_llm = "LLM06", eu_ai_act = "Art. 15" }
+rationale = "CTRL006: execution without an isolated environment."

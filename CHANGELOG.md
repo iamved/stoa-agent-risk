@@ -9,6 +9,27 @@ Registry schema → 1.8 (additive). `stoa scan` now also writes
 `stoa-dashboard.html`: one self-contained file, six screens, no server, no
 network. See [docs/dashboard.md](docs/dashboard.md).
 
+### Added — policy preview (`stoa-policy/0.1`)
+- `stoa.policy.toml`: structured policies with scope, trigger, condition,
+  action (allow, block, escalate, mask, log), fail semantics and
+  `maps_to`; evaluated by the SDK at tool-call entry, observe first.
+  Conditions include window sums and counts (state file beside the traces),
+  allow-lists, regex, approval presence, the kill switch, local classifiers.
+- Six packs (`stoa policy packs`); `stoa policy recommend` writes a file
+  from the registry and declarations with `recommended_because` and a gaps
+  list; `stoa policy validate` names each problem's key path.
+- Kill switch: `stoa kill --agent-id`, `--release`, `--drill` (records
+  seconds to the first blocked call); the SDK checks the state file at every
+  guarded call.
+- `check_input()` / `check_output()` for input and output triggers; `mask`
+  replaces identifier shapes.
+- Policy outcomes per policy in `runtime-analysis/1.1`, an additive
+  `policies` block on the merged registry, the policy document and outcomes
+  in the dashboard's runtime slot, a Policies screen, and the policy overlay
+  on the Agent Risk Flow Graph (protected and unprotected money edges).
+- The demo carries `examples/meridian-pay/stoa.policy.toml` and traces with
+  one enforced block, would-blocks, an escalation and a kill-switch drill.
+
 ### Added — runtime trace overlay, `stoa-trace/1.1`
 - Every trace record is hash-chained and signed (`prev_hash`, `hash`,
   `sig`, `signer_fingerprint`) under a key grade the header names: `none`,

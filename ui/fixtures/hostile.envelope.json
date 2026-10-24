@@ -576,7 +576,7 @@
               "static_exposure": "elevated",
               "evidence_window": {
                 "start": "2026-09-15T10:00:00.000Z",
-                "end": "2026-09-20T12:01:30.000Z",
+                "end": "2026-09-20T10:01:30.000Z",
                 "span_count": 22
               },
               "runtime_basis": {
@@ -602,7 +602,7 @@
               "static_exposure": "none-observed",
               "evidence_window": {
                 "start": "2026-09-15T10:00:00.000Z",
-                "end": "2026-09-20T12:01:30.000Z",
+                "end": "2026-09-20T10:01:30.000Z",
                 "span_count": 22
               },
               "runtime_basis": {
@@ -634,7 +634,7 @@
               "static_exposure": "moderate",
               "evidence_window": {
                 "start": "2026-09-15T10:00:00.000Z",
-                "end": "2026-09-20T12:01:30.000Z",
+                "end": "2026-09-20T10:01:30.000Z",
                 "span_count": 22
               },
               "runtime_basis": {
@@ -660,7 +660,7 @@
               "static_exposure": "none-observed",
               "evidence_window": {
                 "start": "2026-09-15T10:00:00.000Z",
-                "end": "2026-09-20T12:01:30.000Z",
+                "end": "2026-09-20T10:01:30.000Z",
                 "span_count": 22
               },
               "runtime_basis": {
@@ -698,7 +698,7 @@
               "static_exposure": "none-observed",
               "evidence_window": {
                 "start": "2026-09-15T10:00:00.000Z",
-                "end": "2026-09-20T12:01:30.000Z",
+                "end": "2026-09-20T10:01:30.000Z",
                 "span_count": 22
               },
               "runtime_basis": {
@@ -725,7 +725,7 @@
               "static_exposure": "low",
               "evidence_window": {
                 "start": "2026-09-15T10:00:00.000Z",
-                "end": "2026-09-20T12:01:30.000Z",
+                "end": "2026-09-20T10:01:30.000Z",
                 "span_count": 22
               },
               "runtime_basis": {
@@ -757,7 +757,7 @@
               "static_exposure": "none-observed",
               "evidence_window": {
                 "start": "2026-09-15T10:00:00.000Z",
-                "end": "2026-09-20T12:01:30.000Z",
+                "end": "2026-09-20T10:01:30.000Z",
                 "span_count": 22
               },
               "runtime_basis": {
@@ -1005,7 +1005,7 @@
         "runtime_evidence": {
           "window": {
             "start": "2026-09-15T10:00:00.000Z",
-            "end": "2026-09-20T12:01:30.000Z"
+            "end": "2026-09-20T10:01:30.000Z"
           },
           "span_count": 22,
           "spans_by_kind": {
@@ -1696,7 +1696,7 @@
             }
           },
           {
-            "fingerprint": "fe1afa5b5205d587",
+            "fingerprint": "d0ed0235786e0c03",
             "rule_id": "RT001",
             "title": "Declared human oversight not observed at runtime \"quoted\" 'and' `backticked` \\backslash",
             "category": "runtime",
@@ -1705,7 +1705,7 @@
             "path": "code/agents/support_agent.py",
             "line": 24,
             "column": 1,
-            "snippet": "${{7*7}} {{constructor.constructor('alert(3)')()}} autonomy_intent='human_approved' vs 7 unapproved high-impact action(s)",
+            "snippet": "${{7*7}} {{constructor.constructor('alert(3)')()}} autonomy_intent='human_approved' vs 11 unapproved high-impact action(s)",
             "remediation": "</script><script>alert(1)</script>",
             "suppressed": false,
             "suppression_reason": null,
@@ -1773,8 +1773,8 @@
             "message": "\"quoted\" 'and' `backticked` \\backslash",
             "trace_ref": {
               "file": "trace-demo-0000.jsonl",
-              "line": 45,
-              "span_id": "s0044"
+              "line": 54,
+              "span_id": "s0053"
             },
             "crosswalk": {
               "owasp_llm_2025": "LLM06",
@@ -1812,7 +1812,7 @@
             }
           },
           {
-            "fingerprint": "11be01a3a72d000d",
+            "fingerprint": "b713037b31087c0f",
             "rule_id": "RT007",
             "title": "Money action observed with no approval on the live path </script><script>alert(1)</script>",
             "category": "runtime",
@@ -1821,7 +1821,7 @@
             "path": "code/agents/support_agent.py",
             "line": 24,
             "column": 1,
-            "snippet": "\"quoted\" 'and' `backticked` \\backslash 6 of 6 money action(s) with no resolving approval",
+            "snippet": "\"quoted\" 'and' `backticked` \\backslash 10 of 10 money action(s) with no resolving approval",
             "remediation": "<!-- comment --><img src=x onerror=alert(2)>",
             "suppressed": false,
             "suppression_reason": null,
@@ -1915,11 +1915,11 @@
               "static_exposure": "elevated",
               "evidence_window": {
                 "start": "2026-09-15T11:00:00.000Z",
-                "end": "2026-09-21T13:01:30.000Z",
-                "span_count": 20
+                "end": "2026-09-21T16:00:03.000Z",
+                "span_count": 31
               },
               "runtime_basis": {
-                "actions": 8,
+                "actions": 12,
                 "undeclared_tool": 2,
                 "over_declared_limit": 0,
                 "observed_tools": [
@@ -1944,8 +1944,8 @@
               "static_exposure": "none-observed",
               "evidence_window": {
                 "start": "2026-09-15T11:00:00.000Z",
-                "end": "2026-09-21T13:01:30.000Z",
-                "span_count": 20
+                "end": "2026-09-21T16:00:03.000Z",
+                "span_count": 31
               },
               "runtime_basis": {
                 "external_send": 2,
@@ -1977,14 +1977,14 @@
               "static_exposure": "moderate",
               "evidence_window": {
                 "start": "2026-09-15T11:00:00.000Z",
-                "end": "2026-09-21T13:01:30.000Z",
-                "span_count": 20
+                "end": "2026-09-21T16:00:03.000Z",
+                "span_count": 31
               },
               "runtime_basis": {
-                "high_impact_actions": 7,
-                "unapproved_high_impact": 7,
-                "money_actions": 6,
-                "unapproved_money": 6
+                "high_impact_actions": 11,
+                "unapproved_high_impact": 11,
+                "money_actions": 10,
+                "unapproved_money": 10
               }
             },
             {
@@ -2003,11 +2003,11 @@
               "static_exposure": "none-observed",
               "evidence_window": {
                 "start": "2026-09-15T11:00:00.000Z",
-                "end": "2026-09-21T13:01:30.000Z",
-                "span_count": 20
+                "end": "2026-09-21T16:00:03.000Z",
+                "span_count": 31
               },
               "runtime_basis": {
-                "llm_calls": 6,
+                "llm_calls": 9,
                 "llm_error_rate": 0.0
               }
             },
@@ -2041,11 +2041,11 @@
               "static_exposure": "none-observed",
               "evidence_window": {
                 "start": "2026-09-15T11:00:00.000Z",
-                "end": "2026-09-21T13:01:30.000Z",
-                "span_count": 20
+                "end": "2026-09-21T16:00:03.000Z",
+                "span_count": 31
               },
               "runtime_basis": {
-                "error_rate": 0.0,
+                "error_rate": 0.0645,
                 "approval_rate_high_impact": 0.0,
                 "declared_gate_contradicted": true
               }
@@ -2068,8 +2068,8 @@
               "static_exposure": "low",
               "evidence_window": {
                 "start": "2026-09-15T11:00:00.000Z",
-                "end": "2026-09-21T13:01:30.000Z",
-                "span_count": 20
+                "end": "2026-09-21T16:00:03.000Z",
+                "span_count": 31
               },
               "runtime_basis": {
                 "distinct_models_observed": 1,
@@ -2100,8 +2100,8 @@
               "static_exposure": "none-observed",
               "evidence_window": {
                 "start": "2026-09-15T11:00:00.000Z",
-                "end": "2026-09-21T13:01:30.000Z",
-                "span_count": 20
+                "end": "2026-09-21T16:00:03.000Z",
+                "span_count": 31
               },
               "runtime_basis": {
                 "approval_rate_high_impact": 0.0,
@@ -2334,15 +2334,15 @@
         "runtime_evidence": {
           "window": {
             "start": "2026-09-15T11:00:00.000Z",
-            "end": "2026-09-21T13:01:30.000Z"
+            "end": "2026-09-21T16:00:03.000Z"
           },
-          "span_count": 20,
+          "span_count": 31,
           "spans_by_kind": {
-            "action": 8,
-            "agent_run": 6,
-            "llm_call": 6
+            "action": 12,
+            "agent_run": 10,
+            "llm_call": 9
           },
-          "error_rate": 0.0,
+          "error_rate": 0.0645,
           "observed_capabilities": [
             "email_send",
             "payment_access"
@@ -2357,7 +2357,7 @@
           "observed_models": [
             "gpt-4o-mini"
           ],
-          "high_impact_actions": 7,
+          "high_impact_actions": 11,
           "high_impact_approved": 0,
           "approval_rate_high_impact": 0.0,
           "max_observed_amount": {
@@ -2365,7 +2365,7 @@
             "currency": "USD"
           },
           "window_total_amounts": {
-            "USD": 1040.0
+            "USD": 1560.0
           },
           "evidence_quality": "redacted",
           "delegations_to": [],
@@ -2380,22 +2380,22 @@
           ],
           "tool_counts": {
             "export_transcript": 1,
-            "issue_refund": 5,
+            "issue_refund": 9,
             "send_email": 1,
             "waive_fee": 1
           },
-          "money_actions": 6,
+          "money_actions": 10,
           "money_actions_approved": 0,
           "approval_rate_money": 0.0,
           "flag_counts": {
-            "approval_bypassed": 8,
+            "approval_bypassed": 12,
             "integration_changed": 1,
             "new_counterparty": 4,
             "undeclared_tool": 2
           },
           "side_effect_counts": {
             "external_send": 2,
-            "payment": 6
+            "payment": 10
           }
         },
         "liveness_state": "active"
@@ -2867,13 +2867,132 @@
       "owasp_llm_version": "2025",
       "eu_ai_act_reference": "Regulation (EU) 2024/1689 (EU AI Act)"
     },
+    "policies": {
+      "window": {
+        "start": "2026-09-15T09:00:00.000Z",
+        "end": "2026-09-21T16:00:03.000Z"
+      },
+      "policies": {
+        "POL-BASE-001": {
+          "evaluated": 24,
+          "allowed": 23,
+          "blocked": 1,
+          "would_block": 0,
+          "escalated": 0,
+          "masked": 0,
+          "logged": 0,
+          "error": 0,
+          "last_decision": "2026-09-21T16:00:02.800Z"
+        },
+        "POL-BASE-002": {
+          "evaluated": 24,
+          "allowed": 0,
+          "blocked": 0,
+          "would_block": 0,
+          "escalated": 0,
+          "masked": 0,
+          "logged": 24,
+          "error": 0,
+          "last_decision": "2026-09-21T16:00:02.800Z"
+        },
+        "POL-BASE-003": {
+          "evaluated": 24,
+          "allowed": 22,
+          "blocked": 0,
+          "would_block": 2,
+          "escalated": 0,
+          "masked": 0,
+          "logged": 0,
+          "error": 0,
+          "last_decision": "2026-09-21T16:00:02.800Z"
+        },
+        "POL-DATA-002-2A61FF": {
+          "evaluated": 6,
+          "allowed": 6,
+          "blocked": 0,
+          "would_block": 0,
+          "escalated": 0,
+          "masked": 0,
+          "logged": 0,
+          "error": 0,
+          "last_decision": "2026-09-20T09:00:02.200Z"
+        },
+        "POL-FIN-001-B8F011": {
+          "evaluated": 6,
+          "allowed": 4,
+          "blocked": 0,
+          "would_block": 2,
+          "escalated": 0,
+          "masked": 0,
+          "logged": 0,
+          "error": 0,
+          "last_decision": "2026-09-20T10:01:02.300Z"
+        },
+        "POL-FIN-001-BC3DB1": {
+          "evaluated": 12,
+          "allowed": 2,
+          "blocked": 0,
+          "would_block": 10,
+          "escalated": 0,
+          "masked": 0,
+          "logged": 0,
+          "error": 0,
+          "last_decision": "2026-09-21T16:00:02.800Z"
+        },
+        "POL-FIN-002-B8F011": {
+          "evaluated": 6,
+          "allowed": 6,
+          "blocked": 0,
+          "would_block": 0,
+          "escalated": 0,
+          "masked": 0,
+          "logged": 0,
+          "error": 0,
+          "last_decision": "2026-09-20T10:01:02.300Z"
+        },
+        "POL-FIN-002-BC3DB1": {
+          "evaluated": 12,
+          "allowed": 11,
+          "blocked": 1,
+          "would_block": 0,
+          "escalated": 0,
+          "masked": 0,
+          "logged": 0,
+          "error": 0,
+          "last_decision": "2026-09-21T16:00:02.800Z"
+        },
+        "POL-PAY-001-B8F011": {
+          "evaluated": 6,
+          "allowed": 5,
+          "blocked": 0,
+          "would_block": 0,
+          "escalated": 1,
+          "masked": 0,
+          "logged": 0,
+          "error": 0,
+          "last_decision": "2026-09-20T10:01:02.300Z"
+        }
+      },
+      "killswitch_drills": [
+        {
+          "ts": "2026-09-21T16:00:03.000Z",
+          "seconds_to_stop": 1.8,
+          "by": "platform-risk",
+          "trace_ref": {
+            "file": "trace-demo-0000.jsonl",
+            "line": 78,
+            "span_id": "s0079"
+          }
+        }
+      ]
+    },
     "runtime": {
       "analysis_schema": "runtime-analysis/1.1",
       "window": {
         "start": "2026-09-15T09:00:00.000Z",
-        "end": "2026-09-21T13:01:30.000Z"
+        "end": "2026-09-21T16:00:03.000Z"
       },
-      "span_count": 66,
+      "span_count": 77,
       "agents_covered": 3,
       "agents_total": 5,
       "unmatched_agents": 0,
@@ -4266,7 +4385,7 @@
       "controls_observed": [],
       "contributing_findings": [],
       "contributing_capabilities": [],
-      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T13:01:30.000Z, 20 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 31 span(s). Observed in this window — not a claim about future behavior.",
       "declared": null,
       "unmatched": false
     },
@@ -4295,7 +4414,7 @@
         "AI005-3cf3cd059c6d"
       ],
       "contributing_capabilities": [],
-      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T12:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
       "declared": null,
       "unmatched": false
     },
@@ -4324,7 +4443,7 @@
         "AI005-842660a36a09"
       ],
       "contributing_capabilities": [],
-      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T13:01:30.000Z, 20 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 31 span(s). Observed in this window — not a claim about future behavior.",
       "declared": null,
       "unmatched": false
     },
@@ -4357,7 +4476,7 @@
         "CTRL004-9d9a33f2fd7f"
       ],
       "contributing_capabilities": [],
-      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T12:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
       "declared": null,
       "unmatched": false
     },
@@ -4390,7 +4509,7 @@
         "a80d048a4b0f4297"
       ],
       "contributing_capabilities": [],
-      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T13:01:30.000Z, 20 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 31 span(s). Observed in this window — not a claim about future behavior.",
       "declared": null,
       "unmatched": false
     },
@@ -4419,7 +4538,7 @@
       "contributing_capabilities": [
         "payment_access"
       ],
-      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T12:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
       "declared": null,
       "unmatched": false
     },
@@ -4448,7 +4567,7 @@
       "contributing_capabilities": [
         "payment_access"
       ],
-      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T13:01:30.000Z, 20 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 31 span(s). Observed in this window — not a claim about future behavior.",
       "declared": {
         "risk_id": "mandate-overreach/bc3db1f17013",
         "owner": "<!-- comment --><img src=x onerror=alert(2)>",
@@ -4487,7 +4606,7 @@
       "contributing_capabilities": [
         "payment_access"
       ],
-      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T12:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
       "declared": {
         "risk_id": "unreviewed-high-impact-action/b8f0111742fc",
         "owner": "<!-- comment --><img src=x onerror=alert(2)>",
@@ -4526,7 +4645,7 @@
       "contributing_capabilities": [
         "payment_access"
       ],
-      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T13:01:30.000Z, 20 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 31 span(s). Observed in this window — not a claim about future behavior.",
       "declared": null,
       "unmatched": false
     },
@@ -4551,7 +4670,7 @@
       "controls_observed": [],
       "contributing_findings": [],
       "contributing_capabilities": [],
-      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T12:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
       "declared": null,
       "unmatched": false
     },
@@ -4580,7 +4699,7 @@
       "contributing_capabilities": [
         "provider:openai"
       ],
-      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T12:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
       "declared": null,
       "unmatched": false
     },
@@ -4638,7 +4757,7 @@
       "contributing_capabilities": [
         "provider:openai"
       ],
-      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T13:01:30.000Z, 20 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 31 span(s). Observed in this window — not a claim about future behavior.",
       "declared": null,
       "unmatched": false
     },
@@ -4971,7 +5090,7 @@
             "severity": "critical",
             "path": "code/agents/support_agent.py",
             "line": 24,
-            "message": "Agent `support_agent` is declared `human_approved`, but 7 of 7 observed high-impact action(s) in the analyzed window carried no approval span. The declared oversight is not observed on the live path."
+            "message": "Agent `support_agent` is declared `human_approved`, but 11 of 11 observed high-impact action(s) in the analyzed window carried no approval span. The declared oversight is not observed on the live path."
           },
           {
             "rule_id": "RT003",
@@ -4999,7 +5118,7 @@
             "severity": "high",
             "path": "code/agents/support_agent.py",
             "line": 24,
-            "message": "6 of 6 observed money action(s) by agent `support_agent` carried no approval_span_id that resolves to an approval span in the window. A person was not on the live path for those actions."
+            "message": "10 of 10 observed money action(s) by agent `support_agent` carried no approval_span_id that resolves to an approval span in the window. A person was not on the live path for those actions."
           },
           {
             "rule_id": "RT008",
@@ -5533,7 +5652,7 @@
           "path": "stoa-declared.toml",
           "key": "agents.\"bc3db1f17013\".autonomy_intent"
         },
-        "message": "Agent `support_agent` is declared `human_approved`, but 7 of 7 observed high-impact action(s) in the analyzed window carried no approval span. The declared oversight is not observed on the live path.",
+        "message": "Agent `support_agent` is declared `human_approved`, but 11 of 11 observed high-impact action(s) in the analyzed window carried no approval span. The declared oversight is not observed on the live path.",
         "trace_ref": {
           "file": "trace-demo-0000.jsonl",
           "line": 11,
@@ -5581,8 +5700,8 @@
         "message": "Traces show agent `support_agent` calling `export_transcript` (1 time(s) in the window); the scanned tool inventory for this agent does not list it. The binding lives outside the scanned sources, or the scan is stale.",
         "trace_ref": {
           "file": "trace-demo-0000.jsonl",
-          "line": 45,
-          "span_id": "s0044"
+          "line": 54,
+          "span_id": "s0053"
         }
       },
       {
@@ -5626,7 +5745,7 @@
           "path": "stoa-declared.toml",
           "key": "agents.\"bc3db1f17013\".autonomy_intent"
         },
-        "message": "6 of 6 observed money action(s) by agent `support_agent` carried no approval_span_id that resolves to an approval span in the window. A person was not on the live path for those actions.",
+        "message": "10 of 10 observed money action(s) by agent `support_agent` carried no approval_span_id that resolves to an approval span in the window. A person was not on the live path for those actions.",
         "trace_ref": {
           "file": "trace-demo-0000.jsonl",
           "line": 11,
@@ -6977,8 +7096,8 @@
             "status": "observed",
             "evidence": {
               "window_start": "2026-09-15T09:00:00.000Z",
-              "window_end": "2026-09-21T13:01:30.000Z",
-              "span_count": 66,
+              "window_end": "2026-09-21T16:00:03.000Z",
+              "span_count": 77,
               "agents_covered": 3,
               "agents_total": 5
             }
@@ -7021,7 +7140,7 @@
                 "status": "observed",
                 "evidence": {
                   "window_start": "2026-09-15T10:00:00.000Z",
-                  "window_end": "2026-09-20T12:01:30.000Z",
+                  "window_end": "2026-09-20T10:01:30.000Z",
                   "span_count": 22
                 }
               }
@@ -7065,8 +7184,8 @@
                 "status": "observed",
                 "evidence": {
                   "window_start": "2026-09-15T11:00:00.000Z",
-                  "window_end": "2026-09-21T13:01:30.000Z",
-                  "span_count": 20
+                  "window_end": "2026-09-21T16:00:03.000Z",
+                  "span_count": 31
                 }
               }
             }
@@ -7205,8 +7324,8 @@
             "status": "observed",
             "evidence": {
               "window_start": "2026-09-15T09:00:00.000Z",
-              "window_end": "2026-09-21T13:01:30.000Z",
-              "span_count": 66,
+              "window_end": "2026-09-21T16:00:03.000Z",
+              "span_count": 77,
               "agents_covered": 3,
               "evidence_quality": [
                 "redacted"
@@ -7286,8 +7405,8 @@
               "title": "Tool observed at runtime that the scan never listed for this agent",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 45,
-                "span_id": "s0044"
+                "line": 54,
+                "span_id": "s0053"
               }
             }
           },
@@ -7348,7 +7467,7 @@
             "status": "observed",
             "evidence": {
               "agent_id": "bc3db1f17013",
-              "high_impact_actions": 7,
+              "high_impact_actions": 11,
               "approved": 0,
               "approval_rate": 0.0
             }
@@ -8271,6 +8390,785 @@
   "runtime": {
     "schema": "dashboard-runtime/1.0",
     "traces_dir": "stoa-traces",
+    "policies": {
+      "document": {
+        "path": "stoa.policy.toml",
+        "mode": "observe",
+        "problems": [],
+        "policies": [
+          {
+            "id": "POL-BASE-001",
+            "title": "Kill switch",
+            "scope": {
+              "agent": "*"
+            },
+            "trigger": "any",
+            "condition": {
+              "killswitch": true
+            },
+            "action": "block",
+            "fail": "closed",
+            "maps_to": {
+              "dimension": "control-coverage-gap",
+              "owasp_llm": "LLM06",
+              "eu_ai_act": "Art. 14"
+            },
+            "rationale": "A way to stop an agent without a deploy. CTRL007 looks for one in code; this policy is one.",
+            "recommended_because": [
+              "every agent"
+            ],
+            "pack": "baseline",
+            "enforce": true,
+            "condition_text": "kill switch set",
+            "enforced": true
+          },
+          {
+            "id": "POL-BASE-002",
+            "title": "Every tool call is logged",
+            "scope": {
+              "agent": "*"
+            },
+            "trigger": "tool_call",
+            "condition": {
+              "expr": "true"
+            },
+            "action": "log",
+            "fail": "open",
+            "maps_to": {
+              "dimension": "control-coverage-gap",
+              "owasp_llm": "LLM10",
+              "eu_ai_act": "Art. 12"
+            },
+            "rationale": "CTRL004 and DECL005: a record of what the agent did, written by the SDK.",
+            "recommended_because": [
+              "every agent"
+            ],
+            "pack": "baseline",
+            "condition_text": "true",
+            "enforced": false
+          },
+          {
+            "id": "POL-BASE-003",
+            "title": "Only declared tools",
+            "scope": {
+              "agent": "*"
+            },
+            "trigger": "tool_call",
+            "condition": {
+              "expr": "tool not in agent.declared_tools"
+            },
+            "action": "block",
+            "fail": "open",
+            "maps_to": {
+              "dimension": "mandate-overreach",
+              "owasp_llm": "LLM06",
+              "eu_ai_act": "Art. 9"
+            },
+            "rationale": "The scanned tool inventory is the allow-list; RT006 reports what falls outside it.",
+            "recommended_because": [
+              "every agent"
+            ],
+            "pack": "baseline",
+            "condition_text": "tool not in agent.declared_tools",
+            "enforced": false
+          },
+          {
+            "id": "POL-DATA-001-224627",
+            "title": "Mask personal data in outputs",
+            "scope": {
+              "agent": "meridian-escalation"
+            },
+            "trigger": "output",
+            "condition": {
+              "classifier": {
+                "name": "pii",
+                "threshold": 0.5
+              }
+            },
+            "action": "mask",
+            "fail": "open",
+            "maps_to": {
+              "dimension": "boundary-leakage",
+              "owasp_llm": "LLM02",
+              "eu_ai_act": "Art. 10"
+            },
+            "rationale": "AI004 and AI006: identifiers in what the agent says leave the boundary.",
+            "recommended_because": [
+              "integrations databricks"
+            ],
+            "pack": "data",
+            "condition_text": "pii score >= 0.5",
+            "enforced": false
+          },
+          {
+            "id": "POL-DATA-002-224627",
+            "title": "Outside sends only to the allow-list",
+            "scope": {
+              "agent": "meridian-escalation"
+            },
+            "trigger": "tool_call",
+            "condition": {
+              "all": [
+                {
+                  "expr": "side_effect == 'external_send'"
+                },
+                {
+                  "field_not_in": {
+                    "field": "to_domain",
+                    "values": [
+                      "databricks"
+                    ]
+                  }
+                }
+              ]
+            },
+            "action": "block",
+            "fail": "open",
+            "evidence": [
+              "to_domain"
+            ],
+            "maps_to": {
+              "dimension": "boundary-leakage",
+              "owasp_llm": "LLM02",
+              "eu_ai_act": "Art. 10"
+            },
+            "rationale": "Egress to a destination nobody listed; fill values with the hosts AI006 found.",
+            "recommended_because": [
+              "integrations databricks"
+            ],
+            "pack": "data",
+            "condition_text": "side_effect == 'external_send' and to_domain not in the allow-list",
+            "enforced": false
+          },
+          {
+            "id": "POL-DATA-003-224627",
+            "title": "Prompt injection on inputs",
+            "scope": {
+              "agent": "meridian-escalation"
+            },
+            "trigger": "input",
+            "condition": {
+              "classifier": {
+                "name": "prompt_injection",
+                "threshold": 0.5
+              }
+            },
+            "action": "escalate",
+            "fail": "open",
+            "escalate_to": "console",
+            "maps_to": {
+              "dimension": "injection-tamper-surface",
+              "owasp_llm": "LLM01",
+              "eu_ai_act": "Art. 15"
+            },
+            "rationale": "AI001: instruction-override patterns in untrusted text, caught by local heuristics.",
+            "recommended_because": [
+              "integrations databricks"
+            ],
+            "pack": "data",
+            "condition_text": "prompt_injection score >= 0.5",
+            "enforced": false
+          },
+          {
+            "id": "POL-DATA-001-2A61FF",
+            "title": "Mask personal data in outputs",
+            "scope": {
+              "agent": "meridian-front"
+            },
+            "trigger": "output",
+            "condition": {
+              "classifier": {
+                "name": "pii",
+                "threshold": 0.5
+              }
+            },
+            "action": "mask",
+            "fail": "open",
+            "maps_to": {
+              "dimension": "boundary-leakage",
+              "owasp_llm": "LLM02",
+              "eu_ai_act": "Art. 10"
+            },
+            "rationale": "AI004 and AI006: identifiers in what the agent says leave the boundary.",
+            "recommended_because": [
+              "integrations databricks"
+            ],
+            "pack": "data",
+            "condition_text": "pii score >= 0.5",
+            "enforced": false
+          },
+          {
+            "id": "POL-DATA-002-2A61FF",
+            "title": "Outside sends only to the allow-list",
+            "scope": {
+              "agent": "meridian-front"
+            },
+            "trigger": "tool_call",
+            "condition": {
+              "all": [
+                {
+                  "expr": "side_effect == 'external_send'"
+                },
+                {
+                  "field_not_in": {
+                    "field": "to_domain",
+                    "values": [
+                      "databricks"
+                    ]
+                  }
+                }
+              ]
+            },
+            "action": "block",
+            "fail": "open",
+            "evidence": [
+              "to_domain"
+            ],
+            "maps_to": {
+              "dimension": "boundary-leakage",
+              "owasp_llm": "LLM02",
+              "eu_ai_act": "Art. 10"
+            },
+            "rationale": "Egress to a destination nobody listed; fill values with the hosts AI006 found.",
+            "recommended_because": [
+              "integrations databricks"
+            ],
+            "pack": "data",
+            "condition_text": "side_effect == 'external_send' and to_domain not in the allow-list",
+            "enforced": false
+          },
+          {
+            "id": "POL-DATA-003-2A61FF",
+            "title": "Prompt injection on inputs",
+            "scope": {
+              "agent": "meridian-front"
+            },
+            "trigger": "input",
+            "condition": {
+              "classifier": {
+                "name": "prompt_injection",
+                "threshold": 0.5
+              }
+            },
+            "action": "escalate",
+            "fail": "open",
+            "escalate_to": "console",
+            "maps_to": {
+              "dimension": "injection-tamper-surface",
+              "owasp_llm": "LLM01",
+              "eu_ai_act": "Art. 15"
+            },
+            "rationale": "AI001: instruction-override patterns in untrusted text, caught by local heuristics.",
+            "recommended_because": [
+              "integrations databricks"
+            ],
+            "pack": "data",
+            "condition_text": "prompt_injection score >= 0.5",
+            "enforced": false
+          },
+          {
+            "id": "POL-PAY-001-B8F011",
+            "title": "Approval required above threshold",
+            "scope": {
+              "agent": "account-actions"
+            },
+            "trigger": "tool_call",
+            "condition": {
+              "all": [
+                {
+                  "amount_gt": 500
+                },
+                {
+                  "approval_missing": true
+                }
+              ]
+            },
+            "action": "escalate",
+            "fail": "closed",
+            "escalate_to": "console",
+            "evidence": [
+              "amount",
+              "currency",
+              "approval_span_id"
+            ],
+            "maps_to": {
+              "dimension": "unreviewed-high-impact-action",
+              "owasp_llm": "LLM06",
+              "eu_ai_act": "Art. 14"
+            },
+            "rationale": "Above the declared per-action limit a person decides, even while the approval-on-every-movement policy is still in observe.",
+            "recommended_because": [
+              "economic_authority.max_per_action 500",
+              "DECL001"
+            ],
+            "pack": "payments",
+            "condition_text": "amount > 500 and no approval on the call",
+            "enforced": false
+          },
+          {
+            "id": "POL-FIN-001-B8F011",
+            "title": "Approval on every money movement",
+            "scope": {
+              "agent": "account-actions"
+            },
+            "trigger": "tool_call",
+            "condition": {
+              "all": [
+                {
+                  "expr": "side_effect == 'payment'"
+                },
+                {
+                  "approval_missing": true
+                }
+              ]
+            },
+            "action": "block",
+            "fail": "closed",
+            "evidence": [
+              "amount",
+              "currency",
+              "approval_span_id"
+            ],
+            "maps_to": {
+              "dimension": "unreviewed-high-impact-action",
+              "owasp_llm": "LLM06",
+              "eu_ai_act": "Art. 14"
+            },
+            "rationale": "Regulated payments: a person on the path for every movement, not only above a threshold.",
+            "recommended_because": [
+              "capability payment_access",
+              "AI008",
+              "DECL001",
+              "RT001",
+              "RT002",
+              "RT007",
+              "unreviewed-high-impact-action elevated",
+              "declared autonomy_intent human_approved"
+            ],
+            "pack": "fintech-regulated",
+            "condition_text": "side_effect == 'payment' and no approval on the call",
+            "enforced": false
+          },
+          {
+            "id": "POL-FIN-002-B8F011",
+            "title": "Daily aggregate cap, tight",
+            "scope": {
+              "agent": "account-actions"
+            },
+            "trigger": "tool_call",
+            "condition": {
+              "window_sum_gt": {
+                "field": "amount",
+                "window": "24h",
+                "value": 25000.0
+              }
+            },
+            "action": "block",
+            "fail": "closed",
+            "evidence": [
+              "amount",
+              "currency"
+            ],
+            "maps_to": {
+              "dimension": "mandate-overreach",
+              "owasp_llm": "LLM06",
+              "eu_ai_act": "Art. 9"
+            },
+            "rationale": "Half the default aggregate until the control history justifies more.",
+            "recommended_because": [
+              "capability payment_access",
+              "AI008",
+              "DECL001",
+              "RT001",
+              "RT002",
+              "RT007",
+              "unreviewed-high-impact-action elevated",
+              "aggregate from economic_authority.daily_aggregate 25000"
+            ],
+            "pack": "fintech-regulated",
+            "condition_text": "sum(amount) over 24h > 25000.0",
+            "enforced": false
+          },
+          {
+            "id": "POL-FIN-003-B8F011",
+            "title": "Personal data never leaves in clear",
+            "scope": {
+              "agent": "account-actions"
+            },
+            "trigger": "output",
+            "condition": {
+              "classifier": {
+                "name": "pii",
+                "threshold": 0.3
+              }
+            },
+            "action": "mask",
+            "fail": "closed",
+            "maps_to": {
+              "dimension": "boundary-leakage",
+              "owasp_llm": "LLM02",
+              "eu_ai_act": "Art. 10"
+            },
+            "rationale": "GLBA and PCI: masking is the floor, not the policy.",
+            "recommended_because": [
+              "capability payment_access",
+              "AI008",
+              "DECL001",
+              "RT001",
+              "RT002",
+              "RT007",
+              "unreviewed-high-impact-action elevated"
+            ],
+            "pack": "fintech-regulated",
+            "condition_text": "pii score >= 0.3",
+            "enforced": false
+          },
+          {
+            "id": "POL-DATA-001-B8F011",
+            "title": "Mask personal data in outputs",
+            "scope": {
+              "agent": "account-actions"
+            },
+            "trigger": "output",
+            "condition": {
+              "classifier": {
+                "name": "pii",
+                "threshold": 0.5
+              }
+            },
+            "action": "mask",
+            "fail": "open",
+            "maps_to": {
+              "dimension": "boundary-leakage",
+              "owasp_llm": "LLM02",
+              "eu_ai_act": "Art. 10"
+            },
+            "rationale": "AI004 and AI006: identifiers in what the agent says leave the boundary.",
+            "recommended_because": [
+              "declared data_classes financial, personal"
+            ],
+            "pack": "data",
+            "condition_text": "pii score >= 0.5",
+            "enforced": false
+          },
+          {
+            "id": "POL-DATA-003-B8F011",
+            "title": "Prompt injection on inputs",
+            "scope": {
+              "agent": "account-actions"
+            },
+            "trigger": "input",
+            "condition": {
+              "classifier": {
+                "name": "prompt_injection",
+                "threshold": 0.5
+              }
+            },
+            "action": "escalate",
+            "fail": "open",
+            "escalate_to": "console",
+            "maps_to": {
+              "dimension": "injection-tamper-surface",
+              "owasp_llm": "LLM01",
+              "eu_ai_act": "Art. 15"
+            },
+            "rationale": "AI001: instruction-override patterns in untrusted text, caught by local heuristics.",
+            "recommended_because": [
+              "declared data_classes financial, personal"
+            ],
+            "pack": "data",
+            "condition_text": "prompt_injection score >= 0.5",
+            "enforced": false
+          },
+          {
+            "id": "POL-FIN-001-BC3DB1",
+            "title": "Approval on every money movement",
+            "scope": {
+              "agent": "meridian-support"
+            },
+            "trigger": "tool_call",
+            "condition": {
+              "all": [
+                {
+                  "expr": "side_effect == 'payment'"
+                },
+                {
+                  "approval_missing": true
+                }
+              ]
+            },
+            "action": "block",
+            "fail": "closed",
+            "evidence": [
+              "amount",
+              "currency",
+              "approval_span_id"
+            ],
+            "maps_to": {
+              "dimension": "unreviewed-high-impact-action",
+              "owasp_llm": "LLM06",
+              "eu_ai_act": "Art. 14"
+            },
+            "rationale": "Regulated payments: a person on the path for every movement, not only above a threshold.",
+            "recommended_because": [
+              "capability payment_access",
+              "AI008",
+              "DECL001",
+              "RT001",
+              "RT007",
+              "unreviewed-high-impact-action elevated",
+              "declared autonomy_intent human_approved"
+            ],
+            "pack": "fintech-regulated",
+            "condition_text": "side_effect == 'payment' and no approval on the call",
+            "enforced": false
+          },
+          {
+            "id": "POL-FIN-002-BC3DB1",
+            "title": "Daily aggregate cap, tight",
+            "scope": {
+              "agent": "meridian-support"
+            },
+            "trigger": "tool_call",
+            "condition": {
+              "window_sum_gt": {
+                "field": "amount",
+                "window": "24h",
+                "value": 800
+              }
+            },
+            "action": "block",
+            "fail": "closed",
+            "evidence": [
+              "amount",
+              "currency"
+            ],
+            "maps_to": {
+              "dimension": "mandate-overreach",
+              "owasp_llm": "LLM06",
+              "eu_ai_act": "Art. 9"
+            },
+            "rationale": "The chatbot is new: a lower daily cap than account-actions until its control history justifies more.",
+            "recommended_because": [
+              "capability payment_access",
+              "AI008",
+              "DECL001",
+              "RT001",
+              "RT007",
+              "unreviewed-high-impact-action elevated",
+              "aggregate: pack default 2500"
+            ],
+            "pack": "fintech-regulated",
+            "enforce": true,
+            "condition_text": "sum(amount) over 24h > 800",
+            "enforced": true
+          },
+          {
+            "id": "POL-FIN-003-BC3DB1",
+            "title": "Personal data never leaves in clear",
+            "scope": {
+              "agent": "meridian-support"
+            },
+            "trigger": "output",
+            "condition": {
+              "classifier": {
+                "name": "pii",
+                "threshold": 0.3
+              }
+            },
+            "action": "mask",
+            "fail": "closed",
+            "maps_to": {
+              "dimension": "boundary-leakage",
+              "owasp_llm": "LLM02",
+              "eu_ai_act": "Art. 10"
+            },
+            "rationale": "GLBA and PCI: masking is the floor, not the policy.",
+            "recommended_because": [
+              "capability payment_access",
+              "AI008",
+              "DECL001",
+              "RT001",
+              "RT007",
+              "unreviewed-high-impact-action elevated"
+            ],
+            "pack": "fintech-regulated",
+            "condition_text": "pii score >= 0.3",
+            "enforced": false
+          },
+          {
+            "id": "POL-DATA-001-BC3DB1",
+            "title": "Mask personal data in outputs",
+            "scope": {
+              "agent": "meridian-support"
+            },
+            "trigger": "output",
+            "condition": {
+              "classifier": {
+                "name": "pii",
+                "threshold": 0.5
+              }
+            },
+            "action": "mask",
+            "fail": "open",
+            "maps_to": {
+              "dimension": "boundary-leakage",
+              "owasp_llm": "LLM02",
+              "eu_ai_act": "Art. 10"
+            },
+            "rationale": "AI004 and AI006: identifiers in what the agent says leave the boundary.",
+            "recommended_because": [
+              "declared data_classes financial, personal"
+            ],
+            "pack": "data",
+            "condition_text": "pii score >= 0.5",
+            "enforced": false
+          },
+          {
+            "id": "POL-DATA-003-BC3DB1",
+            "title": "Prompt injection on inputs",
+            "scope": {
+              "agent": "meridian-support"
+            },
+            "trigger": "input",
+            "condition": {
+              "classifier": {
+                "name": "prompt_injection",
+                "threshold": 0.5
+              }
+            },
+            "action": "escalate",
+            "fail": "open",
+            "escalate_to": "console",
+            "maps_to": {
+              "dimension": "injection-tamper-surface",
+              "owasp_llm": "LLM01",
+              "eu_ai_act": "Art. 15"
+            },
+            "rationale": "AI001: instruction-override patterns in untrusted text, caught by local heuristics.",
+            "recommended_because": [
+              "declared data_classes financial, personal"
+            ],
+            "pack": "data",
+            "condition_text": "prompt_injection score >= 0.5",
+            "enforced": false
+          }
+        ]
+      },
+      "summary": {
+        "POL-BASE-001": {
+          "evaluated": 24,
+          "allowed": 23,
+          "blocked": 1,
+          "would_block": 0,
+          "escalated": 0,
+          "masked": 0,
+          "logged": 0,
+          "error": 0,
+          "last_decision": "2026-09-21T16:00:02.800Z"
+        },
+        "POL-BASE-002": {
+          "evaluated": 24,
+          "allowed": 0,
+          "blocked": 0,
+          "would_block": 0,
+          "escalated": 0,
+          "masked": 0,
+          "logged": 24,
+          "error": 0,
+          "last_decision": "2026-09-21T16:00:02.800Z"
+        },
+        "POL-BASE-003": {
+          "evaluated": 24,
+          "allowed": 22,
+          "blocked": 0,
+          "would_block": 2,
+          "escalated": 0,
+          "masked": 0,
+          "logged": 0,
+          "error": 0,
+          "last_decision": "2026-09-21T16:00:02.800Z"
+        },
+        "POL-DATA-002-2A61FF": {
+          "evaluated": 6,
+          "allowed": 6,
+          "blocked": 0,
+          "would_block": 0,
+          "escalated": 0,
+          "masked": 0,
+          "logged": 0,
+          "error": 0,
+          "last_decision": "2026-09-20T09:00:02.200Z"
+        },
+        "POL-FIN-001-B8F011": {
+          "evaluated": 6,
+          "allowed": 4,
+          "blocked": 0,
+          "would_block": 2,
+          "escalated": 0,
+          "masked": 0,
+          "logged": 0,
+          "error": 0,
+          "last_decision": "2026-09-20T10:01:02.300Z"
+        },
+        "POL-FIN-001-BC3DB1": {
+          "evaluated": 12,
+          "allowed": 2,
+          "blocked": 0,
+          "would_block": 10,
+          "escalated": 0,
+          "masked": 0,
+          "logged": 0,
+          "error": 0,
+          "last_decision": "2026-09-21T16:00:02.800Z"
+        },
+        "POL-FIN-002-B8F011": {
+          "evaluated": 6,
+          "allowed": 6,
+          "blocked": 0,
+          "would_block": 0,
+          "escalated": 0,
+          "masked": 0,
+          "logged": 0,
+          "error": 0,
+          "last_decision": "2026-09-20T10:01:02.300Z"
+        },
+        "POL-FIN-002-BC3DB1": {
+          "evaluated": 12,
+          "allowed": 11,
+          "blocked": 1,
+          "would_block": 0,
+          "escalated": 0,
+          "masked": 0,
+          "logged": 0,
+          "error": 0,
+          "last_decision": "2026-09-21T16:00:02.800Z"
+        },
+        "POL-PAY-001-B8F011": {
+          "evaluated": 6,
+          "allowed": 5,
+          "blocked": 0,
+          "would_block": 0,
+          "escalated": 1,
+          "masked": 0,
+          "logged": 0,
+          "error": 0,
+          "last_decision": "2026-09-20T10:01:02.300Z"
+        }
+      },
+      "killswitch_drills": [
+        {
+          "ts": "2026-09-21T16:00:03.000Z",
+          "seconds_to_stop": 1.8,
+          "by": "platform-risk",
+          "trace_ref": {
+            "file": "trace-demo-0000.jsonl",
+            "line": 78,
+            "span_id": "s0079"
+          }
+        }
+      ]
+    },
     "analysis": {
       "schema": "runtime-analysis/1.1",
       "header": {
@@ -8286,8 +9184,8 @@
       },
       "window": {
         "start": "2026-09-15T09:00:00.000Z",
-        "end": "2026-09-21T13:01:30.000Z",
-        "span_count": 66
+        "end": "2026-09-21T16:00:03.000Z",
+        "span_count": 77
       },
       "agents": {
         "2a61ffb1db0d": {
@@ -8346,6 +9244,56 @@
           "llm_calls": 6,
           "llm_error_rate": 0.0,
           "flag_events": [],
+          "policy_counts": {
+            "POL-BASE-001": {
+              "evaluated": 6,
+              "allowed": 6,
+              "blocked": 0,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            },
+            "POL-BASE-002": {
+              "evaluated": 6,
+              "allowed": 0,
+              "blocked": 0,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 6,
+              "error": 0
+            },
+            "POL-BASE-003": {
+              "evaluated": 6,
+              "allowed": 6,
+              "blocked": 0,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            },
+            "POL-DATA-002-2A61FF": {
+              "evaluated": 6,
+              "allowed": 6,
+              "blocked": 0,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            }
+          },
+          "policy_last": {
+            "POL-BASE-001": "2026-09-20T09:00:02.200Z",
+            "POL-BASE-002": "2026-09-20T09:00:02.200Z",
+            "POL-BASE-003": "2026-09-20T09:00:02.200Z",
+            "POL-DATA-002-2A61FF": "2026-09-20T09:00:02.200Z"
+          },
+          "policy_events": [],
+          "killswitch_drills": [],
           "trace_refs": {
             "first_capability_span": {},
             "first_unapproved_high_impact": null,
@@ -8405,7 +9353,7 @@
           },
           "evidence_quality": "redacted",
           "first_ts": "2026-09-15T10:00:00.000Z",
-          "last_ts": "2026-09-20T12:01:30.000Z",
+          "last_ts": "2026-09-20T10:01:30.000Z",
           "delegations_to": [],
           "trace_files": [
             "trace-demo-0000.jsonl"
@@ -8417,7 +9365,7 @@
             "issue_refund": 6
           },
           "tool_last_ts": {
-            "issue_refund": "2026-09-20T12:01:02.300Z"
+            "issue_refund": "2026-09-20T10:01:02.300Z"
           },
           "money_actions": 6,
           "money_actions_approved": 4,
@@ -8434,7 +9382,7 @@
           "llm_error_rate": 0.0,
           "flag_events": [
             {
-              "ts": "2026-09-16T12:01:02.300Z",
+              "ts": "2026-09-16T10:01:02.300Z",
               "flags": [
                 "new_counterparty"
               ],
@@ -8470,23 +9418,6 @@
               }
             },
             {
-              "ts": "2026-09-18T12:01:02.300Z",
-              "flags": [
-                "new_counterparty"
-              ],
-              "kind": "action",
-              "tool": "issue_refund",
-              "amount": {
-                "amount": 95.0,
-                "currency": "USD"
-              },
-              "trace_ref": {
-                "file": "trace-demo-0000.jsonl",
-                "line": 41,
-                "span_id": "s003e"
-              }
-            },
-            {
               "ts": "2026-09-19T10:01:02.300Z",
               "flags": [
                 "approval_bypassed",
@@ -8500,11 +9431,152 @@
               },
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 52,
-                "span_id": "s004f"
+                "line": 61,
+                "span_id": "s005e"
+              }
+            },
+            {
+              "ts": "2026-09-20T10:01:02.300Z",
+              "flags": [
+                "new_counterparty"
+              ],
+              "kind": "action",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 230.0,
+                "currency": "USD"
+              },
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 72,
+                "span_id": "s006f"
               }
             }
           ],
+          "policy_counts": {
+            "POL-BASE-001": {
+              "evaluated": 6,
+              "allowed": 6,
+              "blocked": 0,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            },
+            "POL-BASE-002": {
+              "evaluated": 6,
+              "allowed": 0,
+              "blocked": 0,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 6,
+              "error": 0
+            },
+            "POL-BASE-003": {
+              "evaluated": 6,
+              "allowed": 6,
+              "blocked": 0,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            },
+            "POL-FIN-001-B8F011": {
+              "evaluated": 6,
+              "allowed": 4,
+              "blocked": 0,
+              "would_block": 2,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            },
+            "POL-FIN-002-B8F011": {
+              "evaluated": 6,
+              "allowed": 6,
+              "blocked": 0,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            },
+            "POL-PAY-001-B8F011": {
+              "evaluated": 6,
+              "allowed": 5,
+              "blocked": 0,
+              "would_block": 0,
+              "escalated": 1,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            }
+          },
+          "policy_last": {
+            "POL-BASE-001": "2026-09-20T10:01:02.300Z",
+            "POL-BASE-002": "2026-09-20T10:01:02.300Z",
+            "POL-BASE-003": "2026-09-20T10:01:02.300Z",
+            "POL-FIN-001-B8F011": "2026-09-20T10:01:02.300Z",
+            "POL-FIN-002-B8F011": "2026-09-20T10:01:02.300Z",
+            "POL-PAY-001-B8F011": "2026-09-20T10:01:02.300Z"
+          },
+          "policy_events": [
+            {
+              "ts": "2026-09-17T10:01:02.300Z",
+              "policy_id": "POL-PAY-001-B8F011",
+              "outcome": "escalated",
+              "action": "escalate",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 900.0,
+                "currency": "USD"
+              },
+              "enforcement": "observed",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 30,
+                "span_id": "s002d"
+              }
+            },
+            {
+              "ts": "2026-09-17T10:01:02.300Z",
+              "policy_id": "POL-FIN-001-B8F011",
+              "outcome": "would_block",
+              "action": "block",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 900.0,
+                "currency": "USD"
+              },
+              "enforcement": "observed",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 30,
+                "span_id": "s002d"
+              }
+            },
+            {
+              "ts": "2026-09-19T10:01:02.300Z",
+              "policy_id": "POL-FIN-001-B8F011",
+              "outcome": "would_block",
+              "action": "block",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 70.0,
+                "currency": "USD"
+              },
+              "enforcement": "observed",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 61,
+                "span_id": "s005e"
+              }
+            }
+          ],
+          "killswitch_drills": [],
           "trace_refs": {
             "first_capability_span": {
               "payment_access": {
@@ -8556,16 +9628,17 @@
           }
         },
         "bc3db1f17013": {
-          "span_count": 20,
+          "span_count": 31,
           "spans_by_kind": {
-            "action": 8,
-            "agent_run": 6,
-            "llm_call": 6
+            "action": 12,
+            "agent_run": 10,
+            "llm_call": 9
           },
           "status_counts": {
-            "ok": 20
+            "error": 2,
+            "ok": 29
           },
-          "error_rate": 0.0,
+          "error_rate": 0.0645,
           "observed_capabilities": [
             "email_send",
             "payment_access"
@@ -8582,13 +9655,13 @@
           ],
           "capability_counts": {
             "email_send": 1,
-            "payment_access": 6
+            "payment_access": 10
           },
           "integration_counts": {
             "sendgrid": 1,
-            "stripe": 6
+            "stripe": 10
           },
-          "high_impact_actions": 7,
+          "high_impact_actions": 11,
           "high_impact_approved": 0,
           "approval_rate_high_impact": 0.0,
           "approval_spans": 0,
@@ -8597,11 +9670,11 @@
             "currency": "USD"
           },
           "window_total_amounts": {
-            "USD": 1040.0
+            "USD": 1560.0
           },
           "evidence_quality": "redacted",
           "first_ts": "2026-09-15T11:00:00.000Z",
-          "last_ts": "2026-09-21T13:01:30.000Z",
+          "last_ts": "2026-09-21T16:00:03.000Z",
           "delegations_to": [],
           "trace_files": [
             "trace-demo-0000.jsonl"
@@ -8614,30 +9687,30 @@
           ],
           "tool_counts": {
             "export_transcript": 1,
-            "issue_refund": 5,
+            "issue_refund": 9,
             "send_email": 1,
             "waive_fee": 1
           },
           "tool_last_ts": {
-            "export_transcript": "2026-09-18T13:01:06.000Z",
-            "issue_refund": "2026-09-21T13:01:02.300Z",
+            "export_transcript": "2026-09-18T15:01:06.000Z",
+            "issue_refund": "2026-09-21T16:00:02.800Z",
             "send_email": "2026-09-16T13:01:11.000Z",
-            "waive_fee": "2026-09-19T11:01:02.300Z"
+            "waive_fee": "2026-09-18T11:01:02.300Z"
           },
-          "money_actions": 6,
+          "money_actions": 10,
           "money_actions_approved": 0,
           "approval_rate_money": 0.0,
           "flag_counts": {
-            "approval_bypassed": 8,
+            "approval_bypassed": 12,
             "integration_changed": 1,
             "new_counterparty": 4,
             "undeclared_tool": 2
           },
           "side_effect_counts": {
             "external_send": 2,
-            "payment": 6
+            "payment": 10
           },
-          "llm_calls": 6,
+          "llm_calls": 9,
           "llm_error_rate": 0.0,
           "flag_events": [
             {
@@ -8692,7 +9765,7 @@
               }
             },
             {
-              "ts": "2026-09-17T11:01:02.300Z",
+              "ts": "2026-09-17T12:01:02.300Z",
               "flags": [
                 "approval_bypassed",
                 "new_counterparty"
@@ -8710,10 +9783,61 @@
               }
             },
             {
+              "ts": "2026-09-18T09:01:02.300Z",
+              "flags": [
+                "approval_bypassed"
+              ],
+              "kind": "action",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 90.0,
+                "currency": "USD"
+              },
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 36,
+                "span_id": "s0037"
+              }
+            },
+            {
+              "ts": "2026-09-18T11:01:02.300Z",
+              "flags": [
+                "approval_bypassed"
+              ],
+              "kind": "action",
+              "tool": "waive_fee",
+              "amount": {
+                "amount": 260.0,
+                "currency": "USD"
+              },
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 47,
+                "span_id": "s0048"
+              }
+            },
+            {
               "ts": "2026-09-18T13:01:02.300Z",
               "flags": [
                 "approval_bypassed",
                 "new_counterparty"
+              ],
+              "kind": "action",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 150.0,
+                "currency": "USD"
+              },
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 50,
+                "span_id": "s004d"
+              }
+            },
+            {
+              "ts": "2026-09-18T15:01:02.300Z",
+              "flags": [
+                "approval_bypassed"
               ],
               "kind": "action",
               "tool": "issue_refund",
@@ -8723,12 +9847,12 @@
               },
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 44,
-                "span_id": "s0043"
+                "line": 53,
+                "span_id": "s0052"
               }
             },
             {
-              "ts": "2026-09-18T13:01:06.000Z",
+              "ts": "2026-09-18T15:01:06.000Z",
               "flags": [
                 "approval_bypassed",
                 "undeclared_tool"
@@ -8738,8 +9862,8 @@
               "amount": null,
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 45,
-                "span_id": "s0044"
+                "line": 54,
+                "span_id": "s0053"
               }
             },
             {
@@ -8749,19 +9873,19 @@
                 "new_counterparty"
               ],
               "kind": "action",
-              "tool": "waive_fee",
+              "tool": "issue_refund",
               "amount": {
                 "amount": 120.0,
                 "currency": "USD"
               },
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 55,
-                "span_id": "s0054"
+                "line": 64,
+                "span_id": "s0063"
               }
             },
             {
-              "ts": "2026-09-21T13:01:02.300Z",
+              "ts": "2026-09-21T11:01:02.300Z",
               "flags": [
                 "approval_bypassed"
               ],
@@ -8773,8 +9897,330 @@
               },
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 66,
-                "span_id": "s0065"
+                "line": 75,
+                "span_id": "s0074"
+              }
+            },
+            {
+              "ts": "2026-09-21T16:00:02.800Z",
+              "flags": [
+                "approval_bypassed"
+              ],
+              "kind": "action",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 20.0,
+                "currency": "USD"
+              },
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 77,
+                "span_id": "s0078"
+              }
+            }
+          ],
+          "policy_counts": {
+            "POL-BASE-001": {
+              "evaluated": 12,
+              "allowed": 11,
+              "blocked": 1,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            },
+            "POL-BASE-002": {
+              "evaluated": 12,
+              "allowed": 0,
+              "blocked": 0,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 12,
+              "error": 0
+            },
+            "POL-BASE-003": {
+              "evaluated": 12,
+              "allowed": 10,
+              "blocked": 0,
+              "would_block": 2,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            },
+            "POL-FIN-001-BC3DB1": {
+              "evaluated": 12,
+              "allowed": 2,
+              "blocked": 0,
+              "would_block": 10,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            },
+            "POL-FIN-002-BC3DB1": {
+              "evaluated": 12,
+              "allowed": 11,
+              "blocked": 1,
+              "would_block": 0,
+              "escalated": 0,
+              "masked": 0,
+              "logged": 0,
+              "error": 0
+            }
+          },
+          "policy_last": {
+            "POL-BASE-001": "2026-09-21T16:00:02.800Z",
+            "POL-BASE-002": "2026-09-21T16:00:02.800Z",
+            "POL-BASE-003": "2026-09-21T16:00:02.800Z",
+            "POL-FIN-001-BC3DB1": "2026-09-21T16:00:02.800Z",
+            "POL-FIN-002-BC3DB1": "2026-09-21T16:00:02.800Z"
+          },
+          "policy_events": [
+            {
+              "ts": "2026-09-15T11:01:02.300Z",
+              "policy_id": "POL-FIN-001-BC3DB1",
+              "outcome": "would_block",
+              "action": "block",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 60.0,
+                "currency": "USD"
+              },
+              "enforcement": "observed",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 11,
+                "span_id": "s0010"
+              }
+            },
+            {
+              "ts": "2026-09-16T13:01:02.300Z",
+              "policy_id": "POL-FIN-001-BC3DB1",
+              "outcome": "would_block",
+              "action": "block",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 240.0,
+                "currency": "USD"
+              },
+              "enforcement": "observed",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 22,
+                "span_id": "s0021"
+              }
+            },
+            {
+              "ts": "2026-09-16T13:01:11.000Z",
+              "policy_id": "POL-BASE-003",
+              "outcome": "would_block",
+              "action": "block",
+              "tool": "send_email",
+              "amount": null,
+              "enforcement": "observed",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 23,
+                "span_id": "s0022"
+              }
+            },
+            {
+              "ts": "2026-09-17T12:01:02.300Z",
+              "policy_id": "POL-FIN-001-BC3DB1",
+              "outcome": "would_block",
+              "action": "block",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 35.0,
+                "currency": "USD"
+              },
+              "enforcement": "observed",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 33,
+                "span_id": "s0032"
+              }
+            },
+            {
+              "ts": "2026-09-18T09:01:02.300Z",
+              "policy_id": "POL-FIN-001-BC3DB1",
+              "outcome": "would_block",
+              "action": "block",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 90.0,
+                "currency": "USD"
+              },
+              "enforcement": "observed",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 36,
+                "span_id": "s0037"
+              }
+            },
+            {
+              "ts": "2026-09-18T11:01:02.300Z",
+              "policy_id": "POL-FIN-001-BC3DB1",
+              "outcome": "would_block",
+              "action": "block",
+              "tool": "waive_fee",
+              "amount": {
+                "amount": 260.0,
+                "currency": "USD"
+              },
+              "enforcement": "observed",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 47,
+                "span_id": "s0048"
+              }
+            },
+            {
+              "ts": "2026-09-18T13:01:02.300Z",
+              "policy_id": "POL-FIN-001-BC3DB1",
+              "outcome": "would_block",
+              "action": "block",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 150.0,
+                "currency": "USD"
+              },
+              "enforcement": "observed",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 50,
+                "span_id": "s004d"
+              }
+            },
+            {
+              "ts": "2026-09-18T15:01:02.300Z",
+              "policy_id": "POL-FIN-001-BC3DB1",
+              "outcome": "would_block",
+              "action": "block",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 500.0,
+                "currency": "USD"
+              },
+              "enforcement": "denied",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 53,
+                "span_id": "s0052"
+              }
+            },
+            {
+              "ts": "2026-09-18T15:01:02.300Z",
+              "policy_id": "POL-FIN-002-BC3DB1",
+              "outcome": "blocked",
+              "action": "block",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 500.0,
+                "currency": "USD"
+              },
+              "enforcement": "denied",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 53,
+                "span_id": "s0052"
+              }
+            },
+            {
+              "ts": "2026-09-18T15:01:06.000Z",
+              "policy_id": "POL-BASE-003",
+              "outcome": "would_block",
+              "action": "block",
+              "tool": "export_transcript",
+              "amount": null,
+              "enforcement": "observed",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 54,
+                "span_id": "s0053"
+              }
+            },
+            {
+              "ts": "2026-09-19T11:01:02.300Z",
+              "policy_id": "POL-FIN-001-BC3DB1",
+              "outcome": "would_block",
+              "action": "block",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 120.0,
+                "currency": "USD"
+              },
+              "enforcement": "observed",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 64,
+                "span_id": "s0063"
+              }
+            },
+            {
+              "ts": "2026-09-21T11:01:02.300Z",
+              "policy_id": "POL-FIN-001-BC3DB1",
+              "outcome": "would_block",
+              "action": "block",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 85.0,
+                "currency": "USD"
+              },
+              "enforcement": "observed",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 75,
+                "span_id": "s0074"
+              }
+            },
+            {
+              "ts": "2026-09-21T16:00:02.800Z",
+              "policy_id": "POL-BASE-001",
+              "outcome": "blocked",
+              "action": "block",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 20.0,
+                "currency": "USD"
+              },
+              "enforcement": "denied",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 77,
+                "span_id": "s0078"
+              }
+            },
+            {
+              "ts": "2026-09-21T16:00:02.800Z",
+              "policy_id": "POL-FIN-001-BC3DB1",
+              "outcome": "would_block",
+              "action": "block",
+              "tool": "issue_refund",
+              "amount": {
+                "amount": 20.0,
+                "currency": "USD"
+              },
+              "enforcement": "denied",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 77,
+                "span_id": "s0078"
+              }
+            }
+          ],
+          "killswitch_drills": [
+            {
+              "ts": "2026-09-21T16:00:03.000Z",
+              "seconds_to_stop": 1.8,
+              "by": "platform-risk",
+              "trace_ref": {
+                "file": "trace-demo-0000.jsonl",
+                "line": 78,
+                "span_id": "s0079"
               }
             }
           ],
@@ -8798,14 +10244,14 @@
             },
             "max_amount_span": {
               "file": "trace-demo-0000.jsonl",
-              "line": 44,
-              "span_id": "s0043"
+              "line": 53,
+              "span_id": "s0052"
             },
             "first_tool_span": {
               "export_transcript": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 45,
-                "span_id": "s0044"
+                "line": 54,
+                "span_id": "s0053"
               },
               "issue_refund": {
                 "file": "trace-demo-0000.jsonl",
@@ -8819,8 +10265,8 @@
               },
               "waive_fee": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 55,
-                "span_id": "s0054"
+                "line": 47,
+                "span_id": "s0048"
               }
             },
             "first_unapproved_money": {
@@ -8858,6 +10304,121 @@
           }
         }
       },
+      "policy_summary": {
+        "policies": {
+          "POL-BASE-001": {
+            "evaluated": 24,
+            "allowed": 23,
+            "blocked": 1,
+            "would_block": 0,
+            "escalated": 0,
+            "masked": 0,
+            "logged": 0,
+            "error": 0,
+            "last_decision": "2026-09-21T16:00:02.800Z"
+          },
+          "POL-BASE-002": {
+            "evaluated": 24,
+            "allowed": 0,
+            "blocked": 0,
+            "would_block": 0,
+            "escalated": 0,
+            "masked": 0,
+            "logged": 24,
+            "error": 0,
+            "last_decision": "2026-09-21T16:00:02.800Z"
+          },
+          "POL-BASE-003": {
+            "evaluated": 24,
+            "allowed": 22,
+            "blocked": 0,
+            "would_block": 2,
+            "escalated": 0,
+            "masked": 0,
+            "logged": 0,
+            "error": 0,
+            "last_decision": "2026-09-21T16:00:02.800Z"
+          },
+          "POL-DATA-002-2A61FF": {
+            "evaluated": 6,
+            "allowed": 6,
+            "blocked": 0,
+            "would_block": 0,
+            "escalated": 0,
+            "masked": 0,
+            "logged": 0,
+            "error": 0,
+            "last_decision": "2026-09-20T09:00:02.200Z"
+          },
+          "POL-FIN-001-B8F011": {
+            "evaluated": 6,
+            "allowed": 4,
+            "blocked": 0,
+            "would_block": 2,
+            "escalated": 0,
+            "masked": 0,
+            "logged": 0,
+            "error": 0,
+            "last_decision": "2026-09-20T10:01:02.300Z"
+          },
+          "POL-FIN-001-BC3DB1": {
+            "evaluated": 12,
+            "allowed": 2,
+            "blocked": 0,
+            "would_block": 10,
+            "escalated": 0,
+            "masked": 0,
+            "logged": 0,
+            "error": 0,
+            "last_decision": "2026-09-21T16:00:02.800Z"
+          },
+          "POL-FIN-002-B8F011": {
+            "evaluated": 6,
+            "allowed": 6,
+            "blocked": 0,
+            "would_block": 0,
+            "escalated": 0,
+            "masked": 0,
+            "logged": 0,
+            "error": 0,
+            "last_decision": "2026-09-20T10:01:02.300Z"
+          },
+          "POL-FIN-002-BC3DB1": {
+            "evaluated": 12,
+            "allowed": 11,
+            "blocked": 1,
+            "would_block": 0,
+            "escalated": 0,
+            "masked": 0,
+            "logged": 0,
+            "error": 0,
+            "last_decision": "2026-09-21T16:00:02.800Z"
+          },
+          "POL-PAY-001-B8F011": {
+            "evaluated": 6,
+            "allowed": 5,
+            "blocked": 0,
+            "would_block": 0,
+            "escalated": 1,
+            "masked": 0,
+            "logged": 0,
+            "error": 0,
+            "last_decision": "2026-09-20T10:01:02.300Z"
+          }
+        },
+        "killswitch_drills": [
+          {
+            "ts": "2026-09-21T16:00:03.000Z",
+            "seconds_to_stop": 1.8,
+            "by": "platform-risk",
+            "trace_ref": {
+              "file": "trace-demo-0000.jsonl",
+              "line": 78,
+              "span_id": "s0079"
+            }
+          }
+        ]
+      },
       "unmatched_agents": [],
       "no_runtime_evidence": [
         "224627e4877d",
@@ -8869,8 +10430,8 @@
       "generated_at": null,
       "window": {
         "start": "2026-09-15T09:00:00.000Z",
-        "end": "2026-09-21T13:01:30.000Z",
-        "span_count": 66
+        "end": "2026-09-21T16:00:03.000Z",
+        "span_count": 77
       },
       "dormant_days": 30,
       "totals": {
@@ -8895,7 +10456,7 @@
             {
               "tool": "issue_refund",
               "calls": 6,
-              "last_seen": "2026-09-20T12:01:02.300Z"
+              "last_seen": "2026-09-20T10:01:02.300Z"
             }
           ],
           "used_but_undeclared": [],
@@ -8943,20 +10504,20 @@
           "declared_and_used": [
             {
               "tool": "issue_refund",
-              "calls": 5,
-              "last_seen": "2026-09-21T13:01:02.300Z"
+              "calls": 9,
+              "last_seen": "2026-09-21T16:00:02.800Z"
             },
             {
               "tool": "waive_fee",
               "calls": 1,
-              "last_seen": "2026-09-19T11:01:02.300Z"
+              "last_seen": "2026-09-18T11:01:02.300Z"
             }
           ],
           "used_but_undeclared": [
             {
               "tool": "export_transcript",
               "calls": 1,
-              "last_seen": "2026-09-18T13:01:06.000Z"
+              "last_seen": "2026-09-18T15:01:06.000Z"
             },
             {
               "tool": "send_email",
@@ -8997,13 +10558,13 @@
       "schema": "runtime-chain/1.0",
       "directory": "stoa-traces",
       "ok": true,
-      "records": 67,
+      "records": 78,
       "files": [
         {
           "file": "trace-demo-0000.jsonl",
           "ok": true,
-          "records": 67,
-          "signed": 67,
+          "records": 78,
+          "signed": 78,
           "key_grade": "hmac-sha256",
           "signer_fingerprints": [
             "46c139250575bda7"
@@ -9025,8 +10586,8 @@
         },
         "analysis_window": {
           "start": "2026-09-15T09:00:00.000Z",
-          "end": "2026-09-21T13:01:30.000Z",
-          "span_count": 66
+          "end": "2026-09-21T16:00:03.000Z",
+          "span_count": 77
         }
       },
       "summary": {

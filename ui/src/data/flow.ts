@@ -10,6 +10,8 @@ import type { Envelope, Evidence, Severity, ToolRecord } from "./types";
 import { autonomyOf, capabilitiesOf, declaredOf, frameworksOf, integrationsOf, providersOf, toolsOf, uniqueAgents, type UniqueAgent } from "./agents";
 import { COVERAGE_CONTROLS, controlLabel, safeguardRows, type SafeguardRow, type SafeguardState } from "./controls";
 import { prose } from "./labels";
+import { policiesFor } from "./policies";
+import type { PolicySpecRecord } from "./types";
 import { SEVERITY_RANK, activeFindings, riskLevel, type FindingRef, type RiskLevel } from "./selectors";
 
 export type LaneId = "entry" | "agent" | "gate" | "tools" | "reach";
@@ -70,6 +72,8 @@ export interface FlowNode {
   mismatch?: boolean;
   /** Money-moving or high-impact tools behind the gate. */
   heavy?: number;
+  /** Block or escalate policies scoped to this tool (policy overlay). Undefined without a policy document. */
+  policies?: PolicySpecRecord[];
 }
 
 export interface FlowEdge { from: string; to: string; label?: string; tone?: "risk"; loose?: boolean }
@@ -195,13 +199,20 @@ export function buildFlow(env: Envelope, agent: UniqueAgent): Flow {
     findings: findings.filter((r) => laneOf(r.finding.rule_id) === "gate") });
 
   const retryFindings = findings.filter((r) => r.finding.rule_id === "AI008");
+  const hasPolicyDoc = Boolean(env.runtime?.policies?.document);
   tools.forEach((t, i) => {
     const exposed = (t.money_action || t.high_impact) && t.guards.length === 0;
     const unsafeRetry = t.retry && !t.idempotency_key;
     const kind = t.money_action ? "money action" : t.high_impact ? "high impact" : t.kind.replace(/_/g, " ");
-    add({ id: `tool:${i}`, lane: "tools", kind: "tool", label: t.name, tool: t, exposed, unsafeRetry,
-      cap: t.guards.length ? `${kind} · guardrail detected` : exposed ? `${kind} · no guardrail detected` : kind,
-      own: exposed || unsafeRetry ? "risk" : t.guards.length ? "ok" : "neutral",
+    // The policy overlay: a block or escalate policy on a money or high-impact tool protects the edge even when the code has no guardrail.
+    const policies = hasPolicyDoc ? policiesFor(env, agent, t.name).filter((p) => p.action === "block" || p.action === "escalate") : undefined;
+    const protectedByPolicy = Boolean(policies && policies.length);
+    // The caption names the policies written for this agent; agent-wide ones (the baseline pack) are counted, not listed.
+    const specific = (policies ?? []).filter((p) => p.scope.agent !== "*");
+    const policyCap = policies === undefined ? "" : protectedByPolicy ? ` · policy ${specific.length ? specific.map((p) => p.id).join(", ") : "baseline only"}${policies.some((p) => p.enforced) ? "" : " (observe)"}` : (t.money_action || t.high_impact) ? " · no policy" : "";
+    add({ id: `tool:${i}`, lane: "tools", kind: "tool", label: t.name, tool: t, exposed, unsafeRetry, policies,
+      cap: (t.guards.length ? `${kind} · guardrail detected` : exposed ? `${kind} · no guardrail detected` : kind) + policyCap,
+      own: exposed && !protectedByPolicy || unsafeRetry ? "risk" : t.guards.length || protectedByPolicy ? "ok" : "neutral",
       findings: unsafeRetry && t.money_action ? retryFindings.filter((r) => r.evidence.some((f) => f.path === t.path)) : [] });
   });
   if (!tools.length) add({ id: "no-tools", lane: "tools", kind: "empty", label: "", cap: "No tool definitions detected" });

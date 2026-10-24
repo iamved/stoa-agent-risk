@@ -1,0 +1,26 @@
+# tools-mcp: for agents that reach tools through MCP servers.
+version = "stoa-policy/0.1"
+[defaults]
+mode = "observe"
+
+[[policies]]
+id = "POL-MCP-001"
+title = "MCP tools must be declared"
+scope = { agent = "*" }
+trigger = "tool_call"
+condition = { expr = "tool not in agent.declared_tools" }
+action = "block"
+fail = "closed"
+maps_to = { dimension = "mandate-overreach", owasp_llm = "LLM06", eu_ai_act = "Art. 9" }
+rationale = "A server advertises what it likes; the scan's inventory is what was reviewed."
+
+[[policies]]
+id = "POL-MCP-002"
+title = "No production credentials on MCP servers"
+scope = { agent = "*" }
+trigger = "tool_call"
+condition = { field_in = { field = "credential_scope", values = ["production", "prod"] } }
+action = "block"
+fail = "closed"
+maps_to = { dimension = "boundary-leakage", owasp_llm = "LLM03", eu_ai_act = "Art. 15" }
+rationale = "A tool server with production credentials is a second production system nobody scanned."

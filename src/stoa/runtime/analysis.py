@@ -35,7 +35,7 @@ class _AgentAccumulator:
         "tool_counts", "tool_last_ts", "first_tool_span", "money_actions",
         "money_candidates", "flag_counts", "first_flag_span", "approval_ids",
         "llm_calls", "llm_errors", "side_effect_counts", "first_external_send",
-        "flag_events",
+        "flag_events", "policy_counts", "policy_events", "policy_last", "drills",
     )
 
     def __init__(self) -> None:
@@ -79,6 +79,11 @@ class _AgentAccumulator:
         self.first_external_send: dict | None = None
         # Up to 200 flagged spans per agent, oldest first: the timeline the dashboard draws.
         self.flag_events: list[dict] = []
+        # Policy outcomes (stoa-policy/0.1): per policy id, counts by what happened to the call.
+        self.policy_counts: dict[str, dict[str, int]] = {}
+        self.policy_events: list[dict] = []
+        self.policy_last: dict[str, str] = {}
+        self.drills: list[dict] = []
 
     @staticmethod
     def _ref(span: dict) -> dict:
@@ -133,6 +138,10 @@ class _AgentAccumulator:
                 "amount": span.get("amount"),
                 "trace_ref": self._ref(span),
             })
+        if attrs.get("killswitch_drill"):
+            self.drills.append({"ts": span.get("end_ts"), "seconds_to_stop": attrs.get("seconds_to_stop"), "by": attrs.get("drill_by"), "trace_ref": self._ref(span)})
+        if attrs.get("policy_rules"):
+            self._add_policy_outcome(span, attrs)
         tool = span.get("tool")
         if tool and kind in ("action", "tool_call"):
             self.tool_counts[tool] = self.tool_counts.get(tool, 0) + 1
@@ -180,6 +189,42 @@ class _AgentAccumulator:
             self.delegations_to.add(span["to_agent_id"])
         if span.get("_trace_file"):
             self.trace_files.add(span["_trace_file"])
+
+    def _add_policy_outcome(self, span: dict, attrs: dict) -> None:
+        """One span's policy decisions, as the summary counts them:
+        ``evaluated``, ``allowed`` (condition did not fire), ``blocked``
+        (deny enforced), ``would_block`` (deny recorded), ``escalated``,
+        ``masked``, ``logged``, ``error``."""
+        rules = str(attrs.get("policy_rules", "")).split(",")
+        decisions = str(attrs.get("policy_decisions", "")).split(",")
+        actions = str(attrs.get("policy_actions", "")).split(",") if attrs.get("policy_actions") else [""] * len(rules)
+        errors = str(attrs.get("policy_errors", ""))
+        enforcement = span.get("enforcement")
+        denied_by = attrs.get("policy_denied_by")
+        ts = span.get("end_ts") or span.get("start_ts")
+        for rule_id, decision, action in zip(rules, decisions, actions):
+            if not rule_id:
+                continue
+            counts = self.policy_counts.setdefault(rule_id, {"evaluated": 0, "allowed": 0, "blocked": 0, "would_block": 0, "escalated": 0, "masked": 0, "logged": 0, "error": 0})
+            counts["evaluated"] += 1
+            if rule_id in errors:
+                outcome = "error"
+            elif decision == "allow":
+                outcome = "allowed"
+            elif decision == "deny":
+                # Only the policy that stopped the call blocked it; other denies on the same call were recorded.
+                outcome = "blocked" if enforcement == "denied" and (denied_by in (None, rule_id)) else "would_block"
+            elif decision == "require_approval":
+                outcome = "escalated"
+            elif decision == "mask":
+                outcome = "masked"
+            else:
+                outcome = "logged"
+            counts[outcome] += 1
+            if ts and ts > self.policy_last.get(rule_id, ""):
+                self.policy_last[rule_id] = ts
+            if outcome not in ("allowed", "logged") and len(self.policy_events) < 300:
+                self.policy_events.append({"ts": ts, "policy_id": rule_id, "outcome": outcome, "action": action or None, "tool": span.get("tool"), "amount": span.get("amount"), "enforcement": enforcement, "trace_ref": self._ref(span)})
 
     def resolve_money(self, approval_ids: set[str]) -> tuple[int, dict | None]:
         """Money actions whose ``approval_span_id`` resolves to an approval
@@ -238,6 +283,10 @@ class _AgentAccumulator:
             "llm_calls": self.llm_calls,
             "llm_error_rate": round(self.llm_errors / self.llm_calls, 4) if self.llm_calls else 0.0,
             "flag_events": list(self.flag_events),
+            "policy_counts": {k: dict(v) for k, v in sorted(self.policy_counts.items())},
+            "policy_last": dict(sorted(self.policy_last.items())),
+            "policy_events": list(self.policy_events),
+            "killswitch_drills": list(self.drills),
             "trace_refs": {
                 "first_capability_span": dict(sorted(self.first_capability_span.items())),
                 "first_unapproved_high_impact": self.first_unapproved_high_impact,
@@ -248,6 +297,25 @@ class _AgentAccumulator:
                 "first_external_send": self.first_external_send,
             },
         }
+
+
+def _policy_summary(accumulators) -> dict:
+    """Counts per policy across every agent in the stream, plus drills."""
+    totals: dict[str, dict[str, int]] = {}
+    last: dict[str, str] = {}
+    drills: list[dict] = []
+    for acc in accumulators:
+        for rule_id, counts in acc.policy_counts.items():
+            bucket = totals.setdefault(rule_id, {k: 0 for k in counts})
+            for k, v in counts.items():
+                bucket[k] = bucket.get(k, 0) + v
+            if acc.policy_last.get(rule_id, "") > last.get(rule_id, ""):
+                last[rule_id] = acc.policy_last[rule_id]
+        drills.extend(acc.drills)
+    return {
+        "policies": {rule_id: {**counts, "last_decision": last.get(rule_id)} for rule_id, counts in sorted(totals.items())},
+        "killswitch_drills": sorted(drills, key=lambda d: d.get("ts") or ""),
+    }
 
 
 def _hint_key(span: dict) -> str:
@@ -342,6 +410,7 @@ def analyze_traces(
             "span_count": total_spans,
         },
         "agents": {key: acc.summary(all_approval_ids) for key, acc in sorted(matched.items())},
+        "policy_summary": _policy_summary([*matched.values(), *unmatched.values()]),
         "unmatched_agents": [
             {
                 "key": key,

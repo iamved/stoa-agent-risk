@@ -143,6 +143,8 @@ def build_parser() -> argparse.ArgumentParser:
                            help="Local stoa-trace files: adds the Runtime screen and observed evidence")
     dashboard.add_argument("--runtime-baseline", metavar="PATH", default=None,
                            help="With --runtime: a committed runtime-baseline JSON for drift and RT008")
+    dashboard.add_argument("--policy", metavar="PATH", default=None,
+                           help="With --runtime: the stoa.policy.toml to show beside the outcomes (default: search upward)")
     dashboard.add_argument("--approvals", metavar="PATH", default=".stoa/approvals.toml")
     dashboard.add_argument("--root", metavar="DIR", default=".",
                            help="Repository root holding .stoa/history/ (default: .)")
@@ -342,6 +344,30 @@ def build_parser() -> argparse.ArgumentParser:
     rt_drift.add_argument("--config", metavar="PATH", default=None,
                           help="stoa.toml with [runtime.drift] thresholds")
 
+    # --- stoa policy: policy as code (stoa-policy/0.1)
+    policy = subparsers.add_parser("policy", help="Validate, recommend and inspect agent policies (stoa.policy.toml)")
+    pol_sub = policy.add_subparsers(dest="policy_command")
+    pol_validate = pol_sub.add_parser("validate", help="Check a policy file against stoa-policy/0.1")
+    pol_validate.add_argument("path", metavar="FILE", nargs="?", default="stoa.policy.toml")
+    pol_recommend = pol_sub.add_parser("recommend", help="Write a policy file from the registry and declarations")
+    pol_recommend.add_argument("--registry", metavar="PATH", default="stoa-registry.json")
+    pol_recommend.add_argument("--out", metavar="PATH", default="stoa.policy.toml")
+    pol_recommend.add_argument("--mode", choices=["observe", "enforce"], default="observe")
+    pol_recommend.add_argument("--force", action="store_true", help="Overwrite an existing file")
+    pol_packs = pol_sub.add_parser("packs", help="List the shipped policy packs")
+    pol_packs.add_argument("name", nargs="?", default=None, help="Print one pack's policies")
+
+    # --- stoa kill: the kill switch state file the SDK reads
+    kill = subparsers.add_parser("kill", help="Set, release or drill the kill switch for an agent")
+    kill.add_argument("--agent-id", metavar="ID_OR_NAME", required=True, help="An agent id or declared name, or * for every agent")
+    kill.add_argument("--reason", metavar="TEXT", default="")
+    kill.add_argument("--by", metavar="HANDLE", default=None, help="Who is pulling it (default: $USER)")
+    kill.add_argument("--release", action="store_true", help="Clear the flag instead of setting it")
+    kill.add_argument("--drill", action="store_true", help="Set the flag, time the first blocked span, release, record the result")
+    kill.add_argument("--traces", metavar="DIR", default="stoa-traces", help="With --drill: where blocked spans will appear")
+    kill.add_argument("--timeout", type=float, default=30.0)
+    kill.add_argument("--state", metavar="PATH", default=None, help="Kill switch file (default: .stoa/killswitch.json upward from here)")
+
     return parser
 
 
@@ -370,6 +396,10 @@ def main(argv: list[str] | None = None) -> int:
             return _run_approve_command(args)
         if args.command == "runtime":
             return _run_runtime_command(args)
+        if args.command == "policy":
+            return _run_policy_command(args)
+        if args.command == "kill":
+            return _run_kill_command(args)
     except ConfigError as exc:
         print(f"stoa: configuration error: {exc}", file=sys.stderr)
         return EXIT_USAGE
@@ -619,7 +649,7 @@ def _run_dashboard_command(args: argparse.Namespace) -> int:
             rt_baseline = _load_registry(args.runtime_baseline) if args.runtime_baseline else None
             document, runtime_slot = build_runtime_slot(
                 args.runtime, document, config, baseline=rt_baseline, registry_path=str(input_path),
-                generated_at=datetime.now(timezone.utc).isoformat(),
+                generated_at=datetime.now(timezone.utc).isoformat(), policy_path=args.policy,
             )
             for warning in runtime_slot["analysis"]["header"]["warnings"]:
                 print(f"stoa: warning: {warning}", file=sys.stderr)
@@ -1099,6 +1129,93 @@ def _run_init_runtime(args: argparse.Namespace) -> int:
         "agent, run it, then `stoa runtime analyze stoa-traces --registry "
         "stoa-registry.json`."
     )
+    return EXIT_OK
+
+
+def _run_policy_command(args: argparse.Namespace) -> int:
+    from .policy import PACK_NAMES, load_pack, load_policy_document, policy_to_toml, recommend
+    from .policy.conditions import condition_text
+    from .policy.recommend import render_gaps
+
+    if args.policy_command == "validate":
+        document = load_policy_document(args.path)
+        for problem in document.problems:
+            print(f"  {problem['at']}: {problem['message']}")
+        if document.ok:
+            print(f"stoa policy: {args.path} is valid stoa-policy/0.1: {len(document.policies)} policies, mode {document.mode}")
+            return EXIT_OK
+        print(f"stoa policy: {len(document.problems)} problem(s) in {args.path}", file=sys.stderr)
+        return EXIT_GATE_FAILED
+    if args.policy_command == "recommend":
+        registry = _load_registry(args.registry)
+        out = Path(args.out)
+        if out.exists() and not args.force:
+            print(f"stoa policy: {out} exists; pass --force to overwrite", file=sys.stderr)
+            return EXIT_USAGE
+        document, gaps = recommend(registry, mode=args.mode)
+        header = (f"Recommended by stoa policy recommend from {args.registry}.\n"
+                  "Each policy says why under recommended_because. Observe first; set enforce = true per policy,\n"
+                  "or [defaults] mode = \"enforce\", when a policy has earned it.")
+        _atomic_write(out, policy_to_toml(document, header=header))
+        print(f"stoa policy: wrote {out} with {len(document.policies)} policies (mode {document.mode})")
+        for p in document.policies:
+            print(f"  {p.id:<24} {p.action:<9} {p.scope.get('agent', '*'):<20} {condition_text(p.condition)}")
+        print()
+        print(render_gaps(gaps), end="")
+        return EXIT_OK
+    if args.policy_command == "packs":
+        names = [args.name] if args.name else list(PACK_NAMES)
+        for name in names:
+            if name not in PACK_NAMES:
+                print(f"stoa policy: no pack {name!r}; packs: {', '.join(PACK_NAMES)}", file=sys.stderr)
+                return EXIT_USAGE
+            pack = load_pack(name)
+            print(f"{name} ({len(pack.policies)} policies, default mode {pack.mode})")
+            for p in pack.policies:
+                print(f"  {p.id:<14} {p.action:<9} {p.trigger:<9} {condition_text(p.condition)}")
+                if args.name:
+                    print(f"      {p.rationale}")
+        return EXIT_OK
+    print("stoa policy: choose a subcommand (validate, recommend, packs)", file=sys.stderr)
+    return EXIT_USAGE
+
+
+def _run_kill_command(args: argparse.Namespace) -> int:
+    import getpass
+
+    from .policy.killswitch import drill, find_state, kill, release
+
+    by = args.by or getpass.getuser()
+    state = Path(args.state) if args.state else find_state()
+    if args.release:
+        had = release(args.agent_id, by=by, path=state)
+        print(f"stoa kill: released {args.agent_id}" + ("" if had else " (it was not set)"))
+        return EXIT_OK
+    if args.drill:
+        from .runtime.reader import TraceReader
+
+        traces = Path(args.traces)
+        seen_before = {(s["_trace_file"], s["_trace_line"]) for s in TraceReader(traces).spans()} if traces.is_dir() else set()
+
+        def blocked_seen() -> bool:
+            if not traces.is_dir():
+                return False
+            for span in TraceReader(traces).spans():
+                if (span["_trace_file"], span["_trace_line"]) in seen_before:
+                    continue
+                if span.get("enforcement") == "denied" and "POL-BASE-001" in str((span.get("attrs") or {}).get("policy_rules", "")):
+                    return True
+            return False
+
+        print(f"stoa kill: drill on {args.agent_id}; waiting up to {args.timeout:g}s for the first blocked call under {traces}")
+        result = drill(args.agent_id, by=by, wait_for_stop=blocked_seen, timeout=args.timeout, path=state)
+        if result["timed_out"]:
+            print("stoa kill: no blocked call seen before the timeout; is the agent running with the baseline pack?", file=sys.stderr)
+            return EXIT_GATE_FAILED
+        print(f"stoa kill: stopped in {result['seconds_to_stop']}s; recorded in {state}")
+        return EXIT_OK
+    kill(args.agent_id, reason=args.reason or "set from the command line", by=by, path=state)
+    print(f"stoa kill: {args.agent_id} is stopped (reason: {args.reason or 'set from the command line'}); release with --release")
     return EXIT_OK
 
 

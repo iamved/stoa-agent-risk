@@ -171,6 +171,13 @@ evidence in the window keeps its scan-time assessment):
 agents_covered, agents_total, unmatched_agents, rt_findings,
 evidence_quality}`.
 
+**Top-level `policies`** (merge only, trace 1.1 with a policy file):
+`{window, policies: {<policy id>: {evaluated, allowed, blocked, would_block,
+escalated, masked, logged, error, last_decision}}, killswitch_drills}`. The
+spans carry `attrs.policy_rules`, `attrs.policy_decisions`,
+`attrs.policy_actions`, `attrs.policy_denied_by` and `enforcement`. The
+policy file itself is `stoa-policy/0.1` ([docs/policy.md](docs/policy.md)).
+
 **`runtime_evidence` since trace 1.1** also carries `observed_tools`,
 `tool_counts`, `money_actions`, `money_actions_approved`,
 `approval_rate_money`, `flag_counts` and `side_effect_counts`.

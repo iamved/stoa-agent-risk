@@ -61,12 +61,14 @@ from .exporter import DEFAULT_MAX_FILE_BYTES, JSONLExporter
 from .flags import FlagEngine
 from .keys import Signer, load_signer
 from .policy import Policy, StoaDenied, decide, load_policy
+from ..policy.conditions import WindowStore
+from ..policy.killswitch import KillSwitch
 from .registry import RegistryFacts, load_registry_facts
 from .spans import SIDE_EFFECTS, build_span, redact_attrs, sha256_text, utc_now_iso
 
 __all__ = [
     "configure", "stoa_trace", "stoa_span", "guard", "session", "model_call",
-    "on_approval", "StoaDenied", "verify_chain", "flush", "shutdown",
+    "on_approval", "check_input", "check_output", "StoaDenied", "verify_chain", "flush", "shutdown",
 ]
 # ``_Late`` and ``_schema_hash`` are shared with stoa.runtime.integrations only.
 
@@ -87,6 +89,9 @@ class _State:
     fail_open: bool = True
     approval_hook = None
     mirror = None
+    store: WindowStore | None = None
+    killswitch: KillSwitch | None = None
+    trace_dir: str | None = None
 
 
 _state = _State()
@@ -137,6 +142,11 @@ def configure(
         _state.flags = FlagEngine(_state.registry, burst_threshold=burst_threshold)
         _state.policy = load_policy(policy or os.environ.get("STOA_POLICY"))
         _state.fail_open = bool(fail_open)
+        _state.trace_dir = directory
+        # Stateful conditions (window sums and counts) and the kill switch
+        # read small files beside the traces; both are stat-cached, never polled.
+        _state.store = WindowStore(os.path.join(directory, ".policy-window.json"))
+        _state.killswitch = KillSwitch()
         _state.exporter = JSONLExporter(
             directory,
             sdk_version=__version__,
@@ -511,7 +521,7 @@ def _policy_namespace(tool_name: str, values: dict, side_effect: str, amount, ap
     }
 
 
-def _apply_policy(late: _Late, tool_name: str, values: dict, side_effect: str, amount, approval_id: str | None) -> str | None:
+def _apply_policy(late: _Late, tool_name: str, values: dict, side_effect: str, amount, approval_id: str | None, *, trigger: str = "tool_call", text: str | None = None) -> str | None:
     """Evaluate the policy for one guarded call and write the outcome into
     the span's attrs and ``enforcement``. Returns the approval span id the
     call should cite (the caller's, or one minted by the approval hook).
@@ -519,12 +529,20 @@ def _apply_policy(late: _Late, tool_name: str, values: dict, side_effect: str, a
     try:
         if not _state.policy.rules:
             return approval_id
-        decisions = decide(_state.policy, _policy_namespace(tool_name, values, side_effect, amount, approval_id), fail_open=_state.fail_open)
+        namespace = _policy_namespace(tool_name, values, side_effect, amount, approval_id)
+        if text is not None:
+            namespace["text"] = text
+        decisions = decide(_state.policy, namespace, fail_open=_state.fail_open, trigger=trigger, store=_state.store, killswitch=_state.killswitch)
         if not decisions:
+            _observe_window(tool_name, values, amount, trigger)
             return approval_id
         attrs = late.setdefault("attrs", {})
         attrs["policy_rules"] = ",".join(d.rule_id for d in decisions)
         attrs["policy_decisions"] = ",".join(d.decision for d in decisions)
+        attrs["policy_actions"] = ",".join(d.action or ("block" if d.decision == "deny" else "escalate" if d.decision == "require_approval" else d.decision) for d in decisions)
+        masked = [d.rule_id for d in decisions if d.decision == "mask"]
+        if masked:
+            attrs["policy_masked"] = ",".join(masked)
         errors = [d for d in decisions if d.error]
         if errors:
             attrs["policy_errors"] = ";".join(f"{d.rule_id}: {d.error}" for d in errors)
@@ -532,7 +550,7 @@ def _apply_policy(late: _Late, tool_name: str, values: dict, side_effect: str, a
         for d in decisions:
             if d.decision == "deny" and (d.enforced or worst.decision != "deny"):
                 worst = d
-            elif d.decision == "require_approval" and worst.decision not in ("deny",):
+            elif d.decision == "require_approval" and worst.decision not in ("deny",) and (d.enforced or worst.decision != "require_approval"):
                 worst = d
         if worst.decision == "require_approval" and approval_id is None and _state.approval_hook is not None:
             try:
@@ -544,18 +562,76 @@ def _apply_policy(late: _Late, tool_name: str, values: dict, side_effect: str, a
                 pass
             if granted:
                 approval_id = span_id
+                worst = type(worst)(worst.rule_id, "allow", False, f"{worst.reason}; approved through the hook", action="allow")
             else:
                 worst = type(worst)(worst.rule_id, "deny", not _state.fail_open or any(r.enforce for r in _state.policy.rules if r.id == worst.rule_id), worst.reason)
+        elif worst.decision == "require_approval" and approval_id is None and worst.enforced:
+            # Enforced escalation with nobody to ask: fail closed.
+            worst = type(worst)(worst.rule_id, "deny", True, f"{worst.reason}; no approval hook registered")
         if worst.decision == "deny" and worst.enforced:
             late["enforcement"] = "denied"
             late["denied"] = (worst.rule_id, worst.reason)
-        elif worst.decision in ("deny", "require_approval", "observe"):
+            attrs["policy_denied_by"] = worst.rule_id
+        elif worst.decision in ("deny", "require_approval", "observe", "mask") or masked:
             late["enforcement"] = "observed"
         else:
             late["enforcement"] = "allowed"
+        if late.get("enforcement") != "denied":
+            _observe_window(tool_name, values, amount, trigger)  # a blocked call never counts toward a window
         return approval_id
     except Exception:  # noqa: BLE001
         return approval_id
+
+
+def _observe_window(tool_name: str, values: dict, amount, trigger: str) -> None:
+    if _state.store is None or trigger != "tool_call":
+        return
+    from datetime import datetime, timezone
+
+    observed = {k: v for k, v in values.items() if isinstance(v, (int, float)) and not isinstance(v, bool)}
+    if amount is not None:
+        observed["amount"] = amount
+    _state.store.observe(datetime.now(timezone.utc), _state.agent_id or "?", tool_name, observed)
+
+
+def _check_text(trigger: str, text: str, *, name: str) -> str:
+    """Run input or output policies over a piece of text. Records an
+    ``action`` span named ``stoa.input`` / ``stoa.output`` with the decision;
+    a ``mask`` decision returns the text with identifier shapes replaced;
+    an enforced block raises ``StoaDenied``. Content is never recorded."""
+    if _state.exporter is None or _state.exporter.failed or not _state.policy.rules:
+        return text
+    late = _Late(attrs={"side_effect": "read", "text_chars": len(text)})
+    _apply_policy(late, name, {}, "read", None, None, trigger=trigger, text=text)
+    masked = late.get("attrs", {}).get("policy_masked")
+    with stoa_span("action", tool=name, _late=late):
+        _raise_if_denied(late)
+    if masked:
+        from ..policy.conditions import _PII_PATTERNS
+
+        for pattern in _PII_PATTERNS:
+            text = pattern.sub("[masked]", text)
+    return text
+
+
+def check_input(text: str) -> str:
+    """Evaluate ``trigger = "input"`` policies over untrusted text before the model sees it."""
+    try:
+        return _check_text("input", text, name="stoa.input")
+    except StoaDenied:
+        raise
+    except Exception:  # noqa: BLE001
+        return text
+
+
+def check_output(text: str) -> str:
+    """Evaluate ``trigger = "output"`` policies over the agent's reply; masks when a policy says so."""
+    try:
+        return _check_text("output", text, name="stoa.output")
+    except StoaDenied:
+        raise
+    except Exception:  # noqa: BLE001
+        return text
 
 
 def _raise_if_denied(late: _Late) -> None:

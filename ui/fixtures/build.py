@@ -241,7 +241,7 @@ def build(out: Path = OUT) -> None:
     finally:
         head_registry_path.unlink(missing_ok=True)
     runtime_baseline = build_baseline(analyze_traces(august_dir, head))
-    head, runtime_slot = build_runtime_slot(september_dir, head, baseline=runtime_baseline, registry_path="stoa-registry.json", key=DEMO_KEY)
+    head, runtime_slot = build_runtime_slot(september_dir, head, baseline=runtime_baseline, registry_path="stoa-registry.json", key=DEMO_KEY, policy_path=EXAMPLE / "stoa.policy.toml")
     runtime_slot["traces_dir"] = "stoa-traces"
     runtime_slot["chain"]["directory"] = "stoa-traces"
     runtime_slot["analysis"]["header"]["registry"] = "stoa-registry.json"

@@ -26,28 +26,78 @@ from stoa import __version__
 from stoa.runtime.chain import GENESIS, chain_record
 from stoa.runtime.flags import FlagEngine
 from stoa.runtime.keys import HmacSigner
+from stoa.runtime.policy import decide, load_policy
 from stoa.runtime.registry import RegistryFacts, load_registry_facts
 from stoa.runtime.spans import build_span, header_record
+from stoa.policy.conditions import WindowStore
+
+POLICY_FILE = Path(__file__).resolve().parents[2] / "examples" / "meridian-pay" / "stoa.policy.toml"
+
+
+class _Killed:
+    """A kill switch that is set: used once, for the drill span."""
+
+    def is_killed(self, agent_id, agent_name=None):
+        return True
+
+    def reason(self, agent_id):
+        return "drill"
 
 DEMO_KEY = "hmac:6d6572696469616e2d64656d6f"  # "meridian-demo" as hex
 ACCOUNT, SUPPORT, FRONT = "b8f0111742fc", "bc3db1f17013", "2a61ffb1db0d"
 
 
 class _Writer:
-    def __init__(self, facts: RegistryFacts) -> None:
+    def __init__(self, facts: RegistryFacts, *, policy_path: Path | None = None) -> None:
         self.records: list[dict] = []
         self.flags = FlagEngine(facts)
+        self.facts = facts
+        self.policy = load_policy(policy_path) if policy_path else None
+        self.store = WindowStore(None)
         self.n = 0
 
     def ident(self, prefix: str) -> str:
         self.n += 1
         return f"{prefix}{self.n:04x}"
 
-    def span(self, *, kind: str, agent: str, trace: str, session: str, start: str, end: str, parent: str | None = None, status: str = "ok", attrs: dict | None = None, counterparty: str | None = None, **fields) -> str:
+    def _policy(self, attrs: dict, *, agent: str, tool: str, side_effect: str, amount, approval_id, end: str, killed: bool = False) -> tuple[str | None, str]:
+        """Stamp the policy decisions the SDK would have written for this call. Returns (enforcement, status)."""
+        if self.policy is None or not self.policy.rules:
+            return None, "ok"
+        from datetime import datetime, timezone
+
+        facts = self.facts.for_agent(agent)
+        now = datetime.strptime(end, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
+        ns = {
+            "tool": tool, "args": {"amount": amount} if amount is not None else {}, "side_effect": side_effect, "amount": amount,
+            "approval": {"granted": approval_id is not None, "span_id": approval_id},
+            "agent": {"id": agent, "name": facts.name if facts else agent, "declared_tools": sorted(facts.tools) if facts else [], "max_per_action": facts.max_per_action if facts else None},
+            "session": {"id": None},
+        }
+        decisions = decide(self.policy, ns, fail_open=True, store=self.store, killswitch=_Killed() if killed else None, now=now)
+        attrs["policy_rules"] = ",".join(d.rule_id for d in decisions)
+        attrs["policy_decisions"] = ",".join(d.decision for d in decisions)
+        attrs["policy_actions"] = ",".join(d.action or d.decision for d in decisions)
+        denied = next((d for d in decisions if d.decision == "deny" and d.enforced), None)
+        if denied:
+            attrs["policy_denied_by"] = denied.rule_id
+            return "denied", "error"
+        if amount is not None:
+            self.store.observe(now, agent, tool, {"amount": amount})
+        if any(d.decision in ("deny", "require_approval", "observe", "mask") for d in decisions):
+            return "observed", "ok"
+        return "allowed", "ok"
+
+    def span(self, *, kind: str, agent: str, trace: str, session: str, start: str, end: str, parent: str | None = None, status: str = "ok", attrs: dict | None = None, counterparty: str | None = None, killed: bool = False, **fields) -> str:
         span_id = self.ident("s")
+        attrs = dict(attrs or {})
+        enforcement = None
+        if kind == "action" and fields.get("tool"):
+            amount = fields.get("amount")
+            enforcement, status = self._policy(attrs, agent=agent, tool=fields["tool"], side_effect=attrs.get("side_effect", "write"), amount=amount, approval_id=fields.get("approval_span_id"), end=end, killed=killed)
         record = build_span(
             trace_id=trace, span_id=span_id, parent_span_id=parent, kind=kind, start_ts=start, end_ts=end,
-            status=status, redaction="redacted", agent_id=agent, session_id=session, attrs=attrs or {}, **fields,
+            status=status, redaction="redacted", agent_id=agent, session_id=session, attrs=attrs, enforcement=enforcement, **fields,
         )
         flags = self.flags.compute(record, counterparty=counterparty)
         if flags:
@@ -103,6 +153,17 @@ def _front_session(w: _Writer, *, day: str, hour: int) -> None:
     w.span(kind="agent_run", agent=FRONT, trace=trace, session=session, start=_ts(day, hour, 0, 0), end=_ts(day, hour, 0, 4))
 
 
+def _drill(w: _Writer, *, agent: str, day: str, hour: int) -> None:
+    """A kill-switch drill: the flag set, the next refund blocked by POL-BASE-001, the time recorded."""
+    trace = w.ident("t")
+    session = w.ident("x")
+    w.span(kind="action", agent=agent, trace=trace, session=session, start=_ts(day, hour, 0, 1), end=_ts(day, hour, 0, 2, 800),
+           capability="payment_access", integration="stripe", tool="issue_refund", amount=20.0, currency="USD",
+           attrs={"side_effect": "payment", "limit_field": "amount"}, killed=True)
+    w.span(kind="agent_run", agent=agent, trace=trace, session=session, start=_ts(day, hour, 0, 0), end=_ts(day, hour, 0, 3),
+           attrs={"killswitch_drill": True, "seconds_to_stop": 1.8, "drill_by": "platform-risk"})
+
+
 def write_demo_traces(out: Path, head_registry_path: Path) -> tuple[Path, Path]:
     """Write both directories; returns (august_dir, september_dir)."""
     facts = load_registry_facts(head_registry_path)
@@ -114,19 +175,23 @@ def write_demo_traces(out: Path, head_registry_path: Path) -> tuple[Path, Path]:
     august_dir = out / "meridian-pay-august"
     august.write(august_dir / "trace-demo-0000.jsonl")
 
-    september = _Writer(facts)
+    september = _Writer(facts, policy_path=POLICY_FILE)
+    # (day, hour, agent, amount, approved, extras). Support refunds cluster on the 18th so the daily cap is tested for real.
     plan = [
-        ("2026-09-15", ACCOUNT, 180.0, True, {}), ("2026-09-15", SUPPORT, 60.0, False, {}),
-        ("2026-09-16", ACCOUNT, 420.0, True, {}), ("2026-09-16", SUPPORT, 240.0, False, {"send": True}),
-        ("2026-09-17", ACCOUNT, 900.0, False, {}), ("2026-09-17", SUPPORT, 35.0, False, {}),
-        ("2026-09-18", ACCOUNT, 95.0, True, {}), ("2026-09-18", SUPPORT, 500.0, False, {"extra_tool": "export_transcript"}),
-        ("2026-09-19", ACCOUNT, 70.0, False, {}), ("2026-09-19", SUPPORT, 120.0, False, {"tool": "waive_fee"}),
-        ("2026-09-20", ACCOUNT, 230.0, True, {}), ("2026-09-21", SUPPORT, 85.0, False, {}),
+        ("2026-09-15", 10, ACCOUNT, 180.0, True, {}), ("2026-09-15", 11, SUPPORT, 60.0, False, {}),
+        ("2026-09-16", 10, ACCOUNT, 420.0, True, {}), ("2026-09-16", 13, SUPPORT, 240.0, False, {"send": True}),
+        ("2026-09-17", 10, ACCOUNT, 900.0, False, {}), ("2026-09-17", 12, SUPPORT, 35.0, False, {}),
+        ("2026-09-18", 9, SUPPORT, 90.0, False, {}), ("2026-09-18", 10, ACCOUNT, 95.0, True, {}),
+        ("2026-09-18", 11, SUPPORT, 260.0, False, {"tool": "waive_fee"}), ("2026-09-18", 13, SUPPORT, 150.0, False, {}),
+        ("2026-09-18", 15, SUPPORT, 500.0, False, {"extra_tool": "export_transcript"}),
+        ("2026-09-19", 10, ACCOUNT, 70.0, False, {}), ("2026-09-19", 11, SUPPORT, 120.0, False, {}),
+        ("2026-09-20", 10, ACCOUNT, 230.0, True, {}), ("2026-09-21", 11, SUPPORT, 85.0, False, {}),
     ]
-    for i, (day, agent, amount, approved, extra) in enumerate(plan):
+    for i, (day, hour, agent, amount, approved, extra) in enumerate(plan):
         if agent == ACCOUNT:
-            _front_session(september, day=day, hour=9)
-        _refund_session(september, agent=agent, day=day, hour=10 + i % 4, amount=amount, model="gpt-4o" if agent == ACCOUNT else "gpt-4o-mini", approved=approved, customer=f"c{i % 5}", **extra)
+            _front_session(september, day=day, hour=hour - 1)
+        _refund_session(september, agent=agent, day=day, hour=hour, amount=amount, model="gpt-4o" if agent == ACCOUNT else "gpt-4o-mini", approved=approved, customer=f"c{i % 5}", **extra)
+    _drill(september, day="2026-09-21", hour=16, agent=SUPPORT)
     september_dir = out / "meridian-pay"
     september.write(september_dir / "trace-demo-0000.jsonl")
     return august_dir, september_dir

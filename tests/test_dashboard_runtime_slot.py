@@ -71,3 +71,20 @@ def test_cli_dashboard_runtime_flag(tmp_path, monkeypatch):
     assert envelope["schema"] == "stoa-dashboard/1.1" and envelope["runtime"]["analysis"]["window"]["span_count"] > 0
     assert envelope["runtime"]["drift"] is None and envelope["runtime"]["baseline_present"] is False
     assert any(a.get("liveness_state") == "active" for a in envelope["registry"]["agents"])
+
+
+def test_slot_carries_the_policy_document_and_outcomes():
+    envelope = json.loads((FIXTURES / "meridian-pay.envelope.json").read_text())
+    block = envelope["runtime"]["policies"]
+    assert block["document"]["path"] == "stoa.policy.toml" and block["document"]["mode"] == "observe" and block["document"]["problems"] == []
+    ids = {p["id"] for p in block["document"]["policies"]}
+    assert {"POL-BASE-001", "POL-FIN-002-BC3DB1", "POL-PAY-001-B8F011"} <= ids
+    cap = next(p for p in block["document"]["policies"] if p["id"] == "POL-FIN-002-BC3DB1")
+    assert cap["enforced"] is True and cap["condition_text"] == "sum(amount) over 24h > 800"
+    assert block["summary"]["POL-FIN-002-BC3DB1"]["blocked"] == 1 and block["summary"]["POL-FIN-001-BC3DB1"]["would_block"] == 10
+    assert block["summary"]["POL-PAY-001-B8F011"]["escalated"] == 1
+    assert block["killswitch_drills"][0]["seconds_to_stop"] == 1.8
+    # the enforced block is one span, status error, denied by exactly that policy
+    agent = next(a for a in envelope["registry"]["agents"] if a["id"] == "bc3db1f17013")
+    assert envelope["registry"]["policies"]["policies"]["POL-FIN-002-BC3DB1"]["blocked"] == 1
+    assert agent["runtime_evidence"]["money_actions"] >= 10

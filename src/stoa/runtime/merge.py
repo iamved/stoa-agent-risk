@@ -312,6 +312,10 @@ def merge_runtime_into_registry(
 
     _recompute_dimension_summary(enriched)
 
+    policy_summary = analysis.get("policy_summary") or {}
+    if policy_summary.get("policies") or policy_summary.get("killswitch_drills"):
+        # Policy outcomes observed in the window (stoa-policy/0.1). Additive; absent without policies.
+        enriched["policies"] = {"window": {"start": window.get("start"), "end": window.get("end")}, **policy_summary}
     enriched["runtime"] = {
         "analysis_schema": analysis.get("schema"),
         "window": {"start": window.get("start"), "end": window.get("end")},

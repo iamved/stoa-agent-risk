@@ -17,6 +17,7 @@ import { Scope } from "../screens/Scope";
 import { Controls } from "../screens/Controls";
 import { Audit } from "../screens/Audit";
 import { Runtime } from "../screens/Runtime";
+import { Policies } from "../screens/Policies";
 import { Loss } from "../screens/Loss";
 
 type State = { status: "loading" } | { status: "ready"; envelope: Envelope } | { status: "problem"; problem: SchemaProblem };
@@ -91,6 +92,7 @@ function Routed() {
     route.screen === "findings" ? <Findings /> :
     route.screen === "drift" ? <Drift /> :
     route.screen === "runtime" ? <Runtime /> :
+    route.screen === "policies" ? <Policies /> :
     route.screen === "register" ? <Register /> :
     route.screen === "evidence" ? <Evidence /> :
     route.screen === "scope" ? <Scope /> :
