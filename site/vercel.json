@@ -3,6 +3,12 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/agent-risk",
+      "destination": "/"
+    }
+  ],
+  "redirects": [
+    {
       "source": "/",
       "has": [
         {
@@ -10,14 +16,9 @@
           "value": "demo.stoa-agent-risk.dev"
         }
       ],
-      "destination": "/dashboard"
+      "destination": "/dashboard",
+      "permanent": false
     },
-    {
-      "source": "/agent-risk",
-      "destination": "/"
-    }
-  ],
-  "redirects": [
     {
       "source": "/red",
       "destination": "https://stoa-red.dev",
