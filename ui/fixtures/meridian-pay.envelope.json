@@ -9287,7 +9287,7 @@
       "test": {
         "schema": "policy-test/0.1",
         "generated_at": null,
-        "policy_file": "/private/tmp/claude-501/-Users-ved-Desktop-claude-apps-Stoa/95aa0385-38a4-478d-81f1-299d126e9198/scratchpad/pp/examples/meridian-pay/stoa.policy.toml",
+        "policy_file": "stoa.policy.toml",
         "mode": "observe",
         "evidence_level": "tested",
         "scenarios": 7,

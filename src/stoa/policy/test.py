@@ -125,7 +125,7 @@ def run_policy_test(scenarios: list[dict], policy_path: str | Path, *, registry_
     return {
         "schema": TEST_SCHEMA,
         "generated_at": generated_at,
-        "policy_file": str(policy_path),
+        "policy_file": Path(policy_path).name,
         "mode": policy.mode,
         "evidence_level": "tested",
         "scenarios": len(scenarios),

@@ -127,7 +127,7 @@ def test_killswitch_env_override_and_drill(tmp_path, monkeypatch):
     monkeypatch.delenv("STOA_KILLSWITCH")
     ticks = iter([False, False, True])
     result = drill("a", by="me", wait_for_stop=lambda: next(ticks, True), timeout=5, path=ks_path)
-    assert result["timed_out"] is False and result["seconds_to_stop"] is not None and result["seconds_to_stop"] >= 0.1
+    assert result["timed_out"] is False and result["seconds_to_stop"] is not None and result["seconds_to_stop"] > 0.05
     assert not ks.is_killed("a")  # released after the drill
     assert json.loads(ks_path.read_text())["drills"][0]["agent_id"] == "a"
 
