@@ -9,6 +9,7 @@ import { Chips, KeyValue } from "../components/KeyValue";
 import { Section } from "../components/Section";
 import { StatCard } from "../components/StatCard";
 import { STATUSES, TREATMENTS, declaredOf, isDeclaredEqual, reviewDue, riskName, summarize, toToml, type Declared } from "../data/register";
+import { screenHidden } from "../data/hidden";
 import { formatDate } from "../data/selectors";
 import type { RegisterRow } from "../data/types";
 
@@ -31,7 +32,7 @@ export function Register() {
       <div className="mt-4 grid gap-3 grid-cols-3">
         <StatCard icon="risk" label="Risks" value={s.rows} detail={`${s.declared} with a treatment`} />
         <StatCard icon="users" label="No owner or treatment yet" value={s.byTreatment.undeclared} tone={s.byTreatment.undeclared ? "warn" : "neutral"} />
-        <StatCard icon="insurance" label="Marked for insurance transfer" value={s.byTreatment.transfer} href={s.byTreatment.transfer ? buildHash("evidence") : undefined} />
+        <StatCard icon="insurance" label="Marked for insurance transfer" value={s.byTreatment.transfer} href={s.byTreatment.transfer && !screenHidden(envelope, "evidence") ? buildHash("evidence") : undefined} />
       </div>
 
       <Section title="Register" caption="Inherent is before controls are credited; residual is after.">
@@ -138,7 +139,7 @@ function RegisterDrawerBody({ row, onClose }: { row: RegisterRow; onClose: () =>
             </select>
           </label>
         </div>
-        {draft.treatment === "transfer" ? (
+        {draft.treatment === "transfer" && !screenHidden(envelope, "evidence") ? (
           <a href={buildHash("evidence", null, { view: "underwriter" })} className="mt-3 inline-block btn btn-primary">Prepare underwriting evidence</a>
         ) : null}
       </section>

@@ -286,7 +286,9 @@ together with the `stoa-diff/1.0` document, history summaries
 (`stoa-history-entry/1.1`, under `.stoa/history/`; 1.1 adds `agents`, per record the fields the loss model reads, so the modeled loss can be drawn over past scans), the assurance packet, and
 static rule and taxonomy tables. It is a separate document and is not part of
 `stoa-registry.json`. An optional top-level `demo: true` (additive, written
-only by `stoa dashboard --demo`) marks a page as demo data. In
+only by `stoa dashboard --demo`) marks a page as demo data. An optional
+`hidden_screens` list (written only by `stoa dashboard --hide`) names sidebar
+entries the page leaves out; the data underneath is unchanged. In
 `underwriting` and `assessment.derived`, `monitoring` and `drift` are
 `true`, `false`, or `null` when the scan gives no basis for an answer.
 

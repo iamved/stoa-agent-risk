@@ -73,3 +73,19 @@ def test_hosted_demo_carries_the_current_fixture():
     assert match.group(1) == escape_json_for_script(redact_document(envelope)), (
         "site/dashboard/index.html is stale: run scripts/build_site_dashboard.sh"
     )
+
+
+def test_demo_subdomain_page_hides_only_the_insurance_screen():
+    """site/demo/index.html serves demo.stoa-agent-risk.dev: the same fixture,
+    marked demo, with the insurance screen left out and nothing else changed."""
+    import re
+
+    from stoa.dashboard.inject import escape_json_for_script, redact_document
+
+    page = (REPO_ROOT / "site" / "demo" / "index.html").read_text(encoding="utf-8")
+    match = re.search(r'<script id="stoa-data" type="application/json">(.*?)</script>', page, re.DOTALL)
+    assert match, "demo page has no embedded data"
+    envelope = {**json.loads((FIXTURES / "meridian-pay.envelope.json").read_text()), "demo": True, "hidden_screens": ["insurance"]}
+    assert match.group(1) == escape_json_for_script(redact_document(envelope)), (
+        "site/demo/index.html is stale: run scripts/build_site_dashboard.sh"
+    )

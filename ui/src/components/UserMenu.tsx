@@ -3,6 +3,7 @@ import { useApp } from "../app/context";
 import { buildHash } from "../app/router";
 import { printAs } from "../app/print";
 import { OpenScanButton } from "./OpenScan";
+import { screenHidden } from "../data/hidden";
 
 /**
  * Who is reviewing this dashboard. A static file cannot authenticate anyone,
@@ -47,7 +48,7 @@ export function UserMenu() {
             {!declared ? <div className="caption mt-1">Set your name and title in .stoa/underwriting.toml so the assessment carries the right signatory.</div> : null}
           </div>
           <button role="menuitem" type="button" onClick={() => { setOpen(false); printAs("summary"); }} className="w-full text-left rounded px-3 py-2 text-[13px] hover:bg-paper">Print summary</button>
-          <a role="menuitem" href={buildHash("evidence")} onClick={() => setOpen(false)} className="block rounded px-3 py-2 text-[13px] no-underline text-ink hover:bg-paper">Open the insurance assessment</a>
+          {screenHidden(envelope, "evidence") ? null : <a role="menuitem" href={buildHash("evidence")} onClick={() => setOpen(false)} className="block rounded px-3 py-2 text-[13px] no-underline text-ink hover:bg-paper">Open the insurance assessment</a>}
           <OpenScanButton role="menuitem" onOpen={(file) => { setOpen(false); openScan(file); }} className="w-full text-left rounded px-3 py-2 text-[13px] hover:bg-paper">Open a scan file…</OpenScanButton>
           <div className="px-3 pt-2 pb-1 caption text-[11px] border-t border-line mt-1">Identity comes from .stoa/underwriting.toml. This page does not sign anyone in.</div>
         </div>

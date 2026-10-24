@@ -677,6 +677,8 @@ export interface Envelope {
   schema: string;
   /** Set by `stoa dashboard --demo`: the page says so and offers to open a real scan. */
   demo?: boolean;
+  /** Set by `stoa dashboard --hide`: sidebar entries left out of this page, by nav id (e.g. "insurance"). */
+  hidden_screens?: string[];
   /** Scanned records grouped into unique agents. Absent in envelopes written before identity resolution. */
   unique_agents?: { id: string; name: string; linked_by?: "declared" | "name" | null; records: { agent_id: string; kind: "code" | "infrastructure"; platform?: string | null; label: string; path?: string | null; symbol?: string | null }[] }[];
   generator: { name: string; version: string };

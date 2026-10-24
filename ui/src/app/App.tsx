@@ -4,8 +4,9 @@ import type { Envelope } from "../data/types";
 import type { SchemaProblem } from "../data/schema";
 import { envelopeFromText } from "../data/file";
 import { OpenScanButton } from "../components/OpenScan";
-import { AppProvider, type ScanSource } from "./context";
-import { buildHash, useRoute } from "./router";
+import { AppProvider, type ScanSource, useApp } from "./context";
+import { buildHash, navigate, useRoute } from "./router";
+import { screenHidden } from "../data/hidden";
 import { Shell } from "../components/Shell";
 import { Overview } from "../screens/Overview";
 import { Inventory } from "../screens/Inventory";
@@ -88,6 +89,13 @@ export function App({ provider }: { provider: DataProvider }) {
 
 function Routed() {
   const route = useRoute();
+  const { envelope } = useApp();
+  // A screen this page leaves out (`stoa dashboard --hide`) lands on Overview.
+  const hidden = screenHidden(envelope, route.screen);
+  useEffect(() => {
+    if (hidden) navigate("overview");
+  }, [hidden, route.screen]);
+  if (hidden) return <Shell screen="overview"><Overview /></Shell>;
   const screen =
     route.screen === "inventory" ? <Inventory /> :
     route.screen === "findings" ? <Findings /> :

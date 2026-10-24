@@ -8,6 +8,7 @@ import { indicationFor } from "../data/lossCache";
 import { observedMonthlyVolume } from "../data/runtime";
 import { agentToModel, candidateAgents, intakeFromEnvelope, intakeToToml } from "../data/lossInputs";
 import { uniqueAgentOf } from "../data/agents";
+import { screenHidden } from "../data/hidden";
 import { LOSS_SEED } from "../data/overview";
 import { lossTrendMax } from "../data/lossTrend";
 import { activeFindings, dimensionName, formatDate } from "../data/selectors";
@@ -212,7 +213,7 @@ function Outlook({ r, levers, intake, model, notes, declared, agentId }: { r: In
         <div className="grid"><span className="caption">Most common choice</span><b className="text-[18px] font-semibold text-navy">{money(L.standard)}</b></div>
         <div className="grid"><span className="caption">Suggested retention</span><b className="text-[18px] font-semibold text-navy">{money(r.retention)}</b></div>
         <div className="grid"><span className="caption">Confidence</span><b className="text-[18px] font-semibold text-navy">{r.confidence}</b></div>
-        <a href={buildHash("evidence")} className="link self-end text-[12.5px]">Carry into the assessment schedule</a>
+        {screenHidden(envelope, "evidence") ? null : <a href={buildHash("evidence")} className="link self-end text-[12.5px]">Carry into the assessment schedule</a>}
       </div>
 
       <Section title="Where the loss could come from" caption="With the closest public cases, US financial services first, each backed by a court, regulator or press record, scaled to your size.">

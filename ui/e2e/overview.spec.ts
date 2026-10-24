@@ -103,6 +103,18 @@ test.describe("overview", () => {
     await expect(page.getByText("26", { exact: true })).toHaveCount(0);
   });
 
+  test("a page built with --hide insurance has no insurance screen or links to it", async ({ page }) => {
+    await page.goto(url("demo-lean"));
+    const nav = page.getByRole("navigation", { name: "Screens" });
+    await expect(nav.getByRole("listitem")).toHaveText([/^Overview$/, /^Agent Inventory\s*5$/, /^Declarations$/, /^Findings\s*3 high$/, /^Controls & Safeguards$/, /^Policies\s*20$/, /^Passports\s*5$/, /^Launch Safety Audit$/, /^Financial Exposure$/]);
+    await expect(page.getByRole("region", { name: "Insurance assessment" })).toHaveCount(0);
+    await page.goto(url("demo-lean", "#/evidence"));
+    await expect(page).toHaveURL(/#\/overview$/);
+    await expect(page.getByRole("region", { name: "Where you stand" })).toBeVisible();
+    await page.goto(url("demo-lean", "#/loss"));
+    await expect(page.getByRole("link", { name: "Carry into the assessment schedule" })).toHaveCount(0);
+  });
+
   test("a first scan claims nothing it cannot know", async ({ page }) => {
     await page.goto(url("first-run"));
     const verdict = page.getByRole("region", { name: "Where you stand" });

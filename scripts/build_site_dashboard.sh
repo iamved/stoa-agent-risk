@@ -8,3 +8,5 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 STOA="${STOA_BIN:-stoa}"
 "$STOA" dashboard ui/fixtures/meridian-pay.envelope.json --demo --out site/dashboard/index.html
+# demo.stoa-agent-risk.dev: the same page without the insurance screen.
+"$STOA" dashboard ui/fixtures/meridian-pay.envelope.json --demo --hide insurance --out site/demo/index.html

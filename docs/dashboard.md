@@ -158,6 +158,10 @@ stoa dashboard stoa-registry.json --baseline main.json   # drift against a saved
 stoa dashboard stoa-registry.json --out review.html --open
 ```
 
+`--hide SCREEN` leaves a sidebar entry out of the page (repeatable; for
+example `--hide insurance`). The data is still in the page, only the screen
+and the links to it are gone. Overview cannot be hidden.
+
 `--summary` prints the scan at a glance in the terminal as well. It reads the
 same data as the page, reports in the scanner's own terms (severities,
 per-dimension exposure, drift severity), and needs no compiled UI.

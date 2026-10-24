@@ -9,17 +9,6 @@
   ],
   "redirects": [
     {
-      "source": "/",
-      "has": [
-        {
-          "type": "host",
-          "value": "demo.stoa-agent-risk.dev"
-        }
-      ],
-      "destination": "/dashboard",
-      "permanent": false
-    },
-    {
       "source": "/red",
       "destination": "https://stoa-red.dev",
       "permanent": false

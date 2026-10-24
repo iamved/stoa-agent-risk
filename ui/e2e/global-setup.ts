@@ -23,7 +23,9 @@ export default function globalSetup(): void {
   // a customer's `--json-out` gives them to open in it.
   const demo = spawnSync(stoa, ["dashboard", resolve(HERE, "..", "fixtures", "meridian-pay.envelope.json"), "--demo", "--out", dashboardPath("demo")], { stdio: "inherit", env: process.env });
   const json = spawnSync(stoa, ["dashboard", resolve(HERE, "..", "fixtures", "first-run.envelope.json"), "--json-out", resolve(OUT_DIR, "first-run.json"), "--out", dashboardPath("first-run-copy")], { stdio: "inherit", env: process.env });
-  if (demo.status !== 0 || json.status !== 0) throw new Error(`${stoa} dashboard failed for the demo page`);
+  // demo.stoa-agent-risk.dev: the demo page without the insurance screen.
+  const lean = spawnSync(stoa, ["dashboard", resolve(HERE, "..", "fixtures", "meridian-pay.envelope.json"), "--demo", "--hide", "insurance", "--out", dashboardPath("demo-lean")], { stdio: "inherit", env: process.env });
+  if (demo.status !== 0 || json.status !== 0 || lean.status !== 0) throw new Error(`${stoa} dashboard failed for the demo page`);
   for (const [name, fixture] of inputs) {
     if (!existsSync(fixture)) {
       throw new Error(`fixture missing: ${fixture} (run ui/fixtures/build.py)`);

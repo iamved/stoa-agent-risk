@@ -8,6 +8,7 @@ import { money } from "../data/lossModel";
 import type { TrendPoint } from "../data/lossTrend";
 import { SPECTRUM_BANDS, agentSpectrum, attentionStatus, audienceLine, costOutlook, fixFirst, holdings, newestAgent, standing, whatChanged, type ChangeLine, type CostOutlook, type SpectrumRow } from "../data/overview";
 import { uniqueAgents } from "../data/agents";
+import { screenHidden } from "../data/hidden";
 import { liveness } from "../data/runtime";
 import { activeFindings, countByLevel, formatDate, overviewDeltas, pluralize } from "../data/selectors";
 
@@ -43,7 +44,7 @@ export function Overview() {
       <div className="mt-3 grid gap-3 xl:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)] items-start">
         <div className="grid gap-3">
           <Attention />
-          {hasAgents ? <AssessmentCard /> : null}
+          {hasAgents && !screenHidden(envelope, "evidence") ? <AssessmentCard /> : null}
         </div>
         <Changed cost={cost} />
       </div>

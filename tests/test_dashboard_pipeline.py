@@ -250,6 +250,17 @@ def test_demo_flag_marks_the_page_and_nothing_else_does(fake_template, tmp_path,
     assert '"demo"' not in (tmp_path / "plain.html").read_text(encoding="utf-8")
 
 
+def test_hide_leaves_a_screen_out_and_rejects_unknown_ones(fake_template, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    fixture = str(FIXTURES / "meridian-pay.envelope.json")
+    assert main(["dashboard", fixture, "--hide", "insurance", "--hide", "loss", "--hide", "insurance", "--out", "lean.html"]) == 0
+    assert '"hidden_screens":["insurance","loss"]' in (tmp_path / "lean.html").read_text(encoding="utf-8")
+    assert main(["dashboard", fixture, "--out", "plain.html"]) == 0
+    assert "hidden_screens" not in (tmp_path / "plain.html").read_text(encoding="utf-8")
+    with pytest.raises(SystemExit):
+        main(["dashboard", fixture, "--hide", "overview", "--out", "x.html"])
+
+
 def test_scan_writes_dashboard_json(fake_template, tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     example = str(REPO_ROOT / "examples" / "sparkwing")

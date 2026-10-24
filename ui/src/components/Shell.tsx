@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useApp } from "../app/context";
 import { buildHash, type ScreenId } from "../app/router";
 import { uniqueAgents } from "../data/agents";
+import { hiddenNav } from "../data/hidden";
 import { hasPolicies, policyRows } from "../data/policies";
 import { activeFindings, countByLevel } from "../data/selectors";
 import { Icon, type IconName } from "./Icons";
@@ -26,12 +27,13 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
   const high = countByLevel(activeFindings(envelope)).high;
   // The applicant's company from the setup details, else a name derived from the repository.
   const company = envelope.assessment.identity.company.trim() || r.repository.name;
+  const hidden = hiddenNav(envelope);
 
   const groups: NavGroup[] = [
     {
       label: "Screens",
       showLabel: false,
-      items: [
+      items: ([
         { id: "overview", label: "Overview", href: buildHash("overview"), screens: ["overview"], icon: "overview" },
         { id: "inventory", label: "Agent Inventory", href: buildHash("inventory"), screens: ["inventory"], count: uniqueAgents(envelope).length, icon: "inventory" },
         { id: "scope", label: "Declarations", href: buildHash("scope"), screens: ["scope"], icon: "scope" },
@@ -43,7 +45,7 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
         { id: "audit", label: "Launch Safety Audit", href: buildHash("audit"), screens: ["audit"], icon: "audit" },
         { id: "loss", label: "Financial Exposure", href: buildHash("loss"), screens: ["loss"], icon: "loss" },
         { id: "insurance", label: "AI Risk Insurance", href: buildHash("evidence"), screens: ["evidence"], icon: "insurance" },
-      ],
+      ] as NavItem[]).filter((item) => !hidden.has(item.id)),
     },
   ];
 

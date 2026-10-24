@@ -37,6 +37,9 @@ EXIT_GATE_FAILED = 1
 EXIT_USAGE = 2
 EXIT_ERROR = 3
 
+# Sidebar entries `stoa dashboard --hide` can leave out. Overview always stays.
+HIDEABLE_SCREENS = ("inventory", "scope", "risk", "controls", "policies", "passports", "audit", "loss", "insurance")
+
 INIT_FILES = {
     ".github/workflows/stoa.yml": "stoa.yml",
     ".stoaignore": "stoaignore",
@@ -156,6 +159,8 @@ def build_parser() -> argparse.ArgumentParser:
                            help="Print the scan at a glance in the terminal as well")
     dashboard.add_argument("--demo", action="store_true",
                            help="Mark the page as demo data; it then offers to open a real scan")
+    dashboard.add_argument("--hide", metavar="SCREEN", action="append", default=None, choices=sorted(HIDEABLE_SCREENS),
+                           help="Leave a screen out of the page (repeatable): " + ", ".join(sorted(HIDEABLE_SCREENS)))
     dashboard.add_argument("--open", action="store_true", help="Open in the default browser")
     dashboard.add_argument("--config", metavar="PATH", default=None)
     dashboard.add_argument("--taxonomy", metavar="PATH", default=None)
@@ -681,6 +686,8 @@ def _run_dashboard_command(args: argparse.Namespace) -> int:
 
     if args.demo:
         envelope = {**envelope, "demo": True}
+    if args.hide:
+        envelope = {**envelope, "hidden_screens": sorted(set(args.hide))}
     if args.summary:
         from .dashboard.terminal import render_overview
         print(render_overview(envelope), end="")
