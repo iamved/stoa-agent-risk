@@ -2,9 +2,26 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/agent-risk", "destination": "/" }
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "demo.stoa-agent-risk.dev"
+        }
+      ],
+      "destination": "/dashboard"
+    },
+    {
+      "source": "/agent-risk",
+      "destination": "/"
+    }
   ],
   "redirects": [
-    { "source": "/red", "destination": "https://stoa-red.dev", "permanent": false }
+    {
+      "source": "/red",
+      "destination": "https://stoa-red.dev",
+      "permanent": false
+    }
   ]
 }
