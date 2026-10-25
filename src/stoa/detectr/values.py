@@ -155,7 +155,8 @@ _TEXT_DATE_RE = re.compile(
     re.IGNORECASE,
 )
 _DURATION_RE = re.compile(
-    r"\b(?:(?:within|in|after|takes?|up to|about|around|approximately|next)\s+)?(?P<n>\d+|one|two|three|four|five|six|seven|eight|nine|ten|a|an)\s*(?:to\s*(?P<n2>\d+)\s*)?[- ]?(?P<unit>business days?|working days?|days?|hours?|hrs?|weeks?|months?|minutes?|mins?)\b",
+    r"\b(?:(?:within|in|after|takes?|up to|about|around|approximately|next|for the next|over the next|for)\s+(?P<n>\d+|one|two|three|four|five|six|seven|eight|nine|ten|a|an|another)"
+    r"|(?P<m>\d+|one|two|three|four|five|six|seven|eight|nine|ten))\s*(?:to\s*(?P<n2>\d+)\s*)?[- ]?(?P<unit>business days?|working days?|days?|hours?|hrs?|weeks?|months?|minutes?|mins?)\b",
     re.IGNORECASE,
 )
 _WEEKDAY_RE = re.compile(r"\b(?:by|on|before|until|next|this)\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b|\b(tomorrow|today|tonight|end of (?:the )?(?:day|week|month))\b", re.IGNORECASE)
@@ -163,7 +164,7 @@ _STATUS_RE = re.compile(
     r"\b(" + "|".join(sorted((re.escape(k) for k in DEFAULT_STATUS_SYNONYMS), key=len, reverse=True)) + r")\b",
     re.IGNORECASE,
 )
-_PLAIN_NUM_RE = re.compile(rf"(?<![\w.-])(?P<n>{_NUM})(?![\w.-])")
+_PLAIN_NUM_RE = re.compile(rf"(?<![\w.-])(?P<n>{_NUM})(?![\w-]|[.,]\d)")
 _WORD_NUMBERS = {"a": 1, "an": 1, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10}
 
 
@@ -241,8 +242,8 @@ def extract_values(text: str, *, status_synonyms: dict[str, str] | None = None) 
             continue
         add(Value("id", normalize_id(raw), raw, start=m.start(), end=m.end()))
     for m in _DURATION_RE.finditer(text):
-        n_text = m.group("n").lower()
-        n = _WORD_NUMBERS.get(n_text)
+        n_text = (m.group("n") or m.group("m")).lower()
+        n = _WORD_NUMBERS.get(n_text, 1 if n_text == "another" else None)
         if n is None:
             try:
                 n = int(n_text)
