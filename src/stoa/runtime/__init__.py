@@ -50,6 +50,7 @@ import functools
 import hashlib
 import hmac as _hmac
 import inspect
+import json
 import os
 import uuid
 from contextlib import contextmanager
@@ -370,6 +371,44 @@ class _Session:
         except Exception:  # noqa: BLE001
             return None
 
+    def user_input(self, text: str) -> None:
+        """Record what the user asked, for Hallucination DetectR's ledger.
+        Stored only under ``capture_content=True`` (through the redaction
+        hook); otherwise nothing is written."""
+        try:
+            if not _state.capture_content or not isinstance(text, str):
+                return
+            attrs = self._late.setdefault("attrs", {})
+            inputs = json.loads(attrs["user_inputs"]) if "user_inputs" in attrs else []
+            inputs.append(_content(text))
+            attrs["user_inputs"] = json.dumps(inputs, ensure_ascii=False)
+        except Exception:  # noqa: BLE001
+            pass
+
+    def system_prompt(self, text: str) -> None:
+        """Record the instructions the agent runs under; content mode only."""
+        try:
+            if _state.capture_content and isinstance(text, str):
+                self._late.setdefault("attrs", {})["system_prompt"] = _content(text)
+        except Exception:  # noqa: BLE001
+            pass
+
+    def retrieved(self, documents, *, source: str | None = None) -> None:
+        """Record retrieved documents as a ``retrieval`` span (each one a
+        ledger entry). Content mode only; otherwise only the count is kept."""
+        try:
+            docs = list(documents) if not isinstance(documents, (str, dict)) else [documents]
+            attrs: dict = {"document_count": len(docs)}
+            if source:
+                attrs["source"] = source
+            late = _Late(attrs=attrs)
+            if _state.capture_content:
+                late["attrs"]["documents"] = json.dumps([_content(d) if isinstance(d, str) else d for d in docs], ensure_ascii=False, default=str)
+            with stoa_span("retrieval", _late=late):
+                pass
+        except Exception:  # noqa: BLE001
+            pass
+
     def flag(self, name: str, detail: dict | None = None) -> None:
         """Attach a caller-chosen flag to the session's own span."""
         try:
@@ -378,6 +417,14 @@ class _Session:
                 self._late.setdefault("attrs", {})[f"flag_{name}_sha256"] = sha256_text(repr(detail))
         except Exception:  # noqa: BLE001
             pass
+
+
+def _content(text: str) -> str:
+    """Text the customer opted to record, through their redaction hook."""
+    try:
+        return _state.redaction_hook(text) if _state.redaction_hook else text
+    except Exception:  # noqa: BLE001
+        return text
 
 
 def _actor_ref(actor: str) -> str:
@@ -457,6 +504,8 @@ def guard(
             late["attrs"] = {"side_effect": side_effect, "args_schema_hash": _schema_hash(values)}
             if limit_field:
                 late["attrs"]["limit_field"] = limit_field
+            if _state.capture_content:
+                late["attrs"]["args"] = _content(json.dumps({k: v for k, v in values.items() if k != "self"}, ensure_ascii=False, default=str))
             approval_id = _apply_policy(late, tool_name, values, side_effect, amount, approval_id if isinstance(approval_id, str) else None)
             return late, amount, counterparty, approval_id, None
 
@@ -471,7 +520,9 @@ def guard(
                     _counterparty=sha256_text(str(counterparty))[:16] if counterparty is not None else None,
                 ):
                     _raise_if_denied(late)
-                    return await func(*args, **kwargs)
+                    result = await func(*args, **kwargs)
+                    _record_result(late, result)
+                    return result
             return async_wrapper
 
         @functools.wraps(func)
@@ -484,10 +535,23 @@ def guard(
                 _counterparty=sha256_text(str(counterparty))[:16] if counterparty is not None else None,
             ):
                 _raise_if_denied(late)
-                return func(*args, **kwargs)
+                result = func(*args, **kwargs)
+                _record_result(late, result)
+                return result
         return wrapper
 
     return decorate
+
+
+def _record_result(late: _Late, result) -> None:
+    """What the tool returned, for the ledger; content mode only."""
+    try:
+        if not _state.capture_content:
+            return
+        text = result if isinstance(result, str) else json.dumps(result, ensure_ascii=False, default=str)
+        late.setdefault("attrs", {})["result"] = _content(text)
+    except Exception:  # noqa: BLE001
+        pass
 
 
 def on_approval(hook) -> None:
@@ -654,9 +718,20 @@ class _ModelCall:
         self._late = late
 
     def record(self, *, tokens_in: int | None = None, tokens_out: int | None = None,
-               cost_usd: float | None = None, tool_calls_requested=None) -> None:
+               cost_usd: float | None = None, tool_calls_requested=None,
+               prompt=None, response=None, system: str | None = None) -> None:
         try:
             attrs = self._late.setdefault("attrs", {})
+            if _state.capture_content:
+                # Prompt, response and system text feed Hallucination DetectR's
+                # ledger. They are written only in content mode, through the
+                # redaction hook, and never in redacted mode.
+                if prompt is not None:
+                    attrs["prompt"] = _content(prompt if isinstance(prompt, str) else json.dumps(prompt, ensure_ascii=False, default=str))
+                if response is not None:
+                    attrs["response"] = _content(response if isinstance(response, str) else json.dumps(response, ensure_ascii=False, default=str))
+                if system is not None:
+                    attrs["system"] = _content(str(system))
             if tokens_in is not None:
                 attrs["gen_ai.usage.input_tokens"] = int(tokens_in)
             if tokens_out is not None:
@@ -673,7 +748,8 @@ class _ModelCall:
 @contextmanager
 def model_call(provider: str, model: str, *, agent_id: str | None = None):
     """An ``llm_call`` span. Call ``record(...)`` on the handle with what the
-    provider returned; prompt and response content are never stored."""
+    provider returned. Prompt and response content are stored only when
+    ``configure(capture_content=True)``; in redacted mode they are dropped."""
     late = _Late()
     with stoa_span("llm_call", agent_id=agent_id, provider=provider, model=model, _late=late):
         yield _ModelCall(late)

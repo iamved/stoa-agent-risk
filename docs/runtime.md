@@ -180,6 +180,13 @@ shapes, not content. Opting in (`capture_content=True`) flips the span's
 evidence quality it had) and routes text through your `redaction_hook`
 first if you set one.
 
+Content mode also records what Hallucination DetectR needs to rebuild the
+agent's ledger (`docs/design/detectr.md`): `model_call().record(prompt=,
+response=, system=)`, the arguments and return value of every guarded tool,
+and `session.user_input()`, `session.system_prompt()` and
+`session.retrieved()`. In redacted mode these calls write nothing, so a trace
+that never opted in stays exactly as before.
+
 ### Policy (`stoa.policy.toml`)
 
 Structured policies (`stoa-policy/0.1`: scope, trigger, condition, action,
