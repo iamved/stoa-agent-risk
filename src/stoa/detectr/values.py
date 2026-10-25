@@ -25,14 +25,14 @@ DEFAULT_STATUS_SYNONYMS: dict[str, str] = {
     "awaiting": "pending", "queued": "pending", "scheduled": "pending", "submitted": "pending",
     "approved": "approved", "authorized": "approved", "authorised": "approved", "granted": "approved",
     "processed": "completed", "completed": "completed", "complete": "completed", "succeeded": "completed",
-    "success": "completed", "successful": "completed", "done": "completed", "settled": "completed",
-    "paid": "completed", "issued": "completed",
+    "success": "completed", "successful": "completed", "settled": "completed",
+    "paid": "completed",
     "declined": "declined", "denied": "declined", "rejected": "declined", "refused": "declined",
     "failed": "failed", "failure": "failed", "error": "failed", "errored": "failed",
     "cancelled": "cancelled", "canceled": "cancelled", "voided": "cancelled", "reversed": "cancelled",
     "refunded": "refunded",
     "shipped": "shipped", "dispatched": "shipped", "in transit": "shipped",
-    "delivered": "delivered",
+    "delivered": "delivered", "returned": "returned", "returned to sender": "returned", "delayed": "delayed", "lost": "lost",
     "active": "active", "enabled": "active", "open": "open", "closed": "closed", "inactive": "inactive",
     "disabled": "inactive", "suspended": "suspended", "blocked": "suspended", "frozen": "suspended",
     "verified": "verified", "unverified": "unverified", "expired": "expired",
@@ -138,13 +138,14 @@ _MONEY_RE = re.compile(
 _EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 _ID_RE = re.compile(
     r"\b(?:[A-Z]{2,6}[-_]?\d{3,}(?:[-_][A-Z0-9]+)*"       # APR-4471, INV_20931, TX-99-AB
+    r"|[A-Z]{2,6}-\d{1,2}(?:[-_][A-Z0-9]+)*"                 # RF-9, TK-12-B
     r"|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"  # uuid
     r"|[a-z]{2,5}_[A-Za-z0-9]{8,}"                           # stripe style: pi_3Nk..., ch_1Hx...
     r"|[A-Z0-9]{10,}"                                       # bare long codes
     r"|#\d{3,})\b",
 )
 _REF_NUM_RE = re.compile(
-    r"\b(?P<noun>order|ticket|case|invoice|account|acct|customer|ref(?:erence)?|txn|transaction|payment|refund|claim|id|number|no\.?)\s*(?:#|number|no\.?)?\s*(?P<num>[A-Z]*\d{3,}[A-Z0-9-]*)\b",
+    r"\b(?P<noun>order|ticket|case|invoice|account|acct|customer|ref(?:erence)?|txn|transaction|payment|refund|claim|id|number|no\.?)\s*(?:#|number|no\.?)?\s*(?P<num>[A-Z]+-?\d+[A-Z0-9-]*|\d{3,}[A-Z0-9-]*)\b",
     re.IGNORECASE,
 )
 _ISO_DATE_RE = re.compile(r"\b(\d{4})-(\d{2})-(\d{2})(?:[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)?\b")

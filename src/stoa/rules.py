@@ -381,6 +381,61 @@ RULES: dict[str, RuleSpec] = {
                      "recorded. Re-scan so the registry reflects it, and "
                      "re-baseline if the change is intended.",
     ),
+    # Hallucination DetectR (docs/design/detectr.md). Emitted by `stoa detectr
+    # check` over a ledger, never by the scan; never gateable in this build.
+    "RT009": RuleSpec(
+        rule_id="RT009",
+        title="Agent says it took an action no tool call backs",
+        category="hallucination",
+        default_severity="high",
+        gateable=False,
+        remediation="The agent told the user something was done, and no tool "
+                     "call with a successful result precedes the claim. Make the "
+                     "agent report only what a tool returned, and surface tool "
+                     "failures instead of paraphrasing success.",
+    ),
+    "RT010": RuleSpec(
+        rule_id="RT010",
+        title="Agent states a value the tool did not return",
+        category="hallucination",
+        default_severity="high",
+        gateable=False,
+        remediation="An amount, id, date or status in the agent's reply "
+                     "conflicts with the matching field of the tool result. "
+                     "Render these fields from the result, not from the model.",
+    ),
+    "RT011": RuleSpec(
+        rule_id="RT011",
+        title="Agent promises a timeline or amount nothing supports",
+        category="hallucination",
+        default_severity="medium",
+        gateable=False,
+        remediation="A commitment to the user carries a value that appears in "
+                     "no tool result, instruction, document or approval. Put the "
+                     "real terms in the system prompt or a lookup the agent can cite.",
+    ),
+    "RT012": RuleSpec(
+        rule_id="RT012",
+        title="Tool argument traces to nothing the agent saw",
+        category="hallucination",
+        default_severity="critical",
+        gateable=False,
+        remediation="A money, id, email or date argument of a tool call appears "
+                     "in no input, result, document or approval before the call, "
+                     "or conflicts with one. Validate arguments against the "
+                     "session context before the tool runs, and require approval "
+                     "ids to come from the approval step.",
+    ),
+    "RT013": RuleSpec(
+        rule_id="RT013",
+        title="Agent used a value a later tool result had replaced",
+        category="hallucination",
+        default_severity="medium",
+        gateable=False,
+        remediation="The value traces only to a tool result that a later result "
+                     "for the same field superseded. Re-read the latest result "
+                     "before acting or replying.",
+    ),
     "RT005": RuleSpec(
         rule_id="RT005",
         title="Approval gate observed firing on all high-impact actions",

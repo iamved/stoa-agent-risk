@@ -73,6 +73,8 @@ def parse_payload(payload: Any) -> dict | list | None:
             header = rows[0]
             return [dict(zip(header, r)) for r in rows[1:] if len(r) == len(header)]
     pairs: dict[str, Any] = {}
+    if len(lines) < 2:
+        return None
     for ln in lines:
         m = re.match(r"^\s*([A-Za-z_][\w .-]{0,40}?)\s*[:=]\s*(.+?)\s*$", ln)
         if not m:

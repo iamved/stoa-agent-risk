@@ -69,7 +69,7 @@ class ClaimExtractor(Protocol):
 _ABBREVIATIONS = ("e.g.", "i.e.", "etc.", "no.", "approx.", "vs.", "mr.", "ms.", "dr.", "inc.", "ltd.", "st.")
 _SENTENCE_END = re.compile(r"(?<=[.!?])\s+(?=[A-Z0-9\"'(\[])|\n+")
 _CLAUSE_SPLIT = re.compile(
-    r",?\s+\b(?=(?:and|but|so|then)\s+(?:it\s+|you\s+|they\s+|we\s+|the\s+\w+\s+)?(?:will|won't|shall|should|would|can|could|may|might|is going to|are going to|'ll)\b)"
+    r",?\s+\b(?=(?:and|but|so|then)\s+(?:it\s+|you\s+|they\s+|we\s+|(?:the|your|a|an)\s+(?:\w+\s+){1,3})?(?:will|won't|shall|should|would|can|could|may|might|is going to|are going to|'ll)\b)"
     r"|,?\s+\b(?=(?:and|but)\s+(?:I|I've|I have|we|we've)\s)"
     r"|;\s+",
     re.IGNORECASE,
@@ -84,8 +84,8 @@ def split_sentences(text: str) -> list[tuple[int, int]]:
     start = 0
     for m in _SENTENCE_END.finditer(text):
         candidate = text[start:m.start()]
-        tail = candidate.lower().rstrip()
-        if any(tail.endswith(a) for a in _ABBREVIATIONS):
+        words = candidate.lower().split()
+        if words and words[-1] in _ABBREVIATIONS:
             continue
         if candidate.strip():
             out.append((start, m.start()))
@@ -125,7 +125,8 @@ ACTION_VERBS = (
     "reopened", "resolved", "marked", "recorded", "registered", "set up", "signed up", "enrolled", "ordered", "shipped",
     "dispatched", "generated", "initiated", "triggered", "executed", "run", "ran", "started", "stopped", "paused",
     "resumed", "terminated", "revoked", "granted", "linked", "unlinked", "merged", "split", "adjusted", "corrected",
-    "fixed", "restored", "replaced", "reissued", "reinstated",
+    "fixed", "restored", "replaced", "reissued", "reinstated", "reshipped", "resent", "re-sent", "refunded", "rebooked",
+    "rescheduled", "redirected", "re-routed", "rerouted",
 )
 ACTION_BASES = (
     "issue", "process", "cancel", "refund", "send", "update", "create", "schedule", "submit", "escalate", "transfer",
