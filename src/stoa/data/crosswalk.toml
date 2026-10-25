@@ -257,6 +257,39 @@ eu_ai_act = "Art. 9"
 relation = "exposure"
 so_what = "The agent depends on a model or an integration that neither the scan nor the baseline recorded."
 
+# Hallucination DetectR (RT009 to RT013): what the agent said or did against
+# what it saw. Misinformation to the user is LLM09; acting on a value nothing
+# supports is excessive agency (LLM06).
+[rules.RT009]
+owasp_llm_2025 = "LLM09"
+eu_ai_act = "Art. 13"
+relation = "exposure"
+so_what = "The agent told the user something was done that no tool call backs."
+
+[rules.RT010]
+owasp_llm_2025 = "LLM09"
+eu_ai_act = "Art. 15"
+relation = "exposure"
+so_what = "An amount, id, date or status in the reply is not what the tool returned."
+
+[rules.RT011]
+owasp_llm_2025 = "LLM09"
+eu_ai_act = "Art. 13"
+relation = "exposure"
+so_what = "The agent promised a timeline or amount that nothing it saw supports."
+
+[rules.RT012]
+owasp_llm_2025 = "LLM06"
+eu_ai_act = "Art. 9"
+relation = "exposure"
+so_what = "A tool ran on a value the agent never saw, or one that conflicts with what it saw."
+
+[rules.RT013]
+owasp_llm_2025 = "LLM09"
+eu_ai_act = "Art. 15"
+relation = "exposure"
+so_what = "The agent used a value a later tool result had already replaced."
+
 # RT005 is the one positive-evidence rule: an approval gate observed firing.
 # relation = "control-observed" so the report renders it as credit — phrased
 # "observed", never "mitigated"/"satisfied".
