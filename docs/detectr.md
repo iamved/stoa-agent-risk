@@ -139,6 +139,17 @@ download yourself, and on the agentic fixture set, reporting precision,
 recall, span F1, latency and cost per checker, plus suggested fusion
 weights. It never runs in CI and never downloads.
 
+## On the dashboard
+
+`stoa dashboard --runtime stoa-traces` (and `stoa scan --with-runtime`) runs
+Layer 0 over every session that carried captured content and puts the result
+on the Runtime tab under "Hallucination DetectR": per agent, how many claims
+were grounded, unsupported, contradicted or unverifiable, then each finding
+with the offending value marked in the agent's own words and the tool result
+it was checked against. Sessions recorded in redacted mode are counted but
+not checked. These findings stay on the Runtime tab; they are not added to
+the agent's findings or the scan totals.
+
 ## Adding a checker
 
 Implement a class with a `MANIFEST` (a `CheckerManifest`) and a

@@ -41,7 +41,7 @@ def test_check_and_ledger_on_a_langgraph_checkpoint(tmp_path, capsys):
     assert main(["detectr", "check", str(path), "--agent-id", "refund", "--out", str(tmp_path / "reports" / "r1.json")]) == 0
     out = capsys.readouterr().out
     assert "RT012 critical unsupported/ungrounded" in out and "[APR-4471]" in out
-    assert "RT010 high contradicted/numerical" in out and "$[150]" in out and "RT011 medium" in out
+    assert "RT010 high contradicted/numerical" in out and "[$150]" in out and "[processed]" in out and "RT011 medium" in out and "[in 2 days]" in out
     assert "counted apart" in out
     report = json.loads((tmp_path / "reports" / "r1.json").read_text())
     assert report["schema"] == "stoa-detectr-report/0.1" and [f["rule_id"] for f in report["findings"]] == ["RT012", "RT010", "RT011"]

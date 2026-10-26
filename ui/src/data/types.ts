@@ -188,9 +188,42 @@ export interface Passport {
   verify_hash: string;
 }
 
+/** One Hallucination DetectR finding: the RT shape plus what was claimed, against what. */
+export interface DetectrFinding extends Finding {
+  detectr: {
+    label: "unsupported" | "contradicted";
+    subcategory: string | null;
+    probability: number;
+    claim: { id: string; type: string; text: string; char_span: [number, number] | null; span_id: string | null; entry_id: string; tool_name: string | null; source: "agent_output" | "tool_call" };
+    evidence: { entry_id: string; kind: string; hash: string; excerpt: string }[];
+    checkers: string[];
+    blast_radius: number;
+    tainted: boolean;
+    trajectory_id: string;
+    agent_id: string | null;
+    issues: { rule_id: string | null; label: string; subcategory: string | null; field: string | null; value: string | null; raw: string | null; expected: string | null; checker: string; detail: string }[];
+  };
+}
+
+export interface DetectrLabels { grounded: number; unsupported: number; contradicted: number; unverifiable: number }
+
+/** Hallucination DetectR over the sessions that carried captured content (dashboard-detectr/0.1). */
+export interface DetectrBlock {
+  schema: string;
+  trajectories: number;
+  with_content: number;
+  counts: DetectrLabels;
+  hallucination_rate: number | null;
+  by_agent: Record<string, { trajectories: number; claims: number; labels: DetectrLabels; findings: number; hallucination_rate: number | null }>;
+  findings: DetectrFinding[];
+  metrics: Record<string, unknown>;
+}
+
 export interface RuntimeSlot {
   schema: string;
   traces_dir: string;
+  /** Null when no trace carried captured content. */
+  detectr?: DetectrBlock | null;
   /** The policy document and its observed outcomes (stoa-policy/0.1). Null without either. */
   policies?: PolicyBlock | null;
   analysis: RuntimeAnalysis;

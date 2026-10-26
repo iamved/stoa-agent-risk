@@ -88,3 +88,36 @@ def test_slot_carries_the_policy_document_and_outcomes():
     agent = next(a for a in envelope["registry"]["agents"] if a["id"] == "bc3db1f17013")
     assert envelope["registry"]["policies"]["policies"]["POL-FIN-002-BC3DB1"]["blocked"] == 1
     assert agent["runtime_evidence"]["money_actions"] >= 10
+
+
+def test_committed_fixture_carries_hallucination_detectr_for_the_captured_sessions():
+    """Two September sessions carry content: the clean account refund grounds
+    every claim; the support refund of 240 for a 24 request fires RT012, the
+    'processed' reply fires RT010 and the 2 day promise fires RT011."""
+    envelope = json.loads((FIXTURES / "meridian-pay.envelope.json").read_text(encoding="utf-8"))
+    block = envelope["runtime"]["detectr"]
+    assert block["schema"] == "dashboard-detectr/0.1" and block["with_content"] == 2 and block["trajectories"] > 2
+    names = {a["id"]: a["name"] for a in envelope["registry"]["agents"]}
+    rows = {names[k]: v for k, v in block["by_agent"].items()}
+    assert rows["support_agent"]["labels"]["contradicted"] == 1 and rows["support_agent"]["findings"] == 3
+    assert rows["graph"]["findings"] == 0 and rows["graph"]["labels"] == {"grounded": 4, "unsupported": 0, "contradicted": 0, "unverifiable": 0}
+    assert [f["rule_id"] for f in block["findings"]] == ["RT012", "RT010", "RT011"]
+    assert all(f["category"] == "hallucination" for f in block["findings"])
+    # DetectR findings stay on the Runtime tab: none is merged into an agent's findings
+    assert all(f["rule_id"] not in ("RT009", "RT010", "RT011", "RT012", "RT013") for a in envelope["registry"]["agents"] for f in a["findings"])
+    assert block["metrics"]["schema"] == "stoa-detectr-metrics/0.1"
+
+
+def test_slot_detectr_is_null_without_captured_content(tmp_path):
+    from stoa import runtime as rt
+
+    rt.shutdown()
+    rt.configure(str(tmp_path / "traces"), agent_id="refund")
+    with rt.session("u1"):
+        with rt.model_call("openai", "gpt-4o") as m:
+            m.record(response="Your refund has been processed.")
+    rt.flush()
+    rt.shutdown()
+    registry = {"schema_version": "1.8", "tool": {"name": "stoa", "version": "0"}, "repository": {"name": "x"}, "summary": {}, "agents": []}
+    _, slot = build_runtime_slot(tmp_path / "traces", registry)
+    assert slot["detectr"] is None

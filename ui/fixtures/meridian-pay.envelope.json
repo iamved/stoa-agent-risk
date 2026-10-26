@@ -495,8 +495,8 @@
             "message": "Agent `graph` is declared `human_approved`, but 2 of 6 observed high-impact action(s) in the analyzed window carried no approval span. The declared oversight is not observed on the live path.",
             "trace_ref": {
               "file": "trace-demo-0000.jsonl",
-              "line": 30,
-              "span_id": "s002d"
+              "line": 32,
+              "span_id": "s002f"
             },
             "declared_ref": {
               "path": "stoa-declared.toml",
@@ -528,8 +528,8 @@
             "message": "Agent `graph` was observed moving 900.0 USD in a single action; its declared economic authority caps a single action at 500 USD.",
             "trace_ref": {
               "file": "trace-demo-0000.jsonl",
-              "line": 30,
-              "span_id": "s002d"
+              "line": 32,
+              "span_id": "s002f"
             },
             "declared_ref": {
               "path": "stoa-declared.toml",
@@ -561,8 +561,8 @@
             "message": "2 of 6 observed money action(s) by agent `graph` carried no approval_span_id that resolves to an approval span in the window. A person was not on the live path for those actions.",
             "trace_ref": {
               "file": "trace-demo-0000.jsonl",
-              "line": 30,
-              "span_id": "s002d"
+              "line": 32,
+              "span_id": "s002f"
             },
             "declared_ref": {
               "path": "stoa-declared.toml",
@@ -598,12 +598,12 @@
                 "payment_access"
               ],
               "controls_observed": [],
-              "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+              "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 23 span(s). Observed in this window — not a claim about future behavior.",
               "static_exposure": "elevated",
               "evidence_window": {
                 "start": "2026-09-15T10:00:00.000Z",
                 "end": "2026-09-20T10:01:30.000Z",
-                "span_count": 22
+                "span_count": 23
               },
               "runtime_basis": {
                 "actions": 6,
@@ -624,12 +624,12 @@
               "contributing_findings": [],
               "contributing_capabilities": [],
               "controls_observed": [],
-              "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+              "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 23 span(s). Observed in this window — not a claim about future behavior.",
               "static_exposure": "none-observed",
               "evidence_window": {
                 "start": "2026-09-15T10:00:00.000Z",
                 "end": "2026-09-20T10:01:30.000Z",
-                "span_count": 22
+                "span_count": 23
               },
               "runtime_basis": {
                 "external_send": 0,
@@ -656,12 +656,12 @@
               "controls_observed": [
                 "authentication"
               ],
-              "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+              "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 23 span(s). Observed in this window — not a claim about future behavior.",
               "static_exposure": "moderate",
               "evidence_window": {
                 "start": "2026-09-15T10:00:00.000Z",
                 "end": "2026-09-20T10:01:30.000Z",
-                "span_count": 22
+                "span_count": 23
               },
               "runtime_basis": {
                 "high_impact_actions": 6,
@@ -682,15 +682,15 @@
               "controls_observed": [
                 "validation"
               ],
-              "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+              "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 23 span(s). Observed in this window — not a claim about future behavior.",
               "static_exposure": "none-observed",
               "evidence_window": {
                 "start": "2026-09-15T10:00:00.000Z",
                 "end": "2026-09-20T10:01:30.000Z",
-                "span_count": 22
+                "span_count": 23
               },
               "runtime_basis": {
-                "llm_calls": 6,
+                "llm_calls": 7,
                 "llm_error_rate": 0.0
               }
             },
@@ -720,12 +720,12 @@
               "controls_observed": [
                 "deterministic_sampling"
               ],
-              "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+              "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 23 span(s). Observed in this window — not a claim about future behavior.",
               "static_exposure": "none-observed",
               "evidence_window": {
                 "start": "2026-09-15T10:00:00.000Z",
                 "end": "2026-09-20T10:01:30.000Z",
-                "span_count": 22
+                "span_count": 23
               },
               "runtime_basis": {
                 "error_rate": 0.0,
@@ -747,12 +747,12 @@
                 "provider:openai"
               ],
               "controls_observed": [],
-              "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+              "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 23 span(s). Observed in this window — not a claim about future behavior.",
               "static_exposure": "low",
               "evidence_window": {
                 "start": "2026-09-15T10:00:00.000Z",
                 "end": "2026-09-20T10:01:30.000Z",
-                "span_count": 22
+                "span_count": 23
               },
               "runtime_basis": {
                 "distinct_models_observed": 1,
@@ -779,12 +779,12 @@
                 "authentication",
                 "validation"
               ],
-              "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+              "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 23 span(s). Observed in this window — not a claim about future behavior.",
               "static_exposure": "none-observed",
               "evidence_window": {
                 "start": "2026-09-15T10:00:00.000Z",
                 "end": "2026-09-20T10:01:30.000Z",
-                "span_count": 22
+                "span_count": 23
               },
               "runtime_basis": {
                 "approval_rate_high_impact": 0.6667,
@@ -1044,19 +1044,19 @@
           "could_go_wrong": "Most likely failure: money or account changes go out wrong, twice, or without anyone deciding. Driven by excess access (elevated). 2 high-severity findings point there.",
           "protects": "Detected: callers are signed in, fixed model settings and inputs are checked.",
           "missing": "Missing: a person approves before it acts, a kill switch, logging and a rate limit.",
-          "evidence": "Evidence: 3 declared, 5 static, 4 observed. Observed over 22 spans."
+          "evidence": "Evidence: 3 declared, 5 static, 4 observed. Observed over 23 spans."
         },
         "runtime_evidence": {
           "window": {
             "start": "2026-09-15T10:00:00.000Z",
             "end": "2026-09-20T10:01:30.000Z"
           },
-          "span_count": 22,
+          "span_count": 23,
           "spans_by_kind": {
             "action": 6,
             "agent_run": 6,
             "approval": 4,
-            "llm_call": 6
+            "llm_call": 7
           },
           "error_rate": 0.0,
           "observed_capabilities": [
@@ -1081,7 +1081,7 @@
           "window_total_amounts": {
             "USD": 1895.0
           },
-          "evidence_quality": "redacted",
+          "evidence_quality": "mixed",
           "delegations_to": [],
           "trace_files": [
             "trace-demo-0000.jsonl"
@@ -1784,8 +1784,8 @@
             "message": "Agent `support_agent` is declared `human_approved`, but 11 of 11 observed high-impact action(s) in the analyzed window carried no approval span. The declared oversight is not observed on the live path.",
             "trace_ref": {
               "file": "trace-demo-0000.jsonl",
-              "line": 11,
-              "span_id": "s0010"
+              "line": 12,
+              "span_id": "s0011"
             },
             "declared_ref": {
               "path": "stoa-declared.toml",
@@ -1817,8 +1817,8 @@
             "message": "Traces show agent `support_agent` exercising `email_send`, which the static scan never found for this agent and no declaration covers — its observed reach exceeds everything on paper. The code path may live in an unscanned dependency or a separate service.",
             "trace_ref": {
               "file": "trace-demo-0000.jsonl",
-              "line": 23,
-              "span_id": "s0022"
+              "line": 25,
+              "span_id": "s0024"
             },
             "crosswalk": {
               "owasp_llm_2025": "LLM06",
@@ -1846,8 +1846,8 @@
             "message": "Traces show agent `support_agent` calling `export_transcript` (1 time(s) in the window); the scanned tool inventory for this agent does not list it. The binding lives outside the scanned sources, or the scan is stale.",
             "trace_ref": {
               "file": "trace-demo-0000.jsonl",
-              "line": 54,
-              "span_id": "s0053"
+              "line": 56,
+              "span_id": "s0055"
             },
             "crosswalk": {
               "owasp_llm_2025": "LLM06",
@@ -1875,8 +1875,8 @@
             "message": "Traces show agent `support_agent` calling `send_email` (1 time(s) in the window); the scanned tool inventory for this agent does not list it. The binding lives outside the scanned sources, or the scan is stale.",
             "trace_ref": {
               "file": "trace-demo-0000.jsonl",
-              "line": 23,
-              "span_id": "s0022"
+              "line": 25,
+              "span_id": "s0024"
             },
             "crosswalk": {
               "owasp_llm_2025": "LLM06",
@@ -1904,8 +1904,8 @@
             "message": "10 of 10 observed money action(s) by agent `support_agent` carried no approval_span_id that resolves to an approval span in the window. A person was not on the live path for those actions.",
             "trace_ref": {
               "file": "trace-demo-0000.jsonl",
-              "line": 11,
-              "span_id": "s0010"
+              "line": 12,
+              "span_id": "s0011"
             },
             "declared_ref": {
               "path": "stoa-declared.toml",
@@ -1989,12 +1989,12 @@
                 "payment_access"
               ],
               "controls_observed": [],
-              "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 31 span(s). Observed in this window — not a claim about future behavior.",
+              "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 32 span(s). Observed in this window — not a claim about future behavior.",
               "static_exposure": "elevated",
               "evidence_window": {
                 "start": "2026-09-15T11:00:00.000Z",
                 "end": "2026-09-21T16:00:03.000Z",
-                "span_count": 31
+                "span_count": 32
               },
               "runtime_basis": {
                 "actions": 12,
@@ -2018,12 +2018,12 @@
               "contributing_findings": [],
               "contributing_capabilities": [],
               "controls_observed": [],
-              "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 31 span(s). Observed in this window — not a claim about future behavior.",
+              "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 32 span(s). Observed in this window — not a claim about future behavior.",
               "static_exposure": "none-observed",
               "evidence_window": {
                 "start": "2026-09-15T11:00:00.000Z",
                 "end": "2026-09-21T16:00:03.000Z",
-                "span_count": 31
+                "span_count": 32
               },
               "runtime_basis": {
                 "external_send": 2,
@@ -2051,12 +2051,12 @@
               "controls_observed": [
                 "authentication"
               ],
-              "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 31 span(s). Observed in this window — not a claim about future behavior.",
+              "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 32 span(s). Observed in this window — not a claim about future behavior.",
               "static_exposure": "moderate",
               "evidence_window": {
                 "start": "2026-09-15T11:00:00.000Z",
                 "end": "2026-09-21T16:00:03.000Z",
-                "span_count": 31
+                "span_count": 32
               },
               "runtime_basis": {
                 "high_impact_actions": 11,
@@ -2077,15 +2077,15 @@
               "controls_observed": [
                 "validation"
               ],
-              "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 31 span(s). Observed in this window — not a claim about future behavior.",
+              "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 32 span(s). Observed in this window — not a claim about future behavior.",
               "static_exposure": "none-observed",
               "evidence_window": {
                 "start": "2026-09-15T11:00:00.000Z",
                 "end": "2026-09-21T16:00:03.000Z",
-                "span_count": 31
+                "span_count": 32
               },
               "runtime_basis": {
-                "llm_calls": 9,
+                "llm_calls": 10,
                 "llm_error_rate": 0.0
               }
             },
@@ -2115,15 +2115,15 @@
               "controls_observed": [
                 "deterministic_sampling"
               ],
-              "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 31 span(s). Observed in this window — not a claim about future behavior.",
+              "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 32 span(s). Observed in this window — not a claim about future behavior.",
               "static_exposure": "none-observed",
               "evidence_window": {
                 "start": "2026-09-15T11:00:00.000Z",
                 "end": "2026-09-21T16:00:03.000Z",
-                "span_count": 31
+                "span_count": 32
               },
               "runtime_basis": {
-                "error_rate": 0.0645,
+                "error_rate": 0.0625,
                 "approval_rate_high_impact": 0.0,
                 "declared_gate_contradicted": true
               }
@@ -2142,12 +2142,12 @@
                 "provider:openai"
               ],
               "controls_observed": [],
-              "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 31 span(s). Observed in this window — not a claim about future behavior.",
+              "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 32 span(s). Observed in this window — not a claim about future behavior.",
               "static_exposure": "low",
               "evidence_window": {
                 "start": "2026-09-15T11:00:00.000Z",
                 "end": "2026-09-21T16:00:03.000Z",
-                "span_count": 31
+                "span_count": 32
               },
               "runtime_basis": {
                 "distinct_models_observed": 1,
@@ -2174,12 +2174,12 @@
                 "authentication",
                 "validation"
               ],
-              "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 31 span(s). Observed in this window — not a claim about future behavior.",
+              "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 32 span(s). Observed in this window — not a claim about future behavior.",
               "static_exposure": "none-observed",
               "evidence_window": {
                 "start": "2026-09-15T11:00:00.000Z",
                 "end": "2026-09-21T16:00:03.000Z",
-                "span_count": 31
+                "span_count": 32
               },
               "runtime_basis": {
                 "approval_rate_high_impact": 0.0,
@@ -2425,20 +2425,20 @@
           "could_go_wrong": "Most likely failure: money or account changes go out wrong, twice, or without anyone deciding. Driven by excess access (elevated). 2 high-severity findings point there.",
           "protects": "Detected: callers are signed in, fixed model settings and inputs are checked.",
           "missing": "Missing: a person approves before it acts, a kill switch, logging, a rate limit and a declared spending limit.",
-          "evidence": "Evidence: 3 declared, 4 static, 9 observed. Observed over 31 spans."
+          "evidence": "Evidence: 3 declared, 4 static, 9 observed. Observed over 32 spans."
         },
         "runtime_evidence": {
           "window": {
             "start": "2026-09-15T11:00:00.000Z",
             "end": "2026-09-21T16:00:03.000Z"
           },
-          "span_count": 31,
+          "span_count": 32,
           "spans_by_kind": {
             "action": 12,
             "agent_run": 10,
-            "llm_call": 9
+            "llm_call": 10
           },
-          "error_rate": 0.0645,
+          "error_rate": 0.0625,
           "observed_capabilities": [
             "email_send",
             "payment_access"
@@ -2463,7 +2463,7 @@
           "window_total_amounts": {
             "USD": 1560.0
           },
-          "evidence_quality": "redacted",
+          "evidence_quality": "mixed",
           "delegations_to": [],
           "trace_files": [
             "trace-demo-0000.jsonl"
@@ -3096,8 +3096,8 @@
           "by": "platform-risk",
           "trace_ref": {
             "file": "trace-demo-0000.jsonl",
-            "line": 78,
-            "span_id": "s0079"
+            "line": 80,
+            "span_id": "s007b"
           }
         }
       ]
@@ -3108,12 +3108,13 @@
         "start": "2026-09-15T09:00:00.000Z",
         "end": "2026-09-21T16:00:03.000Z"
       },
-      "span_count": 77,
+      "span_count": 79,
       "agents_covered": 3,
       "agents_total": 5,
       "unmatched_agents": 0,
       "rt_findings": 10,
       "evidence_quality": [
+        "mixed",
         "redacted"
       ]
     }
@@ -4501,7 +4502,7 @@
       "controls_observed": [],
       "contributing_findings": [],
       "contributing_capabilities": [],
-      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 31 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 32 span(s). Observed in this window — not a claim about future behavior.",
       "declared": null,
       "unmatched": false
     },
@@ -4530,7 +4531,7 @@
         "AI005-3cf3cd059c6d"
       ],
       "contributing_capabilities": [],
-      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 23 span(s). Observed in this window — not a claim about future behavior.",
       "declared": null,
       "unmatched": false
     },
@@ -4559,7 +4560,7 @@
         "AI005-842660a36a09"
       ],
       "contributing_capabilities": [],
-      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 31 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 32 span(s). Observed in this window — not a claim about future behavior.",
       "declared": null,
       "unmatched": false
     },
@@ -4592,7 +4593,7 @@
         "CTRL004-9d9a33f2fd7f"
       ],
       "contributing_capabilities": [],
-      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 23 span(s). Observed in this window — not a claim about future behavior.",
       "declared": null,
       "unmatched": false
     },
@@ -4625,7 +4626,7 @@
         "a80d048a4b0f4297"
       ],
       "contributing_capabilities": [],
-      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 31 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 32 span(s). Observed in this window — not a claim about future behavior.",
       "declared": null,
       "unmatched": false
     },
@@ -4654,7 +4655,7 @@
       "contributing_capabilities": [
         "payment_access"
       ],
-      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 23 span(s). Observed in this window — not a claim about future behavior.",
       "declared": null,
       "unmatched": false
     },
@@ -4683,7 +4684,7 @@
       "contributing_capabilities": [
         "payment_access"
       ],
-      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 31 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 32 span(s). Observed in this window — not a claim about future behavior.",
       "declared": {
         "risk_id": "mandate-overreach/bc3db1f17013",
         "owner": "platform-risk@meridian.example",
@@ -4722,7 +4723,7 @@
       "contributing_capabilities": [
         "payment_access"
       ],
-      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 23 span(s). Observed in this window — not a claim about future behavior.",
       "declared": {
         "risk_id": "unreviewed-high-impact-action/b8f0111742fc",
         "owner": "digital-servicing@meridian.example",
@@ -4761,7 +4762,7 @@
       "contributing_capabilities": [
         "payment_access"
       ],
-      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 31 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 32 span(s). Observed in this window — not a claim about future behavior.",
       "declared": null,
       "unmatched": false
     },
@@ -4786,7 +4787,7 @@
       "controls_observed": [],
       "contributing_findings": [],
       "contributing_capabilities": [],
-      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 23 span(s). Observed in this window — not a claim about future behavior.",
       "declared": null,
       "unmatched": false
     },
@@ -4815,7 +4816,7 @@
       "contributing_capabilities": [
         "provider:openai"
       ],
-      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 22 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T10:00:00.000Z → 2026-09-20T10:01:30.000Z, 23 span(s). Observed in this window — not a claim about future behavior.",
       "declared": null,
       "unmatched": false
     },
@@ -4873,7 +4874,7 @@
       "contributing_capabilities": [
         "provider:openai"
       ],
-      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 31 span(s). Observed in this window — not a claim about future behavior.",
+      "statement": "Assessed from traces: 2026-09-15T11:00:00.000Z → 2026-09-21T16:00:03.000Z, 32 span(s). Observed in this window — not a claim about future behavior.",
       "declared": null,
       "unmatched": false
     },
@@ -5754,8 +5755,8 @@
         "message": "Agent `graph` is declared `human_approved`, but 2 of 6 observed high-impact action(s) in the analyzed window carried no approval span. The declared oversight is not observed on the live path.",
         "trace_ref": {
           "file": "trace-demo-0000.jsonl",
-          "line": 30,
-          "span_id": "s002d"
+          "line": 32,
+          "span_id": "s002f"
         }
       },
       {
@@ -5771,8 +5772,8 @@
         "message": "Agent `support_agent` is declared `human_approved`, but 11 of 11 observed high-impact action(s) in the analyzed window carried no approval span. The declared oversight is not observed on the live path.",
         "trace_ref": {
           "file": "trace-demo-0000.jsonl",
-          "line": 11,
-          "span_id": "s0010"
+          "line": 12,
+          "span_id": "s0011"
         }
       },
       {
@@ -5788,8 +5789,8 @@
         "message": "Agent `graph` was observed moving 900.0 USD in a single action; its declared economic authority caps a single action at 500 USD.",
         "trace_ref": {
           "file": "trace-demo-0000.jsonl",
-          "line": 30,
-          "span_id": "s002d"
+          "line": 32,
+          "span_id": "s002f"
         }
       },
       {
@@ -5802,8 +5803,8 @@
         "message": "Traces show agent `support_agent` exercising `email_send`, which the static scan never found for this agent and no declaration covers — its observed reach exceeds everything on paper. The code path may live in an unscanned dependency or a separate service.",
         "trace_ref": {
           "file": "trace-demo-0000.jsonl",
-          "line": 23,
-          "span_id": "s0022"
+          "line": 25,
+          "span_id": "s0024"
         }
       },
       {
@@ -5816,8 +5817,8 @@
         "message": "Traces show agent `support_agent` calling `export_transcript` (1 time(s) in the window); the scanned tool inventory for this agent does not list it. The binding lives outside the scanned sources, or the scan is stale.",
         "trace_ref": {
           "file": "trace-demo-0000.jsonl",
-          "line": 54,
-          "span_id": "s0053"
+          "line": 56,
+          "span_id": "s0055"
         }
       },
       {
@@ -5830,8 +5831,8 @@
         "message": "Traces show agent `support_agent` calling `send_email` (1 time(s) in the window); the scanned tool inventory for this agent does not list it. The binding lives outside the scanned sources, or the scan is stale.",
         "trace_ref": {
           "file": "trace-demo-0000.jsonl",
-          "line": 23,
-          "span_id": "s0022"
+          "line": 25,
+          "span_id": "s0024"
         }
       },
       {
@@ -5847,8 +5848,8 @@
         "message": "2 of 6 observed money action(s) by agent `graph` carried no approval_span_id that resolves to an approval span in the window. A person was not on the live path for those actions.",
         "trace_ref": {
           "file": "trace-demo-0000.jsonl",
-          "line": 30,
-          "span_id": "s002d"
+          "line": 32,
+          "span_id": "s002f"
         }
       },
       {
@@ -5864,8 +5865,8 @@
         "message": "10 of 10 observed money action(s) by agent `support_agent` carried no approval_span_id that resolves to an approval span in the window. A person was not on the live path for those actions.",
         "trace_ref": {
           "file": "trace-demo-0000.jsonl",
-          "line": 11,
-          "span_id": "s0010"
+          "line": 12,
+          "span_id": "s0011"
         }
       },
       {
@@ -7213,7 +7214,7 @@
             "evidence": {
               "window_start": "2026-09-15T09:00:00.000Z",
               "window_end": "2026-09-21T16:00:03.000Z",
-              "span_count": 77,
+              "span_count": 79,
               "agents_covered": 3,
               "agents_total": 5
             }
@@ -7257,7 +7258,7 @@
                 "evidence": {
                   "window_start": "2026-09-15T10:00:00.000Z",
                   "window_end": "2026-09-20T10:01:30.000Z",
-                  "span_count": 22
+                  "span_count": 23
                 }
               }
             }
@@ -7301,7 +7302,7 @@
                 "evidence": {
                   "window_start": "2026-09-15T11:00:00.000Z",
                   "window_end": "2026-09-21T16:00:03.000Z",
-                  "span_count": 31
+                  "span_count": 32
                 }
               }
             }
@@ -7441,9 +7442,10 @@
             "evidence": {
               "window_start": "2026-09-15T09:00:00.000Z",
               "window_end": "2026-09-21T16:00:03.000Z",
-              "span_count": 77,
+              "span_count": 79,
               "agents_covered": 3,
               "evidence_quality": [
+                "mixed",
                 "redacted"
               ]
             }
@@ -7456,8 +7458,8 @@
               "title": "Declared human oversight not observed at runtime",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 30,
-                "span_id": "s002d"
+                "line": 32,
+                "span_id": "s002f"
               }
             }
           },
@@ -7469,8 +7471,8 @@
               "title": "Observed monetary action exceeds declared economic authority",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 30,
-                "span_id": "s002d"
+                "line": 32,
+                "span_id": "s002f"
               }
             }
           },
@@ -7482,8 +7484,8 @@
               "title": "Money action observed with no approval on the live path",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 30,
-                "span_id": "s002d"
+                "line": 32,
+                "span_id": "s002f"
               }
             }
           },
@@ -7495,8 +7497,8 @@
               "title": "Declared human oversight not observed at runtime",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 11,
-                "span_id": "s0010"
+                "line": 12,
+                "span_id": "s0011"
               }
             }
           },
@@ -7508,8 +7510,8 @@
               "title": "Observed capability absent from both registry and declarations",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 23,
-                "span_id": "s0022"
+                "line": 25,
+                "span_id": "s0024"
               }
             }
           },
@@ -7521,8 +7523,8 @@
               "title": "Tool observed at runtime that the scan never listed for this agent",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 54,
-                "span_id": "s0053"
+                "line": 56,
+                "span_id": "s0055"
               }
             }
           },
@@ -7534,8 +7536,8 @@
               "title": "Tool observed at runtime that the scan never listed for this agent",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 23,
-                "span_id": "s0022"
+                "line": 25,
+                "span_id": "s0024"
               }
             }
           },
@@ -7547,8 +7549,8 @@
               "title": "Money action observed with no approval on the live path",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 11,
-                "span_id": "s0010"
+                "line": 12,
+                "span_id": "s0011"
               }
             }
           },
@@ -9349,8 +9351,8 @@
           "by": "platform-risk",
           "trace_ref": {
             "file": "trace-demo-0000.jsonl",
-            "line": 78,
-            "span_id": "s0079"
+            "line": 80,
+            "span_id": "s007b"
           }
         }
       ],
@@ -9587,7 +9589,7 @@
       "window": {
         "start": "2026-09-15T09:00:00.000Z",
         "end": "2026-09-21T16:00:03.000Z",
-        "span_count": 77
+        "span_count": 79
       },
       "agents": {
         "2a61ffb1db0d": {
@@ -9713,15 +9715,15 @@
           }
         },
         "b8f0111742fc": {
-          "span_count": 22,
+          "span_count": 23,
           "spans_by_kind": {
             "action": 6,
             "agent_run": 6,
             "approval": 4,
-            "llm_call": 6
+            "llm_call": 7
           },
           "status_counts": {
-            "ok": 22
+            "ok": 23
           },
           "error_rate": 0.0,
           "observed_capabilities": [
@@ -9753,7 +9755,7 @@
           "window_total_amounts": {
             "USD": 1895.0
           },
-          "evidence_quality": "redacted",
+          "evidence_quality": "mixed",
           "first_ts": "2026-09-15T10:00:00.000Z",
           "last_ts": "2026-09-20T10:01:30.000Z",
           "delegations_to": [],
@@ -9780,7 +9782,7 @@
           "side_effect_counts": {
             "payment": 6
           },
-          "llm_calls": 6,
+          "llm_calls": 7,
           "llm_error_rate": 0.0,
           "flag_events": [
             {
@@ -9796,8 +9798,8 @@
               },
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 19,
-                "span_id": "s001c"
+                "line": 20,
+                "span_id": "s001d"
               }
             },
             {
@@ -9815,8 +9817,8 @@
               },
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 30,
-                "span_id": "s002d"
+                "line": 32,
+                "span_id": "s002f"
               }
             },
             {
@@ -9833,8 +9835,8 @@
               },
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 61,
-                "span_id": "s005e"
+                "line": 63,
+                "span_id": "s0060"
               }
             },
             {
@@ -9850,8 +9852,8 @@
               },
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 72,
-                "span_id": "s006f"
+                "line": 74,
+                "span_id": "s0071"
               }
             }
           ],
@@ -9939,8 +9941,8 @@
               "enforcement": "observed",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 30,
-                "span_id": "s002d"
+                "line": 32,
+                "span_id": "s002f"
               }
             },
             {
@@ -9956,8 +9958,8 @@
               "enforcement": "observed",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 30,
-                "span_id": "s002d"
+                "line": 32,
+                "span_id": "s002f"
               }
             },
             {
@@ -9973,8 +9975,8 @@
               "enforcement": "observed",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 61,
-                "span_id": "s005e"
+                "line": 63,
+                "span_id": "s0060"
               }
             }
           ],
@@ -9989,13 +9991,13 @@
             },
             "first_unapproved_high_impact": {
               "file": "trace-demo-0000.jsonl",
-              "line": 30,
-              "span_id": "s002d"
+              "line": 32,
+              "span_id": "s002f"
             },
             "max_amount_span": {
               "file": "trace-demo-0000.jsonl",
-              "line": 30,
-              "span_id": "s002d"
+              "line": 32,
+              "span_id": "s002f"
             },
             "first_tool_span": {
               "issue_refund": {
@@ -10006,41 +10008,41 @@
             },
             "first_unapproved_money": {
               "file": "trace-demo-0000.jsonl",
-              "line": 30,
-              "span_id": "s002d"
+              "line": 32,
+              "span_id": "s002f"
             },
             "first_flag_span": {
               "approval_bypassed": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 30,
-                "span_id": "s002d"
+                "line": 32,
+                "span_id": "s002f"
               },
               "new_counterparty": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 19,
-                "span_id": "s001c"
+                "line": 20,
+                "span_id": "s001d"
               },
               "over_declared_limit": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 30,
-                "span_id": "s002d"
+                "line": 32,
+                "span_id": "s002f"
               }
             },
             "first_external_send": null
           }
         },
         "bc3db1f17013": {
-          "span_count": 31,
+          "span_count": 32,
           "spans_by_kind": {
             "action": 12,
             "agent_run": 10,
-            "llm_call": 9
+            "llm_call": 10
           },
           "status_counts": {
             "error": 2,
-            "ok": 29
+            "ok": 30
           },
-          "error_rate": 0.0645,
+          "error_rate": 0.0625,
           "observed_capabilities": [
             "email_send",
             "payment_access"
@@ -10074,7 +10076,7 @@
           "window_total_amounts": {
             "USD": 1560.0
           },
-          "evidence_quality": "redacted",
+          "evidence_quality": "mixed",
           "first_ts": "2026-09-15T11:00:00.000Z",
           "last_ts": "2026-09-21T16:00:03.000Z",
           "delegations_to": [],
@@ -10112,7 +10114,7 @@
             "external_send": 2,
             "payment": 10
           },
-          "llm_calls": 9,
+          "llm_calls": 10,
           "llm_error_rate": 0.0,
           "flag_events": [
             {
@@ -10128,8 +10130,8 @@
               },
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 11,
-                "span_id": "s0010"
+                "line": 12,
+                "span_id": "s0011"
               }
             },
             {
@@ -10146,8 +10148,8 @@
               },
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 22,
-                "span_id": "s0021"
+                "line": 23,
+                "span_id": "s0022"
               }
             },
             {
@@ -10162,8 +10164,8 @@
               "amount": null,
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 23,
-                "span_id": "s0022"
+                "line": 25,
+                "span_id": "s0024"
               }
             },
             {
@@ -10180,8 +10182,8 @@
               },
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 33,
-                "span_id": "s0032"
+                "line": 35,
+                "span_id": "s0034"
               }
             },
             {
@@ -10197,8 +10199,8 @@
               },
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 36,
-                "span_id": "s0037"
+                "line": 38,
+                "span_id": "s0039"
               }
             },
             {
@@ -10214,8 +10216,8 @@
               },
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 47,
-                "span_id": "s0048"
+                "line": 49,
+                "span_id": "s004a"
               }
             },
             {
@@ -10232,8 +10234,8 @@
               },
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 50,
-                "span_id": "s004d"
+                "line": 52,
+                "span_id": "s004f"
               }
             },
             {
@@ -10249,8 +10251,8 @@
               },
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 53,
-                "span_id": "s0052"
+                "line": 55,
+                "span_id": "s0054"
               }
             },
             {
@@ -10264,8 +10266,8 @@
               "amount": null,
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 54,
-                "span_id": "s0053"
+                "line": 56,
+                "span_id": "s0055"
               }
             },
             {
@@ -10282,8 +10284,8 @@
               },
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 64,
-                "span_id": "s0063"
+                "line": 66,
+                "span_id": "s0065"
               }
             },
             {
@@ -10299,8 +10301,8 @@
               },
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 75,
-                "span_id": "s0074"
+                "line": 77,
+                "span_id": "s0076"
               }
             },
             {
@@ -10316,8 +10318,8 @@
               },
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 77,
-                "span_id": "s0078"
+                "line": 79,
+                "span_id": "s007a"
               }
             }
           ],
@@ -10394,8 +10396,8 @@
               "enforcement": "observed",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 11,
-                "span_id": "s0010"
+                "line": 12,
+                "span_id": "s0011"
               }
             },
             {
@@ -10411,8 +10413,8 @@
               "enforcement": "observed",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 22,
-                "span_id": "s0021"
+                "line": 23,
+                "span_id": "s0022"
               }
             },
             {
@@ -10425,8 +10427,8 @@
               "enforcement": "observed",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 23,
-                "span_id": "s0022"
+                "line": 25,
+                "span_id": "s0024"
               }
             },
             {
@@ -10442,8 +10444,8 @@
               "enforcement": "observed",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 33,
-                "span_id": "s0032"
+                "line": 35,
+                "span_id": "s0034"
               }
             },
             {
@@ -10459,8 +10461,8 @@
               "enforcement": "observed",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 36,
-                "span_id": "s0037"
+                "line": 38,
+                "span_id": "s0039"
               }
             },
             {
@@ -10476,8 +10478,8 @@
               "enforcement": "observed",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 47,
-                "span_id": "s0048"
+                "line": 49,
+                "span_id": "s004a"
               }
             },
             {
@@ -10493,8 +10495,8 @@
               "enforcement": "observed",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 50,
-                "span_id": "s004d"
+                "line": 52,
+                "span_id": "s004f"
               }
             },
             {
@@ -10510,8 +10512,8 @@
               "enforcement": "denied",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 53,
-                "span_id": "s0052"
+                "line": 55,
+                "span_id": "s0054"
               }
             },
             {
@@ -10527,8 +10529,8 @@
               "enforcement": "denied",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 53,
-                "span_id": "s0052"
+                "line": 55,
+                "span_id": "s0054"
               }
             },
             {
@@ -10541,8 +10543,8 @@
               "enforcement": "observed",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 54,
-                "span_id": "s0053"
+                "line": 56,
+                "span_id": "s0055"
               }
             },
             {
@@ -10558,8 +10560,8 @@
               "enforcement": "observed",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 64,
-                "span_id": "s0063"
+                "line": 66,
+                "span_id": "s0065"
               }
             },
             {
@@ -10575,8 +10577,8 @@
               "enforcement": "observed",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 75,
-                "span_id": "s0074"
+                "line": 77,
+                "span_id": "s0076"
               }
             },
             {
@@ -10592,8 +10594,8 @@
               "enforcement": "denied",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 77,
-                "span_id": "s0078"
+                "line": 79,
+                "span_id": "s007a"
               }
             },
             {
@@ -10609,8 +10611,8 @@
               "enforcement": "denied",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 77,
-                "span_id": "s0078"
+                "line": 79,
+                "span_id": "s007a"
               }
             }
           ],
@@ -10621,8 +10623,8 @@
               "by": "platform-risk",
               "trace_ref": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 78,
-                "span_id": "s0079"
+                "line": 80,
+                "span_id": "s007b"
               }
             }
           ],
@@ -10630,78 +10632,78 @@
             "first_capability_span": {
               "email_send": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 23,
-                "span_id": "s0022"
+                "line": 25,
+                "span_id": "s0024"
               },
               "payment_access": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 11,
-                "span_id": "s0010"
+                "line": 12,
+                "span_id": "s0011"
               }
             },
             "first_unapproved_high_impact": {
               "file": "trace-demo-0000.jsonl",
-              "line": 11,
-              "span_id": "s0010"
+              "line": 12,
+              "span_id": "s0011"
             },
             "max_amount_span": {
               "file": "trace-demo-0000.jsonl",
-              "line": 53,
-              "span_id": "s0052"
+              "line": 55,
+              "span_id": "s0054"
             },
             "first_tool_span": {
               "export_transcript": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 54,
-                "span_id": "s0053"
+                "line": 56,
+                "span_id": "s0055"
               },
               "issue_refund": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 11,
-                "span_id": "s0010"
+                "line": 12,
+                "span_id": "s0011"
               },
               "send_email": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 23,
-                "span_id": "s0022"
+                "line": 25,
+                "span_id": "s0024"
               },
               "waive_fee": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 47,
-                "span_id": "s0048"
+                "line": 49,
+                "span_id": "s004a"
               }
             },
             "first_unapproved_money": {
               "file": "trace-demo-0000.jsonl",
-              "line": 11,
-              "span_id": "s0010"
+              "line": 12,
+              "span_id": "s0011"
             },
             "first_flag_span": {
               "approval_bypassed": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 11,
-                "span_id": "s0010"
+                "line": 12,
+                "span_id": "s0011"
               },
               "integration_changed": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 23,
-                "span_id": "s0022"
+                "line": 25,
+                "span_id": "s0024"
               },
               "new_counterparty": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 22,
-                "span_id": "s0021"
+                "line": 23,
+                "span_id": "s0022"
               },
               "undeclared_tool": {
                 "file": "trace-demo-0000.jsonl",
-                "line": 23,
-                "span_id": "s0022"
+                "line": 25,
+                "span_id": "s0024"
               }
             },
             "first_external_send": {
               "file": "trace-demo-0000.jsonl",
-              "line": 23,
-              "span_id": "s0022"
+              "line": 25,
+              "span_id": "s0024"
             }
           }
         }
@@ -10815,8 +10817,8 @@
             "by": "platform-risk",
             "trace_ref": {
               "file": "trace-demo-0000.jsonl",
-              "line": 78,
-              "span_id": "s0079"
+              "line": 80,
+              "span_id": "s007b"
             }
           }
         ]
@@ -10833,7 +10835,7 @@
       "window": {
         "start": "2026-09-15T09:00:00.000Z",
         "end": "2026-09-21T16:00:03.000Z",
-        "span_count": 77
+        "span_count": 79
       },
       "dormant_days": 30,
       "totals": {
@@ -10960,13 +10962,13 @@
       "schema": "runtime-chain/1.0",
       "directory": "stoa-traces",
       "ok": true,
-      "records": 78,
+      "records": 80,
       "files": [
         {
           "file": "trace-demo-0000.jsonl",
           "ok": true,
-          "records": 78,
-          "signed": 78,
+          "records": 80,
+          "signed": 80,
           "key_grade": "hmac-sha256",
           "signer_fingerprints": [
             "46c139250575bda7"
@@ -10989,7 +10991,7 @@
         "analysis_window": {
           "start": "2026-09-15T09:00:00.000Z",
           "end": "2026-09-21T16:00:03.000Z",
-          "span_count": 77
+          "span_count": 79
         }
       },
       "summary": {
@@ -11055,7 +11057,380 @@
         "approval_drop": 0.1
       }
     },
-    "baseline_present": true
+    "baseline_present": true,
+    "detectr": {
+      "schema": "dashboard-detectr/0.1",
+      "trajectories": 22,
+      "with_content": 2,
+      "counts": {
+        "grounded": 4,
+        "unsupported": 2,
+        "contradicted": 1,
+        "unverifiable": 1
+      },
+      "hallucination_rate": 0.4286,
+      "by_agent": {
+        "b8f0111742fc": {
+          "trajectories": 1,
+          "claims": 4,
+          "labels": {
+            "grounded": 4,
+            "unsupported": 0,
+            "contradicted": 0,
+            "unverifiable": 0
+          },
+          "findings": 0,
+          "hallucination_rate": 0.0
+        },
+        "bc3db1f17013": {
+          "trajectories": 1,
+          "claims": 4,
+          "labels": {
+            "grounded": 0,
+            "unsupported": 2,
+            "contradicted": 1,
+            "unverifiable": 1
+          },
+          "findings": 3,
+          "hallucination_rate": 1.0
+        }
+      },
+      "findings": [
+        {
+          "fingerprint": "e1320d35a804b99d",
+          "rule_id": "RT012",
+          "title": "Tool argument traces to nothing the agent saw",
+          "category": "hallucination",
+          "severity": "critical",
+          "confidence": "high",
+          "path": "code/agents/support_agent.py",
+          "line": 24,
+          "column": 1,
+          "snippet": "issue_refund({\"amount\": 240, \"order_id\": 7731})",
+          "remediation": "A money, id, email or date argument of a tool call appears in no input, result, document or approval before the call, or conflicts with one. Validate arguments against the session context before the tool runs, and require approval ids to come from the approval step.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "message": "issue_refund.amount = '240' appears nowhere in what the agent saw",
+          "detectr": {
+            "label": "unsupported",
+            "subcategory": "ungrounded",
+            "probability": 0.85,
+            "claim": {
+              "id": "c0001",
+              "type": "action",
+              "text": "issue_refund({\"amount\": 240, \"order_id\": 7731})",
+              "char_span": null,
+              "span_id": "s0022",
+              "entry_id": "e0003",
+              "tool_name": "issue_refund",
+              "source": "tool_call"
+            },
+            "evidence": [],
+            "checkers": [
+              "layer0"
+            ],
+            "blast_radius": 1,
+            "tainted": false,
+            "trajectory_id": "x0020:bc3db1f17013",
+            "agent_id": "bc3db1f17013",
+            "issues": [
+              {
+                "rule_id": "RT012",
+                "label": "unsupported",
+                "subcategory": "ungrounded",
+                "field": "amount",
+                "value": "240",
+                "raw": "240",
+                "expected": null,
+                "checker": "layer0",
+                "detail": "issue_refund.amount = '240' appears nowhere in what the agent saw"
+              }
+            ]
+          },
+          "trace_ref": {
+            "file": "trace-demo-0000.jsonl",
+            "line": 23,
+            "span_id": "s0022"
+          }
+        },
+        {
+          "fingerprint": "6114c77bfa13d3b8",
+          "rule_id": "RT010",
+          "title": "Agent states a value the tool did not return",
+          "category": "hallucination",
+          "severity": "high",
+          "confidence": "high",
+          "path": "code/agents/support_agent.py",
+          "line": 24,
+          "column": 1,
+          "snippet": "Your refund of $240 for order 7731 has been processed",
+          "remediation": "An amount, id, date or status in the agent's reply conflicts with the matching field of the tool result. Render these fields from the result, not from the model.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "message": "the agent said 'processed' but issue_refund returned 'pending' for status",
+          "detectr": {
+            "label": "contradicted",
+            "subcategory": "status",
+            "probability": 1.0,
+            "claim": {
+              "id": "c0003",
+              "type": "action",
+              "text": "Your refund of $240 for order 7731 has been processed",
+              "char_span": [
+                0,
+                53
+              ],
+              "span_id": "s0023",
+              "entry_id": "e0006",
+              "tool_name": "processed",
+              "source": "agent_output"
+            },
+            "evidence": [
+              {
+                "entry_id": "e0004",
+                "kind": "tool_result",
+                "hash": "0eafc159f22440e8389943fda4614e7575aa541131d442edaf4e67b101543050",
+                "excerpt": "amount: 240.0\nrefund_id: RF-7731\nstatus: pending"
+              }
+            ],
+            "checkers": [
+              "layer0"
+            ],
+            "blast_radius": 0,
+            "tainted": true,
+            "trajectory_id": "x0020:bc3db1f17013",
+            "agent_id": "bc3db1f17013",
+            "issues": [
+              {
+                "rule_id": "RT010",
+                "label": "contradicted",
+                "subcategory": "status",
+                "field": "status",
+                "value": "completed",
+                "raw": "processed",
+                "expected": "pending",
+                "checker": "layer0",
+                "detail": "the agent said 'processed' but issue_refund returned 'pending' for status"
+              }
+            ]
+          },
+          "trace_ref": {
+            "file": "trace-demo-0000.jsonl",
+            "line": 24,
+            "span_id": "s0023"
+          }
+        },
+        {
+          "fingerprint": "7a934139a9592f1d",
+          "rule_id": "RT011",
+          "title": "Agent promises a timeline or amount nothing supports",
+          "category": "hallucination",
+          "severity": "medium",
+          "confidence": "high",
+          "path": "code/agents/support_agent.py",
+          "line": 24,
+          "column": 1,
+          "snippet": "and will arrive in 2 days.",
+          "remediation": "A commitment to the user carries a value that appears in no tool result, instruction, document or approval. Put the real terms in the system prompt or a lookup the agent can cite.",
+          "suppressed": false,
+          "suppression_reason": null,
+          "is_new": false,
+          "message": "nothing the agent saw supports 'in 2 days' in 'and will arrive in 2 days.'",
+          "detectr": {
+            "label": "unsupported",
+            "subcategory": "promise",
+            "probability": 0.85,
+            "claim": {
+              "id": "c0004",
+              "type": "commitment",
+              "text": "and will arrive in 2 days.",
+              "char_span": [
+                54,
+                80
+              ],
+              "span_id": "s0023",
+              "entry_id": "e0006",
+              "tool_name": null,
+              "source": "agent_output"
+            },
+            "evidence": [],
+            "checkers": [
+              "layer0"
+            ],
+            "blast_radius": 0,
+            "tainted": false,
+            "trajectory_id": "x0020:bc3db1f17013",
+            "agent_id": "bc3db1f17013",
+            "issues": [
+              {
+                "rule_id": "RT011",
+                "label": "unsupported",
+                "subcategory": "promise",
+                "field": null,
+                "value": "P2D",
+                "raw": "in 2 days",
+                "expected": null,
+                "checker": "layer0",
+                "detail": "nothing the agent saw supports 'in 2 days' in 'and will arrive in 2 days.'"
+              }
+            ]
+          },
+          "trace_ref": {
+            "file": "trace-demo-0000.jsonl",
+            "line": 24,
+            "span_id": "s0023"
+          }
+        }
+      ],
+      "metrics": {
+        "schema": "stoa-detectr-metrics/0.1",
+        "window": "all",
+        "detected_at": "2026-09-21T16:00:03Z",
+        "agents": {
+          "b8f0111742fc": {
+            "all": {
+              "trajectories": 1,
+              "claims": 4,
+              "verifiable_claims": 4,
+              "labels": {
+                "grounded": 4,
+                "unsupported": 0,
+                "contradicted": 0,
+                "unverifiable": 0
+              },
+              "hallucination_rate": 0.0,
+              "contradiction_rate": 0.0,
+              "phantom_action_rate": 0.0,
+              "argument_grounding_failure_rate": 0.0,
+              "unverifiable_rate": 0.0,
+              "mean_blast_radius": null,
+              "mean_time_to_detection_seconds": null,
+              "findings_by_rule": {},
+              "by_claim_type": {
+                "factual": {
+                  "claims": 1,
+                  "grounded": 1,
+                  "unsupported": 0,
+                  "contradicted": 0,
+                  "unverifiable": 0,
+                  "hallucination_rate": 0.0
+                },
+                "action": {
+                  "claims": 2,
+                  "grounded": 2,
+                  "unsupported": 0,
+                  "contradicted": 0,
+                  "unverifiable": 0,
+                  "hallucination_rate": 0.0
+                },
+                "commitment": {
+                  "claims": 1,
+                  "grounded": 1,
+                  "unsupported": 0,
+                  "contradicted": 0,
+                  "unverifiable": 0,
+                  "hallucination_rate": 0.0
+                }
+              }
+            }
+          },
+          "bc3db1f17013": {
+            "all": {
+              "trajectories": 1,
+              "claims": 4,
+              "verifiable_claims": 3,
+              "labels": {
+                "grounded": 0,
+                "unsupported": 2,
+                "contradicted": 1,
+                "unverifiable": 1
+              },
+              "hallucination_rate": 1.0,
+              "contradiction_rate": 0.3333,
+              "phantom_action_rate": 0.0,
+              "argument_grounding_failure_rate": 0.5,
+              "unverifiable_rate": 0.25,
+              "mean_blast_radius": 0.333,
+              "mean_time_to_detection_seconds": 442726.9,
+              "findings_by_rule": {
+                "RT010": 1,
+                "RT011": 1,
+                "RT012": 1
+              },
+              "by_claim_type": {
+                "action": {
+                  "claims": 3,
+                  "grounded": 0,
+                  "unsupported": 1,
+                  "contradicted": 1,
+                  "unverifiable": 1,
+                  "hallucination_rate": 1.0
+                },
+                "commitment": {
+                  "claims": 1,
+                  "grounded": 0,
+                  "unsupported": 1,
+                  "contradicted": 0,
+                  "unverifiable": 0,
+                  "hallucination_rate": 1.0
+                }
+              }
+            }
+          }
+        },
+        "total": {
+          "trajectories": 2,
+          "claims": 8,
+          "verifiable_claims": 7,
+          "labels": {
+            "grounded": 4,
+            "unsupported": 2,
+            "contradicted": 1,
+            "unverifiable": 1
+          },
+          "hallucination_rate": 0.4286,
+          "contradiction_rate": 0.1429,
+          "phantom_action_rate": 0.0,
+          "argument_grounding_failure_rate": 0.3333,
+          "unverifiable_rate": 0.125,
+          "mean_blast_radius": 0.333,
+          "mean_time_to_detection_seconds": 442726.9,
+          "findings_by_rule": {
+            "RT010": 1,
+            "RT011": 1,
+            "RT012": 1
+          },
+          "by_claim_type": {
+            "factual": {
+              "claims": 1,
+              "grounded": 1,
+              "unsupported": 0,
+              "contradicted": 0,
+              "unverifiable": 0,
+              "hallucination_rate": 0.0
+            },
+            "action": {
+              "claims": 5,
+              "grounded": 2,
+              "unsupported": 1,
+              "contradicted": 1,
+              "unverifiable": 1,
+              "hallucination_rate": 0.5
+            },
+            "commitment": {
+              "claims": 2,
+              "grounded": 1,
+              "unsupported": 1,
+              "contradicted": 0,
+              "unverifiable": 0,
+              "hallucination_rate": 0.5
+            }
+          }
+        }
+      }
+    }
   },
   "passports": [
     {
@@ -11200,7 +11575,7 @@
         "could_go_wrong": "Most likely failure: money or account changes go out wrong, twice, or without anyone deciding. Driven by excess access (elevated). 2 high-severity findings point there.",
         "protects": "Detected: callers are signed in, fixed model settings and inputs are checked.",
         "missing": "Missing: a person approves before it acts, a kill switch, logging and a rate limit.",
-        "evidence": "Evidence: 3 declared, 5 static, 4 observed. Observed over 22 spans."
+        "evidence": "Evidence: 3 declared, 5 static, 4 observed. Observed over 23 spans."
       },
       "controls_observed": [
         "authentication",
@@ -11331,7 +11706,7 @@
           "start": "2026-09-15T10:00:00.000Z",
           "end": "2026-09-20T10:01:30.000Z"
         },
-        "span_count": 22,
+        "span_count": 23,
         "money_actions": 6,
         "approval_rate_money": 0.6667,
         "flag_counts": {
@@ -11346,8 +11721,8 @@
         "by": "platform-risk",
         "trace_ref": {
           "file": "trace-demo-0000.jsonl",
-          "line": 78,
-          "span_id": "s0079"
+          "line": 80,
+          "span_id": "s007b"
         }
       },
       "policy_test": {
@@ -11357,7 +11732,7 @@
         "blocked": 0,
         "escalated": 0
       },
-      "registry_hash": "7583a9f2da602474",
+      "registry_hash": "ad1544b09be1fd81",
       "scanner_version": "0.7.4",
       "scan_date": "2026-09-15",
       "validity": {
@@ -11366,7 +11741,7 @@
         "status": "valid",
         "reason": null
       },
-      "verify_hash": "8291f9e3673bc8b7"
+      "verify_hash": "81d42cd355042031"
     },
     {
       "schema": "stoa-passport/0.1",
@@ -11561,12 +11936,12 @@
         "by": "platform-risk",
         "trace_ref": {
           "file": "trace-demo-0000.jsonl",
-          "line": 78,
-          "span_id": "s0079"
+          "line": 80,
+          "span_id": "s007b"
         }
       },
       "policy_test": null,
-      "registry_hash": "7583a9f2da602474",
+      "registry_hash": "ad1544b09be1fd81",
       "scanner_version": "0.7.4",
       "scan_date": "2026-09-15",
       "validity": {
@@ -11575,7 +11950,7 @@
         "status": "valid",
         "reason": null
       },
-      "verify_hash": "f724e6e8d7f30b45"
+      "verify_hash": "503647ba730ec991"
     },
     {
       "schema": "stoa-passport/0.1",
@@ -11802,12 +12177,12 @@
         "by": "platform-risk",
         "trace_ref": {
           "file": "trace-demo-0000.jsonl",
-          "line": 78,
-          "span_id": "s0079"
+          "line": 80,
+          "span_id": "s007b"
         }
       },
       "policy_test": null,
-      "registry_hash": "7583a9f2da602474",
+      "registry_hash": "ad1544b09be1fd81",
       "scanner_version": "0.7.4",
       "scan_date": "2026-09-15",
       "validity": {
@@ -11816,7 +12191,7 @@
         "status": "valid",
         "reason": null
       },
-      "verify_hash": "3b6b16aa5fdde5d0"
+      "verify_hash": "f42587c908f0e4bf"
     },
     {
       "schema": "stoa-passport/0.1",
@@ -11995,12 +12370,12 @@
         "by": "platform-risk",
         "trace_ref": {
           "file": "trace-demo-0000.jsonl",
-          "line": 78,
-          "span_id": "s0079"
+          "line": 80,
+          "span_id": "s007b"
         }
       },
       "policy_test": null,
-      "registry_hash": "7583a9f2da602474",
+      "registry_hash": "ad1544b09be1fd81",
       "scanner_version": "0.7.4",
       "scan_date": "2026-09-15",
       "validity": {
@@ -12009,7 +12384,7 @@
         "status": "valid",
         "reason": null
       },
-      "verify_hash": "38f0e902c23dd336"
+      "verify_hash": "51eefe7638a52306"
     },
     {
       "schema": "stoa-passport/0.1",
@@ -12152,7 +12527,7 @@
         "could_go_wrong": "Most likely failure: money or account changes go out wrong, twice, or without anyone deciding. Driven by excess access (elevated). 2 high-severity findings point there.",
         "protects": "Detected: callers are signed in, fixed model settings and inputs are checked.",
         "missing": "Missing: a person approves before it acts, a kill switch, logging, a rate limit and a declared spending limit.",
-        "evidence": "Evidence: 3 declared, 4 static, 9 observed. Observed over 31 spans."
+        "evidence": "Evidence: 3 declared, 4 static, 9 observed. Observed over 32 spans."
       },
       "controls_observed": [
         "authentication",
@@ -12266,7 +12641,7 @@
           "start": "2026-09-15T11:00:00.000Z",
           "end": "2026-09-21T16:00:03.000Z"
         },
-        "span_count": 31,
+        "span_count": 32,
         "money_actions": 10,
         "approval_rate_money": 0.0,
         "flag_counts": {
@@ -12282,8 +12657,8 @@
         "by": "platform-risk",
         "trace_ref": {
           "file": "trace-demo-0000.jsonl",
-          "line": 78,
-          "span_id": "s0079"
+          "line": 80,
+          "span_id": "s007b"
         }
       },
       "policy_test": {
@@ -12293,7 +12668,7 @@
         "blocked": 1,
         "escalated": 0
       },
-      "registry_hash": "7583a9f2da602474",
+      "registry_hash": "ad1544b09be1fd81",
       "scanner_version": "0.7.4",
       "scan_date": "2026-09-15",
       "validity": {
@@ -12302,7 +12677,7 @@
         "status": "lapsed",
         "reason": "drift high since the baseline"
       },
-      "verify_hash": "502c3f3815084fbe"
+      "verify_hash": "5508edf72236e5b9"
     }
   ],
   "vocabulary": {

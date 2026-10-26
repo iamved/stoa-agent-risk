@@ -150,6 +150,10 @@ that come from scan evidence (robustness findings, inventory, critical
 findings, monitoring, drift) stay read-only: they change when the code
 changes.
 
+When the traces carry captured content, the Runtime tab also shows
+Hallucination DetectR: what each agent said and did, checked against what it
+saw (`docs/detectr.md`).
+
 ## From an existing registry
 
 ```bash

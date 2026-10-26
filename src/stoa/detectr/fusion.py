@@ -197,7 +197,7 @@ def to_findings(fused: list[FusedVerdict], claims: list[Claim], ledger: Ledger, 
                 # Every non-grounded verdict on the claim, so a reply that gets both
                 # the amount and the status wrong shows both.
                 "issues": [{"rule_id": v.rule_id, "label": v.label, "subcategory": v.subcategory, "field": v.field, "value": v.value,
-                            "expected": v.expected, "checker": v.checker, "detail": redact_line(v.detail)}
+                            "raw": v.raw, "expected": v.expected, "checker": v.checker, "detail": redact_line(v.detail)}
                            for v in verdict.layer0 + verdict.external if v.label in ("unsupported", "contradicted")],
             },
         }

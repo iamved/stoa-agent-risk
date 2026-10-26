@@ -60,6 +60,58 @@ def _policy_block(policy_path: str | Path | None, analysis: dict, test_path: str
     return {"document": document, "summary": summary.get("policies") or {}, "killswitch_drills": drills, "test": test}
 
 
+DETECTR_SCHEMA = "dashboard-detectr/0.1"
+
+
+def _detectr_block(traces_dir: str | Path, registry: dict, analysis: dict, generated_at: str | None) -> dict | None:
+    """Hallucination DetectR over the sessions that carry captured content.
+    Layer 0 only here (no external checker); every number is derived from
+    the reports. ``None`` when no trace has content."""
+    from ..detectr.ledger import chain, ledgers_from_trace_dir
+    from ..detectr.metrics import compute_metrics
+    from ..detectr.pipeline import check_ledger
+
+    try:
+        ledgers = ledgers_from_trace_dir(traces_dir)
+    except Exception:  # noqa: BLE001 - never fatal for the page
+        return None
+    store = {l.trajectory_id: l for l in ledgers}
+    # Approvals are span fields the SDK always records; a session counts as
+    # captured only when it holds text or payloads the customer opted to keep.
+    with_content = [l for l in ledgers if any(e.content_captured and e.kind != "approval" for e in l.entries)]
+    if not with_content:
+        return None
+    agents = {a.get("id"): a for a in registry.get("agents") or []}
+    reports = []
+    for ledger in with_content:
+        report = check_ledger(ledger, entries=chain(ledger, store), registry=registry, agent=agents.get(ledger.agent_id), deferred=False)
+        reports.append(report.to_dict())
+    detected_at = generated_at or (analysis.get("window") or {}).get("end")
+    metrics = compute_metrics(reports, detected_at=detected_at)
+    findings = [f for r in reports for f in r["findings"]]
+    by_agent: dict = {}
+    for r in reports:
+        row = by_agent.setdefault(r["agent_id"], {"trajectories": 0, "claims": 0, "labels": {"grounded": 0, "unsupported": 0, "contradicted": 0, "unverifiable": 0}, "findings": 0})
+        row["trajectories"] += 1
+        for label, n in r["counts"].items():
+            row["labels"][label] += n
+            row["claims"] += n
+        row["findings"] += len(r["findings"])
+    for agent_id, row in by_agent.items():
+        cell = (metrics["agents"].get(agent_id) or {}).get("all") or {}
+        row["hallucination_rate"] = cell.get("hallucination_rate")
+    return {
+        "schema": DETECTR_SCHEMA,
+        "trajectories": len(ledgers),
+        "with_content": len(with_content),
+        "counts": metrics["total"]["labels"],
+        "hallucination_rate": metrics["total"]["hallucination_rate"],
+        "by_agent": by_agent,
+        "findings": findings,
+        "metrics": metrics,
+    }
+
+
 def build_runtime_slot(
     traces_dir: str | Path,
     registry: dict,
@@ -100,5 +152,6 @@ def build_runtime_slot(
         "chain": verify_dir(traces_dir, key).to_dict(),
         "drift": drift,
         "baseline_present": baseline is not None,
+        "detectr": _detectr_block(traces_dir, registry, analysis, generated_at),
     }
     return enriched, slot

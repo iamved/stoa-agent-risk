@@ -364,22 +364,24 @@ def ledgers_from_spans(spans: Iterable[dict]) -> list[Ledger]:
                         add_once(ledger, "user_input", prompt, cap, digest, span_id=span.get("span_id"), timestamp=ts, meta=ref)
                 elif kind in ("action", "tool_call"):
                     args, cap, digest = _content_attr(attrs, "args")
-                    payload: Any = args
-                    if not cap:
-                        partial = {}
-                        amount = span.get("amount")
-                        if isinstance(amount, dict) and amount.get("amount") is not None:
-                            partial["amount"] = amount["amount"]
-                            partial["currency"] = amount.get("currency")
-                        if span.get("approval_span_id"):
-                            partial["approval_span_id"] = span["approval_span_id"]
-                        payload = partial or None
                     meta = {**ref, "side_effect": attrs.get("side_effect"), "enforcement": span.get("enforcement"),
                             "approval_span_id": span.get("approval_span_id"), "call_id": span.get("span_id")}
+                    # The span's own fields (amount, approval id) are kept as metadata.
+                    # They are shapes the SDK always records, not captured arguments, so a
+                    # redacted call stays redacted and is never graded on them.
                     if isinstance(span.get("amount"), dict):
                         meta["amount"] = span["amount"]
+                    if not cap:
+                        fields = {}
+                        if isinstance(span.get("amount"), dict) and span["amount"].get("amount") is not None:
+                            fields["amount"] = span["amount"]["amount"]
+                            fields["currency"] = span["amount"].get("currency")
+                        if span.get("approval_span_id"):
+                            fields["approval_span_id"] = span["approval_span_id"]
+                        if fields:
+                            meta["span_fields"] = fields
                     ledger.add("tool_call", span_id=span.get("span_id"), timestamp=ts, tool_name=span.get("tool"),
-                               payload=payload, content_captured=cap or bool(payload), hash_override=digest if not cap else None, meta=meta)
+                               payload=args if cap else None, content_captured=cap, hash_override=None if cap else digest, meta=meta)
                 elif kind == "approval":
                     approval = span.get("approval") or {}
                     payload = {"approval_id": span.get("span_id"), "approved_by": approval.get("approved_by"),

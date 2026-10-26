@@ -48,12 +48,13 @@ class Verdict:
     expected: str | None = None
     confidence: float = 1.0
     checker: str = "layer0"
+    raw: str | None = None
 
     def to_dict(self) -> dict:
         return {
             "claim_id": self.claim_id, "label": self.label, "rule_id": self.rule_id, "subcategory": self.subcategory,
             "evidence": list(self.evidence), "detail": self.detail, "field": self.field, "value": self.value,
-            "expected": self.expected, "confidence": self.confidence, "checker": self.checker,
+            "expected": self.expected, "confidence": self.confidence, "checker": self.checker, "raw": self.raw,
         }
 
 
@@ -327,14 +328,14 @@ def check_result_fidelity(claim: Claim, ledger: Ledger, entries: list[LedgerEntr
         match = next(((r, rv) for r, rv in same_class if _same_value(value, rv, tol)), None)
         if match:
             verdicts.append(Verdict(claim.id, "grounded", None, None, [match[0].id], f"{value.raw!r} matches {match[1].field or 'the result'}",
-                                    field=match[1].field, value=value.canonical))
+                                    field=match[1].field, value=value.canonical, raw=value.raw))
             continue
         if not specific:
             # The clause names neither the tool nor one of its fields, so the
             # latest result cannot be said to be what the clause is about.
             elsewhere = _supporting(value, all_grounding, tol)
             if elsewhere:
-                verdicts.append(Verdict(claim.id, "grounded", None, None, [elsewhere[-1].id], f"{value.raw!r} appears in {elsewhere[-1].kind} {elsewhere[-1].id}", value=value.canonical))
+                verdicts.append(Verdict(claim.id, "grounded", None, None, [elsewhere[-1].id], f"{value.raw!r} appears in {elsewhere[-1].kind} {elsewhere[-1].id}", value=value.canonical, raw=value.raw))
             continue
         target = _target_field(claim, value, same_class)
         if target is None:
@@ -343,7 +344,7 @@ def check_result_fidelity(claim: Claim, ledger: Ledger, entries: list[LedgerEntr
         sub = values_conflict(value, expected) or {"num": "numerical", "id": "identifier", "date": "temporal", "status": "status"}[klass]
         verdicts.append(Verdict(claim.id, "contradicted", RULE_IDS["fidelity"], sub, [result.id],
                                 f"the agent said {value.raw!r} but {result.tool_name or 'the tool'} returned {expected.raw!r} for {expected.field or 'that field'}",
-                                field=expected.field, value=value.canonical, expected=expected.canonical))
+                                field=expected.field, value=value.canonical, raw=value.raw, expected=expected.canonical))
     return verdicts
 
 
@@ -367,9 +368,9 @@ def check_promise(claim: Claim, ledger: Ledger, entries: list[LedgerEntry] | Non
             upper = Value("duration", value.extra["upper"], value.raw)
             support = [e for e in grounding if any(_same_value(upper, ev, tol) for ev in e.values)]
         if support:
-            verdicts.append(Verdict(claim.id, "grounded", None, None, [support[-1].id], f"{value.raw!r} appears in {support[-1].kind} {support[-1].id}", value=value.canonical))
+            verdicts.append(Verdict(claim.id, "grounded", None, None, [support[-1].id], f"{value.raw!r} appears in {support[-1].kind} {support[-1].id}", value=value.canonical, raw=value.raw))
         else:
-            verdicts.append(Verdict(claim.id, "unsupported", RULE_IDS["promise"], "promise", [], f"nothing the agent saw supports {value.raw!r} in {claim.text!r}", value=value.canonical))
+            verdicts.append(Verdict(claim.id, "unsupported", RULE_IDS["promise"], "promise", [], f"nothing the agent saw supports {value.raw!r} in {claim.text!r}", value=value.canonical, raw=value.raw))
     return verdicts
 
 
@@ -430,10 +431,10 @@ def check_argument_grounding(claim: Claim, ledger: Ledger, entries: list[LedgerE
                 later, lv = stale
                 verdicts.append(Verdict(claim.id, "contradicted", RULE_IDS["stale"], "stale", [support[-1].id, later.id],
                                         f"{claim.tool_name}.{value.field} uses {value.raw!r} from {support[-1].id}, but {later.tool_name} later returned {lv.raw!r}",
-                                        field=value.field, value=value.canonical, expected=lv.canonical))
+                                        field=value.field, value=value.canonical, raw=value.raw, expected=lv.canonical))
             else:
                 verdicts.append(Verdict(claim.id, "grounded", None, None, [support[-1].id], f"{value.field} = {value.raw!r} appears in {support[-1].kind} {support[-1].id}",
-                                        field=value.field, value=value.canonical))
+                                        field=value.field, value=value.canonical, raw=value.raw))
             continue
         # Nothing matches. Does the ledger hold a different value for the same field?
         klass = _value_class(value)
@@ -447,10 +448,10 @@ def check_argument_grounding(claim: Claim, ledger: Ledger, entries: list[LedgerE
             sub = values_conflict(value, rival) or {"num": "numerical", "id": "identifier", "date": "temporal", "email": "email"}.get(klass, klass)
             verdicts.append(Verdict(claim.id, "contradicted", RULE_IDS["argument"], sub, [entry.id],
                                     f"{claim.tool_name}.{value.field} = {value.raw!r} conflicts with {rival.raw!r} in {entry.kind} {entry.id}",
-                                    field=value.field, value=value.canonical, expected=rival.canonical))
+                                    field=value.field, value=value.canonical, raw=value.raw, expected=rival.canonical))
         else:
             verdicts.append(Verdict(claim.id, "unsupported", RULE_IDS["argument"], "ungrounded", [],
-                                    f"{claim.tool_name}.{value.field} = {value.raw!r} appears nowhere in what the agent saw", field=value.field, value=value.canonical))
+                                    f"{claim.tool_name}.{value.field} = {value.raw!r} appears nowhere in what the agent saw", field=value.field, value=value.canonical, raw=value.raw))
     return verdicts
 
 
@@ -481,7 +482,7 @@ def check_stale_claim(claim: Claim, ledger: Ledger, entries: list[LedgerEntry] |
             later, lv = stale
             verdicts.append(Verdict(claim.id, "contradicted", RULE_IDS["stale"], "stale", [support[-1].id, later.id],
                                     f"the agent said {value.raw!r}, which {support[-1].tool_name or support[-1].kind} returned earlier, but {later.tool_name} later returned {lv.raw!r}",
-                                    field=lv.field, value=value.canonical, expected=lv.canonical))
+                                    field=lv.field, value=value.canonical, raw=value.raw, expected=lv.canonical))
     return verdicts
 
 

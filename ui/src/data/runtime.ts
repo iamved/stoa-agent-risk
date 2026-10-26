@@ -4,7 +4,7 @@
  * scored again. Absent the slot, every function says so (null, [], "") and
  * the screens fall back to the static view.
  */
-import type { Envelope, FlagEvent, ReconcileRow, RuntimeAgentSummary, RuntimeDriftEvent, RuntimeSlot } from "./types";
+import type { DetectrBlock, DetectrFinding, Envelope, FlagEvent, ReconcileRow, RuntimeAgentSummary, RuntimeDriftEvent, RuntimeSlot } from "./types";
 import { uniqueAgentOf, uniqueAgents, type UniqueAgent } from "./agents";
 import { SEVERITY_RANK, runtimeFindingRefs, type FindingRef } from "./selectors";
 
@@ -74,6 +74,18 @@ export function reconcileRows(env: Envelope): ReconcileLine[] {
 }
 
 /** RT-family findings as shown, highest severity first. */
+/** Hallucination DetectR rows: per agent, then the findings, most severe first. */
+export function detectr(env: Envelope): { block: DetectrBlock; agents: { id: string; name: string; agentId: string | null; row: DetectrBlock["by_agent"][string] }[]; findings: DetectrFinding[] } | null {
+  const block = runtimeSlot(env)?.detectr;
+  if (!block || !block.with_content) return null;
+  const agents = Object.entries(block.by_agent).map(([id, row]) => {
+    const unique = uniqueAgents(env).find((u) => u.records.some((r) => r.agent_id === id) || u.id === id);
+    return { id, name: unique?.name ?? id, agentId: unique?.id ?? null, row };
+  }).sort((a, b) => b.row.findings - a.row.findings || a.name.localeCompare(b.name));
+  const findings = [...block.findings].sort((a, b) => SEVERITY_RANK[b.severity] - SEVERITY_RANK[a.severity] || a.rule_id.localeCompare(b.rule_id));
+  return { block, agents, findings };
+}
+
 export function runtimeFindings(env: Envelope): FindingRef[] {
   return runtimeFindingRefs(env).sort((a, b) => SEVERITY_RANK[b.finding.severity] - SEVERITY_RANK[a.finding.severity] || a.finding.rule_id.localeCompare(b.finding.rule_id));
 }

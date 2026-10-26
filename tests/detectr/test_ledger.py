@@ -82,11 +82,12 @@ def test_value_index_answers_grounding_lookups():
 
 def test_redacted_trace_gives_hashes_and_a_warning():
     ledger = ledgers_from_spans(_refund_spans(content=False))[0]
-    assert ledger.redacted is False  # the span's amount and approval id are still known
+    assert ledger.redacted is True
     outputs = ledger.by_kind("agent_output")
     assert outputs and all(not e.content_captured and e.raw_payload is None and len(e.hash) == 64 for e in outputs)
     call = ledger.by_tool("refund.issue", "tool_call")[0]
-    assert call.parsed == {"amount": 150.0, "currency": "USD", "approval_span_id": "APR-4471"}
+    # the span's own fields survive as metadata, never as graded arguments
+    assert call.parsed is None and call.meta["span_fields"] == {"amount": 150.0, "currency": "USD", "approval_span_id": "APR-4471"}
     fully = ledgers_from_spans([_span(1, "llm_call", provider="openai", model="m", attrs={"response_sha256": "ab" * 32, "response_chars": 5})])[0]
     assert fully.redacted and "capture_content" in fully.warnings[0]
 

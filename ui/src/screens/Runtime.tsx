@@ -4,8 +4,76 @@ import { Pill, SeverityBadge } from "../components/Badge";
 import { EmptyState } from "../components/EmptyState";
 import { RiskTabs } from "../components/RiskTabs";
 import { Section } from "../components/Section";
-import { chainStatus, coverage, driftLines, flagLabel, flagTimeline, reconcileRows, runtimeFindings, runtimeWindow } from "../data/runtime";
+import { chainStatus, coverage, detectr, driftLines, flagLabel, flagTimeline, reconcileRows, runtimeFindings, runtimeWindow } from "../data/runtime";
 import { findingTitle, formatDate, pluralize } from "../data/selectors";
+import type { DetectrFinding } from "../data/types";
+
+/** The claim in the agent's own words, with each value that did not hold marked. */
+function ClaimText({ finding }: { finding: DetectrFinding }) {
+  const text = finding.detectr.claim.text;
+  const marks = finding.detectr.issues.map((i) => i.raw ?? i.value).filter((v): v is string => Boolean(v && text.includes(v)));
+  if (!marks.length) return <span>{text}</span>;
+  const pattern = new RegExp(`(${marks.map((m) => m.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`, "g");
+  return <span>{text.split(pattern).map((part, i) => (marks.includes(part) ? <mark key={i} className="rounded bg-gold-100 px-0.5 text-navy font-semibold underline decoration-sev-high decoration-2">{part}</mark> : <span key={i}>{part}</span>))}</span>;
+}
+
+function DetectrSection() {
+  const { envelope } = useApp();
+  const data = detectr(envelope);
+  const caption = "What each agent said and did, checked against what it saw. Only sessions recorded with content are checked.";
+  if (!data) {
+    return (
+      <Section title="Hallucination DetectR" caption={caption}>
+        <EmptyState title="No session carried content"><span>Record sessions with <span className="mono">configure(capture_content=True)</span>; redacted traces hold hashes only.</span></EmptyState>
+      </Section>
+    );
+  }
+  const { block, agents, findings } = data;
+  const summary = `${pluralize(block.with_content, "session")} of ${block.trajectories} checked, ${pluralize(findings.length, "finding")}.`;
+  return (
+    <Section title="Hallucination DetectR" caption={`${caption} ${summary}`}>
+      <div className="panel overflow-x-auto mb-3" tabIndex={0}>
+        <table className="tbl w-full">
+          <thead><tr><th>Agent</th><th>Sessions</th><th>Claims</th><th>Grounded</th><th>Unsupported</th><th>Contradicted</th><th>Unverifiable</th></tr></thead>
+          <tbody>
+            {agents.map((a) => (
+              <tr key={a.id}>
+                <td>{a.agentId ? <a href={buildHash("inventory", a.agentId)} className="link font-medium">{a.name}</a> : <span className="font-medium">{a.name}</span>}</td>
+                <td>{a.row.trajectories}</td>
+                <td>{a.row.claims}</td>
+                <td>{a.row.labels.grounded}</td>
+                <td className={a.row.labels.unsupported ? "text-sev-high font-medium" : ""}>{a.row.labels.unsupported}</td>
+                <td className={a.row.labels.contradicted ? "text-sev-critical font-medium" : ""}>{a.row.labels.contradicted}</td>
+                <td className="text-ink-muted">{a.row.labels.unverifiable}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {findings.length ? (
+        <ol className="panel m-0 p-0 list-none divide-y divide-line/70">
+          {findings.map((f) => {
+            const agent = agents.find((a) => a.id === f.detectr.agent_id);
+            const evidence = f.detectr.evidence[0];
+            return (
+              <li key={f.fingerprint} className="grid grid-cols-[68px_minmax(0,1fr)] gap-x-3 items-start px-4 py-3">
+                <span className="pt-0.5"><SeverityBadge severity={f.severity} /></span>
+                <div className="min-w-0">
+                  <div className="text-[13.5px] font-medium leading-snug text-navy">{f.title}</div>
+                  <div className="caption mt-0.5">{agent?.name ?? "Agent"} · {f.rule_id}{f.detectr.claim.source === "tool_call" ? " · tool call" : " · reply"}</div>
+                  <blockquote className="m-0 mt-1.5 border-l-2 border-line pl-3 text-[13px] text-ink"><ClaimText finding={f} /></blockquote>
+                  <div className="text-[12.5px] text-ink-soft mt-1.5">{f.message}</div>
+                  {evidence ? <div className="caption mt-1">Checked against {evidence.kind.replace("_", " ")} <span className="mono">{evidence.excerpt.replace(/\n/g, " | ").slice(0, 120)}</span></div> : null}
+                  {f.detectr.blast_radius ? <div className="caption mt-0.5">{pluralize(f.detectr.blast_radius, "later claim")} reused this value.</div> : null}
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      ) : <EmptyState title="Nothing unsupported">Every checked claim traces to something the agent saw.</EmptyState>}
+    </Section>
+  );
+}
 
 /** What the traces showed: tools declared against used, runtime findings, flags by day, drift since the baseline. */
 export function Runtime() {
@@ -78,6 +146,8 @@ export function Runtime() {
           </ol>
         ) : <EmptyState title="No runtime findings">What the traces showed matches the declared and scanned facts.</EmptyState>}
       </Section>
+
+      <DetectrSection />
 
       <Section title="Flags by day" caption="Computed by the SDK as each span was written.">
         {timeline.days.length ? (

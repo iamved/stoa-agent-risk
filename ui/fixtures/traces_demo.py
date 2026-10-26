@@ -88,16 +88,20 @@ class _Writer:
             return "observed", "ok"
         return "allowed", "ok"
 
-    def span(self, *, kind: str, agent: str, trace: str, session: str, start: str, end: str, parent: str | None = None, status: str = "ok", attrs: dict | None = None, counterparty: str | None = None, killed: bool = False, **fields) -> str:
+    def span(self, *, kind: str, agent: str, trace: str, session: str, start: str, end: str, parent: str | None = None, status: str = "ok", attrs: dict | None = None, counterparty: str | None = None, killed: bool = False, content: dict | None = None, **fields) -> str:
         span_id = self.ident("s")
         attrs = dict(attrs or {})
+        # Content attrs (what Hallucination DetectR reads) mark the span as captured in clear.
+        redaction = "content" if content else "redacted"
+        for key, value in (content or {}).items():
+            attrs[key] = value if isinstance(value, str) else json.dumps(value, sort_keys=True)
         enforcement = None
         if kind == "action" and fields.get("tool"):
             amount = fields.get("amount")
             enforcement, status = self._policy(attrs, agent=agent, tool=fields["tool"], side_effect=attrs.get("side_effect", "write"), amount=amount, approval_id=fields.get("approval_span_id"), end=end, killed=killed)
         record = build_span(
             trace_id=trace, span_id=span_id, parent_span_id=parent, kind=kind, start_ts=start, end_ts=end,
-            status=status, redaction="redacted", agent_id=agent, session_id=session, attrs=attrs, enforcement=enforcement, **fields,
+            status=status, redaction=redaction, agent_id=agent, session_id=session, attrs=attrs, enforcement=enforcement, **fields,
         )
         flags = self.flags.compute(record, counterparty=counterparty)
         if flags:
@@ -122,7 +126,10 @@ def _ts(day: str, hour: int, minute: int, second: int = 0, ms: int = 0) -> str:
     return f"{day}T{hour:02d}:{minute:02d}:{second:02d}.{ms:03d}Z"
 
 
-def _refund_session(w: _Writer, *, agent: str, day: str, hour: int, amount: float, model: str, approved: bool, tool: str = "issue_refund", extra_tool: str | None = None, send: bool = False, customer: str = "c1") -> None:
+def _refund_session(w: _Writer, *, agent: str, day: str, hour: int, amount: float, model: str, approved: bool, tool: str = "issue_refund", extra_tool: str | None = None, send: bool = False, customer: str = "c1", content: dict | None = None) -> None:
+    """One refund run. ``content`` (``user``, ``system``, ``args``, ``result``,
+    ``reply``) records the session in clear, the way a customer who opted into
+    ``capture_content`` would, so Hallucination DetectR has something to check."""
     trace = w.ident("t")
     session = w.ident("x")
     run_start, run_end = _ts(day, hour, 0), _ts(day, hour, 1, 30)
@@ -132,16 +139,50 @@ def _refund_session(w: _Writer, *, agent: str, day: str, hour: int, amount: floa
     if approved:
         approval = w.span(kind="approval", agent=agent, trace=trace, session=session, start=_ts(day, hour, 0, 20), end=_ts(day, hour, 0, 58),
                           approved_by="a4f1c2e9b7d3", approval_method="slack_interactive", attrs={"granted": True, "actor_type": "human", "latency_ms": 38000})
+    action_content = None
+    if content:
+        args = dict(content["args"])
+        if approval:
+            args["approval_id"] = approval
+        action_content = {"args": args, "result": content["result"]}
     w.span(kind="action", agent=agent, trace=trace, session=session, start=_ts(day, hour, 1, 0), end=_ts(day, hour, 1, 2, 300),
            capability="payment_access", integration="stripe", tool=tool, amount=amount, currency="USD", approval_span_id=approval,
-           attrs={"side_effect": "payment", "limit_field": "amount"}, counterparty=customer)
+           attrs={"side_effect": "payment", "limit_field": "amount"}, counterparty=customer, content=action_content)
+    if content:
+        # The model turn that writes the reply comes after the tool, as it does in a real agent.
+        w.span(kind="llm_call", agent=agent, trace=trace, session=session, start=_ts(day, hour, 1, 20), end=_ts(day, hour, 1, 24, 100), provider="openai", model=model, cost=0.0017,
+               attrs={"gen_ai.usage.input_tokens": 530, "gen_ai.usage.output_tokens": 48}, content={"response": content["reply"]})
     if extra_tool:
         w.span(kind="action", agent=agent, trace=trace, session=session, start=_ts(day, hour, 1, 5), end=_ts(day, hour, 1, 6),
                tool=extra_tool, attrs={"side_effect": "external_send"})
     if send:
         w.span(kind="action", agent=agent, trace=trace, session=session, start=_ts(day, hour, 1, 10), end=_ts(day, hour, 1, 11),
                capability="email_send", integration="sendgrid", tool="send_email", attrs={"side_effect": "external_send"})
-    w.span(kind="agent_run", agent=agent, trace=trace, session=session, start=run_start, end=run_end, attrs={"user_ref": "9b1e4d0c7a2f"})
+    run_content = {"user_inputs": [content["user"]], "system_prompt": content["system"]} if content else None
+    w.span(kind="agent_run", agent=agent, trace=trace, session=session, start=run_start, end=run_end, attrs={"user_ref": "9b1e4d0c7a2f"}, content=run_content)
+
+
+SUPPORT_SYSTEM = "You are the Meridian Pay support agent. Refunds go back to the original card within 5 to 7 business days. Never promise a date the refund system did not give you."
+
+# Two September sessions carry their content, the way a customer who opted
+# into capture_content would record them. One is clean. In the other the
+# support agent refunds ten times what the customer asked for, reports it as
+# processed while the refund system said pending, and promises a date nobody
+# gave it: the case Hallucination DetectR exists for.
+CONTENT_CLEAN = {
+    "user": "Please refund order 5520, $180. The item never arrived.",
+    "system": SUPPORT_SYSTEM,
+    "args": {"order_id": 5520, "amount": 180},
+    "result": {"refund_id": "RF-5520", "status": "pending", "amount": 180.0},
+    "reply": "I've issued a refund of $180 for order 5520 (reference RF-5520). It is pending and will reach your card within 5 to 7 business days.",
+}
+CONTENT_HALLUCINATED = {
+    "user": "I was charged twice for order 7731. Please refund the duplicate charge of $24.",
+    "system": SUPPORT_SYSTEM,
+    "args": {"order_id": 7731, "amount": 240},
+    "result": {"refund_id": "RF-7731", "status": "pending", "amount": 240.0},
+    "reply": "Your refund of $240 for order 7731 has been processed and will arrive in 2 days.",
+}
 
 
 def _front_session(w: _Writer, *, day: str, hour: int) -> None:
@@ -178,8 +219,8 @@ def write_demo_traces(out: Path, head_registry_path: Path) -> tuple[Path, Path]:
     september = _Writer(facts, policy_path=POLICY_FILE)
     # (day, hour, agent, amount, approved, extras). Support refunds cluster on the 18th so the daily cap is tested for real.
     plan = [
-        ("2026-09-15", 10, ACCOUNT, 180.0, True, {}), ("2026-09-15", 11, SUPPORT, 60.0, False, {}),
-        ("2026-09-16", 10, ACCOUNT, 420.0, True, {}), ("2026-09-16", 13, SUPPORT, 240.0, False, {"send": True}),
+        ("2026-09-15", 10, ACCOUNT, 180.0, True, {"content": CONTENT_CLEAN}), ("2026-09-15", 11, SUPPORT, 60.0, False, {}),
+        ("2026-09-16", 10, ACCOUNT, 420.0, True, {}), ("2026-09-16", 13, SUPPORT, 240.0, False, {"send": True, "content": CONTENT_HALLUCINATED}),
         ("2026-09-17", 10, ACCOUNT, 900.0, False, {}), ("2026-09-17", 12, SUPPORT, 35.0, False, {}),
         ("2026-09-18", 9, SUPPORT, 90.0, False, {}), ("2026-09-18", 10, ACCOUNT, 95.0, True, {}),
         ("2026-09-18", 11, SUPPORT, 260.0, False, {"tool": "waive_fee"}), ("2026-09-18", 13, SUPPORT, 150.0, False, {}),

@@ -1315,8 +1315,9 @@ def _render_detectr_report(doc: dict) -> str:
         text = claim["text"]
         marks = []
         for issue in block.get("issues") or []:
-            if issue.get("value") and str(issue["value"]) in text:
-                marks.append(str(issue["value"]))
+            shown_value = issue.get("raw") or issue.get("value")
+            if shown_value and str(shown_value) in text:
+                marks.append(str(shown_value))
         shown = text
         for mark in marks:
             shown = shown.replace(mark, f"[{mark}]")
