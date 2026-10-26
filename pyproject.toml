@@ -39,9 +39,20 @@ dev = ["pytest>=7.4"]
 # `ed25519`; the stdlib HMAC grade needs nothing). The OTLP exporter will
 # land here too (docs/design/runtime-overlay.md §10).
 runtime = ["cryptography>=42", "opentelemetry-sdk>=1.25", "opentelemetry-exporter-otlp-proto-http>=1.25"]
+# Hallucination DetectR text checkers (docs/design/detectr.md). The core,
+# Layer 0 and the ledger need none of these.
+hallucination = ["lettucedetect>=0.1.7", "transformers>=4.48.3"]
+hallucination-hhem = ["transformers>=4.48.3", "torch>=2.2", "sentencepiece>=0.2"]
+hallucination-judge = ["deepeval>=3.0"]
 
 [project.scripts]
 stoa = "stoa.cli:main"
+
+[project.entry-points."stoa.detectr.checkers"]
+lettucedetect = "stoa.detectr.checkers.lettucedetect:LettuceDetectChecker"
+hhem = "stoa.detectr.checkers.hhem:HHEMChecker"
+deepeval = "stoa.detectr.checkers.deepeval:DeepEvalJudge"
+selfcheck = "stoa.detectr.checkers.selfcheck:SelfCheckStub"
 
 [project.urls]
 Homepage = "https://stoa-agent-risk.dev"
