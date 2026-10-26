@@ -26,7 +26,7 @@ _CATEGORY_LABEL = {"contradiction": "contradicted", "contradicted": "contradicte
 
 class LettuceDetectChecker:
     MANIFEST = CheckerManifest(
-        id="lettucedetect", claim_types={"factual", "result", "commitment", "reasoning"}, requires_evidence=True,
+        id="lettucedetect", claim_types={"factual", "result", "commitment", "reasoning", "action"}, requires_evidence=True,
         requires_model_internals=False, max_context_tokens=8192, est_latency_ms=120, est_cost_per_call=0.0,
         sync_capable=True, license="MIT", extra="hallucination",
         notes="Encoder cascade: binary span detector plus a typing head. Spans below min_confidence are dropped.",

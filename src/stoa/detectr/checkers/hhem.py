@@ -18,7 +18,7 @@ MODEL = "vectara/hallucination_evaluation_model"
 
 class HHEMChecker:
     MANIFEST = CheckerManifest(
-        id="hhem", claim_types={"factual", "result", "commitment", "reasoning"}, requires_evidence=True,
+        id="hhem", claim_types={"factual", "result", "commitment", "reasoning", "action"}, requires_evidence=True,
         requires_model_internals=False, max_context_tokens=512, est_latency_ms=200, est_cost_per_call=0.0,
         sync_capable=False, license="see model card", extra="hallucination-hhem",
         notes="FLAN-T5 based consistency classifier, under 600MB, English only; short inputs work best.",
