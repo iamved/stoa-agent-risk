@@ -18,6 +18,7 @@ import { Scope } from "../screens/Scope";
 import { Controls } from "../screens/Controls";
 import { Audit } from "../screens/Audit";
 import { Runtime } from "../screens/Runtime";
+import { Detectr } from "../screens/Detectr";
 import { Policies } from "../screens/Policies";
 import { Passports } from "../screens/Passports";
 import { Loss } from "../screens/Loss";
@@ -101,6 +102,7 @@ function Routed() {
     route.screen === "findings" ? <Findings /> :
     route.screen === "drift" ? <Drift /> :
     route.screen === "runtime" ? <Runtime /> :
+    route.screen === "detectr" ? <Detectr /> :
     route.screen === "policies" ? <Policies /> :
     route.screen === "passports" ? <Passports /> :
     route.screen === "register" ? <Register /> :

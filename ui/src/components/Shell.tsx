@@ -4,6 +4,7 @@ import { buildHash, type ScreenId } from "../app/router";
 import { uniqueAgents } from "../data/agents";
 import { hiddenNav } from "../data/hidden";
 import { hasPolicies, policyRows } from "../data/policies";
+import { detectr } from "../data/runtime";
 import { activeFindings, countByLevel } from "../data/selectors";
 import { Icon, type IconName } from "./Icons";
 import { Logo } from "./Logo";
@@ -29,25 +30,30 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
   const company = envelope.assessment.identity.company.trim() || r.repository.name;
   const hidden = hiddenNav(envelope);
 
-  const groups: NavGroup[] = [
-    {
-      label: "Screens",
-      showLabel: false,
-      items: ([
-        { id: "overview", label: "Overview", href: buildHash("overview"), screens: ["overview"], icon: "overview" },
-        { id: "inventory", label: "Agent Inventory", href: buildHash("inventory"), screens: ["inventory"], count: uniqueAgents(envelope).length, icon: "inventory" },
-        { id: "scope", label: "Declarations", href: buildHash("scope"), screens: ["scope"], icon: "scope" },
-        // The badge is the number that needs someone: high-severity findings, not the size of the list.
-        { id: "risk", label: "Findings", href: buildHash("findings"), screens: ["findings", "drift", "register", "runtime"], alert: high ? `${high} high` : undefined, icon: "risk" },
-        { id: "controls", label: "Controls & Safeguards", href: buildHash("controls"), screens: ["controls"], icon: "controls" },
-        { id: "policies", label: "Policies", href: buildHash("policies"), screens: ["policies"], icon: "policies", count: hasPolicies(envelope) ? policyRows(envelope).length : undefined },
-        { id: "passports", label: "Passports", href: buildHash("passports"), screens: ["passports"], icon: "passports", count: envelope.passports?.length || undefined },
-        { id: "audit", label: "Launch Safety Audit", href: buildHash("audit"), screens: ["audit"], icon: "audit" },
-        { id: "loss", label: "Financial Exposure", href: buildHash("loss"), screens: ["loss"], icon: "loss" },
-        { id: "insurance", label: "AI Risk Insurance", href: buildHash("evidence"), screens: ["evidence"], icon: "insurance" },
-      ] as NavItem[]).filter((item) => !hidden.has(item.id)),
-    },
+  const detectrFindings = detectr(envelope)?.findings.length;
+  const all: NavItem[] = [
+    { id: "overview", label: "Overview", href: buildHash("overview"), screens: ["overview"], icon: "overview" },
+    { id: "inventory", label: "Agent Inventory", href: buildHash("inventory"), screens: ["inventory"], count: uniqueAgents(envelope).length, icon: "inventory" },
+    { id: "scope", label: "Declarations", href: buildHash("scope"), screens: ["scope"], icon: "scope" },
+    // The badge is the number that needs someone: high-severity findings, not the size of the list.
+    { id: "scanner", label: "Risk Scanner", href: buildHash("findings"), screens: ["findings", "drift"], alert: high ? `${high} high` : undefined, icon: "risk" },
+    { id: "controls", label: "Controls & Safeguards", href: buildHash("controls"), screens: ["controls"], icon: "controls" },
+    { id: "runtime", label: "Runtime Monitor", href: buildHash("runtime"), screens: ["runtime"], icon: "clock" },
+    { id: "detectr", label: "DetectR", href: buildHash("detectr"), screens: ["detectr"], icon: "detectr", count: detectrFindings || undefined },
+    { id: "policies", label: "Policies", href: buildHash("policies"), screens: ["policies"], icon: "policies", count: hasPolicies(envelope) ? policyRows(envelope).length : undefined },
+    { id: "passports", label: "Passports", href: buildHash("passports"), screens: ["passports"], icon: "passports", count: envelope.passports?.length || undefined },
+    { id: "audit", label: "Launch Safety Audit", href: buildHash("audit"), screens: ["audit"], icon: "audit" },
+    { id: "register", label: "Risk Register", href: buildHash("register"), screens: ["register"], icon: "register", count: envelope.register.length || undefined },
+    { id: "loss", label: "Financial Exposure", href: buildHash("loss"), screens: ["loss"], icon: "loss" },
+    { id: "insurance", label: "AI Risk Insurance", href: buildHash("evidence"), screens: ["evidence"], icon: "insurance" },
   ];
+  const pick = (ids: string[]) => all.filter((item) => ids.includes(item.id) && !hidden.has(item.id));
+  const groups: NavGroup[] = [
+    { label: "Discover", showLabel: true, items: pick(["overview", "inventory", "scope"]) },
+    { label: "Assess", showLabel: true, items: pick(["scanner", "controls", "runtime", "detectr"]) },
+    { label: "Govern", showLabel: true, items: pick(["policies", "passports", "audit", "register"]) },
+    { label: "Finance", showLabel: true, items: pick(["loss", "insurance"]) },
+  ].filter((group) => group.items.length > 0);
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-paper">

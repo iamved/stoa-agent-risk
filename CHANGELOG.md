@@ -9,6 +9,18 @@ Registry schema → 1.8 (additive). `stoa scan` now also writes
 `stoa-dashboard.html`: one self-contained file, six screens, no server, no
 network. See [docs/dashboard.md](docs/dashboard.md).
 
+### Dashboard sidebar regrouped
+
+- Four groups: Discover (Overview, Agent Inventory, Declarations), Assess
+  (Risk Scanner, Controls & Safeguards, Runtime Monitor, DetectR), Govern
+  (Policies, Passports, Launch Safety Audit, Risk Register), Finance
+  (Financial Exposure, AI Risk Insurance). The old Findings entry becomes
+  Risk Scanner with two tabs, Findings and Drift; Risk Register, Runtime
+  Monitor and DetectR are their own entries. Old hash routes still resolve.
+- `--hide` ids: inventory, scope, scanner, controls, runtime, detectr,
+  policies, passports, audit, register, loss, insurance (`risk` still works
+  for the scanner).
+
 ### Hallucination DetectR (core)
 
 - `stoa detectr check | ledger | metrics | bench`: rebuild what an agent saw

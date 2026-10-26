@@ -2,78 +2,9 @@ import { useApp } from "../app/context";
 import { buildHash } from "../app/router";
 import { Pill, SeverityBadge } from "../components/Badge";
 import { EmptyState } from "../components/EmptyState";
-import { RiskTabs } from "../components/RiskTabs";
 import { Section } from "../components/Section";
 import { chainStatus, coverage, detectr, driftLines, flagLabel, flagTimeline, reconcileRows, runtimeFindings, runtimeWindow } from "../data/runtime";
 import { findingTitle, formatDate, pluralize } from "../data/selectors";
-import type { DetectrFinding } from "../data/types";
-
-/** The claim in the agent's own words, with each value that did not hold marked. */
-function ClaimText({ finding }: { finding: DetectrFinding }) {
-  const text = finding.detectr.claim.text;
-  const marks = finding.detectr.issues.map((i) => i.raw ?? i.value).filter((v): v is string => Boolean(v && text.includes(v)));
-  if (!marks.length) return <span>{text}</span>;
-  const pattern = new RegExp(`(${marks.map((m) => m.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`, "g");
-  return <span>{text.split(pattern).map((part, i) => (marks.includes(part) ? <mark key={i} className="rounded bg-gold-100 px-0.5 text-navy font-semibold underline decoration-sev-high decoration-2">{part}</mark> : <span key={i}>{part}</span>))}</span>;
-}
-
-function DetectrSection() {
-  const { envelope } = useApp();
-  const data = detectr(envelope);
-  const caption = "What each agent said and did, checked against what it saw. Only sessions recorded with content are checked.";
-  if (!data) {
-    return (
-      <Section title="Hallucination DetectR" caption={caption}>
-        <EmptyState title="No session carried content"><span>Record sessions with <span className="mono">configure(capture_content=True)</span>; redacted traces hold hashes only.</span></EmptyState>
-      </Section>
-    );
-  }
-  const { block, agents, findings } = data;
-  const summary = `${pluralize(block.with_content, "session")} of ${block.trajectories} checked, ${pluralize(findings.length, "finding")}.`;
-  return (
-    <Section title="Hallucination DetectR" caption={`${caption} ${summary}`}>
-      <div className="panel overflow-x-auto mb-3" tabIndex={0}>
-        <table className="tbl w-full">
-          <thead><tr><th>Agent</th><th>Sessions</th><th>Claims</th><th>Grounded</th><th>Unsupported</th><th>Contradicted</th><th>Unverifiable</th></tr></thead>
-          <tbody>
-            {agents.map((a) => (
-              <tr key={a.id}>
-                <td>{a.agentId ? <a href={buildHash("inventory", a.agentId)} className="link font-medium">{a.name}</a> : <span className="font-medium">{a.name}</span>}</td>
-                <td>{a.row.trajectories}</td>
-                <td>{a.row.claims}</td>
-                <td>{a.row.labels.grounded}</td>
-                <td className={a.row.labels.unsupported ? "text-sev-high font-medium" : ""}>{a.row.labels.unsupported}</td>
-                <td className={a.row.labels.contradicted ? "text-sev-critical font-medium" : ""}>{a.row.labels.contradicted}</td>
-                <td className="text-ink-muted">{a.row.labels.unverifiable}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {findings.length ? (
-        <ol className="panel m-0 p-0 list-none divide-y divide-line/70">
-          {findings.map((f) => {
-            const agent = agents.find((a) => a.id === f.detectr.agent_id);
-            const evidence = f.detectr.evidence[0];
-            return (
-              <li key={f.fingerprint} className="grid grid-cols-[68px_minmax(0,1fr)] gap-x-3 items-start px-4 py-3">
-                <span className="pt-0.5"><SeverityBadge severity={f.severity} /></span>
-                <div className="min-w-0">
-                  <div className="text-[13.5px] font-medium leading-snug text-navy">{f.title}</div>
-                  <div className="caption mt-0.5">{agent?.name ?? "Agent"} · {f.rule_id}{f.detectr.claim.source === "tool_call" ? " · tool call" : " · reply"}</div>
-                  <blockquote className="m-0 mt-1.5 border-l-2 border-line pl-3 text-[13px] text-ink"><ClaimText finding={f} /></blockquote>
-                  <div className="text-[12.5px] text-ink-soft mt-1.5">{f.message}</div>
-                  {evidence ? <div className="caption mt-1">Checked against {evidence.kind.replace("_", " ")} <span className="mono">{evidence.excerpt.replace(/\n/g, " | ").slice(0, 120)}</span></div> : null}
-                  {f.detectr.blast_radius ? <div className="caption mt-0.5">{pluralize(f.detectr.blast_radius, "later claim")} reused this value.</div> : null}
-                </div>
-              </li>
-            );
-          })}
-        </ol>
-      ) : <EmptyState title="Nothing unsupported">Every checked claim traces to something the agent saw.</EmptyState>}
-    </Section>
-  );
-}
 
 /** What the traces showed: tools declared against used, runtime findings, flags by day, drift since the baseline. */
 export function Runtime() {
@@ -84,8 +15,7 @@ export function Runtime() {
   if (!window || !cover || !window.spans) {
     return (
       <div>
-        <RiskTabs current="runtime" />
-        <h1 className="m-0 mb-3">Runtime</h1>
+        <h1 className="m-0 mb-3">Runtime Monitor</h1>
         <EmptyState title="No traces in this scan"><span>Instrument an agent with <span className="mono">stoa.runtime</span>, then build the page with <span className="mono">stoa dashboard stoa-registry.json --runtime stoa-traces</span> or scan with <span className="mono">--with-runtime</span>.</span></EmptyState>
       </div>
     );
@@ -97,9 +27,8 @@ export function Runtime() {
   const flags = Object.entries(timeline.totals).sort((a, b) => b[1] - a[1]);
   return (
     <div>
-      <RiskTabs current="runtime" />
       <div className="flex flex-wrap items-baseline justify-between gap-2 mb-1">
-        <h1 className="m-0">Runtime</h1>
+        <h1 className="m-0">Runtime Monitor</h1>
         <div className="caption">Observed {formatDate(window.start)} to {formatDate(window.end)} · {pluralize(window.spans, "span")} · {cover.active} of {pluralize(cover.total, "agent")} active{cover.unmatched ? ` · ${pluralize(cover.unmatched, "unmatched record")}` : ""}</div>
       </div>
       {chain ? (
@@ -147,7 +76,9 @@ export function Runtime() {
         ) : <EmptyState title="No runtime findings">What the traces showed matches the declared and scanned facts.</EmptyState>}
       </Section>
 
-      <DetectrSection />
+      {detectr(envelope) ? (
+        <p className="m-0 mb-4 text-[12.5px] text-ink-soft">DetectR checked {pluralize(detectr(envelope)!.block.with_content, "session")} recorded with content and found {pluralize(detectr(envelope)!.findings.length, "claim")} that did not hold. <a href={buildHash("detectr")} className="link">Open DetectR</a></p>
+      ) : null}
 
       <Section title="Flags by day" caption="Computed by the SDK as each span was written.">
         {timeline.days.length ? (

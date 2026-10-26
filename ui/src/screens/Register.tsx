@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { AgentMark } from "../components/AgentMark";
 import { useApp } from "../app/context";
-import { RiskTabs } from "../components/RiskTabs";
 import { buildHash, navigate, useRoute } from "../app/router";
 import { ExposureBadge, Pill } from "../components/Badge";
 import { Drawer } from "../components/Drawer";
@@ -23,9 +22,8 @@ export function Register() {
 
   return (
     <div>
-      <RiskTabs current="register" />
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="m-0">Risk register</h1>
+        <h1 className="m-0">Risk Register</h1>
         <div className="caption">One row per agent and dimension at moderate exposure or above. Click a row to set its owner and treatment.</div>
       </div>
 

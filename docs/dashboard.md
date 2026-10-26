@@ -20,7 +20,7 @@ drilling into an agent, reviewing drift, maintaining the risk register.
 | AI estate | Overview | the eight-dimension matrix by category, stat cards, the five findings to read first, framework classes, trends |
 | AI estate | Agent Inventory | agents in code and infrastructure, tools, providers, integrations, the architecture graph |
 | AI estate | Declared Scope (hidden from the sidebar for now; reachable at `#/scope`) | the business context a person supplies (organization, governance, every agent's owner, intent, data classes and limits, current insurance, applicant identity), editable on the page and saved as `stoa-declared.toml` and `.stoa/underwriting.toml`; a completeness figure names the fields worth filling next |
-| Risk model | Risk Dashboard | three tabs: Findings (filters in the URL, virtualized table, What / Why / Fix drawer), Drift, Risk register |
+| Risk model | Risk Scanner | two tabs: Findings (filters in the URL, virtualized table, What / Why / Fix drawer) and Drift. Risk Register, Runtime Monitor and DetectR are their own sidebar entries |
 | Risk model | Controls & Safeguards | controls observed per agent, tool guards, control gaps by rule |
 | Risk model | Estimated Financial Loss | the AI loss outlook for a scanned agent (bad-year and average-year loss, exceedance curve, suggested limit and retention, gaps against current policies, comparable public events, what-if levers), plus the declared limits the scan checks |
 | Risk model | AI Risk Insurance | the pre-filled AI Model Risk Assessment as it would be submitted (every field tagged from scan, declared, applicant, to confirm, or indicative), the schedule, the steps to submission, and the evidence pack behind it |
@@ -74,7 +74,7 @@ editor.
 
 `stoa dashboard stoa-registry.json --runtime stoa-traces` (or `stoa scan
 --with-runtime stoa-traces`) adds what the traces showed beside what the
-code made possible: a Runtime tab under Findings (tools declared against
+code made possible: a Runtime Monitor screen (tools declared against
 used, runtime findings pointing at spans, flags by day, drift since the
 committed baseline given with `--runtime-baseline`), "active in traces" on
 the Agent Inventory, the observed approval rate on Controls & Safeguards,
@@ -150,9 +150,12 @@ that come from scan evidence (robustness findings, inventory, critical
 findings, monitoring, drift) stay read-only: they change when the code
 changes.
 
-When the traces carry captured content, the Runtime tab also shows
-Hallucination DetectR: what each agent said and did, checked against what it
-saw (`docs/detectr.md`).
+When the traces carry captured content, the DetectR screen shows what each
+agent said and did, checked against what it saw (`docs/detectr.md`). The
+sidebar is grouped: Discover (Overview, Agent Inventory, Declarations), Assess
+(Risk Scanner, Controls & Safeguards, Runtime Monitor, DetectR), Govern
+(Policies, Passports, Launch Safety Audit, Risk Register), Finance (Financial
+Exposure, AI Risk Insurance).
 
 ## From an existing registry
 
@@ -163,7 +166,8 @@ stoa dashboard stoa-registry.json --out review.html --open
 ```
 
 `--hide SCREEN` leaves a sidebar entry out of the page (repeatable; for
-example `--hide insurance`). The data is still in the page, only the screen
+example `--hide insurance`; ids: inventory, scope, scanner, controls, runtime,
+detectr, policies, passports, audit, register, loss, insurance). The data is still in the page, only the screen
 and the links to it are gone. Overview cannot be hidden.
 
 `--summary` prints the scan at a glance in the terminal as well. It reads the

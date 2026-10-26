@@ -37,6 +37,12 @@ export const Icon = {
   insurance: () => (
     <svg {...base}><path d="M4 12a8 8 0 0 1 16 0z" /><path d="M12 12v6a2 2 0 0 0 4 0" /><path d="M12 3v1" /></svg>
   ),
+  detectr: () => (
+    <svg {...base}><path d="M4 5.5h16v10H9l-5 4z" /><path d="M9 10.5l2 2 4-4" /></svg>
+  ),
+  register: () => (
+    <svg {...base}><rect x="4" y="3" width="16" height="18" rx="1.5" /><path d="M8 8h8M8 12h8M8 16h5" /></svg>
+  ),
   flag: () => (
     <svg {...base}><path d="M5 21V4" /><path d="M5 4h11l-2 4 2 4H5" /></svg>
   ),

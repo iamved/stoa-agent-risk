@@ -1,21 +1,18 @@
 import { useApp } from "../app/context";
 import { buildHash, type ScreenId } from "../app/router";
-import { hasRuntime, runtimeFindings } from "../data/runtime";
 import { activeFindings } from "../data/selectors";
 
-/** Findings, drift and the register are three views of one model. */
+/** The Risk Scanner's two views: what the scan found, and what changed since the last one. */
 export function RiskTabs({ current }: { current: ScreenId }) {
   const { envelope } = useApp();
   const drift = envelope.diff ? envelope.diff.summary.agents_changed + envelope.diff.summary.agents_added + envelope.diff.summary.agents_removed : null;
   const tabs: { id: ScreenId; label: string; count: number | null }[] = [
     { id: "findings", label: "Findings", count: activeFindings(envelope).length },
     { id: "drift", label: "Drift", count: drift },
-    { id: "register", label: "Risk register", count: envelope.register.length },
-    { id: "runtime", label: "Runtime", count: hasRuntime(envelope) ? runtimeFindings(envelope).length : null },
   ];
   return (
     <div className="mb-4">
-      <div role="tablist" aria-label="Findings views" className="flex flex-wrap gap-1 border-b border-line no-print">
+      <div role="tablist" aria-label="Risk Scanner views" className="flex flex-wrap gap-1 border-b border-line no-print">
         {tabs.map((t) => {
           const active = t.id === current;
           return (

@@ -5,14 +5,19 @@
 import type { ScreenId } from "../app/router";
 import type { Envelope } from "./types";
 
-export type NavId = "overview" | "inventory" | "scope" | "risk" | "controls" | "policies" | "passports" | "audit" | "loss" | "insurance";
+export type NavId = "overview" | "inventory" | "scope" | "scanner" | "risk" | "controls" | "runtime" | "detectr" | "register" | "policies" | "passports" | "audit" | "loss" | "insurance";
 
 export const NAV_SCREENS: Record<NavId, ScreenId[]> = {
   overview: ["overview"],
   inventory: ["inventory"],
   scope: ["scope"],
-  risk: ["findings", "drift", "register", "runtime"],
+  scanner: ["findings", "drift"],
+  // "risk" was the sidebar id before the Risk Scanner split; kept so older --hide flags still work.
+  risk: ["findings", "drift"],
   controls: ["controls"],
+  runtime: ["runtime"],
+  detectr: ["detectr"],
+  register: ["register"],
   policies: ["policies"],
   passports: ["passports"],
   audit: ["audit"],

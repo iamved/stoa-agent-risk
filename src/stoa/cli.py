@@ -38,7 +38,7 @@ EXIT_USAGE = 2
 EXIT_ERROR = 3
 
 # Sidebar entries `stoa dashboard --hide` can leave out. Overview always stays.
-HIDEABLE_SCREENS = ("inventory", "scope", "risk", "controls", "policies", "passports", "audit", "loss", "insurance")
+HIDEABLE_SCREENS = ("inventory", "scope", "scanner", "controls", "runtime", "detectr", "policies", "passports", "audit", "register", "loss", "insurance")
 
 INIT_FILES = {
     ".github/workflows/stoa.yml": "stoa.yml",

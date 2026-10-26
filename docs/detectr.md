@@ -143,11 +143,11 @@ weights. It never runs in CI and never downloads.
 
 `stoa dashboard --runtime stoa-traces` (and `stoa scan --with-runtime`) runs
 Layer 0 over every session that carried captured content and puts the result
-on the Runtime tab under "Hallucination DetectR": per agent, how many claims
+on the DetectR screen: per agent, how many claims
 were grounded, unsupported, contradicted or unverifiable, then each finding
 with the offending value marked in the agent's own words and the tool result
 it was checked against. Sessions recorded in redacted mode are counted but
-not checked. These findings stay on the Runtime tab; they are not added to
+not checked. These findings stay on the DetectR screen; they are not added to
 the agent's findings or the scan totals.
 
 ## Adding a checker

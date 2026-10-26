@@ -69,8 +69,9 @@ test.describe("findings", () => {
 
   test("the runtime tab shows what the traces showed, and the static screens stay the scan's", async ({ page }) => {
     await page.goto(fileUrl("meridian-pay", "#/runtime"));
-    await expect(page.getByRole("tab", { name: /Runtime/ })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByRole("navigation", { name: "Screens" }).getByRole("link", { name: /Runtime Monitor/ })).toHaveAttribute("aria-current", "page");
     const main = page.locator("main .screen-content");
+    await expect(main).toContainText("Open DetectR");
     await expect(main).toContainText("Chain intact");
     await expect(main).toContainText(/Observed 15 Sep 2026 to 21 Sep 2026 · \d+ spans · 3 of 5 agents active/);
     // declared vs used: the support chatbot calls a tool the scan never listed
@@ -91,17 +92,17 @@ test.describe("findings", () => {
     await expect(main).toContainText("Approval rate fell");
     // the static counts did not change: 13 scan findings, 3 high
     await expect(page.getByRole("navigation", { name: "Screens" })).toContainText("3 high");
-    await expect(page.getByRole("tab", { name: /^Findings/ })).toContainText("13");
     // no traces: the tab says so
     await page.goto(fileUrl("first-run", "#/runtime"));
     await expect(main).toContainText("No traces in this scan");
   });
 
-  test("the runtime tab shows Hallucination DetectR for the sessions recorded with content", async ({ page }) => {
-    await page.goto(fileUrl("meridian-pay", "#/runtime"));
-    const section = page.getByRole("heading", { name: "Hallucination DetectR" }).locator("xpath=ancestor::section[1]");
+  test("the DetectR screen shows what each agent said and did against what it saw", async ({ page }) => {
+    await page.goto(fileUrl("meridian-pay", "#/detectr"));
+    await expect(page.getByRole("navigation", { name: "Screens" }).getByRole("link", { name: /DetectR/ })).toHaveAttribute("aria-current", "page");
+    const section = page.locator("main .screen-content");
     await expect(section).toContainText("2 sessions of 22 checked, 3 findings.");
-    const table = section.getByRole("table");
+    const table = section.getByRole("table").first();
     await expect(table).toContainText("meridian-support");
     await expect(table).toContainText("account-actions");
     const support = table.getByRole("row", { name: /meridian-support/ });
@@ -113,7 +114,6 @@ test.describe("findings", () => {
     await expect(section).toContainText("Checked against tool result");
     // DetectR findings stay on this tab: the scan's counts did not move
     await expect(page.getByRole("navigation", { name: "Screens" })).toContainText("3 high");
-    await expect(page.getByRole("tab", { name: /^Findings/ })).toContainText("13");
   });
 
   test("the policies screen shows the file, each policy's outcomes, unprotected tools and the drill", async ({ page }) => {
