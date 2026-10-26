@@ -292,6 +292,17 @@ entries the page leaves out; the data underneath is unchanged. In
 `underwriting` and `assessment.derived`, `monitoring` and `drift` are
 `true`, `false`, or `null` when the scan gives no basis for an answer.
 
+## Hallucination DetectR documents
+
+Separate documents, never part of `stoa-registry.json`. See `docs/detectr.md`.
+
+- `stoa-detectr-ledger/0.1`: `{trajectory_id, agent_id, model_id, built_from: sdk | otel | langgraph, parent_trajectory_id, entries[], warnings[]}`. An entry: `{id, seq, kind, span_id, timestamp, tool_name, raw_payload, parsed, text_view, hash, content_captured, meta, values[]}`. Kinds: `user_input`, `system_prompt`, `retrieved_doc`, `tool_call`, `tool_result`, `approval`, `agent_output`, `handoff_in`, `handoff_out`.
+- `stoa-detectr-report/0.1`: `{trajectory_id, agent_id, model_id, built_from, consequence, entries, redacted, claims[], claim_timestamps, verdicts[], findings[], counts, checkers, warnings[]}`. A finding has the RT-family shape (`fingerprint`, `rule_id` RT009 to RT013, `category: "hallucination"`, `severity`, `confidence`, `path`, `line`, `snippet`, `remediation`, `message`, optional `trace_ref`) plus `detectr: {label, subcategory, probability, claim, evidence[{entry_id, kind, hash, excerpt}], checkers, blast_radius, tainted, issues[]}`. Labels: `grounded`, `unsupported`, `contradicted`, `unverifiable`; unverifiable never enters a rate.
+- `stoa-detectr-metrics/0.1`: `{window, detected_at, agents: {agent: {bucket: cell}}, total: cell}` where a cell holds `claims`, `verifiable_claims`, `labels`, `hallucination_rate`, `contradiction_rate`, `phantom_action_rate`, `argument_grounding_failure_rate`, `unverifiable_rate`, `mean_blast_radius`, `mean_time_to_detection_seconds`, `findings_by_rule`, `by_claim_type`.
+- `stoa-detectr-labels/0.1` (JSONL) and `stoa-detectr-calibration/0.1`, `stoa-detectr-bench/0.1`.
+
+Trace 1.1 attrs recorded only under `capture_content=True`: `prompt`, `response`, `system` on `llm_call` spans, `args` and `result` on guarded `action` spans, `user_inputs` and `system_prompt` on `agent_run` spans, `documents` on `retrieval` spans, `message` on `delegation` spans. In redacted mode each becomes `<name>_sha256` plus `<name>_chars` (guarded spans always carry `args_sha256`; a result adds `result_sha256`). The schema version does not change.
+
 ## Schema 1.7 additions (tool inventory)
 
 Tools are first-class objects. An agent that binds tools carries a `tools`

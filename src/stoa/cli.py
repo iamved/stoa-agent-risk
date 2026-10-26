@@ -389,6 +389,39 @@ def build_parser() -> argparse.ArgumentParser:
     kill.add_argument("--timeout", type=float, default=30.0)
     kill.add_argument("--state", metavar="PATH", default=None, help="Kill switch file (default: .stoa/killswitch.json upward from here)")
 
+    detectr = subparsers.add_parser("detectr", help="Hallucination DetectR: check what an agent said and did against what it saw")
+    det_sub = detectr.add_subparsers(dest="detectr_command", required=True)
+    det_check = det_sub.add_parser("check", help="Check a trajectory: findings JSON plus a readable report")
+    det_check.add_argument("trajectory", metavar="PATH", help="A stoa-traces directory or file, an OpenTelemetry span export, or a LangGraph checkpoint JSON")
+    det_check.add_argument("--source", choices=("auto", "sdk", "otel", "langgraph"), default="auto")
+    det_check.add_argument("--checkers", metavar="LIST", default=None, help="Comma-separated external checkers to run (default: the config's lanes)")
+    det_check.add_argument("--sync", action="store_true", help="Run only sync-capable checkers in sync lanes; list the rest as deferred")
+    det_check.add_argument("--config", metavar="PATH", default=None, help="stoa.detectr.toml (default: search upward)")
+    det_check.add_argument("--registry", metavar="PATH", default=None, help="stoa-registry.json for consequence classes and the code anchor")
+    det_check.add_argument("--agent-id", metavar="ID", default=None, help="Agent id for LangGraph checkpoints, which carry none")
+    det_check.add_argument("--out", metavar="PATH", default=None, help="Write the report JSON here")
+    det_check.add_argument("--json", action="store_true", help="Print the report JSON instead of the readable report")
+    det_ledger = det_sub.add_parser("ledger", help="Dump the reconstructed ledger (debugging)")
+    det_ledger.add_argument("trajectory", metavar="PATH")
+    det_ledger.add_argument("--source", choices=("auto", "sdk", "otel", "langgraph"), default="auto")
+    det_ledger.add_argument("--agent-id", metavar="ID", default=None)
+    det_ledger.add_argument("--json", action="store_true")
+    det_metrics = det_sub.add_parser("metrics", help="Aggregate DetectR report files into per-agent, per-window metrics")
+    det_metrics.add_argument("reports", metavar="PATH", nargs="+", help="Report JSON files from `stoa detectr check --out`, or directories of them")
+    det_metrics.add_argument("--agent", metavar="ID", default=None, help="Only this agent")
+    det_metrics.add_argument("--window", choices=("all", "day", "week", "month"), default="all")
+    det_metrics.add_argument("--json", action="store_true")
+    det_bench = det_sub.add_parser("bench", help="Offline benchmark of the enabled checkers (never in CI, never downloads)")
+    det_bench.add_argument("--datasets", metavar="LIST", default="agentic", help="Comma-separated: agentic, ragtruth, halubench")
+    det_bench.add_argument("--checkers", metavar="LIST", default="", help="Comma-separated external checkers to benchmark")
+    det_bench.add_argument("--ragtruth", metavar="PATH", default=None, help="RAGTruth JSONL you downloaded")
+    det_bench.add_argument("--halubench", metavar="PATH", default=None, help="HaluBench file you downloaded")
+    det_bench.add_argument("--agentic", metavar="PATH", default=None, help="Agentic fixture JSON (default: the shipped test set)")
+    det_bench.add_argument("--limit", type=int, default=None)
+    det_bench.add_argument("--config", metavar="PATH", default=None)
+    det_bench.add_argument("--out", metavar="PATH", default=None)
+    det_bench.add_argument("--json", action="store_true")
+
     return parser
 
 
@@ -423,6 +456,8 @@ def main(argv: list[str] | None = None) -> int:
             return _run_passport_command(args)
         if args.command == "kill":
             return _run_kill_command(args)
+        if args.command == "detectr":
+            return _run_detectr_command(args)
     except ConfigError as exc:
         print(f"stoa: configuration error: {exc}", file=sys.stderr)
         return EXIT_USAGE
@@ -1253,6 +1288,167 @@ def _run_passport_command(args: argparse.Namespace) -> int:
     _atomic_write(out, json.dumps(passport, indent=2, ensure_ascii=False) + "\n" if args.json else render_passport_html(passport, company=company))
     print(f"stoa passport: wrote {out} ({passport['validity']['status']}, verify {passport['verify_hash']})")
     return EXIT_OK
+
+
+def _detectr_config(path: str | None):
+    from .detectr.router import RouterConfig, find_config
+
+    target = Path(path) if path else find_config()
+    if target is None:
+        return RouterConfig()
+    config = RouterConfig.load(target)
+    for problem in config.problems:
+        print(f"stoa: detectr config: {problem}", file=sys.stderr)
+    return config
+
+
+def _render_detectr_report(doc: dict) -> str:
+    counts = doc["counts"]
+    lines = [f"DetectR: {doc['trajectory_id']} (agent {doc.get('agent_id') or 'unknown'}, model {doc.get('model_id') or 'unknown'}, "
+             f"{doc['entries']} ledger entries, consequence {doc['consequence']})",
+             f"  claims: {sum(counts.values())}; grounded {counts['grounded']}, unsupported {counts['unsupported']}, "
+             f"contradicted {counts['contradicted']}, unverifiable {counts['unverifiable']} (counted apart)"]
+    claims = {c["id"]: c for c in doc["claims"]}
+    for finding in doc["findings"]:
+        block = finding["detectr"]
+        claim = block["claim"]
+        text = claim["text"]
+        marks = []
+        for issue in block.get("issues") or []:
+            if issue.get("value") and str(issue["value"]) in text:
+                marks.append(str(issue["value"]))
+        shown = text
+        for mark in marks:
+            shown = shown.replace(mark, f"[{mark}]")
+        lines.append(f"  {finding['rule_id']} {finding['severity']} {block['label']}/{block['subcategory']}: {shown}")
+        lines.append(f"      {finding['message']}")
+        if block.get("evidence"):
+            lines.append("      evidence: " + "; ".join(f"{e['entry_id']} ({e['kind']}) {e['excerpt'][:80].replace(chr(10), ' | ')}" for e in block["evidence"][:3]))
+        if block.get("blast_radius"):
+            lines.append(f"      downstream claims affected: {block['blast_radius']}")
+    for verdict in doc["verdicts"]:
+        if verdict["label"] == "unverifiable":
+            lines.append(f"  unverifiable: {claims[verdict['claim_id']]['text'][:100]} ({verdict['detail']})")
+    checkers = doc["checkers"]
+    if checkers["ran"] or checkers["skipped"] or checkers["deferred"]:
+        lines.append(f"  checkers ran {checkers['ran'] or 'none'}; skipped {checkers['skipped'] or 'none'}; deferred {len(checkers['deferred'])}")
+    for warning in doc.get("warnings") or []:
+        lines.append(f"  warning: {warning}")
+    return "\n".join(lines) + "\n"
+
+
+def _run_detectr_command(args: argparse.Namespace) -> int:
+    from .detectr.ledger import build_ledgers, chain, render_ledger
+
+    if args.detectr_command == "ledger":
+        try:
+            ledgers = build_ledgers(args.trajectory, source=args.source, agent_id=args.agent_id)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            print(f"stoa: {exc}", file=sys.stderr)
+            return EXIT_ERROR
+        if args.json:
+            print(json.dumps([l.to_dict() for l in ledgers], indent=2, sort_keys=True))
+        else:
+            for ledger in ledgers:
+                print(render_ledger(ledger), end="")
+        return EXIT_OK
+
+    if args.detectr_command == "check":
+        from .detectr.pipeline import check_ledger
+        from .detectr.router import Router, RouterConfig
+
+        config = _detectr_config(args.config)
+        if args.checkers is not None:
+            names = [c.strip() for c in args.checkers.split(",") if c.strip()]
+            config.default.checkers = names
+            for lane in config.by_consequence.values():
+                lane.checkers = names
+        registry = None
+        if args.registry:
+            try:
+                registry = json.loads(Path(args.registry).read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError) as exc:
+                print(f"stoa: cannot read registry: {exc}", file=sys.stderr)
+                return EXIT_ERROR
+        try:
+            ledgers = build_ledgers(args.trajectory, source=args.source, agent_id=args.agent_id)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            print(f"stoa: {exc}", file=sys.stderr)
+            return EXIT_ERROR
+        if not ledgers:
+            print("stoa: no trajectory found in the input", file=sys.stderr)
+            return EXIT_ERROR
+        store = {l.trajectory_id: l for l in ledgers}
+        router = Router(config)
+        docs = []
+        for ledger in ledgers:
+            agent = None
+            if registry:
+                agent = next((a for a in registry.get("agents") or [] if a.get("id") == ledger.agent_id or a.get("name") == ledger.agent_id), None)
+            report = check_ledger(ledger, config=config, router=router, entries=chain(ledger, store), registry=registry, agent=agent, deferred=not args.sync)
+            doc = report.to_dict()
+            docs.append(doc)
+        payload = docs[0] if len(docs) == 1 else {"schema": "stoa-detectr-report-set/0.1", "reports": docs}
+        if args.out:
+            Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+            Path(args.out).write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            print(f"stoa: wrote {args.out}", file=sys.stderr)
+        if args.json:
+            print(json.dumps(payload, indent=2, sort_keys=True))
+        else:
+            for doc in docs:
+                print(_render_detectr_report(doc), end="")
+        # Findings are reported, never gated: DetectR rules are not gateable in this build.
+        return EXIT_OK
+
+    if args.detectr_command == "metrics":
+        from .detectr.metrics import compute_metrics, render_metrics
+
+        reports: list[dict] = []
+        for raw in args.reports:
+            target = Path(raw)
+            files = sorted(target.glob("*.json")) if target.is_dir() else [target]
+            for file in files:
+                try:
+                    doc = json.loads(file.read_text(encoding="utf-8"))
+                except (OSError, json.JSONDecodeError) as exc:
+                    print(f"stoa: skipping {file}: {exc}", file=sys.stderr)
+                    continue
+                rows = doc.get("reports") if isinstance(doc, dict) and doc.get("schema") == "stoa-detectr-report-set/0.1" else [doc]
+                for row in rows:
+                    if isinstance(row, dict) and row.get("schema") == "stoa-detectr-report/0.1" and (not args.agent or row.get("agent_id") == args.agent):
+                        reports.append(row)
+        metrics = compute_metrics(reports, window=args.window)
+        print(json.dumps(metrics, indent=2, sort_keys=True) if args.json else render_metrics(metrics), end="" if not args.json else "\n")
+        return EXIT_OK
+
+    if args.detectr_command == "bench":
+        from .detectr.bench import render_bench, run_bench, suggest_weights
+        from .detectr.checkers import CheckerUnavailable, load_checker
+
+        config = _detectr_config(args.config)
+        checkers = {}
+        for name in [c.strip() for c in args.checkers.split(",") if c.strip()]:
+            try:
+                checkers[name] = load_checker(name, **config.checker_config.get(name, {}))
+            except (CheckerUnavailable, KeyError) as exc:
+                print(f"stoa: {exc}", file=sys.stderr)
+                return EXIT_ERROR
+        agentic_path = Path(args.agentic) if args.agentic else Path(__file__).resolve().parents[2] / "tests" / "detectr" / "fixtures" / "trajectories.json"
+        try:
+            agentic = json.loads(agentic_path.read_text(encoding="utf-8")) if agentic_path.is_file() else []
+            bench = run_bench(datasets=[d.strip() for d in args.datasets.split(",") if d.strip()], checkers=checkers, agentic=agentic,
+                              ragtruth_path=args.ragtruth, halubench_path=args.halubench, limit=args.limit)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            print(f"stoa: {exc}", file=sys.stderr)
+            return EXIT_ERROR
+        bench["suggested_weights"] = suggest_weights(bench)
+        if args.out:
+            Path(args.out).write_text(json.dumps(bench, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            print(f"stoa: wrote {args.out}", file=sys.stderr)
+        print(json.dumps(bench, indent=2, sort_keys=True) if args.json else render_bench(bench), end="" if not args.json else "\n")
+        return EXIT_OK
+    return EXIT_ERROR
 
 
 def _run_kill_command(args: argparse.Namespace) -> int:

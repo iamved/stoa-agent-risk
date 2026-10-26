@@ -9,6 +9,25 @@ Registry schema → 1.8 (additive). `stoa scan` now also writes
 `stoa-dashboard.html`: one self-contained file, six screens, no server, no
 network. See [docs/dashboard.md](docs/dashboard.md).
 
+### Hallucination DetectR (core)
+
+- `stoa detectr check | ledger | metrics | bench`: rebuild what an agent saw
+  and did (the ledger) from Stoa traces, OpenTelemetry GenAI spans or
+  LangGraph checkpoints; split what it said into typed claims; check them
+  with five deterministic rules, RT009 phantom action, RT010 result fidelity,
+  RT011 hallucinated promise, RT012 argument grounding, RT013 stale
+  grounding; fuse with optional text checkers; emit findings in the RT shape
+  and metrics as JSON. See [docs/detectr.md](docs/detectr.md).
+- Optional checkers behind extras: `hallucination` (LettuceDetect),
+  `hallucination-hhem` (Vectara HHEM-2.1-Open), `hallucination-judge`
+  (DeepEval). None run inline unless sync capable and configured.
+- SDK: `model_call().record(prompt=, response=, system=)`, guarded tool
+  arguments and results, `session.user_input()`, `session.system_prompt()`
+  and `session.retrieved()` are recorded in clear under
+  `capture_content=True` (through the redaction hook) and as hash and length
+  otherwise.
+- Crosswalk entries for RT009 to RT013; the dashboard rule table lists them.
+
 ### Added — evidence levels, risk types, passports
 - Every finding carries `evidence_level` (declared, static, reachable,
   observed, tested) and every agent `capability_evidence`; the Findings

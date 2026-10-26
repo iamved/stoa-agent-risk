@@ -184,8 +184,10 @@ Content mode also records what Hallucination DetectR needs to rebuild the
 agent's ledger (`docs/design/detectr.md`): `model_call().record(prompt=,
 response=, system=)`, the arguments and return value of every guarded tool,
 and `session.user_input()`, `session.system_prompt()` and
-`session.retrieved()`. In redacted mode these calls write nothing, so a trace
-that never opted in stays exactly as before.
+`session.retrieved()`. In redacted mode the same calls write a SHA-256 and a
+length instead of the text, so the ledger still knows each entry existed and
+can be verified against the trace; guarded tool spans gain `args_sha256` and
+`result_sha256` the same way.
 
 ### Policy (`stoa.policy.toml`)
 

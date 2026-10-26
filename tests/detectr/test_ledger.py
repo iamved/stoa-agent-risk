@@ -109,7 +109,8 @@ def test_sdk_records_content_only_when_opted_in(tmp_path):
     ledger = ledgers_from_trace_dir(tmp_path)[0]
     kinds = [e.kind for e in ledger.entries]
     assert kinds.count("system_prompt") == 2 and "retrieved_doc" in kinds and "tool_call" in kinds and "tool_result" in kinds
-    assert ledger.by_kind("system_prompt")[0].text_view == "You are the refund agent. [x]"
+    # the hook ran on the session's prompt; spans that share a millisecond keep file order
+    assert {e.text_view for e in ledger.by_kind("system_prompt")} == {"You are the refund agent. [x]", "You are the refund agent."}
     assert ledger.by_kind("user_input") and len(ledger.by_kind("user_input")) == 1  # prompt echo deduplicated
     assert ledger.by_tool("refund.issue", "tool_result")[0].parsed == {"status": "pending", "amount": 15.0}
     assert ledger.by_kind("retrieved_doc")[0].parsed == {"id": "doc1", "text": "Refund policy: 14 days"}
@@ -124,9 +125,11 @@ def test_sdk_records_content_only_when_opted_in(tmp_path):
         issue(8812, 150, approval_id="APR-4471")
     rt.flush()
     text = "".join(p.read_text() for p in plain.glob("*.jsonl"))
-    assert "8812" not in text.replace('"amount":{"amount":150', "") or True
     assert "Please refund" not in text and "Working on it" not in text and '"args"' not in text and '"result"' not in text
+    assert '"args_sha256"' in text and '"response_sha256"' in text  # shapes survive, content does not
     assert all(span.get("redaction") == "redacted" for span in TraceReader(plain).spans())
+    hashed = ledgers_from_trace_dir(plain)[0]
+    assert hashed.by_kind("agent_output")[0].content_captured is False and len(hashed.by_kind("agent_output")[0].hash) == 64
 
 
 def test_otel_builder_reads_current_and_legacy_shapes():

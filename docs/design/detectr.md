@@ -1,6 +1,6 @@
 # Hallucination DetectR: plan and design
 
-Status: build plan, 2026-10-25. Core only. No policy, graph or dashboard
+Status: built 2026-10-25 (core). User guide: `docs/detectr.md`. Core only. No policy, graph or dashboard
 work in this build; DetectR writes findings and metrics those features read
 later.
 
