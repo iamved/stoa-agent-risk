@@ -91,7 +91,7 @@ export function Loss() {
       </div>
 
       {!initial.declared ? (
-        <div className="mt-3 rounded-md border border-sev-medium/40 bg-sev-medium-bg px-4 py-3 text-[13px] text-sev-medium">
+        <div className="mt-3 rounded-sm border border-sev-medium/40 bg-sev-medium-bg px-4 py-3 text-[13px] text-sev-medium">
           No business context declared. The figures below use placeholder revenue, sector and records; adjust them and save the snippet to <span className="mono">.stoa/underwriting.toml</span> so the next scan carries them.
         </div>
       ) : null}
@@ -156,7 +156,7 @@ export function Loss() {
               );
             })}
             <div className="mt-2 flex items-center justify-between gap-2"><span className="caption">Save the business context</span><button type="button" onClick={copy} className="btn btn-sm">{copied ? "Copied" : "Copy [intake] snippet"}</button></div>
-            <textarea readOnly value={toml} rows={6} className="w-full rounded-md border border-line bg-paper p-2 mono text-[11.5px]" aria-label="Intake config snippet" onFocus={(e) => e.currentTarget.select()} />
+            <textarea readOnly value={toml} rows={6} className="w-full rounded-sm border border-line bg-paper p-2 mono text-[11.5px]" aria-label="Intake config snippet" onFocus={(e) => e.currentTarget.select()} />
           </div>
         </div>
         <details className="mt-2">
@@ -208,7 +208,7 @@ function Outlook({ r, levers, intake, model, notes, declared, agentId }: { r: In
 
       <LossOverTime />
 
-      <div className="mt-3 flex flex-wrap gap-x-10 gap-y-2 rounded-lg bg-gold-100/70 px-5 py-4">
+      <div className="mt-3 flex flex-wrap gap-x-10 gap-y-2 rounded-sm bg-gold-100/70 px-5 py-4">
         <div className="grid"><span className="caption">Suggested coverage limit</span><b className="text-[18px] font-semibold text-navy">{money(L.lean)} to {money(L.conservative)}</b></div>
         <div className="grid"><span className="caption">Most common choice</span><b className="text-[18px] font-semibold text-navy">{money(L.standard)}</b></div>
         <div className="grid"><span className="caption">Suggested retention</span><b className="text-[18px] font-semibold text-navy">{money(r.retention)}</b></div>

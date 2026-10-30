@@ -32,7 +32,7 @@ export function AgentDrawer({ agent, onClose }: { agent: Agent | null; onClose: 
   return (
     <Drawer open title={unique?.name ?? agentLabel(agent)} onClose={onClose} width={640}>
       {unique && unique.records.length > 1 ? (
-        <div className="mb-4 rounded-md border border-line bg-paper px-3 py-2.5">
+        <div className="mb-4 rounded-sm border border-line bg-paper px-3 py-2.5">
           <div className="text-[12.5px] text-ink-soft">One agent, found in {unique.records.length} places. {definedIn(unique)}.{unique.linkedBy === "declared" ? " Linked in your declaration file." : unique.linkedBy === "name" ? " Matched by name." : ""}</div>
           <ul className="m-0 mt-2 p-0 list-none flex flex-col gap-1" aria-label="Discovered records">
             {unique.info.map((info, i) => {

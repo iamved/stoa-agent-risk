@@ -76,8 +76,8 @@ export function AgentFlow() {
           const level = agentWorstLevel(envelope, a);
           const on = a === agent;
           return (
-            <button key={a.id} type="button" aria-pressed={on} onClick={() => pick(a)} title={level ? `Worst finding: ${RISK_LABEL[level]}` : "No findings"} className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[13px] cursor-pointer ${on ? "bg-navy border-navy text-white" : "bg-panel border-line-strong text-ink hover:border-ink-muted"}`}>
-              <span aria-hidden="true" className={`w-2 h-2 rounded-full ${level ? DOT[level] : "bg-line-strong"}`} />
+            <button key={a.id} type="button" aria-pressed={on} onClick={() => pick(a)} title={level ? `Worst finding: ${RISK_LABEL[level]}` : "No findings"} className={`inline-flex items-center gap-2 rounded-sm border px-3 py-1 text-[13px] cursor-pointer ${on ? "bg-navy border-navy text-white" : "bg-panel border-line-strong text-ink hover:border-ink-muted"}`}>
+              <span aria-hidden="true" className={`w-2 h-2 rounded-none ${level ? DOT[level] : "bg-line-strong"}`} />
               {a.name}
             </button>
           );

@@ -47,13 +47,13 @@ export function Drift() {
 
       <div className="mt-4 panel p-4 grid gap-3 md:grid-cols-[1fr_auto_1fr] items-center">
         <div>
-          <div className="caption uppercase tracking-wide text-[11px]">Baseline</div>
+          <div className="caption text-[11px]">Baseline</div>
           <div className="text-[16px] font-semibold text-navy">{base?.git_ref ?? diff.base.commit ?? "unknown ref"}</div>
           <div className="caption">{base?.head_commit ? `committed ${formatDate(base.head_commit.date)}` : "commit date unavailable"}{base?.name ? ` · ${base.name}` : ""}</div>
         </div>
         <div className="text-gold text-[20px] text-center" aria-hidden="true">→</div>
         <div>
-          <div className="caption uppercase tracking-wide text-[11px]">Current</div>
+          <div className="caption text-[11px]">Current</div>
           <div className="text-[16px] font-semibold text-navy">{r.repository.git_ref ?? diff.head.commit ?? "working tree"}</div>
           <div className="caption">{head ? `committed ${formatDate(head.date)}` : "commit date unavailable"} · {r.repository.name}</div>
         </div>
@@ -112,12 +112,12 @@ function ChangeRow({ change, emphasize }: { change: Change; emphasize?: boolean 
   return (
     <li className={`p-3 grid gap-x-3 gap-y-1 md:grid-cols-[minmax(150px,1fr)_minmax(180px,1.4fr)_minmax(160px,1.2fr)_auto] items-start text-[13px] ${emphasize ? "border-l-2 border-sev-high" : ""}`}>
       <div>
-        <div className="caption text-[11px] uppercase tracking-wide">{change.population ? (change.kind === "agent_added" ? "New agent" : "Removed agent") : "Agent"}</div>
+        <div className="caption text-[11px]">{change.population ? (change.kind === "agent_added" ? "New agent" : "Removed agent") : "Agent"}</div>
         <span className="flex items-center gap-2"><AgentMark />{agentExists ? <a href={buildHash("inventory", change.agentId)} className="link font-medium">{change.agentName}</a> : <span className="font-medium">{change.agentName}</span>}</span>
         <div className="caption mono truncate">{change.agentPath}</div>
       </div>
       <div>
-        <div className="caption text-[11px] uppercase tracking-wide">{change.population ? "Reason" : change.kind.replace(/_/g, " ")}</div>
+        <div className="caption text-[11px]">{change.population ? "Reason" : change.kind.replace(/_/g, " ")}</div>
         {change.fingerprint && findingExists ? <a href={buildHash("findings", change.fingerprint)} className="link mono">{change.label}</a> : <span className={change.kind.endsWith("_added") || change.kind === "finding_new" ? "mono" : ""}>{change.label}</span>}
       </div>
       <div className="caption">{change.detail}</div>

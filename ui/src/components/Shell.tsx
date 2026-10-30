@@ -76,9 +76,8 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
                       <a
                         href={item.href}
                         aria-current={active ? "page" : undefined}
-                        className={`relative flex items-center gap-2.5 rounded-md px-3 py-[7px] text-[13.5px] no-underline whitespace-nowrap ${active ? "bg-panel text-navy font-medium border border-line" : "text-ink-soft hover:text-navy hover:bg-panel/70 border border-transparent"}`}
+                        className={`relative flex items-center gap-2.5 px-3 py-[6px] text-[13.5px] no-underline whitespace-nowrap border-l-2 ${active ? "border-navy bg-[#eeece3] text-navy font-semibold" : "border-transparent text-ink-soft hover:text-navy hover:bg-[#eeece3]/60"}`}
                       >
-                        {active ? <span aria-hidden="true" className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-full bg-gold" /> : null}
                         <span className={active ? "text-gold" : "text-ink-muted"}><Glyph /></span>
                         <span className="flex-1">{item.label}</span>
                         {item.count !== undefined ? <span className="text-[11.5px] tabular-nums text-ink-muted">{item.count}</span> : null}
@@ -99,9 +98,9 @@ export function Shell({ screen, children }: { screen: ScreenId; children: ReactN
           <div className="md:hidden text-navy">
             <Logo height={24} />
           </div>
-          <div className="min-w-0 flex items-center gap-2.5 rounded-md border border-line bg-panel pl-1.5 pr-3 py-1" title={r.repository.name}>
-            <span aria-hidden="true" className="inline-flex h-7 w-7 flex-none items-center justify-center rounded bg-navy text-[11.5px] font-bold tracking-[0.04em] text-[#e3c88a]">{initials(company)}</span>
-            <span className="min-w-0 truncate text-[15px] font-semibold tracking-[-0.01em] text-navy leading-tight" data-testid="company">{company}</span>
+          <div className="min-w-0 flex items-center gap-2.5 py-1" title={r.repository.name}>
+            <span aria-hidden="true" className="inline-flex h-7 w-7 flex-none items-center justify-center rounded-sm bg-navy text-[11.5px] font-bold text-[#e3c88a]">{initials(company)}</span>
+            <span className="min-w-0 truncate text-[17px] font-semibold text-navy leading-tight" style={{ fontFamily: "var(--font-serif)" }} data-testid="company">{company}</span>
           </div>
           <div className="ml-auto flex items-center gap-2 no-print">
             <UserMenu />

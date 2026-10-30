@@ -64,7 +64,7 @@ function PassportView({ passport: p }: { passport: Passport }) {
       </div>
       <h1 className="m-0 mt-2">Agent passport: {p.agent.name}</h1>
       <div className="caption">{company} · scanned {formatDate(p.scan_date)} · registry {p.registry_hash} · stoa {p.scanner_version}</div>
-      <section aria-label="Verdict" className="mt-3 rounded-lg bg-navy text-white px-5 py-4 text-[14.5px] leading-[1.5]">
+      <section aria-label="Verdict" className="mt-3 rounded-sm bg-navy text-white px-5 py-4 text-[14.5px] leading-[1.5]">
         <strong className="text-[#e3c88a]">{rt?.primary ?? "No exposure"}</strong>{rt?.driver ? <> driven by {dimensionLabel(rt.driver).toLowerCase()} ({rt.driver_exposure}) · confidence {rt.confidence}</> : null} · passport <strong className="text-[#e3c88a]">{p.validity.status}</strong>{p.validity.reason ? ` (${p.validity.reason})` : ""}, {p.validity.rule}{p.validity.expires ? `, expires ${formatDate(p.validity.expires)}` : ""}
       </section>
 

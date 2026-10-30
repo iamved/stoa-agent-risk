@@ -207,10 +207,10 @@ function Assessment() {
           <div className="relative">
             <button type="button" aria-haspopup="menu" aria-expanded={exportOpen} onClick={() => setExportOpen(!exportOpen)} onBlur={(e) => { if (!e.currentTarget.parentElement?.contains(e.relatedTarget as Node)) setExportOpen(false); }} className="btn">Export <span aria-hidden="true" className="text-[10px]">▾</span></button>
             {exportOpen ? (
-              <div role="menu" aria-label="Export" className="absolute right-0 mt-1.5 w-60 panel shadow-lg z-30 p-1.5" onBlur={(e) => { if (!e.currentTarget.parentElement?.contains(e.relatedTarget as Node)) setExportOpen(false); }}>
+              <div role="menu" aria-label="Export" className="absolute right-0 mt-1.5 w-60 panel border border-line-strong z-30 p-1.5" onBlur={(e) => { if (!e.currentTarget.parentElement?.contains(e.relatedTarget as Node)) setExportOpen(false); }}>
                 <button role="menuitem" type="button" onClick={() => { setExportOpen(false); printAs("pack"); }} className="w-full text-left rounded px-3 py-2 text-[13px] hover:bg-paper">Print assessment (PDF)</button>
                 <button role="menuitem" type="button" onClick={() => { setExportOpen(false); printAs("summary"); }} className="w-full text-left rounded px-3 py-2 text-[13px] hover:bg-paper">Print summary</button>
-                <div className="px-3 pt-2 pb-1 mt-1 border-t border-line caption text-[11px] uppercase tracking-wide">Developer</div>
+                <div className="px-3 pt-2 pb-1 mt-1 border-t border-line caption text-[11px]">Developer</div>
                 <a role="menuitem" href={downloadHref} download="stoa-registry.json" onClick={() => setExportOpen(false)} className="block rounded px-3 py-2 text-[13px] no-underline text-ink hover:bg-paper">Download JSON</a>
                 <button role="menuitem" type="button" onClick={copyJson} className="w-full text-left rounded px-3 py-2 text-[13px] hover:bg-paper">{copied === "done" ? "Copied" : "Copy JSON"}</button>
               </div>
@@ -229,7 +229,7 @@ function Assessment() {
             <h2 className="m-0 text-[22px] leading-tight">{a.counts.prefilled} of {a.counts.total} answers came from your code</h2>
             <p className="mt-1 mb-0 text-[13.5px] text-ink-soft">{unconfirmed > 0 ? `${unconfirmed} need your confirmation.` : "You have reviewed the fields that needed you."} {a.counts.indicative} are agreed with the carrier later.</p>
             <div className="mt-3 flex gap-1 max-w-[520px]" role="img" aria-label={`${a.counts.prefilled} from your code, ${a.counts.to_confirm} need you, ${a.counts.indicative} agreed with the carrier later`}>
-              {[[a.counts.prefilled, "bg-navy"], [a.counts.to_confirm, unconfirmed > 0 ? "bg-gold" : "bg-navy/60"], [a.counts.indicative, "bg-line-strong"]].filter(([n]) => (n as number) > 0).map(([n, cls], i) => <span key={i} className={`h-1.5 rounded-full ${cls}`} style={{ flexGrow: n as number, flexBasis: 0 }} />)}
+              {[[a.counts.prefilled, "bg-navy"], [a.counts.to_confirm, unconfirmed > 0 ? "bg-gold" : "bg-navy/60"], [a.counts.indicative, "bg-line-strong"]].filter(([n]) => (n as number) > 0).map(([n, cls], i) => <span key={i} className={`h-1.5 rounded-none ${cls}`} style={{ flexGrow: n as number, flexBasis: 0 }} />)}
             </div>
             <ol className="m-0 mt-5 p-0 list-none grid gap-3 md:grid-cols-4">
               <Step n={1} title="Answers pre-filled from your code" body="Every technical answer below points at scan evidence. Nothing is typed by hand." done={a.counts.prefilled > 0} />
@@ -238,8 +238,8 @@ function Assessment() {
               <Step n={4} title="Submit through Stoa" body="Your Stoa advisor sends the signed assessment and evidence pack to the carrier." />
             </ol>
           </div>
-          <div className="rounded-lg border border-navy bg-navy text-white p-5">
-            <div className="text-[11px] uppercase tracking-[0.08em] text-white/70">Risks marked for transfer</div>
+          <div className="rounded-sm border border-navy bg-navy text-white p-5">
+            <div className="text-[11px] text-white/70">Risks marked for transfer</div>
             <div className="num text-[28px] leading-none mt-1 text-gold">{transfers.length}</div>
             <div className="text-[12.5px] text-white/75 mt-2">
               {transfers.length ? transfers.map((t) => `${t.dimension_name} · ${t.agent_name ?? t.agent_id}`).join("; ") : "No register row is marked for transfer yet. Mark one on the risk register to include it here."}
@@ -277,7 +277,7 @@ function Assessment() {
           </div>
 
           {editing ? (
-            <div className="mt-6 rounded-md border border-gold/50 bg-gold-100/40 p-4 no-print">
+            <div className="mt-6 rounded-sm border border-gold/50 bg-gold-100/40 p-4 no-print">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="text-[13px] font-medium text-navy">Editing. Scan-derived answers stay read-only; they change when the code changes.</div>
                 <button type="button" onClick={reset} className="btn btn-sm" disabled={!anyEdit}>Reset</button>
@@ -325,7 +325,7 @@ function Assessment() {
           </table>
           {editing ? <button type="button" onClick={() => setPerformance([...performance, { metric: "", value: "", cadence: "" }])} className="btn btn-sm mt-2 no-print">Add metric</button> : null}
 
-          <div className="mt-5 rounded-md border border-navy/30 overflow-hidden">
+          <div className="mt-5 rounded-sm border border-navy/30 overflow-hidden">
             <div className="bg-navy text-white px-4 py-2 flex flex-wrap items-center justify-between gap-2">
               <span className="text-[13px] font-semibold">Insurance requirements (schedule)</span>
               <span className="text-[11.5px] text-white/75">{scheduleDeclared ? `terms as declared; ${carrier} confirms them` : `indicative terms sized off exposure; ${carrier} sets the final terms`}</span>
@@ -357,7 +357,7 @@ function Assessment() {
       <div className="screen-view">
         {editing || anyEdit || confirmed ? (
           <Section title="Review and save" caption={<span>This page cannot write to your repository. Save the snippet with the details <span title=".stoa/underwriting.toml" className="underline decoration-dotted cursor-help">supplied during setup</span> and commit it. The next scan pre-fills the form from it.</span>} actions={<><button type="button" onClick={() => setEditing(!editing)} className="btn btn-sm">{editing ? "Stop editing" : "Edit the fields"}</button><button type="button" onClick={copyToml} className="btn btn-sm">{tomlCopied ? "Copied" : "Copy snippet"}</button>{!confirmed ? <button type="button" onClick={() => { setConfirmed(true); setEditing(false); }} className="btn btn-sm">I have reviewed these fields</button> : null}</>}>
-            <textarea readOnly value={toml} rows={Math.min(30, toml.split("\n").length)} className="w-full rounded-md border border-line bg-panel p-3 mono text-[12px]" aria-label="Underwriting config snippet" onFocus={(e) => e.currentTarget.select()} />
+            <textarea readOnly value={toml} rows={Math.min(30, toml.split("\n").length)} className="w-full rounded-sm border border-line bg-panel p-3 mono text-[12px]" aria-label="Underwriting config snippet" onFocus={(e) => e.currentTarget.select()} />
           </Section>
         ) : null}
         <Section title="Evidence pack" caption="What an underwriter can verify from this scan.">
@@ -373,8 +373,8 @@ function Assessment() {
 
 function Step({ n, title, body, done, next }: { n: number; title: string; body: string; done?: boolean; next?: boolean }) {
   return (
-    <li className={`flex gap-3 rounded-md p-2 -m-2 ${next ? "bg-gold-100/70 ring-1 ring-gold/50" : ""}`} aria-current={next ? "step" : undefined}>
-      <span aria-hidden="true" className={`flex-none w-6 h-6 rounded-full text-[12px] font-semibold flex items-center justify-center ${done ? "bg-navy text-white" : next ? "bg-gold text-navy" : "border border-line-strong text-ink-muted"}`}>{done ? "✓" : n}</span>
+    <li className={`flex gap-3 rounded-sm p-2 -m-2 ${next ? "bg-gold-100/70 ring-1 ring-gold/50" : ""}`} aria-current={next ? "step" : undefined}>
+      <span aria-hidden="true" className={`flex-none w-6 h-6 rounded-none text-[12px] font-semibold flex items-center justify-center ${done ? "bg-navy text-white" : next ? "bg-gold text-navy" : "border border-line-strong text-ink-muted"}`}>{done ? "✓" : n}</span>
       <div className="min-w-0">
         <div className="text-[13px] font-medium text-navy leading-snug">{title}{done ? <span className="sr-only"> (complete)</span> : next ? <span className="sr-only"> (next)</span> : null}</div>
         <div className="caption mt-0.5 leading-snug">{body}</div>
@@ -522,7 +522,7 @@ function EvidencePack() {
 
 function StatusDot({ status }: { status: Status }) {
   const cls: Record<Status, string> = { scanned: "bg-ok", declared: "bg-sev-info", ingested: "bg-navy", observed: "bg-gold", not_provided: "bg-line" };
-  return <span aria-hidden="true" className={`inline-block w-2.5 h-2.5 rounded-full ${cls[status]}`} />;
+  return <span aria-hidden="true" className={`inline-block w-2.5 h-2.5 rounded-none ${cls[status]}`} />;
 }
 
 function AreaCard({ area }: { area: AreaSummary }) {

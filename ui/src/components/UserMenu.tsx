@@ -32,8 +32,8 @@ export function UserMenu() {
 
   return (
     <div ref={root} className="relative">
-      <button type="button" onClick={() => setOpen(!open)} aria-haspopup="menu" aria-expanded={open} className="flex items-center gap-2.5 rounded-md border border-line bg-panel pl-1.5 pr-3 py-1.5 text-left hover:bg-paper" aria-label={`Reviewing as ${name}${title ? `, ${title}` : ""}${company ? ` at ${company}` : ""}`}>
-        <span aria-hidden="true" className="w-7 h-7 rounded-full bg-navy text-gold text-[11px] font-semibold flex items-center justify-center">{initials}</span>
+      <button type="button" onClick={() => setOpen(!open)} aria-haspopup="menu" aria-expanded={open} className="flex items-center gap-2.5 rounded-sm border border-line bg-panel pl-1.5 pr-3 py-1.5 text-left hover:bg-paper" aria-label={`Reviewing as ${name}${title ? `, ${title}` : ""}${company ? ` at ${company}` : ""}`}>
+        <span aria-hidden="true" className="w-7 h-7 rounded-none bg-navy text-gold text-[11px] font-semibold flex items-center justify-center">{initials}</span>
         <span className="min-w-0 hidden sm:block">
           <span className="block text-[13px] font-medium text-navy leading-tight truncate max-w-[180px]">{name}</span>
           <span className="block text-[11.5px] text-ink-muted leading-tight truncate max-w-[180px]">{[title, company].filter(Boolean).join(" · ") || "reviewer"}</span>
@@ -41,7 +41,7 @@ export function UserMenu() {
         <span aria-hidden="true" className="text-ink-muted text-[10px]">▾</span>
       </button>
       {open ? (
-        <div role="menu" aria-label="Reviewer" className="absolute right-0 mt-1.5 w-72 panel shadow-lg z-30 p-1.5">
+        <div role="menu" aria-label="Reviewer" className="absolute right-0 mt-1.5 w-72 panel border border-line-strong z-30 p-1.5">
           <div className="px-3 py-2 border-b border-line">
             <div className="text-[13px] font-medium text-navy">{name}</div>
             <div className="caption">{[title, company].filter(Boolean).join(" · ") || "No reviewer declared"}</div>

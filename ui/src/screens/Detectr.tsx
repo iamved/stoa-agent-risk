@@ -13,7 +13,7 @@ function ClaimText({ finding }: { finding: DetectrFinding }) {
   const marks = finding.detectr.issues.map((i) => i.raw ?? i.value).filter((v): v is string => Boolean(v && text.includes(v)));
   if (!marks.length) return <span>{text}</span>;
   const pattern = new RegExp(`(${marks.map((m) => m.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`, "g");
-  return <span>{text.split(pattern).map((part, i) => (marks.includes(part) ? <mark key={i} className="rounded bg-gold-100 px-0.5 text-navy font-semibold underline decoration-sev-high decoration-2">{part}</mark> : <span key={i}>{part}</span>))}</span>;
+  return <span>{text.split(pattern).map((part, i) => (marks.includes(part) ? <mark key={i} className="bg-gold-100 px-0.5 text-navy font-semibold underline decoration-gold decoration-2 underline-offset-2">{part}</mark> : <span key={i}>{part}</span>))}</span>;
 }
 
 /** DetectR: what each agent said and did, checked against what it saw. */

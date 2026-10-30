@@ -47,7 +47,7 @@ export function Scope() {
 
       {done.gaps.length ? (
         <div className="mt-3 panel px-4 py-3 text-[13px]">
-          <div className="caption uppercase text-[11px] tracking-wide mb-1.5">Worth filling in next</div>
+          <div className="caption text-[11px] mb-1.5">Worth filling in next</div>
           <ul className="m-0 p-0 list-none flex flex-wrap gap-x-5 gap-y-1">
             {done.gaps.slice(0, 5).map((g, i) => <li key={i}><span className="font-medium">{g.section}: {g.label}</span> <span className="caption">({g.why})</span></li>)}
             {done.gaps.length > 5 ? <li className="caption">and {done.gaps.length - 5} more</li> : null}
@@ -197,7 +197,7 @@ function SaveBox({ name, text, copied, onCopy }: { name: string; text: string; c
   return (
     <div>
       <div className="flex items-center justify-between gap-2 mb-1.5"><span className="mono text-[12.5px]">{name}</span><button type="button" onClick={onCopy} className="btn btn-sm">{copied ? "Copied" : "Copy"}</button></div>
-      <textarea readOnly value={text} rows={Math.min(28, text.split("\n").length + 1)} className="w-full rounded-md border border-line bg-panel p-3 mono text-[11.5px]" aria-label={`${name} contents`} onFocus={(e) => e.currentTarget.select()} />
+      <textarea readOnly value={text} rows={Math.min(28, text.split("\n").length + 1)} className="w-full rounded-sm border border-line bg-panel p-3 mono text-[11.5px]" aria-label={`${name} contents`} onFocus={(e) => e.currentTarget.select()} />
     </div>
   );
 }

@@ -60,9 +60,9 @@ function Standing({ cost }: { cost: CostOutlook | null }) {
   const { envelope } = useApp();
   const sentences = useMemo(() => standing(envelope, cost), [envelope, cost]);
   return (
-    <section aria-label="Where you stand" className="mt-3 rounded-lg bg-navy text-white px-5 py-4 flex flex-wrap items-center gap-x-8 gap-y-3">
+    <section aria-label="Where you stand" className="mt-3 rounded-sm bg-navy text-white px-5 py-4 flex flex-wrap items-center gap-x-8 gap-y-3">
       <div className="min-w-0 flex-1 basis-[36ch]">
-        <div aria-hidden="true" className="text-[11px] font-semibold tracking-[0.08em] uppercase text-[#d9bd7e]">Where you stand</div>
+        <div aria-hidden="true" className="text-[12px] font-semibold text-[#d9bd7e]">Where you stand</div>
         <p className="mt-1.5 mb-0 text-[15.5px] leading-[1.5] text-white max-w-[72ch]">
           {sentences.map((sentence, i) => (
             <span key={i}>
@@ -73,7 +73,7 @@ function Standing({ cost }: { cost: CostOutlook | null }) {
         </p>
       </div>
       <div className="no-print w-full sm:w-auto">
-        <button type="button" onClick={() => printAs("summary")} className="w-full rounded-md px-4 py-2 text-[13px] font-semibold bg-[#d9bd7e] text-navy hover:bg-[#e3c88a] cursor-pointer border-0">Export board report</button>
+        <button type="button" onClick={() => printAs("summary")} className="w-full rounded-sm px-4 py-2 text-[13px] font-semibold bg-[#d9bd7e] text-navy hover:bg-[#e3c88a] cursor-pointer border-0">Export board report</button>
       </div>
     </section>
   );
@@ -136,7 +136,7 @@ function FindingsTile() {
       {rows.length ? (
         <div className="grid grid-cols-[minmax(0,1.15fr)_minmax(100px,1fr)] gap-x-3 gap-y-1.5 items-center text-[12.5px]">
           <div className="caption text-[11px]" />
-          <div className="flex justify-between text-[10.5px] uppercase tracking-[0.06em] text-ink-muted" aria-hidden="true"><span>Low</span><span>Medium</span><span>High</span></div>
+          <div className="flex justify-between text-[11px] text-ink-muted" aria-hidden="true"><span>Low</span><span>Medium</span><span>High</span></div>
           {rows.map((r) => (
             <div key={r.id} className="contents">
               <div className="min-w-0 truncate"><a href={buildHash("inventory", r.id)} className="no-underline text-navy hover:underline">{r.name}</a>{r.isNew ? <span className="ml-1.5 chip chip-plain chip-high text-[10px] leading-4 py-0 px-1.5">new</span> : null}{!r.isNew && observedIds.has(r.id) ? <span className="ml-1.5 chip chip-plain chip-ok text-[10px] leading-4 py-0 px-1.5" title="This agent has runtime evidence in the window">observed</span> : null}</div>
@@ -144,7 +144,7 @@ function FindingsTile() {
                 <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-line-strong" />
                 <div className="absolute top-1/2 h-1.5 w-px -translate-y-1/2 bg-line-strong" style={{ left: `${SPECTRUM_BANDS.moderate}%` }} />
                 <div className="absolute top-1/2 h-1.5 w-px -translate-y-1/2 bg-line-strong" style={{ left: `${SPECTRUM_BANDS.elevated}%` }} />
-                <span role="img" aria-label={r.level === "none" ? "no findings" : r.level === "elevated" ? "high" : r.level === "moderate" ? "medium" : "low"} className={`absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ${SPECTRUM_DOT[r.level]} ${r.isNew ? "ring-2 ring-gold ring-offset-1 ring-offset-panel" : ""}`} style={{ left: `${Math.min(Math.max(r.score, 2), 98)}%` }} />
+                <span role="img" aria-label={r.level === "none" ? "no findings" : r.level === "elevated" ? "high" : r.level === "moderate" ? "medium" : "low"} className={`absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-none ${SPECTRUM_DOT[r.level]} ${r.isNew ? "ring-2 ring-gold ring-offset-1 ring-offset-panel" : ""}`} style={{ left: `${Math.min(Math.max(r.score, 2), 98)}%` }} />
               </div>
             </div>
           ))}
@@ -319,10 +319,10 @@ function AssessmentCard() {
         <h2 id="assessment-title" className="m-0">Insurance assessment</h2>
         <p className="mt-1 mb-0 text-[13px] text-ink-soft"><strong className="text-navy font-semibold">{c.prefilled} of {c.total}</strong> answers came from your code. <strong className="text-navy font-semibold">{c.to_confirm}</strong> need your confirmation.</p>
         <div className="mt-3 flex gap-1" role="img" aria-label={segments.map((s) => `${s.n} ${s.label.toLowerCase()}`).join(", ")}>
-          {segments.filter((s) => s.n > 0).map((s) => <span key={s.key} className={`h-1.5 rounded-full ${s.className}`} style={{ flexGrow: s.n, flexBasis: 0 }} />)}
+          {segments.filter((s) => s.n > 0).map((s) => <span key={s.key} className={`h-1.5 rounded-none ${s.className}`} style={{ flexGrow: s.n, flexBasis: 0 }} />)}
         </div>
         <ul className="mt-2 mb-0 p-0 list-none flex flex-wrap gap-x-3 gap-y-1 caption">
-          {segments.map((s) => <li key={s.key} className="flex items-center gap-1.5"><span aria-hidden="true" className={`inline-block w-2 h-2 rounded-full ${s.className}`} />{s.label}</li>)}
+          {segments.map((s) => <li key={s.key} className="flex items-center gap-1.5"><span aria-hidden="true" className={`inline-block w-2 h-2 rounded-none ${s.className}`} />{s.label}</li>)}
         </ul>
       </div>
       <a href={buildHash("evidence")} className="btn btn-primary no-underline justify-center text-center">Continue the assessment</a>

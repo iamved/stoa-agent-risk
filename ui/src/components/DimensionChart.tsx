@@ -29,7 +29,7 @@ export function DimensionChart({ selected, onSelect }: { selected: string | null
         </div>
       </div>
       <div role="table" aria-label="Findings by category" className="border-t border-line/70">
-        <div role="row" className="grid grid-cols-[minmax(0,1.5fr)_minmax(80px,1fr)_56px_150px] gap-x-4 px-5 py-2 text-[11px] uppercase tracking-wide font-semibold text-ink-muted border-b border-line/70">
+        <div role="row" className="grid grid-cols-[minmax(0,1.5fr)_minmax(80px,1fr)_56px_150px] gap-x-4 px-5 py-2 text-[11px] font-semibold text-ink-muted border-b border-line/70">
           <span role="columnheader">Category</span>
           <span role="columnheader">Severity</span>
           <span role="columnheader" className="text-right">Total</span>
@@ -43,7 +43,7 @@ export function DimensionChart({ selected, onSelect }: { selected: string | null
                 <button type="button" aria-pressed={on} disabled={bar.total === 0} onClick={() => onSelect(on ? null : bar.dimension.id)} className="text-left text-[13.5px] font-medium text-navy bg-transparent border-0 p-0 cursor-pointer enabled:hover:underline disabled:cursor-default">{bar.dimension.name}</button>
                 <span className="caption block">{dimensionSubtitle(bar.dimension.id, bar.dimension.definition)}</span>
               </span>
-              <span role="cell" className="flex h-2 rounded-full overflow-hidden bg-line/50" aria-label={RISK_LEVELS.map((l) => `${bar.counts[l]} ${LEVEL_NAME[l].toLowerCase()}`).join(", ")}>
+              <span role="cell" className="flex h-2 rounded-none overflow-hidden bg-line/50" aria-label={RISK_LEVELS.map((l) => `${bar.counts[l]} ${LEVEL_NAME[l].toLowerCase()}`).join(", ")}>
                 {RISK_LEVELS.filter((l) => bar.counts[l] > 0).map((l) => <span key={l} className={BAR[l]} style={{ width: `${(bar.counts[l] / max) * 100}%` }} />)}
               </span>
               <span role="cell" className="text-right tabular-nums text-[13px]">{bar.total}</span>

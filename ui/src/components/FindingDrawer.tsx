@@ -62,7 +62,7 @@ export function FindingDrawer({ ref, onClose, backQuery }: { ref: FindingRef | n
             {lines ? (
               <div>
                 <div className="caption mb-1">{label}</div>
-                <dl className="m-0 mono text-[12px] rounded-md border border-line bg-paper px-3 py-2 grid grid-cols-[max-content_1fr] gap-x-3 gap-y-0.5">
+                <dl className="m-0 mono text-[12px] rounded-sm border border-line bg-paper px-3 py-2 grid grid-cols-[max-content_1fr] gap-x-3 gap-y-0.5">
                   {lines.map((l) => <div key={l.label} className="contents"><dt className="text-ink-muted">{l.label}:</dt><dd className="m-0 text-navy">{l.value}</dd></div>)}
                 </dl>
               </div>
@@ -115,7 +115,7 @@ export function FindingDrawer({ ref, onClose, backQuery }: { ref: FindingRef | n
 
       <Doc title="How to fix">
         <p className="m-0">{howToFix(ref)}</p>
-        {f.declared_ref ? <p className="mono text-[12px] mt-2 mb-0 rounded-md border border-line bg-paper px-3 py-1.5 break-all" title={`In ${f.declared_ref.path}`}>{f.declared_ref.key}</p> : null}
+        {f.declared_ref ? <p className="mono text-[12px] mt-2 mb-0 rounded-sm border border-line bg-paper px-3 py-1.5 break-all" title={`In ${f.declared_ref.path}`}>{f.declared_ref.key}</p> : null}
       </Doc>
 
       {f.suppressed && f.suppression_reason ? (
