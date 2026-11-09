@@ -2,6 +2,8 @@
 
 **[stoa-agent-risk.dev](https://stoa-agent-risk.dev)** · [Case study](https://stoa-agent-risk.dev/case-study) · [Live demo report](https://stoa-agent-risk.dev/demo-report) · [PyPI](https://pypi.org/project/stoa-agent-risk/)
 
+[![Stoa on StartupScores](https://startupscores.com/badge/stoa.svg?style=shield&v=combo&theme=dark)](https://startupscores.com/open-source/stoa)
+
 **A local-first AI agent inventory and risk scanner** that identifies agent
 candidates with supporting evidence, maps their capabilities and integrations,
 and prevents newly introduced high-confidence critical risks from entering
